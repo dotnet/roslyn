@@ -1112,54 +1112,156 @@ class Test
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
-        private void TestAmbiguousOverridesWarningCase()
+        [Fact]
+        public void TestAmbiguousOverridesRefOut()
         {
-            // Tests:
-            // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
-            // override only differ by ref / out - test that only a warning (for runtime ambiguity) is reported 
-            // in the case where ambiguous signatures differ by just ref / out
-
-            var source = @"
-using System;
+            var method1 = @"public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine(""Base<T, U>.Method(ref List<T> x, out List<U> y)""); }";
+            var method2 = @"public virtual void Method(out List<U> y, ref List<T> x) { y = null; Console.WriteLine(""Base<T, U>.Method(out List<U> y, ref List<T> x)""); }";
+            var source =
+@"using System;
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
-    public virtual void Method(ref List<T> x, out List<U> y) { Console.WriteLine(""Base.Method(ref, out)""); y = null; }
-    public virtual void Method(out List<U> y, ref List<T> x) { Console.WriteLine(""Base.Method(out, ref)""); y = null; }
-    public virtual void Method(ref List<U> x) { Console.WriteLine(""Base.Method(ref)""); }
+    METHOD1
+    METHOD2
+    public virtual void Method(BASEREF List<U> x) { x = null; Console.WriteLine(""Base<T, U>.Method(ref List<U> x)""); }  
 }
 class Base2<A, B> : Base<A, B>
 {
-    public virtual void Method(out List<A> x) { Console.WriteLine(""Base2.Method(out)""); x = null; }
+    public virtual void Method(BASE2REF List<A> x)
+    {
+        x = null;
+        Console.WriteLine(""Base2<A, B>.Method(BASE2REF List<A> x)"");
+    }
 }
 class Derived : Base2<int, int>
 {
-    public override void Method(ref List<int> a, out List<int> b) { Console.WriteLine(""Derived.Method(ref, out)""); b = null; } // Reports warning about runtime ambiguity
-    public override void Method(ref List<int> a) { Console.WriteLine(""Derived.Method(ref)""); } // No warning when ambiguous signatures are spread across multiple base types
-}
-class Test
-{
-    public static void Main()
+    public override void Method(ref List<int> a, out List<int> b)
     {
-        Base<int, int> b = new Derived();
-        List<int> arg = new List<int>();
-        b.Method(out arg, ref arg);
-        b.Method(ref arg, out arg);
-        b.Method(ref arg);
+        b = null;
+        Console.WriteLine(""Derived.Method(ref List<int> a, out List<int> b)"");
+    }
+    public override void Method(BASEREF List<int> a)
+    {
+        a = null;
+        Console.WriteLine(""Derived.Method(BASEREF List<int> a)"");
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        List<int> t = null;
+        Console.WriteLine();
+        Derived d = new Derived();
+        d.Method(ref t, out t);
+        d.Method(out t, ref t);
+        d.Method(BASEREF t);
+        d.Method(BASE2REF t);
+        Console.WriteLine();
+        Base2<int, int> b2 = d;
+        b2.Method(ref t, out t);
+        b2.Method(out t, ref t);
+        b2.Method(BASEREF t);
+        b2.Method(BASE2REF t);
+        Console.WriteLine();
+        Base<int, int> b1 = d;
+        b1.Method(ref t, out t);
+        b1.Method(out t, ref t);
+        b1.Method(BASEREF t);
     }
 }
 ";
-            // Note: This test is exercising a case that is 'Runtime Ambiguous'. In the generated IL, it is ambiguous which
-            // method is being overridden. As far as I can tell, the output won't change from build to build / machine to machine
-            // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
-            // the test flaky, we can delete this test.
+            for (int i = 0; i < 2; i++)
+            {
+                var substitutedSource0 = i switch
+                {
+                    0 => source.Replace("METHOD1", method1).Replace("METHOD2", method2),
+                    _ => source.Replace("METHOD2", method1).Replace("METHOD1", method2),
+                };
+                for (int j = 0; j < 2; j++)
+                {
+                    string subst(string s) => j switch
+                    {
+                        0 => s.Replace("BASEREF", "ref").Replace("BASE2REF", "out"),
+                        _ => s.Replace("BASEREF", "out").Replace("BASE2REF", "ref"),
+                    };
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
-Derived.Method(ref, out)
-Base.Method(ref, out)
-Base.Method(ref)");
+                    var substitutedSource = subst(substitutedSource0);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe);
+                    string expectedOutput;
+                    if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+                    {
+                        // Correct runtime behavior with no warning
+                        compilation.VerifyDiagnostics();
+                        expectedOutput = @"
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+";
+                    }
+                    else if (ExecutionConditionUtil.IsCoreClr || ExecutionConditionUtil.IsDesktop)
+                    {
+                        // Imperfect runtime behavior with warning
+                        switch (i)
+                        {
+                            case 0:
+                                compilation.VerifyDiagnostics(
+                                    // (5,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(5, 25)
+                                    );
+                                break;
+                            default:
+                                compilation.VerifyDiagnostics(
+                                    // (6,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(6, 25)
+                                    );
+                                break;
+                        }
+                        var (m1, m2) = i switch
+                        {
+                            0 => ("Base<T, U>.Method(ref List<T> x, out List<U> y)", "Derived.Method(ref List<int> a, out List<int> b)"),
+                            _ => ("Derived.Method(ref List<int> a, out List<int> b)", "Base<T, U>.Method(out List<U> y, ref List<T> x)"),
+                        };
+                        expectedOutput = $@"
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)";
+                    }
+                    else
+                    {
+                        // unknown runtime behavior
+                        continue;
+                    }
+
+                    var substitutedExpected = subst(expectedOutput);
+                    var verifier = CompileAndVerify(compilation, expectedOutput: substitutedExpected);
+                }
+            }
         }
+
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
 
@@ -3695,17 +3797,46 @@ public class C : B
             var text = @"
 public class A
 {
-    public virtual int get_P() { return 0; }
+    public virtual int get_P()
+    {
+        System.Console.WriteLine(""A::get_P"");
+        return 0;
+    }
 }
 
 public class B : A
 {
-    public virtual int P { get; set; }
+    public virtual int P
+    {
+        get
+        {
+            System.Console.WriteLine(""B::P.get"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""B::P.set"");
+        }
+    }
 }
 
 public class C : B
 {
-    public override int get_P() { return 0; }
+    public override int get_P()
+    {
+        System.Console.WriteLine(""C::get_P"");
+        return 0;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C c = new C();
+        _ = c.P;
+        _ = c.get_P();
+    }
 }
 ";
             Action<ModuleSymbol> validator = module =>
@@ -3729,7 +3860,9 @@ public class C : B
                 Assert.Equal(methodA, methodC.OverriddenMethod);
             };
 
-            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput:
+@"B::P.get
+C::get_P");
         }
 
         /// <summary>
@@ -3968,7 +4101,7 @@ class B : A
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
                 var fooB = classB.GetMember<MethodSymbol>("Foo");
 
-                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB));
+                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB, requireSameReturnType: false));
 
                 Assert.Equal(1, fooA.ParameterCount);
                 var parameterA = fooA.Parameters[0];

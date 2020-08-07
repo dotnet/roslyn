@@ -46,13 +46,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(
-            LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken)
+        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return Array.Empty<VSCodeAction>();

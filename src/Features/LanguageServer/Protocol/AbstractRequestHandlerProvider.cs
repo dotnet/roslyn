@@ -43,7 +43,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return handler.HandleRequestAsync(request, clientCapabilities, clientName, cancellationToken);
+            var context = CreateContext(clientCapabilities, clientName);
+            return handler.HandleRequestAsync(request, context, cancellationToken);
         }
+
+        private static RequestContext CreateContext(LSP.ClientCapabilities clientCapabilities, string? clientName)
+            => new RequestContext(clientCapabilities, clientName);
     }
 }

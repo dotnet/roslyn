@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
-    [ExportWorkspaceServiceFactory(typeof(IOptionService), ServiceLayer.Host), Shared, PartNotDiscoverable]
+    [ExportWorkspaceServiceFactory(typeof(IOptionService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestOptionsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>> _providers;

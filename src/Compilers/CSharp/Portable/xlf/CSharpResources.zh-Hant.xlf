@@ -78,13 +78,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
-        <target state="translated">因為 '{0}' 不包含適用於 '{1}' 的公用執行個體定義，所以非同步的 foreach 陳述式無法在類型為 '{0}' 的變數上運作</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">因為 '{0}' 不包含適用於 '{1}' 的公用執行個體定義，所以非同步的 foreach 陳述式無法在類型為 '{0}' 的變數上運作</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以非同步的 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'foreach' 而不是 'await foreach' 嗎?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="needs-review-translation">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以非同步的 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'foreach' 而不是 'await foreach' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have both a 'data' modifier and non-empty parameter list</source>
-        <target state="translated">位置記錄必須同時具有 'data' 修飾元及非空白的參數清單</target>
+        <source>A positional record must have a non-empty parameter list</source>
+        <target state="needs-review-translation">位置記錄必須同時具有 'data' 修飾元及非空白的參數清單</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
@@ -378,8 +378,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'await foreach' 而不是 'foreach' 嗎?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="needs-review-translation">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'await foreach' 而不是 'foreach' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FuncPtrMethMustBeStatic">
@@ -720,6 +720,16 @@
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">浮點 NaN 不可使用關聯性模式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
+        <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
+        <target state="new">'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
@@ -1261,6 +1271,11 @@
         <target state="translated">聯合指派</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
         <source>default type parameter constraints</source>
         <target state="new">default type parameter constraints</target>
@@ -1289,6 +1304,16 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">可延伸 fixed 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetAsyncEnumerator">
+        <source>extension GetAsyncEnumerator</source>
+        <target state="new">extension GetAsyncEnumerator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetEnumerator">
+        <source>extension GetEnumerator</source>
+        <target state="new">extension GetEnumerator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
@@ -2386,6 +2411,16 @@
         <target state="translated">可為 Null 的實值型別可為 Null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned">
+        <source>The out parameter '{0}' must be assigned to before control leaves the current method</source>
+        <target state="new">The out parameter '{0}' must be assigned to before control leaves the current method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParamUnassigned_Title">
+        <source>An out parameter must be assigned to before control leaves the method</source>
+        <target state="new">An out parameter must be assigned to before control leaves the method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
         <target state="translated">參數 '{0}' 在以 '{1}' 結束時必須具有非 Null 值。</target>
@@ -2404,6 +2439,26 @@
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
         <target state="translated">參數在結束時必須具有非 Null 值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion">
+        <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
+        <target state="new">Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrecedenceInversion_Title">
+        <source>Operator cannot be used here due to precedence.</source>
+        <target state="new">Operator cannot be used here due to precedence.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance_Title">
+        <source>Type does not implement the collection pattern; member is is not a public instance or extension method.</source>
+        <target state="new">Type does not implement the collection pattern; member is is not a public instance or extension method.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -2436,9 +2491,29 @@
         <target state="translated">switch 運算式未處理部分 null 輸入 (未徹底處理)。例如，未涵蓋模式 '{0}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="new">The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNullWithWhen_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="new">The switch expression does not handle some null inputs.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
         <target state="translated">Switch 運算式未處理某些 null 輸入。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</source>
+        <target state="new">The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{0}' is not covered. However, a pattern with a 'when' clause might successfully match this value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithWhen_Title">
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="new">The switch expression does not handle all possible values of its input type (it is not exhaustive).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
@@ -2536,6 +2611,26 @@
         <target state="translated">類型參數與外部方法的類型參數，類型相同。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedThis">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
+        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
+        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
+        <target state="new">An auto-implemented property must be fully assigned before control is returned to the caller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThis_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
+        <target state="new">Fields of a struct must be fully assigned in a constructor before control is returned to the caller</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
         <target state="translated">Unboxing 可能 null 值。</target>
@@ -2574,6 +2669,56 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
         <target state="translated">不可為 null 的欄位未初始化。請考慮宣告為可為 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation">
+        <source>Use of unassigned local variable '{0}'</source>
+        <target state="new">Use of unassigned local variable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField">
+        <source>Use of possibly unassigned field '{0}'</source>
+        <target state="new">Use of possibly unassigned field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationField_Title">
+        <source>Use of possibly unassigned field</source>
+        <target state="new">Use of possibly unassigned field</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut">
+        <source>Use of unassigned out parameter '{0}'</source>
+        <target state="new">Use of unassigned out parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationOut_Title">
+        <source>Use of unassigned out parameter</source>
+        <target state="new">Use of unassigned out parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty">
+        <source>Use of possibly unassigned auto-implemented property '{0}'</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationProperty_Title">
+        <source>Use of possibly unassigned auto-implemented property</source>
+        <target state="new">Use of possibly unassigned auto-implemented property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis">
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="new">The 'this' object cannot be used before all of its fields have been assigned</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThis_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
+        <target state="new">The 'this' object cannot be used in a constructor before all of its fields have been assigned</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolation_Title">
+        <source>Use of unassigned local variable</source>
+        <target state="new">Use of unassigned local variable</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -3017,8 +3162,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewRequired_Description">
-        <source>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
-        <target state="translated">所宣告的變數名稱與基底類別中的變數相同。不過，未使用 new 關鍵字。此警告通知您應該使用 new; 宣告變數的方式就像已將 new 用於宣告一樣。</target>
+        <source>A variable was declared with the same name as a variable in a base type. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</source>
+        <target state="needs-review-translation">所宣告的變數名稱與基底類別中的變數相同。不過，未使用 new 關鍵字。此警告通知您應該使用 new; 宣告變數的方式就像已將 new 用於宣告一樣。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NewNotRequired">
@@ -3177,8 +3322,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNewAbstract">
-        <source>Cannot create an instance of the abstract class or interface '{0}'</source>
-        <target state="translated">無法建立抽象類別或介面 '{0}' 的執行個體</target>
+        <source>Cannot create an instance of the abstract type or interface '{0}'</source>
+        <target state="needs-review-translation">無法建立抽象類別或介面 '{0}' 的執行個體</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstValueRequired">
@@ -3187,8 +3332,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBase">
-        <source>Circular base class dependency involving '{0}' and '{1}'</source>
-        <target state="translated">循環基底類別相依包括 '{0}' 和 '{1}'</target>
+        <source>Circular base type dependency involving '{0}' and '{1}'</source>
+        <target state="needs-review-translation">循環基底類別相依包括 '{0}' 和 '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDelegateConstructor">
@@ -3442,8 +3587,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields are assigned to</source>
-        <target state="translated">指定其所有欄位前，無法使用 'this' 物件</target>
+        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
+        <target state="needs-review-translation">指定其所有欄位前，無法使用 'this' 物件</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -3687,8 +3832,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CallingBaseFinalizeDeprecated">
-        <source>Do not directly call your base class Finalize method. It is called automatically from your destructor.</source>
-        <target state="translated">請勿直接呼叫您的基底類別 Finalize 方法。其會從您的解構函式自動呼叫。</target>
+        <source>Do not directly call your base type Finalize method. It is called automatically from your destructor.</source>
+        <target state="needs-review-translation">請勿直接呼叫您的基底類別 Finalize 方法。其會從您的解構函式自動呼叫。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NegativeArrayIndex">
@@ -3772,13 +3917,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'</source>
-        <target state="translated">partial' 修飾元只可緊接在 'class'、'struct'、'interface' 或 'void' 之前。</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <target state="needs-review-translation">partial' 修飾元只可緊接在 'class'、'struct'、'interface' 或 'void' 之前。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
-        <source>Imported type '{0}' is invalid. It contains a circular base class dependency.</source>
-        <target state="translated">匯入的類型 '{0}' 無效。其包含循環基底類別相依性。</target>
+        <source>Imported type '{0}' is invalid. It contains a circular base type dependency.</source>
+        <target state="needs-review-translation">匯入的類型 '{0}' 無效。其包含循環基底類別相依性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationOut">
@@ -3829,16 +3974,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">類型未實作集合模式; 成員模稜兩可</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="translated">'{0}' 未實作 '{1}' 模式，因為 '{2}' 為靜態或並非公用。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
-        <source>Type does not implement the collection pattern; member is either static or not public</source>
-        <target state="translated">類型未實作集合模式; 成員為靜態或非公用</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
@@ -4032,8 +4167,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
-        <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'{0}': 為抽象類別，不可為密封或靜態。</target>
+        <source>'{0}': an abstract type cannot be sealed or static</source>
+        <target state="needs-review-translation">'{0}': 為抽象類別，不可為密封或靜態。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -4167,8 +4302,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
-        <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'{0}': 類別不可同時為 static 和 sealed</target>
+        <source>'{0}': a type cannot be both static and sealed</source>
+        <target state="needs-review-translation">'{0}': 類別不可同時為 static 和 sealed</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -4406,8 +4541,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
-        <source>'{0}' is abstract but it is contained in non-abstract class '{1}'</source>
-        <target state="translated">'{0}' 為抽象，因為其包含在非抽象類別 '{1}' 中。</target>
+        <source>'{0}' is abstract but it is contained in non-abstract type '{1}'</source>
+        <target state="needs-review-translation">'{0}' 為抽象，因為其包含在非抽象類別 '{1}' 中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticConstructorWithExplicitConstructorCall">
@@ -4526,8 +4661,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">'{0}': 明確的介面宣告只能在類別、結構或介面中宣告</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, record, struct or interface</source>
+        <target state="needs-review-translation">'{0}': 明確的介面宣告只能在類別、結構或介面中宣告</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -4566,8 +4701,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
-        <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0}' 是密封類別 '{1}' 中新的虛擬成員</target>
+        <source>'{0}' is a new virtual member in sealed type '{1}'</source>
+        <target state="needs-review-translation">'{0}' 是密封類別 '{1}' 中新的虛擬成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -4586,13 +4721,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithBase">
-        <source>'{0}': user-defined conversions to or from a base class are not allowed</source>
-        <target state="translated">'{0}': 在基底類別之間不可進行使用者定義的轉換</target>
+        <source>'{0}': user-defined conversions to or from a base type are not allowed</source>
+        <target state="needs-review-translation">'{0}': 在基底類別之間不可進行使用者定義的轉換</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionWithDerived">
-        <source>'{0}': user-defined conversions to or from a derived class are not allowed</source>
-        <target state="translated">'{0}': 衍生類別之間不可進行使用者定義的轉換</target>
+        <source>'{0}': user-defined conversions to or from a derived type are not allowed</source>
+        <target state="needs-review-translation">'{0}': 衍生類別之間不可進行使用者定義的轉換</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
@@ -4671,8 +4806,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
-        <source>Name of destructor must match name of class</source>
-        <target state="translated">解構函式的名稱必須符合類別的名稱</target>
+        <source>Name of destructor must match name of type</source>
+        <target state="needs-review-translation">解構函式的名稱必須符合類別的名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OnlyClassesCanContainDestructors">
@@ -4876,13 +5011,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
-        <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}': 在密封類別中宣告了新的 Protected 成員</target>
+        <source>'{0}': new protected member declared in sealed type</source>
+        <target state="needs-review-translation">'{0}': 在密封類別中宣告了新的 Protected 成員</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
-        <source>New protected member declared in sealed class</source>
-        <target state="translated">在密封類別中已宣告新的受保護成員</target>
+        <source>New protected member declared in sealed type</source>
+        <target state="needs-review-translation">在密封類別中已宣告新的受保護成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -5426,8 +5561,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="translated">在部分類別、部分結構或部分介面中必須宣告部分方法</target>
+        <source>A partial method must be declared within a partial type</source>
+        <target state="needs-review-translation">在部分類別、部分結構或部分介面中必須宣告部分方法</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -6050,8 +6185,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, struct, or interface member declaration</source>
-        <target state="translated">類別、結構或介面成員宣告中的語彙基元 '{0}' 無效。</target>
+        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
+        <target state="needs-review-translation">類別、結構或介面成員宣告中的語彙基元 '{0}' 無效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -6170,8 +6305,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">為 Main 方法指定的 '{0}' 必須為非泛型類別、結構或介面</target>
+        <source>'{0}' specified for Main method must be a non-generic class, record, struct, or interface</source>
+        <target state="needs-review-translation">為 Main 方法指定的 '{0}' 必須為非泛型類別、結構或介面</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -6295,8 +6430,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">foreach 陳述式不可用在類型 '{0}' 的變數上，因為 '{0}' 未包含 '{1}' 的公用執行個體定義</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">foreach 陳述式不可用在類型 '{0}' 的變數上，因為 '{0}' 未包含 '{1}' 的公用執行個體定義</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -6650,8 +6785,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">無法指派給唯讀欄位 (除非位於建構函式內; 或位於已定義此欄位的類別中，僅供初始化的 Setter 內; 或位於變數的初始設定式內)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)</source>
+        <target state="needs-review-translation">無法指派給唯讀欄位 (除非位於建構函式內; 或位於已定義此欄位的類別中，僅供初始化的 Setter 內; 或位於變數的初始設定式內)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -7433,8 +7568,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches">
-        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</source>
-        <target state="translated">成員 '{1}' 會覆寫 '{0}'。在執行階段有多個覆寫候選項。實作將視所呼叫的方法而定。</target>
+        <source>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.</source>
+        <target state="needs-review-translation">成員 '{1}' 會覆寫 '{0}'。在執行階段有多個覆寫候選項。實作將視所呼叫的方法而定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MultipleRuntimeOverrideMatches_Title">
