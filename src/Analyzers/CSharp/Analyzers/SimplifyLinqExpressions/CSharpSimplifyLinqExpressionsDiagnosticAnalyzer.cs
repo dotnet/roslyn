@@ -10,8 +10,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 using System.Linq;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
