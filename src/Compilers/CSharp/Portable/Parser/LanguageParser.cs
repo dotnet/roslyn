@@ -4124,11 +4124,7 @@ tryAgain:
                     if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                     {
                         exclamationExclamation = this.EatToken();
-                        if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-                        {
-                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                        if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
                         {
                             var exclamationEquals = this.EatToken();
                             var exclamation2 = SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, null);
@@ -4137,7 +4133,7 @@ tryAgain:
                         }
                         else
                         {
-                            exclamationExclamation = this.AddError(exclamationExclamation, ErrorCode.ERR_IncorrectNullCheckSyntax);
+                            exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
                         }
                     }
                     else if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
