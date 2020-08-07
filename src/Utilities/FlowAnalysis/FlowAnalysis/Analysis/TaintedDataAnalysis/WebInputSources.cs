@@ -81,6 +81,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         }
 
                         methodCache.TryAdd(parameter.ContainingSymbol, true);
+
+                        if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute, out var fromServicesAttributeTypeSymbol)
+                            || parameter.HasAttribute(fromServicesAttributeTypeSymbol))
+                        {
+                            return false;
+                        }
+
                         return true;
                     }
                  });

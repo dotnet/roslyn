@@ -16,6 +16,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcFiltersIAsyncAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter";
         public const string MicrosoftAspNetCoreMvcFiltersIAuthorizationFilter = "Microsoft.AspNetCore.Mvc.Filters.IAuthorizationFilter";
         public const string MicrosoftAspNetCoreMvcFiltersIFilterMetadata = "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata";
+        public const string MicrosoftAspNetCoreMvcFromServicesAttribute = "Microsoft.AspNetCore.Mvc.FromServicesAttribute";
         public const string MicrosoftAspNetCoreMvcHttpDeleteAttribute = "Microsoft.AspNetCore.Mvc.HttpDeleteAttribute";
         public const string MicrosoftAspNetCoreMvcHttpPatchAttribute = "Microsoft.AspNetCore.Mvc.HttpPatchAttribute";
         public const string MicrosoftAspNetCoreMvcHttpPostAttribute = "Microsoft.AspNetCore.Mvc.HttpPostAttribute";
