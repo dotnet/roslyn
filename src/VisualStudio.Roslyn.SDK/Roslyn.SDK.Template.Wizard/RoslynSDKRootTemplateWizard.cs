@@ -33,8 +33,15 @@ public partial class RoslynSDKRootTemplateWizard
         GlobalDictionary["$saferootprojectname$"] = replacementsDictionary["$safeprojectname$"];
         GlobalDictionary["$saferootidentifiername$"] = replacementsDictionary["$safeprojectname$"].Replace(".","");
 
-        var solutionFile = dte.Solution.FullName;
-        var solutionFolder = Path.GetDirectoryName(solutionFile);
+        if (!replacementsDictionary.TryGetValue("$solutiondirectory$", out var solutionFolder))
+        {
+            var solutionFile = dte.Solution.FullName;
+            if (string.IsNullOrEmpty(solutionFile))
+                return;
+
+            solutionFolder = Path.GetDirectoryName(solutionFile);
+        }
+
         if (Directory.Exists(solutionFolder))
         {
             File.WriteAllText(
