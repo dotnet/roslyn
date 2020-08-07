@@ -57,6 +57,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool RequiresValueContentAnalysis => false;
 
+        /// <summary>
+        /// Qualified name of the optional dependency type.
+        /// </summary>
         public string? DependencyFullTypeName => null;
 
         public override int GetHashCode()
