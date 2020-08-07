@@ -212,6 +212,7 @@ namespace Microsoft.CodeAnalysis
                             catch (Exception e)
                             {
                                 stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], e, diagnosticsBag);
+                                walkerBuilder.SetItem(i, null); // don't re-visit this walker for any other trees
                             }
                         }
                     }
@@ -226,10 +227,11 @@ namespace Microsoft.CodeAnalysis
                 var generatorState = stateBuilder[i];
 
                 // don't try and generate if initialization or syntax walk failed
-                if (!generatorState.Info.Initialized || generatorState.Exception is object)
+                if (generatorState.Exception is object)
                 {
                     continue;
                 }
+                Debug.Assert(generatorState.Info.Initialized);
 
                 // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
                 var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);

@@ -280,6 +280,47 @@ class C
         }
 
         [Fact]
+        public void Syntax_Receiver_Exception_During_Visit_Stops_Visits_On_Other_Trees()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+}
+
+class D
+{
+    public void Method() { }
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            TestSyntaxReceiver receiver1 = new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is PropertyDeclarationSyntax) throw new Exception("Test Exception"); });
+            var testGenerator1 = new CallbackGenerator(
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => receiver1),
+                onExecute: (e) => { }
+                );
+
+            TestSyntaxReceiver receiver2 = new TestSyntaxReceiver(tag: 1);
+            var testGenerator2 = new CallbackGenerator2(
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => receiver2),
+                onExecute: (e) => { }
+                );
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator1, testGenerator2), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
+            var results = driver.GetRunResult();
+
+            Assert.DoesNotContain(receiver1.VisitedNodes, n => n is MethodDeclarationSyntax);
+            Assert.Contains(receiver2.VisitedNodes, n => n is MethodDeclarationSyntax);
+
+        }
+
+        [Fact]
         public void Syntax_Receiver_Exception_During_Visit_Doesnt_Stop_Other_Receivers()
         {
             var source = @"
@@ -331,6 +372,44 @@ class C
 
             outputDiagnostics.Verify(
                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void Syntax_Receiver_Is_Not_Created_If_Exception_During_Initialize()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            TestSyntaxReceiver? receiver = null;
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { i.RegisterForSyntaxNotifications(() => receiver = new TestSyntaxReceiver()); throw new Exception("test exception"); },
+                onExecute: (e) => { Assert.True(false); }
+                ) ;
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
+            var results = driver.GetRunResult();
+
+            Assert.Null(receiver);
+
+            outputDiagnostics.Verify(
+                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator").WithLocation(1, 1)
                 );
         }
 
