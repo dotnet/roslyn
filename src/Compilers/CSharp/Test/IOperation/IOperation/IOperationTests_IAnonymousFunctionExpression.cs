@@ -467,15 +467,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,30): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // file.cs(8,30): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         /*<bind>*/Action x = static () => F();/*</bind>*/
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(
                 source,
                 expectedOperationTree,
-                expectedDiagnostics
+                expectedDiagnostics,
+                parseOptions: TestOptions.Regular8
                 );
 
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);

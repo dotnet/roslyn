@@ -3924,7 +3924,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                     // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
                     //             void localFunc([A(o1)] object o3 = o2)
@@ -4565,7 +4565,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (17,16): warning CS8603: Possible null reference return.
                 //         return z2; // 1

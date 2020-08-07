@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void SimpleFunctionPointerTest()
         {
-            UsingStatement("delegate*<string, Goo, int> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<string, Goo, int> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [InlineData("invalidcallingconvention")] // This is a semantic error, not a syntax error
         public void UnmanagedCallingConventionSpecifiers(string conventionString)
         {
-            UsingStatement($"delegate* unmanaged[{conventionString}]<string, Goo, int> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement($"delegate* unmanaged[{conventionString}]<string, Goo, int> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void VoidsAsType()
         {
             // Void isn't allowed in anything but the return type, but that's a semantic error, not a syntax error
-            UsingStatement("delegate*<void, void, void> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<void, void, void> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void NestedFunctionPointers()
         {
-            UsingStatement("delegate*<delegate* unmanaged[cdecl]<int*, void*>, delegate* managed<string*>> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<delegate* unmanaged[cdecl]<int*, void*>, delegate* managed<string*>> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void PointerToAFunctionPointer()
         {
-            UsingStatement("delegate*<Goo, void>* ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<Goo, void>* ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void RefModifiers()
         {
-            UsingStatement("delegate*<ref Goo, in Bar, out Baz, ref readonly void*> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<ref Goo, in Bar, out Baz, ref readonly void*> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_01()
         {
-            UsingStatement("delegate*< ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*< ;", options: TestOptions.Regular9,
                     // (1,12): error CS1031: Type expected
                     // delegate*< ;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_02()
         {
-            UsingStatement("delegate*<ref ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<ref ;", options: TestOptions.Regular9,
                     // (1,15): error CS1031: Type expected
                     // delegate*<ref ;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_03()
         {
-            UsingStatement("delegate*<ref bar ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<ref bar ;", options: TestOptions.Regular9,
                     // (1,19): error CS1003: Syntax error, '>' expected
                     // delegate*<ref bar ;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 19),
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_04()
         {
-            UsingStatement("delegate*<ref bar, ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<ref bar, ;", options: TestOptions.Regular9,
                     // (1,20): error CS1031: Type expected
                     // delegate*<ref bar, ;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 20),
@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_05()
         {
-            UsingStatement("delegate* unmanaged[ptr];", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged[ptr];", options: TestOptions.Regular9,
                 // (1,25): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[ptr];
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 25),
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_06()
         {
-            UsingStatement("delegate* unmanaged[cdecl] ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged[cdecl] ;", options: TestOptions.Regular9,
                 // (1,28): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl] ;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 28),
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_07()
         {
-            UsingStatement("delegate* unmanaged[cdecl] ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged[cdecl] ptr;", options: TestOptions.Regular9,
                 // (1,28): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl] ptr;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 28));
@@ -1189,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_08()
         {
-            UsingStatement("delegate* ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* ;", options: TestOptions.Regular9,
                     // (1,11): error CS1003: Syntax error, '<' expected
                     // delegate* ;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 11),
@@ -1230,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_09()
         {
-            UsingStatement("delegate* unmanaged.Name[Dotted]<void> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged.Name[Dotted]<void> ptr;", options: TestOptions.Regular9,
                 // (1,9): error CS1514: { expected
                 // delegate* unmanaged.Name[Dotted]<void> ptr;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(1, 9),
@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_10()
         {
-            UsingStatement("delegate*( ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*( ;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*( ;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_11()
         {
-            UsingStatement("delegate* @cdecl>", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* @cdecl>", options: TestOptions.Regular9,
                 // (1,11): error CS1003: Syntax error, '<' expected
                 // delegate* @cdecl>
                 Diagnostic(ErrorCode.ERR_SyntaxError, "@cdecl").WithArguments("<", "").WithLocation(1, 11),
@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void NoParamOrReturnTypes()
         {
-            UsingStatement("delegate*<> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<> ptr;", options: TestOptions.Regular9,
                     // (1,11): error CS1031: Type expected
                     // delegate*<> ptr;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(1, 11));
@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void UsingParensInsteadOfAngles()
         {
-            UsingStatement("delegate*(int, void)", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*(int, void)", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*(int, void)
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
@@ -1686,7 +1686,7 @@ class C
 {
     public delegate*<int, string> M(delegate*<C, void> param1, delegate* unmanaged[cdecl]<D> param2) {}
 }",
-                options: TestOptions.RegularPreview);
+                options: TestOptions.Regular9);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1808,7 +1808,7 @@ class C
         [Fact]
         public void HardCast()
         {
-            UsingExpression("(delegate* unmanaged[thiscall]<int, C>)ptr", options: TestOptions.RegularPreview);
+            UsingExpression("(delegate* unmanaged[thiscall]<int, C>)ptr", options: TestOptions.Regular9);
             N(SyntaxKind.CastExpression);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1862,7 +1862,7 @@ class C
         [Fact]
         public void AsCast()
         {
-            UsingExpression("ptr as delegate* unmanaged[stdcall]<int, void>", options: TestOptions.RegularPreview);
+            UsingExpression("ptr as delegate* unmanaged[stdcall]<int, void>", options: TestOptions.Regular9);
             N(SyntaxKind.AsExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -1915,7 +1915,7 @@ class C
         [Fact]
         public void TupleType()
         {
-            UsingExpression("((delegate*<int, void> i1, delegate* managed<C, D> i2))ptr", options: TestOptions.RegularPreview);
+            UsingExpression("((delegate*<int, void> i1, delegate* managed<C, D> i2))ptr", options: TestOptions.Regular9);
             N(SyntaxKind.CastExpression);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1999,7 +1999,7 @@ class C
         [Fact]
         public void GenericArguments()
         {
-            UsingExpression("new M<delegate* unmanaged[thiscall]<void>, delegate*<C, D>>()", options: TestOptions.RegularPreview);
+            UsingExpression("new M<delegate* unmanaged[thiscall]<void>, delegate*<C, D>>()", options: TestOptions.Regular9);
             N(SyntaxKind.ObjectCreationExpression);
             {
                 N(SyntaxKind.NewKeyword);
@@ -2080,7 +2080,7 @@ class C
         [Fact]
         public void TypeOf()
         {
-            UsingExpression("typeof(delegate* unmanaged[cdecl]<ref int, readonly ref D>)", options: TestOptions.RegularPreview);
+            UsingExpression("typeof(delegate* unmanaged[cdecl]<ref int, readonly ref D>)", options: TestOptions.Regular9);
             N(SyntaxKind.TypeOfExpression);
             {
                 N(SyntaxKind.TypeOfKeyword);
@@ -2134,7 +2134,7 @@ class C
         [Fact]
         public void ArrayType()
         {
-            UsingStatement("delegate*<ref C>[] ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<ref C>[] ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2187,7 +2187,7 @@ class C
 {
     delegate delegate* unmanaged[cdecl]<void> M(delegate*<ref C, D> p);
 }",
-                options: TestOptions.RegularPreview);
+                options: TestOptions.Regular9);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2276,7 +2276,7 @@ class C
         [Fact]
         public void LambdaParameterType()
         {
-            UsingExpression("(delegate*<void> p1) => {}", options: TestOptions.RegularPreview);
+            UsingExpression("(delegate*<void> p1) => {}", options: TestOptions.Regular9);
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
                 N(SyntaxKind.ParameterList);
@@ -2324,7 +2324,7 @@ public void M()
     delegate*<void> l1;
     delegate*<void> L2() { }
     delegate*<void> l3;
-}", options: TestOptions.RegularPreview,
+}", options: TestOptions.Regular9,
                 // (2,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(2, 1)
@@ -2449,7 +2449,7 @@ public void M()
         [Fact]
         public void IsExpression()
         {
-            UsingExpression("o is delegate*<void>", options: TestOptions.RegularPreview);
+            UsingExpression("o is delegate*<void>", options: TestOptions.Regular9);
             N(SyntaxKind.IsExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -2481,7 +2481,7 @@ public void M()
         [Fact]
         public void IsNamedExpression()
         {
-            UsingExpression("o is delegate*<void> ptr", options: TestOptions.RegularPreview);
+            UsingExpression("o is delegate*<void> ptr", options: TestOptions.Regular9);
             N(SyntaxKind.IsPatternExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -2526,7 +2526,7 @@ switch (o)
     case delegate*<void> { } _:
     case delegate*<void> (var x, var y):
         break;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.SwitchStatement);
             {
@@ -2646,7 +2646,7 @@ o switch
 {
     delegate*<void> _ => 1,
     delegate*<void> (var a, 2) ptr => 2,
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.SwitchExpression);
             {
@@ -2757,7 +2757,7 @@ o switch
         [Fact]
         public void UsingStatementType()
         {
-            UsingStatement("using (delegate*<void> ptr = MyMethod()) {}", options: TestOptions.RegularPreview);
+            UsingStatement("using (delegate*<void> ptr = MyMethod()) {}", options: TestOptions.Regular9);
             N(SyntaxKind.UsingStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2815,7 +2815,7 @@ o switch
         [Fact]
         public void UsingDeclarationType()
         {
-            UsingStatement("using delegate*<void> ptr = MyMethod();", options: TestOptions.RegularPreview);
+            UsingStatement("using delegate*<void> ptr = MyMethod();", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2867,7 +2867,7 @@ o switch
         [Fact]
         public void FixedStatement()
         {
-            UsingStatement("fixed (delegate*<void> ptr = &MyMethod) {}", options: TestOptions.RegularPreview);
+            UsingStatement("fixed (delegate*<void> ptr = &MyMethod) {}", options: TestOptions.Regular9);
             N(SyntaxKind.FixedStatement);
             {
                 N(SyntaxKind.FixedKeyword);
@@ -2921,7 +2921,7 @@ o switch
         [Fact]
         public void ForEachVariable()
         {
-            UsingStatement("foreach (delegate*<void> ptr in ptrs) {}", options: TestOptions.RegularPreview);
+            UsingStatement("foreach (delegate*<void> ptr in ptrs) {}", options: TestOptions.Regular9);
             N(SyntaxKind.ForEachStatement);
             {
                 N(SyntaxKind.ForEachKeyword);
@@ -2962,7 +2962,7 @@ o switch
         [Fact]
         public void ForVariable()
         {
-            UsingStatement("for (delegate*<void> ptr = null;;) {}", options: TestOptions.RegularPreview);
+            UsingStatement("for (delegate*<void> ptr = null;;) {}", options: TestOptions.Regular9);
             N(SyntaxKind.ForStatement);
             {
                 N(SyntaxKind.ForKeyword);
@@ -3014,7 +3014,7 @@ o switch
         [Fact]
         public void SizeOf()
         {
-            UsingExpression("sizeof(delegate*<void>)", options: TestOptions.RegularPreview);
+            UsingExpression("sizeof(delegate*<void>)", options: TestOptions.Regular9);
             N(SyntaxKind.SizeOfExpression);
             {
                 N(SyntaxKind.SizeOfKeyword);
@@ -3044,7 +3044,7 @@ o switch
         [Fact]
         public void SpecifiedParameterNamesAndDefaults()
         {
-            UsingStatement("delegate*<int param1, string param2 = default, void> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<int param1, string param2 = default, void> ptr;", options: TestOptions.Regular9,
                     // (1,15): error CS1003: Syntax error, ',' expected
                     // delegate*<int param1, string param2 = default, void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "param1").WithArguments(",", "").WithLocation(1, 15),
@@ -3101,7 +3101,7 @@ o switch
         [Fact]
         public void MissingListStart_01()
         {
-            UsingStatement("delegate*void> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*void> ptr;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 10),
@@ -3145,7 +3145,7 @@ o switch
         [Fact]
         public void MissingListStart_02()
         {
-            UsingStatement("delegate* unmanaged[cdecl] void> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged[cdecl] void> ptr;", options: TestOptions.Regular9,
                 // (1,28): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl] void> ptr;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 28),
@@ -3202,7 +3202,7 @@ o switch
         [Fact]
         public void MissingListStart_03()
         {
-            UsingStatement("delegate*> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*> ptr;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("<", "").WithLocation(1, 10));
@@ -3286,7 +3286,7 @@ o switch
         [Fact]
         public void ManyInvalidModifiers()
         {
-            UsingStatement("delegate*<this params readonly ref ref this int> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<this params readonly ref ref this int> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -3331,7 +3331,7 @@ o switch
 async void M()
 {
     delegate*<async, async> ptr;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3405,7 +3405,7 @@ async void M()
 void M()
 {
     delegate*<async, async> ptr;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3478,7 +3478,7 @@ void M()
 async void M()
 {
     delegate*<await, await> ptr;
-}", options: TestOptions.RegularPreview,
+}", options: TestOptions.Regular9,
                     // (4,15): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                     //     delegate*<await, await> ptr;
                     Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(4, 15),
@@ -3558,7 +3558,7 @@ async void M()
 void M()
 {
     delegate*<await, await> ptr;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -3626,7 +3626,7 @@ void M()
         [Fact]
         public void IncompleteAtEndOfFile()
         {
-            UsingStatement("delegate*", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*
                     Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 10),
@@ -3670,7 +3670,7 @@ void M()
         [Fact]
         public void IncompleteAtEndOfFileWithCallingConvention()
         {
-            UsingStatement("delegate* unmanaged[cdecl]", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged[cdecl]", options: TestOptions.Regular9,
                 // (1,27): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl]
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 27),
@@ -3727,7 +3727,7 @@ void M()
         [Fact]
         public void MixedParensAndAngles_01()
         {
-            UsingStatement("delegate* unmanaged[cdecl]<void) ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged[cdecl]<void) ptr;", options: TestOptions.Regular9,
                 // (1,32): error CS1003: Syntax error, ',' expected
                 // delegate* unmanaged[cdecl]<void) ptr;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(1, 32),
@@ -3784,7 +3784,7 @@ void M()
         [Fact]
         public void MixedParensAndAngles_02()
         {
-            UsingStatement("delegate* unmanaged[cdecl](void> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* unmanaged[cdecl](void> ptr;", options: TestOptions.Regular9,
                 // (1,27): error CS1003: Syntax error, '<' expected
                 // delegate* unmanaged[cdecl](void> ptr;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 27),
@@ -3849,7 +3849,7 @@ void C()
 {{
     delegate*
     unmanaged[Cdecl]
-}}", options: TestOptions.RegularPreview,
+}}", options: TestOptions.Regular9,
                 // (5,21): error CS1003: Syntax error, '<' expected
                 //     unmanaged[Cdecl]
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(5, 21),
@@ -3936,7 +3936,7 @@ void C()
 {
     delegate*
     int[] ptr = 1;
-}", options: TestOptions.RegularPreview,
+}", options: TestOptions.Regular9,
                     // (4,14): error CS1003: Syntax error, '<' expected
                     //     delegate*
                     Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(4, 14),
@@ -4049,7 +4049,7 @@ void C()
         [Fact]
         public void FunctionPointerArrayInTypeArgument()
         {
-            UsingStatement("I<delegate*<void>[]> i;", options: TestOptions.RegularPreview);
+            UsingStatement("I<delegate*<void>[]> i;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -4105,7 +4105,7 @@ void C()
         [Fact]
         public void UsingAlias()
         {
-            UsingNode("using t = delegate*<void>;", options: TestOptions.RegularPreview,
+            UsingNode("using t = delegate*<void>;", options: TestOptions.Regular9,
                 // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using t = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),

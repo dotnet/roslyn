@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
-            => UsingTree(text, TestOptions.RegularPreview, expectedErrors);
+            => UsingTree(text, TestOptions.Regular9, expectedErrors);
 
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
-            => UsingExpression(text, TestOptions.RegularPreview, expectedErrors);
+            => UsingExpression(text, TestOptions.Regular9, expectedErrors);
 
         private new void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
-            => UsingStatement(text, TestOptions.RegularPreview, expectedErrors);
+            => UsingStatement(text, TestOptions.Regular9, expectedErrors);
 
         public RecordParsingTests(ITestOutputHelper output) : base(output) { }
 
@@ -112,9 +112,9 @@ class C
 
             // In langversion 8, this is a method
             UsingTree(text, options: TestOptions.Regular8,
-                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "record C(int X, int Y);").WithArguments("top-level statements").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record C(int X, int Y);").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
             );
             N(SyntaxKind.CompilationUnit);
             {
@@ -258,9 +258,9 @@ class C
         {
             var tree = ParseTree("record Point;", options: TestOptions.Regular8);
             tree.GetDiagnostics().Verify(
-                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record Point;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "record Point;").WithArguments("top-level statements").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point;").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
             );
 
             UsingNode((CSharpSyntaxNode)tree.GetRoot());
@@ -323,7 +323,7 @@ class C
         [Fact]
         public void RecordParsing07()
         {
-            var tree = ParseTree("interface P(int x, int y);", options: null);
+            var tree = ParseTree("interface P(int x, int y);", options: TestOptions.Regular8);
             tree.GetDiagnostics().Verify(
                 // (1,12): error CS1514: { expected
                 // interface P(int x, int y);
@@ -331,9 +331,9 @@ class C
                 // (1,12): error CS1513: } expected
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // interface P(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y);").WithArguments("top-level statements").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(1, 12),
                 // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12)
@@ -1169,9 +1169,9 @@ class C
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular8);
             tree.GetDiagnostics().Verify(
-                // (4,15): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,15): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     int x = 0 with {};
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("records").WithLocation(4, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "with").WithArguments("records", "9.0").WithLocation(4, 15)
             );
         }
 
@@ -1679,7 +1679,7 @@ class C
         [Fact]
         public void WithParsing10()
         {
-            UsingStatement("int x = await with { };", options: TestOptions.RegularPreview);
+            UsingStatement("int x = await with { };", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1718,7 +1718,7 @@ class C
         [Fact]
         public void WithParsing11()
         {
-            UsingStatement("await with;", options: TestOptions.RegularPreview);
+            UsingStatement("await with;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);

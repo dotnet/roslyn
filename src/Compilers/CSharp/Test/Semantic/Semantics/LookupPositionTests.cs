@@ -2244,7 +2244,7 @@ record C(int X)
             keyPositions = keyPositionBuilder.ToArrayAndFree();
             var text = textBuilder.ToString();
 
-            var parseOptions = TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose);
+            var parseOptions = TestOptions.Regular9.WithDocumentationMode(DocumentationMode.Diagnose);
             var compilation = CreateCompilationWithMscorlib40(text, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);

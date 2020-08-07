@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class RecordTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only fails verification
                 verify: Verification.Skipped);
 
@@ -1332,7 +1332,7 @@ enum H : C { }
 ";
 
             var comp2 = CreateCompilation(src2,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 references: new[] {
                 emitReference ? comp.EmitToImageReference() : comp.ToMetadataReference()
             });
@@ -1445,7 +1445,7 @@ class C
 }";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 options: TestOptions.ReleaseExe);
 
             var r = comp.GlobalNamespace.GetTypeMember("R");
