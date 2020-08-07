@@ -363,4 +363,7 @@
   <data name="NamedTypeFullNameNotNullSuppressorJustification" xml:space="preserve">
     <value>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</value>
   </data>
+  <data name="BlankLinesTitle" xml:space="preserve">
+    <value>Avoid multiple blank lines</value>
+  </data>
 </root>
