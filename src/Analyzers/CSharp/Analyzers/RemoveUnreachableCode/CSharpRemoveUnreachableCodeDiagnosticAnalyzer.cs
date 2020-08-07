@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -109,27 +110,24 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // fix off of.
             var firstStatementLocation = root.SyntaxTree.GetLocation(firstUnreachableStatement.FullSpan);
 
-            if (!firstUnreachableStatement.IsParentKind(SyntaxKind.Block) &&
-                !firstUnreachableStatement.IsParentKind(SyntaxKind.SwitchSection))
-            {
-                // Can't actually remove this statement (it's an embedded statement in something 
-                // like an 'if-statement').  Just fade the code out, but don't offer to remove it.
-                if (fadeOutCode)
-                {
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, firstStatementLocation));
-                }
-                return;
-            }
-
             // 'additionalLocations' is how we always pass along the locaiton of the first unreachable
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
             var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : Descriptor;
 
-            context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));
+            if (fadeOutCode)
+            {
+                var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
+                    .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 0 });
+                context.ReportDiagnostic(
+                    DiagnosticHelper.CreateWithLocationTags(Descriptor, firstStatementLocation, ReportDiagnostic.Default, additionalLocations, tagIndices));
+            }
+            else
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(Descriptor, firstStatementLocation, additionalLocations));
+            }
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
             foreach (var section in sections)

@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -149,16 +150,15 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                         match.SpanStart, arguments[0].SpanStart));
 
                     RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
-
-                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
+                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        UnnecessaryWithSuggestionDescriptor,
+                        location1,
+                        ReportDiagnostic.Default,
+                        additionalLocations: locations.Add(Location.Create(syntaxTree, TextSpan.FromBounds(
                             arguments.Last().FullSpan.End,
-                            match.Span.End)),
-                        additionalLocations: locations));
+                            match.Span.End))),
+                        tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
+                            .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { locations.Length })));
                 }
             }
         }

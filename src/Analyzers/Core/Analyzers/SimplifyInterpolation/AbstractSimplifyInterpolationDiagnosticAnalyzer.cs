@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -65,20 +66,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 UnnecessaryWithSuggestionDescriptor,
                 unnecessaryLocations.First(),
                 option.Notification.Severity,
-                additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
-                properties: null));
-
-            // We start at 1 because the 0th element was used above to make the main diagnostic descriptor.
-            // All the rest are used to just fade out the correct portions of the user's code.
-            for (var i = 1; i < unnecessaryLocations.Length; i++)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor, unnecessaryLocations[i]));
-            }
+                additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()).AddRange(unnecessaryLocations.Skip(1)),
+                tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
+                    .Add(nameof(WellKnownDiagnosticTags.Unnecessary), Enumerable.Range(1, unnecessaryLocations.Length - 1))));
         }
     }
 }

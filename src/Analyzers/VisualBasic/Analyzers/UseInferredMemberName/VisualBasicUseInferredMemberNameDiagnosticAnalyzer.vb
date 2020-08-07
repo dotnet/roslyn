@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -58,20 +59,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             End If
 
             ' Create a normal diagnostic
+            Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(
+                DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColonEquals.GetLocation(),
                     preference.Notification.Severity,
-                    additionalLocations:=Nothing,
-                    properties:=Nothing))
-
-            ' Also fade out the part of the name-colon-equals syntax
-            Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)))
+                    additionalLocations:={syntaxTree.GetLocation(fadeSpan)},
+                    tagIndices:=ImmutableDictionary(Of String, IEnumerable(Of Integer)).Empty.Add(NameOf(WellKnownDiagnosticTags.Unnecessary), {0})))
         End Sub
 
         Private Sub ReportDiagnosticsIfNeeded(
@@ -96,18 +91,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
             ' Create a normal diagnostic
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(
+                DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
                     preference.Notification.Severity,
-                    additionalLocations:=Nothing,
-                    properties:=Nothing))
-
-            ' Also fade out the part of the name-equals syntax
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    UnnecessaryWithoutSuggestionDescriptor,
-                    syntaxTree.GetLocation(fadeSpan)))
+                    additionalLocations:={syntaxTree.GetLocation(fadeSpan)},
+                    tagIndices:=ImmutableDictionary(Of String, IEnumerable(Of Integer)).Empty.Add(NameOf(WellKnownDiagnosticTags.Unnecessary), {0})))
         End Sub
     End Class
 End Namespace

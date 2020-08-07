@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -125,19 +126,22 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                     match.MemberAccessExpression.SpanStart, end));
 
-                RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
-                context.ReportDiagnostic(Diagnostic.Create(
-                    UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
-
                 if (match.Statement.Span.End > match.Initializer.FullSpan.End)
                 {
-                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
+                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        Descriptor,
+                        location1,
+                        ReportDiagnostic.Default,
+                        additionalLocations: locations.Add(Location.Create(syntaxTree, TextSpan.FromBounds(
                             match.Initializer.FullSpan.End,
-                            match.Statement.Span.End)),
-                        additionalLocations: locations));
+                            match.Statement.Span.End))),
+                        tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
+                            .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { locations.Length })));
+                }
+                else
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Descriptor, location1, additionalLocations: locations));
                 }
             }
         }

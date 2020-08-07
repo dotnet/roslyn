@@ -37,10 +37,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         /// <summary>
         /// This analyzer inserts the fade locations into indices 1 and 2 inside additional locations.
         /// </summary>
-        private static readonly ImmutableDictionary<string, IEnumerable<int>> s_fadeLocations = new Dictionary<string, IEnumerable<int>>
-        {
-            { nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 1, 2 } },
-        }.ToImmutableDictionary();
+        private static readonly ImmutableDictionary<string, IEnumerable<int>> s_fadeLocations = ImmutableDictionary<string, IEnumerable<int>>.Empty
+            .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 1, 2 });
 
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_diagnosticDescriptor))
