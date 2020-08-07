@@ -1814,7 +1814,6 @@ class A
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
-
         [WorkItem(46423, "https://github.com/dotnet/roslyn/issues/46423")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotCrashWhenTypeCantBeDetermined()
