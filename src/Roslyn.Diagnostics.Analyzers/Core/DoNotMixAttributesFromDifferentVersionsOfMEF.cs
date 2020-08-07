@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     // We don't need to check assemblies unless they're referencing both versions of MEF, so we're done
                     return;
-                };
+                }
 
                 var attributeUsageAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
 

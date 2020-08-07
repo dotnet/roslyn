@@ -28,23 +28,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult?> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph? parentControlFlowGraphOpt,
-            InterproceduralGlobalFlowStateAnalysisData? interproceduralAnalysisDataOpt,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
+            ControlFlowGraph? parentControlFlowGraph,
+            InterproceduralGlobalFlowStateAnalysisData? interproceduralAnalysisData,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph,
                   owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: false,
                   exceptionPathsAnalysis: false,
-                  copyAnalysisResultOpt: null,
-                  pointsToAnalysisResultOpt,
-                  valueContentAnalysisResultOpt,
+                  copyAnalysisResult: null,
+                  pointsToAnalysisResult,
+                  valueContentAnalysisResult,
                   tryGetOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt,
-                  interproceduralAnalysisPredicateOpt)
+                  parentControlFlowGraph,
+                  interproceduralAnalysisData,
+                  interproceduralAnalysisPredicate)
         {
         }
 
@@ -56,31 +56,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult?> tryGetOrComputeAnalysisResult,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
         {
             return new GlobalFlowStateAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
-                analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResultOpt,
-                valueContentAnalysisResult, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
-                interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
+                analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult,
+                valueContentAnalysisResult, tryGetOrComputeAnalysisResult, parentControlFlowGraph: null,
+                interproceduralAnalysisData: null, interproceduralAnalysisPredicate);
         }
 
         public override GlobalFlowStateAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
             IOperation operation,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            CopyAnalysisResult? copyAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralGlobalFlowStateAnalysisData? interproceduralAnalysisData)
         {
-            RoslynDebug.Assert(copyAnalysisResultOpt == null);
+            RoslynDebug.Assert(copyAnalysisResult == null);
             return new GlobalFlowStateAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg,
                 invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
-                pointsToAnalysisResultOpt, valueContentAnalysisResultOpt, TryGetOrComputeAnalysisResult,
+                pointsToAnalysisResult, valueContentAnalysisResult, TryGetOrComputeAnalysisResult,
                 ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicateOpt);
         }
 

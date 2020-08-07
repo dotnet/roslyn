@@ -390,7 +390,6 @@ class TestClass
                 (10, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
         }
 
-
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AString property
         /// is not null when calling its Method() method.

@@ -509,7 +509,6 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]

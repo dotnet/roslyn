@@ -127,6 +127,16 @@
         <target state="translated">선택적 매개 변수가 있는 공용 API에는 공용 오버로드 중 대부분의 매개 변수가 포함되어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="new">Missing shipped or unshipped public API file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
         <target state="translated">공용 API 파일의 콘텐츠가 유효하지 않습니다. {0}</target>

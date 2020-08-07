@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 ImmutableArray<AbstractIndex>.Empty,
                 owningSymbol.GetMemberOrLocalOrParameterType()!,
                 instanceLocation: PointsToAbstractValue.Unknown,
-                parentOpt: null);
+                parent: null);
         }
 
         public sealed override GlobalFlowStateAnalysisData Flow(IOperation statement, BasicBlock block, GlobalFlowStateAnalysisData input)
