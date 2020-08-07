@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             timeoutMs: (int)(TimeSpan.FromMinutes(1).TotalMilliseconds),
             cancellationToken);
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public async Task CallBeforeListen()
         {
             await Assert.ThrowsAsync<InvalidOperationException>(() => _host.GetNextClientConnectionAsync()).ConfigureAwait(false);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             _host.EndListening();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
         public void EndListenCancelsIncompleteTask()
         {
             _host.BeginListening();
