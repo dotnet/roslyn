@@ -74,6 +74,42 @@ System.Console.WriteLine(i + j);
 }");
 
         [Fact]
+        public Task TestAddExpressionWithMultiply()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return Ca[||]llee(1, 2) * 2;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return (1 + 2) * 2;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
         public Task TestExtractExpressionBody()
             => TestInRegularAndScript1Async(
                 @"

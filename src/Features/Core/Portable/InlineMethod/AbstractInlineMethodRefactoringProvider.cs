@@ -3,23 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-using System.Collections.Immutable;
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal abstract partial class AbstractInlineMethodRefactoringProvider : CodeRefactoringProvider
     {
         private readonly ISyntaxFacts _syntaxFacts;
+        private readonly IPrecedenceService _precedenceService;
 
         protected abstract Task<SyntaxNode?> GetInvocationExpressionSyntaxNodeAsync(CodeRefactoringContext context);
 
@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         protected abstract SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
 
-        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts)
+        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, IPrecedenceService precedenceService)
         {
             _syntaxFacts = syntaxFacts;
+            _precedenceService = precedenceService;
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -44,13 +45,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return;
-            }
-
-            var methodSymbol = TryGetBestMatchSymbol(semanticModel, calleeMethodInvocationSyntaxNode, cancellationToken);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var methodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode, cancellationToken).GetAnySymbol();
             if (methodSymbol == null
                 || methodSymbol.DeclaredAccessibility != Accessibility.Private
                 || !methodSymbol.IsOrdinaryMethod())
@@ -85,109 +81,70 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     string.Format(FeaturesResources.Inline_0, calleeMethodInvocationSymbol.ToNameDisplayString()),
                     cancellationToken => InlineMethodAsync(
                         document,
-                        semanticModel!,
                         calleeMethodInvocationSyntaxNode,
                         calleeMethodInvocationSymbol,
                         calleeMethodDeclarationSyntaxNode,
-                        root!,
                         cancellationToken));
 
                 context.RegisterRefactoring(codeAction);
             }
         }
 
-        public static ISymbol? TryGetBestMatchSymbol(
-            SemanticModel semanticModel,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
-        {
-            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
-            var symbol = symbolInfo.Symbol;
-            if (symbol != null)
-            {
-                return symbol;
-            }
-            else if (symbolInfo.CandidateSymbols.Any())
-            {
-                return symbolInfo.CandidateSymbols[0];
-            }
-
-            return null;
-        }
-
         private async Task<Document> InlineMethodAsync(
             Document document,
-            SemanticModel semanticModel,
             SyntaxNode calleeMethodInvocationSyntaxNode,
             IMethodSymbol calleeMethodSymbol,
             SyntaxNode calleeMethodDeclarationSyntaxNode,
-            SyntaxNode root,
             CancellationToken cancellationToken)
         {
-            var inlineContext = InlineMethodContext.GetInlineContext(
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var methodParametersInfo = MethodParametersInfo.GetMethodParametersInfo(
                 this,
                 _syntaxFacts,
                 semanticModel,
                 calleeMethodInvocationSyntaxNode,
                 calleeMethodSymbol,
-                calleeMethodDeclarationSyntaxNode,
                 cancellationToken);
 
-            var calleeMethodDeclarationNodeEditor = new SyntaxEditor(calleeMethodDeclarationSyntaxNode, document.Project.Solution.Workspace);
+            var methodInvocationInfo = MethodInvocationInfo.GetMethodInvocationInfo(
+                _syntaxFacts,
+                this,
+                calleeMethodInvocationSyntaxNode);
 
-            foreach (var (symbol, identifierNameSyntaxNode) in inlineContext.ReplacementTable)
-            {
-                await ReplaceAllSyntaxNodesForSymbolAsync(
-                    document.Project.Solution,
-                    root,
-                    calleeMethodDeclarationNodeEditor,
-                    symbol,
-                    identifierNameSyntaxNode,
-                    cancellationToken).ConfigureAwait(false);
-            }
+            var inlineContext = await InlineMethodContext.GetInlineContextAsync(
+                this,
+                _syntaxFacts,
+                _precedenceService,
+                document,
+                semanticModel,
+                calleeMethodInvocationSyntaxNode,
+                calleeMethodSymbol,
+                calleeMethodDeclarationSyntaxNode,
+                GetInlineStatement(calleeMethodDeclarationSyntaxNode),
+                methodParametersInfo,
+                methodInvocationInfo,
+                cancellationToken).ConfigureAwait(false);
 
-            var inlineStatement = GetInlineStatement(calleeMethodDeclarationNodeEditor.GetChangedRoot());
             var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            foreach (var statement in inlineContext.StatementsNeedInsert)
+            foreach (var statement in inlineContext.DeclarationStatementsGenerated)
             {
-                documentEditor.InsertBefore(inlineContext.StatementInvokesCallee, statement);
+                documentEditor.InsertBefore(inlineContext.StatementContainsCalleeInvocationExpression, statement);
             }
 
-            if (inlineStatement == null)
+            var syntaxNodeToReplace = inlineContext.SyntaxNodeToReplace;
+            var inlineSyntaxNode = inlineContext.InlineSyntaxNode;
+            if (inlineSyntaxNode == null && calleeMethodSymbol.ReturnsVoid)
             {
-                documentEditor.RemoveNode(inlineContext.StatementInvokesCallee);
+                // When it has only one return statement in the callee & return void, just remove the whole statement.
+                documentEditor.RemoveNode(syntaxNodeToReplace);
             }
             else
             {
-                documentEditor.ReplaceNode(calleeMethodInvocationSyntaxNode, inlineStatement);
+                documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
             }
 
-            return documentEditor.GetChangedDocument();
-        }
-
-        private static async Task ReplaceAllSyntaxNodesForSymbolAsync(
-            Solution solution,
-            SyntaxNode root,
-            SyntaxEditor editor,
-            ISymbol symbol,
-            SyntaxNode replacementNode,
-            CancellationToken cancellationToken)
-        {
-            var allReferences = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-            var allSyntaxNodesToReplace = allReferences
-                .SelectMany(reference => reference.Locations
-                    .Select(location => root.FindNode(location.Location.SourceSpan))).ToImmutableArray();
-
-            foreach (var nodeToReplace in allSyntaxNodesToReplace)
-            {
-                if (editor.OriginalRoot.Contains(nodeToReplace))
-                {
-                    var replacementNodeWithTrivia = replacementNode
-                        .WithLeadingTrivia(nodeToReplace.GetLeadingTrivia())
-                        .WithTrailingTrivia(nodeToReplace.GetTrailingTrivia());
-                    editor.ReplaceNode(nodeToReplace, replacementNodeWithTrivia);
-                }
-            }
+            var x = documentEditor.GetChangedDocument();
+            return x;
         }
     }
 }
