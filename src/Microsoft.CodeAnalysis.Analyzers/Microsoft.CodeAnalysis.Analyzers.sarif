@@ -373,7 +373,7 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisDesign",
-            "isEnabledByDefault": false,
+            "isEnabledByDefault": true,
             "typeName": "DiagnosticDescriptorCreationAnalyzer",
             "languages": [
               "C#",
@@ -391,7 +391,7 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisDesign",
-            "isEnabledByDefault": false,
+            "isEnabledByDefault": true,
             "typeName": "DiagnosticDescriptorCreationAnalyzer",
             "languages": [
               "C#",
@@ -409,7 +409,7 @@
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisDesign",
-            "isEnabledByDefault": false,
+            "isEnabledByDefault": true,
             "typeName": "DiagnosticDescriptorCreationAnalyzer",
             "languages": [
               "C#",
