@@ -11,7 +11,7 @@
 
 ### Rule description
 
-This call site is calling into a function with a 'params' parameter. This results in an array allocation
+This call site is calling into a function with a 'params' parameter. This results in an array allocation.
 
 ## HAA0102: Non-overridden virtual method call on value type
 
@@ -50,7 +50,7 @@ Considering using StringBuilder
 
 ### Rule description
 
-Value type ({0}) is being boxed to a reference type for a string concatenation.
+Value type ({0}) is being boxed to a reference type for a string concatenation
 
 ## HAA0301: Closure Allocation Source
 
@@ -167,7 +167,7 @@ Let clause induced allocation
 
 ### Rule description
 
-Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
+Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.
 
 ## HAA0602: Delegate on struct instance caused a boxing allocation
 
