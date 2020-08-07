@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 
@@ -15,11 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         public string MethodName { get; }
 
-        public string LanguageName { get; }
+        public string? LanguageName { get; }
 
         public bool MutatesSolutionState { get; }
 
-        public ExportLspMethodAttribute(string methodName, string languageName = null, bool mutatesSolutionState = false) : base(typeof(IRequestHandler))
+        public ExportLspMethodAttribute(string methodName, string? languageName = null, bool mutatesSolutionState = false) : base(typeof(IRequestHandler))
         {
             if (string.IsNullOrEmpty(methodName))
             {

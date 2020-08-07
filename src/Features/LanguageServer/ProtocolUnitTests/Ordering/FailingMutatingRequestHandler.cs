@@ -12,27 +12,20 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspMethod(MethodName, mutatesSolutionState: true)]
-    internal class MutatingRequestHandler : AbstractRequestHandler<OrderedLspRequest, OrderedLspResponse>
+    internal class FailingMutatingRequestHandler : AbstractRequestHandler<OrderedLspRequest, OrderedLspResponse>
     {
-        public const string MethodName = nameof(MutatingRequestHandler);
+        public const string MethodName = nameof(FailingMutatingRequestHandler);
         private const int Delay = 100;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MutatingRequestHandler(ILspSolutionProvider solutionProvider)
+        public FailingMutatingRequestHandler(ILspSolutionProvider solutionProvider)
             : base(solutionProvider)
         {
         }
 
         public override async Task<OrderedLspResponse> HandleRequestAsync(OrderedLspRequest request, RequestContext context, CancellationToken cancellationToken)
         {
-            var response = new OrderedLspResponse
-            {
-                Solution = context.Solution,
-                RequestOrder = request.RequestOrder,
-                StartTime = DateTime.UtcNow
-            };
-
             await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 
             // Mutate the solution
@@ -42,9 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
 
-            response.EndTime = DateTime.UtcNow;
-
-            return response;
+            throw new InvalidOperationException();
         }
     }
 }

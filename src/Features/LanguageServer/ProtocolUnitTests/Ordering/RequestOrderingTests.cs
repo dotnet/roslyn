@@ -8,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -22,7 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     {
         protected override TestComposition Composition => base.Composition
             .AddParts(typeof(MutatingRequestHandler))
-            .AddParts(typeof(NonMutatingRequestHandler));
+            .AddParts(typeof(NonMutatingRequestHandler))
+            .AddParts(typeof(FailingRequestHandler))
+            .AddParts(typeof(FailingMutatingRequestHandler));
 
         [Fact]
         public async Task SerialRequestsDontOverlap()
@@ -107,22 +110,68 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Equal(responses[3].Solution.WorkspaceVersion, responses[3].Solution.WorkspaceVersion);
         }
 
+        [Fact]
+        public async Task ThrowingTaskDoesntBringDownQueue()
+        {
+            var requests = new[] {
+                new OrderedLspRequest(FailingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(MutatingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+            };
+
+            var waitables = StartTestRun(requests);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
+
+            var responses = await Task.WhenAll(waitables.Skip(1));
+
+            Assert.Empty(responses.Where(r => r.StartTime == default));
+            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+        }
+
+        [Fact]
+        public async Task ThrowingMutableTaskDoesntBringDownQueue()
+        {
+            var requests = new[] {
+                new OrderedLspRequest(FailingMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(MutatingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+            };
+
+            var waitables = StartTestRun(requests);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
+
+            var responses = await Task.WhenAll(waitables.Skip(1));
+
+            Assert.Empty(responses.Where(r => r.StartTime == default));
+            Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
+        }
+
+        [Fact]
+        public async Task ThrowingMutableTaskDoesntMutateTheSolution()
+        {
+            var requests = new[] {
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(FailingMutatingRequestHandler.MethodName),
+                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+            };
+
+            var waitables = StartTestRun(requests);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[1]);
+
+            var responses = await Task.WhenAll(waitables.Where(t => !t.IsFaulted));
+
+            // Every request should have started at or after the one before it
+            Assert.Equal(responses[0].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
+        }
+
         private async Task<OrderedLspResponse[]> TestAsync(OrderedLspRequest[] requests)
         {
-            using var workspace = CreateTestWorkspace("class C { }", out _);
-            var solution = workspace.CurrentSolution;
-
-            var languageServer = GetLanguageServer(solution);
-            var clientCapabilities = new LSP.ClientCapabilities();
-
-            var waitables = new List<Task<OrderedLspResponse>>();
-
-            var order = 1;
-            foreach (var request in requests)
-            {
-                request.RequestOrder = order++;
-                waitables.Add(languageServer.ExecuteRequestAsync<OrderedLspRequest, OrderedLspResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
-            }
+            var waitables = StartTestRun(requests);
 
             var responses = await Task.WhenAll(waitables);
 
@@ -131,6 +180,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.All(responses, r => Assert.True(r.EndTime > r.StartTime));
 
             return responses;
+        }
+
+        private List<Task<OrderedLspResponse>> StartTestRun(OrderedLspRequest[] requests)
+        {
+            using var workspace = CreateTestWorkspace("class C { }", out _);
+            var solution = workspace.CurrentSolution;
+
+            var languageServer = GetLanguageServer(solution);
+            var clientCapabilities = new LSP.ClientCapabilities();
+
+            var waitables = new List<Task<OrderedLspResponse>>();
+            var order = 1;
+            foreach (var request in requests)
+            {
+                request.RequestOrder = order++;
+                waitables.Add(languageServer.ExecuteRequestAsync<OrderedLspRequest, OrderedLspResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
+            }
+
+            return waitables;
         }
     }
 }

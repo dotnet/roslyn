@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly AsyncQueue<QueueItem> _queue = new AsyncQueue<QueueItem>();
         private readonly ILspSolutionProvider _solutionProvider;
-        private Solution _lastMutatedSolution;
+        private Solution? _lastMutatedSolution;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,13 +42,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (cancellationToken.IsCancellationRequested)
                     {
                         completion.SetCanceled();
-                        return;
+                        return false;
                     }
 
                     try
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
+                        return true;
                     }
                     catch (OperationCanceledException)
                     {
@@ -55,6 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         completion.SetException(exception);
                     }
+                    return false;
                 });
             _queue.Enqueue(item);
 
@@ -76,9 +81,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (work.MutatesSolutionState)
                 {
                     // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                    await work.Callback(context).ConfigureAwait(false);
+                    var ranToCompletion = await work.Callback(context).ConfigureAwait(false);
 
-                    _lastMutatedSolution = mutatedSolution ?? _lastMutatedSolution;
+                    if (ranToCompletion)
+                    {
+                        _lastMutatedSolution = mutatedSolution ?? _lastMutatedSolution;
+                    }
                 }
                 else
                 {
@@ -87,13 +95,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private static Solution MergeChanges(Solution solution, Solution mutatedSolution)
+        private static Solution MergeChanges(Solution solution, Solution? mutatedSolution)
         {
             // TODO: Merge in changes to the solution that have been received from didChange LSP methods
             // https://github.com/dotnet/roslyn/issues/45427
             return mutatedSolution ?? solution;
         }
-
 
         private Solution GetCurrentSolution()
             => _solutionProvider.GetCurrentSolutionForMainWorkspace();
