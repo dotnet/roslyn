@@ -9183,5 +9183,43 @@ class C
   IL_0005:  ret
 }");
         }
+
+        [Fact, WorkItem(46562, "https://github.com/dotnet/roslyn/issues/46562")]
+        public void CompoundAssignment()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        decimal x = 0;
+        (var y, _) += 0.00m;
+        (int z, _) += z;
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         decimal x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17),
+                // (7,10): error CS8185: A declaration is not allowed in this context.
+                //         (var y, _) += 0.00m;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var y").WithLocation(7, 10),
+                // (7,17): error CS0103: The name '_' does not exist in the current context
+                //         (var y, _) += 0.00m;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(7, 17),
+                // (8,10): error CS8185: A declaration is not allowed in this context.
+                //         (int z, _) += z;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int z").WithLocation(8, 10),
+                // (8,10): error CS0165: Use of unassigned local variable 'z'
+                //         (int z, _) += z;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int z").WithArguments("z").WithLocation(8, 10),
+                // (8,17): error CS0103: The name '_' does not exist in the current context
+                //         (int z, _) += z;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(8, 17)
+                );
+        }
     }
 }
