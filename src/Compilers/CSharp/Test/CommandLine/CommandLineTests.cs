@@ -239,20 +239,21 @@ my_option2 = my_val2");
 
             var comp = cmd.Compilation;
             var tree = comp.SyntaxTrees.Single();
-            AssertEx.SetEqual(new[] {
-                KeyValuePairUtil.Create("cs0169", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress)
-            }, tree.DiagnosticOptions);
+            var compilerTreeOptions = comp.Options.SyntaxTreeOptionsProvider;
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", out var severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", out severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
 
-            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-            var options = provider.GetOptions(tree);
+            var analyzerOptions = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            var options = analyzerOptions.GetOptions(tree);
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option", out string val));
             Assert.Equal("my_val", val);
             Assert.False(options.TryGetValue("my_option2", out _));
             Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
 
-            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
+            options = analyzerOptions.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option2", out val));
             Assert.Equal("my_val2", val);
