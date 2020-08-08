@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -120,6 +119,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     _expression = (TExpressionSyntax)_expression.Parent!;
                 }
+
+                Contract.ThrowIfNull(_expression.Parent, $"Parent of {_expression} is null.");
             }
 
             // To avoid allocating lambdas each time we hit a reference, we instead
@@ -258,7 +259,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         _identifierName.WithoutTrivia(),
                         readExpression);
 
-                    _editor.ReplaceNode(declarator, newDeclarator);
+                    // We know declarator isn't null due to the earlier call to IsInferredAnonymousObjectMemberDeclarator
+                    _editor.ReplaceNode(declarator!, newDeclarator);
                 }
                 else if (_syntaxFacts.IsRightSideOfQualifiedName(_identifierName))
                 {
@@ -286,6 +288,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 bool keepTrivia,
                 string? conflictMessage)
             {
+                Contract.ThrowIfNull(_expression.Parent, $"Parent of {_expression} is null.");
+
                 // Call this overload so we can see this node after already replacing any 
                 // references in the writing side of it.
                 _editor.ReplaceNode(
