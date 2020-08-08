@@ -2782,6 +2782,50 @@ class C<T>
         }
 
         [Fact]
+        public void GetSymbolInfo_EventAssignmentFlowState()
+        {
+            var source = @"
+using System;
+class C
+{
+    event Action? Event;
+
+    void M(bool b)
+    {
+        if (b) Event.Invoke(); // 1
+        Event += () => { };
+        Event.Invoke();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,16): warning CS8602: Dereference of a possibly null reference.
+                //         if (b) Event.Invoke(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Event").WithLocation(9, 16)
+                );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var memberAccess = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToList();
+            Assert.Equal(2, memberAccess.Count);
+
+            var typeInfo = model.GetTypeInfo(memberAccess[0].Expression);
+            Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+
+            typeInfo = model.GetTypeInfo(memberAccess[1].Expression);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var lhs = root.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Left;
+            typeInfo = model.GetTypeInfo(lhs);
+            Assert.Equal(PublicNullableAnnotation.None, typeInfo.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableFlowState.None, typeInfo.Nullability.FlowState);
+        }
+
+        [Fact]
         public void GetSymbolInfo_ReinferredCollectionInitializerAdd_InstanceMethods()
         {
             var source = @"
