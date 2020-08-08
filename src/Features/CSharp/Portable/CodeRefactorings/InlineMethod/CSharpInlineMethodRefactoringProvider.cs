@@ -243,5 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)
             => symbol.GenerateTypeSyntax(allowVar: false);
+
+        protected override SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments)
+            => SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(arguments));
+
     }
 }

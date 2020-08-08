@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract bool IsEmbeddedStatementOwner(SyntaxNode syntaxNode);
         protected abstract bool ShouldCheckTheExpressionPrecedenceInCallee(SyntaxNode syntaxNode);
         protected abstract bool NeedWrapInParenthesisWhenPrecedenceAreEqual(SyntaxNode calleeInvocationSyntaxNode);
+        protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
 
         private class MethodInvocationInfo
         {
@@ -295,12 +296,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 ImmutableDictionary<ISymbol, string> renameTable,
                 CancellationToken cancellationToken)
                 => parametersNeedGenerateDeclarations
-                    .Select(parameterAndArguments => CreateLocalDeclarationStatement(semanticModel, syntaxGenerator, renameTable, parameterAndArguments, cancellationToken))
+                    .Select(parameterAndArguments => CreateLocalDeclarationStatement(inlineMethodRefactoringProvider, semanticModel, syntaxGenerator, renameTable, parameterAndArguments, cancellationToken))
                     .Concat(parametersWithVariableDeclarationArgument
                         .Select(parameterAndName => inlineMethodRefactoringProvider.GenerateLocalDeclarationStatement(parameterAndName.name, parameterAndName.parameterSymbol.Type)))
                     .ToImmutableArray();
 
             private static SyntaxNode CreateLocalDeclarationStatement(
+                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 SyntaxGenerator syntaxGenerator,
                 ImmutableDictionary<ISymbol, string> renameTable,
@@ -318,13 +320,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 if (generateArrayDeclarationStatement)
                 {
-                    var arrayCreationExpression = syntaxGenerator.ArrayCreationExpression(syntaxGenerator.TypeExpression(((IArrayTypeSymbol)parameterSymbol.Type).ElementType), arguments);
-                    var x = syntaxGenerator
-                        .LocalDeclarationStatement(
-                            parameterSymbol.Type,
-                            name,
-                            arrayCreationExpression);
-                    return x;
+                    return syntaxGenerator.LocalDeclarationStatement(
+                        parameterSymbol.Type,
+                        name,
+                        inlineMethodRefactoringProvider.GenerateArrayInitializerExpression(arguments));
                 }
                 else
                 {
