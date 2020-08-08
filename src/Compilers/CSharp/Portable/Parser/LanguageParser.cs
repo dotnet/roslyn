@@ -1511,7 +1511,7 @@ tryAgain:
                                 var saveTerm2 = _termState;
                                 _termState |= TerminatorState.IsPossibleMemberStartOrStop;
 
-                                var member = this.ParseMemberDeclaration(keyword.Kind);
+                                var member = this.ParseMemberDeclaration(parentKind: keyword.Kind, parentName: name);
                                 if (member != null)
                                 {
                                     // statements are accepted here, a semantic error will be reported later
@@ -2210,9 +2210,7 @@ tryAgain:
                     // Unless modifiers or attributes are present this is more likely to be a method call than a method definition.
                     if (haveAttributes || haveModifiers)
                     {
-                        var token = SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword);
-                        token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
-                        var voidType = _syntaxFactory.PredefinedType(token);
+                        // Members don't need return type specified
 
                         var identifier = this.EatToken();
 
@@ -2225,7 +2223,7 @@ tryAgain:
                         }
                         else
                         {
-                            return this.ParseMethodDeclaration(attributes, modifiers, voidType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
+                            return this.ParseMethodDeclaration(attributes, modifiers, null, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
                         }
                     }
                 }
@@ -2607,11 +2605,11 @@ parse_member_name:;
         }
 
         // Returns null if we can't parse anything (even partially).
-        internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
+        internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind, SyntaxToken? parentName = null)
         {
             _recursionDepth++;
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-            var result = ParseMemberDeclarationCore(parentKind);
+            var result = ParseMemberDeclarationCore(parentKind, parentName);
             _recursionDepth--;
             return result;
         }
@@ -2622,7 +2620,7 @@ parse_member_name:;
         /// reduce the stack usage during recursive parsing.
         /// </summary>
         /// <returns>Returns null if we can't parse anything (even partially).</returns>
-        private MemberDeclarationSyntax ParseMemberDeclarationCore(SyntaxKind parentKind)
+        private MemberDeclarationSyntax ParseMemberDeclarationCore(SyntaxKind parentKind, SyntaxToken? parentName = null)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -2652,7 +2650,10 @@ parse_member_name:;
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                 {
-                    return this.ParseConstructorDeclaration(attributes, modifiers);
+                    if (parentName == null || parentName.Text == this.CurrentToken.Text)
+                    {
+                        return this.ParseConstructorDeclaration(attributes, modifiers);
+                    }
                 }
 
                 // Check for destructor form
@@ -2698,7 +2699,22 @@ parse_member_name:;
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void).
-                TypeSyntax type = ParseReturnType();
+                TypeSyntax type = null;
+
+                // Before parsing the return type, check if it looks like a method
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    // check if following is a "(" or a "<" ... then it's most likely the name we are at!
+                    (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.PeekToken(1).Kind == SyntaxKind.LessThanToken))
+                {
+                    // it's more likely to be a method - without any return type defined
+                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                    type = _syntaxFactory.IdentifierName(token);
+                }
+                else
+                {   
+                    // we should have a type
+                    type = ParseReturnType();
+                }
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
