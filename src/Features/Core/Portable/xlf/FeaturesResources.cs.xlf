@@ -515,6 +515,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Zavést místní</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_local_for_all_occurrences_of_0_including_writes">
+        <source>Introduce local for all writes and reads of '{0}'</source>
+        <target state="new">Introduce local for all writes and reads of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">Zavést proměnnou dotazu</target>
@@ -2756,8 +2761,8 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_all_occurrences_of_0">
-        <source>Introduce local for all occurrences of '{0}'</source>
-        <target state="translated">Zavést lokální proměnnou pro všechny výskyty položky {0}</target>
+        <source>Introduce local for all reads of '{0}'</source>
+        <target state="needs-review-translation">Zavést lokální proměnnou pro všechny výskyty položky {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_all_occurrences_of_0">

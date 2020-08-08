@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     newNameToken, allOccurrences, isConstant, cancellationToken).ConfigureAwait(False)
             Else
                 Dim oldCompilationUnit = DirectCast(document.Root, CompilationUnitSyntax)
-                Dim newCompilationUnit = Rewrite(document, expression, newQualifiedName, document, oldCompilationUnit, allOccurrences, cancellationToken)
+                Dim newCompilationUnit = Rewrite(document, expression, newQualifiedName, document, oldCompilationUnit, allOccurrences, True, cancellationToken)
                 Dim newFieldDeclaration = CreateFieldDeclaration(
                     document, oldTypeDeclaration, newNameToken, expression, allOccurrences, isConstant, cancellationToken)
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             For Each declNode In oldType.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax().Parent).OfType(Of TypeBlockSyntax)()
                 Dim currentDocument = Await SemanticDocument.CreateAsync(document.Project.Solution.GetDocument(declNode.SyntaxTree), cancellationToken).ConfigureAwait(False)
-                Dim newDeclNode = Rewrite(document, expression, newQualifiedName, currentDocument, declNode, allOccurrences, cancellationToken)
+                Dim newDeclNode = Rewrite(document, expression, newQualifiedName, currentDocument, declNode, allOccurrences, True, cancellationToken)
 
                 oldToNewTypeBlockMap(declNode) = newDeclNode
             Next
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 isConstant As Boolean,
                 cancellationToken As CancellationToken) As FieldDeclarationSyntax
 
-            Dim matches = FindMatches(document, expression, document, oldTypeDeclaration, allOccurrences, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, oldTypeDeclaration, allOccurrences, True, cancellationToken)
 
             Dim trimmedExpression = expression.WithoutTrailingTrivia().WithoutLeadingTrivia()
             Return SyntaxFactory.FieldDeclaration(

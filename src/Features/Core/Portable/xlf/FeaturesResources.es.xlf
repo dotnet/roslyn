@@ -515,6 +515,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Introducir local</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_local_for_all_occurrences_of_0_including_writes">
+        <source>Introduce local for all writes and reads of '{0}'</source>
+        <target state="new">Introduce local for all writes and reads of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">Introducir la variable de consulta</target>
@@ -2756,8 +2761,8 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_all_occurrences_of_0">
-        <source>Introduce local for all occurrences of '{0}'</source>
-        <target state="translated">Introducir la variable local para todas las repeticiones de '{0}'</target>
+        <source>Introduce local for all reads of '{0}'</source>
+        <target state="needs-review-translation">Introducir la variable local para todas las repeticiones de '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_all_occurrences_of_0">
