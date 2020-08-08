@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Protected MustOverride Function IsTriggerToken(token As SyntaxToken) As Boolean
         Protected MustOverride Function IsArgumentListToken(node As TSyntaxNode, token As SyntaxToken) As Boolean
-        Protected MustOverride Function GetIntrinsicOperatorDocumentation(node As TSyntaxNode, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
+        Protected MustOverride Function GetIntrinsicOperatorDocumentationAsync(node As TSyntaxNode, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
 
         Private Function TryGetSyntaxNode(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef node As TSyntaxNode) As Boolean
             Return CommonSignatureHelpUtilities.TryGetSyntax(
@@ -36,8 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim items As New List(Of SignatureHelpItem)
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(False)
-            For Each documentation In GetIntrinsicOperatorDocumentation(node, document, cancellationToken)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(False)
+            For Each documentation In Await GetIntrinsicOperatorDocumentationAsync(node, document, cancellationToken).ConfigureAwait(False)
                 Dim signatureHelpItem = GetSignatureHelpItemForIntrinsicOperator(document, semanticModel, node.SpanStart, documentation, cancellationToken)
                 items.Add(signatureHelpItem)
             Next
@@ -47,10 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Return CreateSignatureHelpItems(
                 items, textSpan,
-                GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+                GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Friend Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
+        Friend Shared Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
             Dim parameters As New List(Of SignatureHelpSymbolParameter)
 
             For i = 0 To documentation.ParameterCount - 1
@@ -65,12 +67,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim suffixParts = documentation.GetSuffix(semanticModel, position, Nothing, cancellationToken)
 
-            Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
 
             Return CreateItem(
                 Nothing, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 isVariadic:=False,
                 documentationFactory:=Function(c) SpecializedCollections.SingletonEnumerable(New TaggedText(TextTags.Text, documentation.DocumentationText)),
                 prefixParts:=documentation.PrefixParts,

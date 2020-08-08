@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -11,11 +14,9 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
-#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateEndConstruct), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FixIncorrectExitContinue)>
     Friend Class GenerateEndConstructCodeFixProvider
-#Enable Warning RS1016
         Inherits CodeFixProvider
 
         Friend Const BC30025 As String = "BC30025" ' error BC30025: Property missing 'End Property'.
@@ -42,12 +43,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         Friend Const BC31117 As String = "BC31117" ' error BC31117: 'RaiseEvent' declaration must end with a matching 'End RaiseEvent'.
         Friend Const BC36008 As String = "BC36008" ' error BC36008: 'Using' must end with a matching 'End Using'.
 
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30025, BC30026, BC30027, BC30081, BC30082, BC30083, BC30084, BC30085, BC30185, BC30253, BC30384, BC30481, BC30624, BC30625,
                     BC30626, BC30631, BC30633, BC30675, BC31114, BC31115, BC31116, BC31117, BC36008)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported by this code fix
+            ' https://github.com/dotnet/roslyn/issues/34473
+            Return Nothing
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
@@ -148,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                 (Function(n As PropertyBlockSyntax) n.EndPropertyStatement))
         End Function
 
-        Private Async Function GeneratePropertyEndConstructAsync(document As Document, node As PropertyBlockSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function GeneratePropertyEndConstructAsync(document As Document, node As PropertyBlockSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             ' Make sure the PropertyBlock has End Property
             Dim updatedProperty = node
             If node.EndPropertyStatement.IsMissing Then
@@ -180,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Return updatedDocument
         End Function
 
-        Public Function GetDescription(node As SyntaxNode) As String
+        Public Shared Function GetDescription(node As SyntaxNode) As String
             Dim endBlockSyntax = TryCast(node, EndBlockStatementSyntax)
             If endBlockSyntax IsNot Nothing Then
                 Return String.Format(VBFeaturesResources.Insert_the_missing_0, "End " + SyntaxFacts.GetText(endBlockSyntax.BlockKeyword.Kind))
@@ -194,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Return String.Format(VBFeaturesResources.Insert_the_missing_0, SyntaxFacts.GetText(SyntaxKind.NextKeyword))
         End Function
 
-        Private Async Function GenerateEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function GenerateEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
             If endStatement.Kind = SyntaxKind.EndEnumStatement Then
                 ' InvInsideEndsEnum
                 Dim nextNode = endStatement.Parent.GetLastToken().GetNextToken().Parent
@@ -212,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Return Await InsertEndConstructAsync(document, endStatement, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Async Function InsertEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function InsertEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
             Dim stringToAppend As String = Nothing

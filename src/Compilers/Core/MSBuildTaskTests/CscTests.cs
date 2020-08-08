@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Linq;
@@ -7,6 +11,7 @@ using Microsoft.CodeAnalysis.BuildTasks;
 using Xunit;
 using Moq;
 using System.IO;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -118,7 +123,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ChecksumAlgorithm = "";
             Assert.Equal("/out:test.exe /checksumalgorithm: test.cs", csc.GenerateResponseFileContents());
         }
-        
+
         [Fact]
         public void InstrumentTestNamesFlag()
         {
@@ -292,9 +297,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.DebugType = "portable";
+            csc.DebugType = "full";
             csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
-            Assert.Equal(@"/debug:portable /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal(@"/debug:full /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void EmbedAllSources()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems(@"test.cs", @"test.txt");
+            csc.EmbedAllSources = true;
+
+            Assert.Equal(@"/out:test.exe /embed /embed:test.cs /embed:test.txt test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.EmbedAllSources = true;
+
+            Assert.Equal(@"/out:test.exe /embed test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -313,6 +335,76 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.RefOnly = true;
             Assert.Equal("/out:test.exe /refonly test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Enabled()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Nullable = "enable";
+            Assert.Equal("/nullable:enable /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Disabled()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Nullable = "disable";
+            Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Safeonly()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Nullable = "safeonly";
+            Assert.Equal("/nullable:safeonly /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Warnings()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Nullable = "warnings";
+            Assert.Equal("/nullable:warnings /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Safeonlywarnings()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Nullable = "safeonlywarnings";
+            Assert.Equal("/nullable:safeonlywarnings /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Default_01()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.Nullable = null;
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Default_02()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void DisableSdkPath()
+        {
+            var csc = new Csc();
+            csc.DisableSdkPath = true;
+            Assert.Equal(@"/nosdkpath", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -369,6 +461,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLine());
             Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+        }
+
+        [Fact]
+        public void EditorConfig()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            Assert.Equal(@"/out:test.exe /analyzerconfig:.editorconfig test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs", "subdir\\test.cs");
+            csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            Assert.Equal($@"/out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.cs subdir{Path.DirectorySeparatorChar}test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
+            Assert.Equal(@"/out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.cs", csc.GenerateResponseFileContents());
         }
     }
 }

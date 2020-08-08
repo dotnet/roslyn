@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.[Text]
@@ -72,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                         </file>
                     </compilation>
 
-                Dim compilation1 = CreateCompilationWithReferences(source, {OldMsCorLib})
+                Dim compilation1 = CreateEmptyCompilationWithReferences(source, {OldMsCorLib})
                 c1 = New VisualBasicCompilationReference(compilation1)
                 Dim c1Assembly = compilation1.Assembly
 
@@ -94,10 +96,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                 Assert.NotSame(OldMsCorLib_debuggerTypeProxyAttributeType, NewMsCorLib_debuggerTypeProxyAttributeType)
 
                 OldMsCorLib_debuggerTypeProxyAttributeCtor = DirectCast(OldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").
-                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso DirectCast(m, MethodSymbol).Parameters(0).Type = OldMsCorLib_systemType).[Single](), MethodSymbol)
+                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso TypeSymbol.Equals(DirectCast(m, MethodSymbol).Parameters(0).Type, OldMsCorLib_systemType, TypeCompareKind.ConsiderEverything)).[Single](), MethodSymbol)
 
                 NewMsCorLib_debuggerTypeProxyAttributeCtor = DirectCast(NewMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").
-                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso DirectCast(m, MethodSymbol).Parameters(0).Type = NewMsCorLib_systemType).[Single](), MethodSymbol)
+                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso TypeSymbol.Equals(DirectCast(m, MethodSymbol).Parameters(0).Type, NewMsCorLib_systemType, TypeCompareKind.ConsiderEverything)).[Single](), MethodSymbol)
 
                 Assert.NotSame(OldMsCorLib_debuggerTypeProxyAttributeCtor, NewMsCorLib_debuggerTypeProxyAttributeCtor)
             End Sub
@@ -149,13 +151,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         Private Shared ReadOnly Property OldMsCorLib As MetadataReference
             Get
-                Return TestReferences.NetFx.v4_0_21006.mscorlib
+                Return TestMetadata.Net40.mscorlib
             End Get
         End Property
 
         Private Shared ReadOnly Property NewMsCorLib As MetadataReference
             Get
-                Return TestReferences.NetFx.v4_0_30319.mscorlib
+                Return TestMetadata.Net451.mscorlib
             End Get
         End Property
 
@@ -263,8 +265,8 @@ End Class
 
             Dim source2 = <compilation><file></file></compilation>
 
-            Dim c1 = CreateCompilationWithReferences(source1, {OldMsCorLib})
-            Dim c2 = CreateCompilationWithReferences(source2, {NewMsCorLib, New VisualBasicCompilationReference(c1)})
+            Dim c1 = CreateEmptyCompilationWithReferences(source1, {OldMsCorLib})
+            Dim c2 = CreateEmptyCompilationWithReferences(source2, {NewMsCorLib, New VisualBasicCompilationReference(c1)})
 
             Dim c = c2.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
             Assert.IsType(Of RetargetingNamedTypeSymbol)(c)

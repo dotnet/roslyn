@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Xml
@@ -48,7 +50,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30075: Named arguments are not valid as array subscripts.
@@ -127,7 +129,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30524: Property 'WriteOnlyProperty' is 'WriteOnly'.
@@ -164,7 +166,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
@@ -224,7 +226,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30670: 'ReDim' statements require a parenthesized list of the new bounds of each dimension of the array.
@@ -253,7 +255,7 @@ Module M
 End Module
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
@@ -271,7 +273,7 @@ Module M
 End Module
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC32059: Array lower bounds can be only '0'.
@@ -294,7 +296,7 @@ Module M
 End Module
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC32059: Array lower bounds can be only '0'.
@@ -317,7 +319,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Utils.CopyArray' is not defined.

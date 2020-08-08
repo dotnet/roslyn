@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,12 +20,14 @@ namespace RunTests
         internal bool Succeeded { get; }
         internal int CacheCount { get; }
         internal ImmutableArray<TestResult> TestResults { get; }
+        internal ImmutableArray<ProcessResult> ProcessResults { get; }
 
-        internal RunAllResult(bool succeeded, int cacheCount, ImmutableArray<TestResult> testResults)
+        internal RunAllResult(bool succeeded, int cacheCount, ImmutableArray<TestResult> testResults, ImmutableArray<ProcessResult> processResults)
         {
             Succeeded = succeeded;
             CacheCount = cacheCount;
             TestResults = testResults;
+            ProcessResults = processResults;
         }
     }
 
@@ -43,7 +47,7 @@ namespace RunTests
             // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
             // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
             // tests to conflict with one-another.
-            var max = (_options.TestVsi) ? 1 : (int)(Environment.ProcessorCount * 1.5);
+            var max = (_options.TestVsi || _options.Sequential) ? 1 : (int)(Environment.ProcessorCount * 1.5);
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
@@ -77,7 +81,7 @@ namespace RunTests
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Error: {ex.Message}");
+                            ConsoleUtil.WriteLine($"Error: {ex.Message}");
                             failures++;
                         }
 
@@ -97,12 +101,12 @@ namespace RunTests
 
                 // Display the current status of the TestRunner.
                 // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
-                Console.Write($"  {running.Count, 2} running, {waiting.Count, 2} queued, {completed.Count, 2} completed");
+                ConsoleUtil.Write($"  {running.Count,2} running, {waiting.Count,2} queued, {completed.Count,2} completed");
                 if (failures > 0)
                 {
-                    Console.Write($", {failures, 2} failures");
+                    ConsoleUtil.Write($", {failures,2} failures");
                 }
-                Console.WriteLine();
+                ConsoleUtil.WriteLine();
 
                 if (running.Count > 0)
                 {
@@ -112,7 +116,13 @@ namespace RunTests
 
             Print(completed);
 
-            return new RunAllResult((failures == 0), cacheCount, completed.ToImmutableArray());
+            var processResults = ImmutableArray.CreateBuilder<ProcessResult>();
+            foreach (var c in completed)
+            {
+                processResults.AddRange(c.ProcessResults);
+            }
+
+            return new RunAllResult((failures == 0), cacheCount, completed.ToImmutableArray(), processResults.ToImmutable());
         }
 
         private void Print(List<TestResult> testResults)
@@ -124,7 +134,7 @@ namespace RunTests
                 PrintFailedTestResult(testResult);
             }
 
-            Console.WriteLine("================");
+            ConsoleUtil.WriteLine("================");
             var line = new StringBuilder();
             foreach (var testResult in testResults)
             {
@@ -138,39 +148,38 @@ namespace RunTests
 
                 var message = line.ToString();
                 ConsoleUtil.WriteLine(color, message);
-                Logger.Log(message);
             }
-            Console.WriteLine("================");
+            ConsoleUtil.WriteLine("================");
 
             // Print diagnostics out last so they are cleanly visible at the end of the test summary
-            Console.WriteLine("Extra run diagnostics for logging, did not impact run results");
+            ConsoleUtil.WriteLine("Extra run diagnostics for logging, did not impact run results");
             foreach (var testResult in testResults.Where(x => !string.IsNullOrEmpty(x.Diagnostics)))
             {
-                Console.WriteLine(testResult.Diagnostics);
+                ConsoleUtil.WriteLine(testResult.Diagnostics);
             }
         }
 
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var resultsDir = testResult.ResultsDirectory;
-            var outputLogPath = Path.Combine(resultsDir, $"{testResult.DisplayName}.out.log");
-            File.WriteAllText(outputLogPath, testResult.StandardOutput);
+            var outputLogPath = Path.Combine(_options.LogFilesOutputDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
 
-            Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
-            Console.WriteLine(testResult.ErrorOutput);
+            ConsoleUtil.WriteLine($"Errors {testResult.AssemblyName}");
+            ConsoleUtil.WriteLine(testResult.ErrorOutput);
 
-            // TODO: Put this in the log and take it off the console output to keep it simple?
-            Console.WriteLine($"Command: {testResult.CommandLine}");
-            Console.WriteLine($"xUnit output log: {outputLogPath}");
+            // TODO: Put this in the log and take it off the ConsoleUtil output to keep it simple?
+            ConsoleUtil.WriteLine($"Command: {testResult.CommandLine}");
+            ConsoleUtil.WriteLine($"xUnit output log: {outputLogPath}");
+
+            File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))
             {
-                Console.WriteLine(testResult.ErrorOutput);
+                ConsoleUtil.WriteLine(testResult.ErrorOutput);
             }
             else
             {
-                Console.WriteLine($"xunit produced no error output but had exit code {testResult.ExitCode}");
+                ConsoleUtil.WriteLine($"xunit produced no error output but had exit code {testResult.ExitCode}");
             }
 
             // If the results are html, use Process.Start to open in the browser.

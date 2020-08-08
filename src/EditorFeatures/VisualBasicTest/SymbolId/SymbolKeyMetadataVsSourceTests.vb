@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -68,9 +70,9 @@ End Class
                         </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
             ' Compilation to Compilation
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(src2, {comp1.ToMetadataReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(src2, {comp1.ToMetadataReference()})
 
             Dim originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType).OrderBy(Function(s) s.Name).ToList()
             Assert.Equal(5, originalSymbols.Count)
@@ -150,9 +152,9 @@ End Class
                         </file>
                        </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(src1)
+            Dim comp1 = CreateCompilationWithMscorlib40(src1)
             ' Compilation to Compilation
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(src2, {comp1.ToMetadataReference()})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(src2, {comp1.ToMetadataReference()})
 
             ''  ---------------------------
             ''  Source symbols
@@ -230,9 +232,9 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             ' "Compilation 2 Assembly"
-            Dim comp40 = CreateCompilationWithMscorlibAndReferences(src2, {comp20.ToMetadataReference()})
+            Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember Or SymbolCategory.Parameter).OrderBy(Function(s) s.Name).ToList()
             Assert.Equal(5, ver20Symbols.Count)
@@ -305,9 +307,9 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             '
-            Dim comp40 = CreateCompilationWithMscorlibAndReferences(src2, {comp20.ToMetadataReference()})
+            Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name)
             ' ver20Symbols = ver20Symbols.Where(Function(s) Not IsAccessor(s) And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).[Select](Function(s) s).ToList()
@@ -382,8 +384,8 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
-            Dim comp40 = CreateCompilationWithMscorlibAndReferences(src2, {comp20.ToMetadataReference()})
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).ToList()
             ' default property IGoo.Item, CGoo.Item, Event 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using CSReferenceManager = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ReferenceManager;
 using System.Reflection.Metadata;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
 
             TestBaseTypeResolutionHelper1(assembly);
 
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.MDTestLib1,
                 TestReferences.SymbolsTests.MDTestLib2,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             TestBaseTypeResolutionHelper2(assemblies);
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 var t = p as NamedTypeSymbol;
 
-                if (t != null && t.Arity == 1)
+                if ((object)t != null && t.Arity == 1)
                 {
                     orderablePartitioner = t;
                     break;
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 var t = p as NamedTypeSymbol;
 
-                if (t != null && t.Arity == 0)
+                if ((object)t != null && t.Arity == 0)
                 {
                     partitioner = t;
                     break;
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             foreach (var arg in varCorTypes_Derived.BaseType().TypeArguments())
             {
-                Assert.IsType<MissingMetadataTypeSymbol>(arg);
+                Assert.IsAssignableFrom<MissingMetadataTypeSymbol>(arg);
             }
         }
 
@@ -301,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test3()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = Net40.mscorlib;
 
             var c1 = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
 
@@ -329,7 +332,7 @@ class Test2 : M4
             var crossRefModule2 = TestReferences.SymbolsTests.netModule.CrossRefModule2;
             var crossRefLib = TestReferences.SymbolsTests.netModule.CrossRefLib;
 
-            var compilation1 = CreateStandardCompilation(compilationDef1, new MetadataReference[] { crossRefLib }, TestOptions.ReleaseDll);
+            var compilation1 = CreateCompilation(compilationDef1, new MetadataReference[] { crossRefLib }, TestOptions.ReleaseDll);
 
             compilation1.VerifyDiagnostics();
 
@@ -349,7 +352,7 @@ public class M3 : M1
 public class M4 : M2
 {}
 ";
-            var compilation2 = CreateStandardCompilation(compilationDef2, new MetadataReference[] { crossRefModule1, crossRefModule2 }, TestOptions.ReleaseDll);
+            var compilation2 = CreateCompilation(compilationDef2, new MetadataReference[] { crossRefModule1, crossRefModule2 }, TestOptions.ReleaseDll);
 
             compilation2.VerifyDiagnostics();
 
@@ -361,7 +364,7 @@ public class M4 : M2
             Assert.False(m4.BaseType().IsErrorType());
             Assert.False(m4.BaseType().BaseType().IsErrorType());
 
-            var compilation3 = CreateStandardCompilation(compilationDef2, new MetadataReference[] { crossRefModule2 }, TestOptions.ReleaseDll);
+            var compilation3 = CreateCompilation(compilationDef2, new MetadataReference[] { crossRefModule2 }, TestOptions.ReleaseDll);
 
             m3 = compilation3.GetTypeByMetadataName("M3");
             m4 = compilation3.GetTypeByMetadataName("M4");

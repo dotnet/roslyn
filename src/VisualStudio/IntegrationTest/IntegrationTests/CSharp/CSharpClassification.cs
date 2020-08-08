@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -17,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudio.Editor.SetText(@"using System;
@@ -46,7 +50,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.PlaceCaret("Program");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
             VisualStudio.Editor.PlaceCaret("Main");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.Editor.PlaceCaret("Hello");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.Editor.PlaceCaret("<summary", charsOffset: -1);
@@ -65,7 +69,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void SemanticClassification()
         {
             VisualStudio.Editor.SetText(@"
@@ -100,7 +104,7 @@ class Program : Attribute
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyProjectConfigChange()
         {
             VisualStudio.Editor.SetText(@"
@@ -123,7 +127,7 @@ namespace ClassLibrary1
 
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug");
             VisualStudio.Editor.PlaceCaret("Goo");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.Editor.PlaceCaret("Bar");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
             VisualStudio.Editor.MoveCaret(0);
@@ -131,7 +135,7 @@ namespace ClassLibrary1
             VisualStudio.Editor.PlaceCaret("Goo");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
             VisualStudio.Editor.PlaceCaret("Bar");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
         }
     }
 }

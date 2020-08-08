@@ -1,6 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// and pointer types do not have a base type. The base type of a type parameter
         /// is its effective base class.
         /// </summary>
-        INamedTypeSymbol BaseType { get; }
+        INamedTypeSymbol? BaseType { get; }
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements. This set does not include
@@ -41,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         /// relationship: if interface type A extends interface type B, then A precedes B in the
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
-        /// <c><![CDATA[IEnumerable<string>]]></c> will not include <c><![CDATA[IEnumerable<object>]]></c>;
+        /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> AllInterfaces { get; }
 
@@ -70,6 +78,12 @@ namespace Microsoft.CodeAnalysis
         bool IsTupleType { get; }
 
         /// <summary>
+        /// True if the type represents a native integer. In C#, the types represented
+        /// by language keywords 'nint' and 'nuint'.
+        /// </summary>
+        bool IsNativeIntegerType { get; }
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then <see cref="OriginalDefinition"/> gets the original symbol as it was defined in
         /// source or metadata.
@@ -92,6 +106,148 @@ namespace Microsoft.CodeAnalysis
         /// <param name="interfaceMember">
         /// Must be a non-null interface property, method, or event.
         /// </param>
-        ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember);
+        ISymbol? FindImplementationForInterfaceMember(ISymbol interfaceMember);
+
+        /// <summary>
+        /// True if the type is ref-like, meaning it follows rules similar to CLR by-ref variables. False if the type
+        /// is not ref-like or if the language has no concept of ref-like types.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Span{T}" /> is a commonly used ref-like type.
+        /// </remarks>
+        bool IsRefLikeType { get; }
+
+        /// <summary>
+        /// True if the type is unmanaged according to language rules. False if managed or if the language
+        /// has no concept of unmanaged types.
+        /// </summary>
+        bool IsUnmanagedType { get; }
+
+        /// <summary>
+        /// True if the type is readonly.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
+        /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
+        /// </summary>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="format">Format or null for the default.</param>
+        /// <returns>A formatted string representation of the symbol with the given nullability.</returns>
+        string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat? format = null);
+
+        /// <summary>
+        /// Converts a symbol to an array of string parts, each of which has a kind. Useful
+        /// for colorizing the display string.
+        /// </summary>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="format">Format or null for the default.</param>
+        /// <returns>A read-only array of string parts.</returns>
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat? format = null);
+
+        /// <summary>
+        /// Converts a symbol to a string that can be displayed to the user. May be tailored to a
+        /// specific location in the source code.
+        /// </summary>
+        /// <param name="semanticModel">Binding information (for determining names appropriate to
+        /// the context).</param>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="position">A position in the source code (context).</param>
+        /// <param name="format">Formatting rules - null implies <see cref="SymbolDisplayFormat.MinimallyQualifiedFormat"/></param>
+        /// <returns>A formatted string that can be displayed to the user.</returns>
+        string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat? format = null);
+
+        /// <summary>
+        /// Convert a symbol to an array of string parts, each of which has a kind. May be tailored
+        /// to a specific location in the source code. Useful for colorizing the display string.
+        /// </summary>
+        /// <param name="semanticModel">Binding information (for determining names appropriate to
+        /// the context).</param>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="position">A position in the source code (context).</param>
+        /// <param name="format">Formatting rules - null implies <see cref="SymbolDisplayFormat.MinimallyQualifiedFormat"/></param>
+        /// <returns>A read-only array of string parts.</returns>
+        ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat? format = null);
+
+        /// <summary>
+        /// Nullable annotation associated with the type, or <see cref="NullableAnnotation.None"/> if there are none.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
+
+        /// <summary>
+        /// Returns the same type as this type but with the given nullable annotation.
+        /// </summary>
+        /// <param name="nullableAnnotation">The nullable annotation to use</param>
+        ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation);
+    }
+
+    // Intentionally not extension methods. We don't want them ever be called for symbol classes
+    // Once Default Interface Implementations are supported, we can move these methods into the interface. 
+    static internal class ITypeSymbolHelpers
+    {
+        internal static bool IsNullableType([NotNullWhen(returnValue: true)] ITypeSymbol? typeOpt)
+        {
+            return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+
+        internal static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+        {
+            return IsNullableType(type) && IsBooleanType(GetNullableUnderlyingType(type));
+        }
+
+        internal static ITypeSymbol GetNullableUnderlyingType(ITypeSymbol type)
+        {
+            Debug.Assert(IsNullableType(type));
+            return ((INamedTypeSymbol)type).TypeArguments[0];
+        }
+
+        internal static bool IsBooleanType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+        {
+            return type?.SpecialType == SpecialType.System_Boolean;
+        }
+
+        internal static bool IsObjectType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+        {
+            return type?.SpecialType == SpecialType.System_Object;
+        }
+
+        internal static bool IsSignedIntegralType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+        {
+            return type?.SpecialType.IsSignedIntegralType() == true;
+        }
+
+        internal static bool IsUnsignedIntegralType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+        {
+            return type?.SpecialType.IsUnsignedIntegralType() == true;
+        }
+
+        internal static bool IsNumericType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+        {
+            return type?.SpecialType.IsNumericType() == true;
+        }
+
+        internal static ITypeSymbol? GetEnumUnderlyingType(ITypeSymbol? type)
+        {
+            return (type as INamedTypeSymbol)?.EnumUnderlyingType;
+        }
+
+        [return: NotNullIfNotNull(parameterName: "type")]
+        internal static ITypeSymbol? GetEnumUnderlyingTypeOrSelf(ITypeSymbol? type)
+        {
+            return GetEnumUnderlyingType(type) ?? type;
+        }
+
+        internal static bool IsDynamicType([NotNullWhen(returnValue: true)] ITypeSymbol? type)
+        {
+            return type?.Kind == SymbolKind.DynamicType;
+        }
     }
 }

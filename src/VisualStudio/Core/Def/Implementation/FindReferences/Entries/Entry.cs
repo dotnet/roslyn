@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -18,9 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly RoslynDefinitionBucket DefinitionBucket;
 
             protected Entry(RoslynDefinitionBucket definitionBucket)
-            {
-                DefinitionBucket = definitionBucket;
-            }
+                => DefinitionBucket = definitionBucket;
 
             public bool TryGetValue(string keyName, out object content)
             {
@@ -32,11 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 switch (keyName)
                 {
-                case StandardTableKeyNames2.Definition:
-                    return DefinitionBucket;
+                    case StandardTableKeyNames2.Definition:
+                        return DefinitionBucket;
 
-                case StandardTableKeyNames2.DefinitionIcon:
-                    return DefinitionBucket.DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+                    case StandardTableKeyNames2.DefinitionIcon:
+                        return DefinitionBucket.DefinitionItem.Tags.GetFirstGlyph().GetImageMoniker();
                 }
 
                 return GetValueWorker(keyName);

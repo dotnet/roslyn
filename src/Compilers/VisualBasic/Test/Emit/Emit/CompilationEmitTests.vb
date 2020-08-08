@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -8,6 +10,7 @@ Imports System.Reflection.PortableExecutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -22,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         <Fact>
         Public Sub CompilationEmitDiagnostics()
             ' Check that Compilation.Emit actually produces compilation errors.
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module M1
@@ -65,18 +68,18 @@ End Module
                          </compilation>
 
             'Compilation with unquote Rootnamespace and MainTypename.
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("Test").WithMainTypeName("Test.Module1")).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("Test").WithMainTypeName("Test.Module1")).VerifyDiagnostics()
 
             ' Compilation with quoted Rootnamespace and MainTypename still produces diagnostics.
             ' we do not unquote the options on WithRootnamespace or WithMainTypeName functions 
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """Test""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""Test.Module1""").WithLocation(1, 1))
 
             ' Use of Cyrillic rootnamespace and maintypename
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
 
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """решения""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""решения.Module1""").WithLocation(1, 1))
 
@@ -85,7 +88,7 @@ End Module
         <Fact>
         Public Sub CompilationGetDeclarationDiagnostics()
             ' Check that Compilation.GetDeclarationDiagnostics and Bindings.GetDeclarationDiagnostics work as expected.
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C1
@@ -152,7 +155,7 @@ BC30002: Type 'Blech' is not defined.
         <Fact>
         Public Sub CompilationGetDiagnostics()
             ' Check that Compilation.GetDiagnostics and Bindings.GetDiagnostics work as expected.
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C1
@@ -237,7 +240,7 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
         <Fact>
         Public Sub EmitMetadataOnly()
             ' Check that Compilation.EmitMetadataOnly works.
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System        
@@ -286,7 +289,7 @@ End Class
     </file>
 </compilation>
 
-            Dim usingComp = CreateCompilationWithMscorlib(srcUsing, references:={MetadataReference.CreateFromImage(mdOnlyImage.AsImmutableOrNull())})
+            Dim usingComp = CreateCompilationWithMscorlib40(srcUsing, references:={MetadataReference.CreateFromImage(mdOnlyImage.AsImmutableOrNull())})
 
             Using output = New MemoryStream()
                 emitResult = usingComp.Emit(output)
@@ -310,7 +313,7 @@ Public Class C
     End Property
 End Class"
 
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Using output As New MemoryStream()
                 Using metadataOutput As New MemoryStream()
@@ -338,7 +341,7 @@ Public Class C
     End Property
 End Class"
 
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Using output As New MemoryStream()
                 Using metadataOutput As New MemoryStream()
@@ -357,7 +360,7 @@ End Class"
             stream.Position = 0
             Dim metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference()
 
-            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataRef},
+            Dim compWithMetadata = CreateEmptyCompilation("", references:={MscorlibRef, metadataRef},
                                                      options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             AssertEx.Equal(expectedMethods,
@@ -373,10 +376,10 @@ End Class"
                     Dim reader = assembly.GetMetadataReader()
                     Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
                     AssertEx.Equal(
-                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                         },
                         attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
@@ -398,7 +401,7 @@ End Class"
                     AssertEx.Empty(attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
 
-            Dim comp = CreateCompilation({Parse("")})
+            Dim comp = CreateEmptyCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
             CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
@@ -412,10 +415,10 @@ End Class"
                     Dim reader = assembly.GetMetadataReader()
                     Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
                     AssertEx.Equal(
-                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                         },
                         attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
@@ -560,7 +563,7 @@ Public Interface ITest1
     Function M() As S
 End Interface
 ]]></file></compilation>
-            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            Dim pia = CreateCompilationWithMscorlib40(piaSource)
             CompileAndVerify(pia)
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Public Class D
@@ -582,13 +585,13 @@ End Class
         End Sub
 
         Private Sub RefAssemblyNoPia_VerifyRefOnly(source As Xml.Linq.XElement, reference As MetadataReference)
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll, references:={reference})
             Dim refOnlyImage = EmitRefOnly(comp)
             RefAssemblyNoPia_VerifyNoPia(refOnlyImage)
         End Sub
 
         Private Sub RefAssemblyNoPia_VerifyRefOut(source As Xml.Linq.XElement, reference As MetadataReference)
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll, references:={reference})
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll, references:={reference})
             Dim pair = EmitRefOut(comp)
             RefAssemblyNoPia_VerifyNoPia(pair.image)
             RefAssemblyNoPia_VerifyNoPia(pair.refImage)
@@ -596,7 +599,7 @@ End Class
 
         Private Sub RefAssemblyNoPia_VerifyNoPia(image As ImmutableArray(Of Byte))
             Dim reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary)
-            Dim comp = CreateCompilationWithMscorlib("", references:={reference})
+            Dim comp = CreateCompilationWithMscorlib40("", references:={reference})
             Dim referencedAssembly = comp.GetReferencedAssemblySymbol(reference)
             Dim [module] = DirectCast(referencedAssembly.Modules(0), PEModuleSymbol)
 
@@ -633,7 +636,7 @@ Public Interface ITest1
     Function M() As S
 End Interface
 ]]></file></compilation>
-            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            Dim pia = CreateCompilationWithMscorlib40(piaSource)
             CompileAndVerify(pia)
             Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Public Class D
@@ -654,13 +657,13 @@ End Class
         End Sub
 
         Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source As Xml.Linq.XElement, reference As MetadataReference)
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll, references:={reference})
             Dim refOnlyImage = EmitRefOnly(comp)
             RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(refOnlyImage, expectMissing:=True)
         End Sub
 
         Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source As Xml.Linq.XElement, reference As MetadataReference)
-            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll, references:={reference})
             Dim pair = EmitRefOut(comp)
             RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.image, expectMissing:=False)
             RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.refImage, expectMissing:=False)
@@ -671,7 +674,7 @@ End Class
         ' This will be refined in the future. Follow-up issue: https://github.com/dotnet/roslyn/issues/19403
         Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(image As ImmutableArray(Of Byte), expectMissing As Boolean)
             Dim reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary)
-            Dim comp = CreateCompilationWithMscorlib("", references:={reference})
+            Dim comp = CreateCompilationWithMscorlib40("", references:={reference})
             Dim referencedAssembly = comp.GetReferencedAssemblySymbol(reference)
             Dim [module] = DirectCast(referencedAssembly.Modules(0), PEModuleSymbol)
 
@@ -766,12 +769,12 @@ End Function",
 
             Dim name As String = GetUniqueName()
             Dim source1 As String = sourceTemplate.Replace("CHANGE", change1)
-            Dim comp1 = CreateCompilationWithMscorlib(source1,
+            Dim comp1 = CreateCompilationWithMscorlib40(source1,
                 options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
             Dim image1 As ImmutableArray(Of Byte) = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
 
             Dim source2 = sourceTemplate.Replace("CHANGE", change2)
-            Dim comp2 = CreateCompilationWithMscorlib(source2,
+            Dim comp2 = CreateCompilationWithMscorlib40(source2,
                             options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
             Dim image2 As ImmutableArray(Of Byte) = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
 
@@ -780,6 +783,110 @@ End Function",
             Else
                 AssertEx.NotEqual(image1, image2)
             End If
+        End Sub
+
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
+        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        Public Sub RefAssembly_InvariantToResourceChanges_RefOut()
+            Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
+            Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}
+
+            Dim manifestResources1 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData1), isPublic:=True)}
+            Dim manifestResources2 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData2), isPublic:=True)}
+            RefAssembly_InvariantToResourceChanges_RefOut_verify(manifestResources1, manifestResources2)
+
+            manifestResources1 = {New ResourceDescription(resourceName:="A", Function() New MemoryStream(arrayOfEmbeddedData1), isPublic:=True)}
+            manifestResources2 = {New ResourceDescription(resourceName:="A", Function() New MemoryStream(arrayOfEmbeddedData2), isPublic:=True)}
+            RefAssembly_InvariantToResourceChanges_RefOut_verify(manifestResources1, manifestResources2)
+        End Sub
+
+        Private Function RefAssembly_InvariantToResourceChanges_RefOut_emit(ByVal manifestResources As IEnumerable(Of ResourceDescription), ByVal name As String) _
+            As (peStream As ImmutableArray(Of Byte), metadataPEStream As ImmutableArray(Of Byte))
+
+            Dim source = Parse("")
+            Dim comp = CreateCompilation(source, options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+            comp.VerifyDiagnostics()
+
+            Dim metadataPEStream = New MemoryStream()
+            Dim refoutOptions = EmitOptions.[Default].WithEmitMetadataOnly(False).WithIncludePrivateMembers(False)
+            Dim peStream = comp.EmitToArray(refoutOptions, metadataPEStream:=metadataPEStream, manifestResources:=manifestResources)
+
+            Return (peStream, metadataPEStream.ToImmutable())
+        End Function
+
+        Private Sub RefAssembly_InvariantToResourceChanges_RefOut_verify(ByVal manifestResources1 As IEnumerable(Of ResourceDescription), ByVal manifestResources2 As IEnumerable(Of ResourceDescription))
+            Dim name As String = GetUniqueName()
+            Dim emitted1 = RefAssembly_InvariantToResourceChanges_RefOut_emit(manifestResources1, name)
+            Dim emitted2 = RefAssembly_InvariantToResourceChanges_RefOut_emit(manifestResources2, name)
+
+            AssertEx.NotEqual(emitted1.peStream, emitted2.peStream, message:="Expecting different main assemblies produced by refout")
+            AssertEx.Equal(emitted1.metadataPEStream, emitted2.metadataPEStream, message:="Expecting identical ref assemblies produced by refout")
+
+            Dim refAssembly1 = Assembly.ReflectionOnlyLoad(emitted1.metadataPEStream.ToArray())
+            Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames())
+        End Sub
+
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
+        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        Public Sub RefAssembly_SensitiveToResourceChanges_RefOnly()
+            Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
+            Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}
+
+            Dim manifestResources1 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData1), isPublic:=True)}
+            Dim manifestResources2 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData2), isPublic:=True)}
+
+            Dim name As String = GetUniqueName()
+            Dim image1 = RefAssembly_SensitiveToResourceChanges_RefOnly_emit(manifestResources1, name)
+            Dim image2 = RefAssembly_SensitiveToResourceChanges_RefOnly_emit(manifestResources2, name)
+            AssertEx.Equal(image1, image2, message:="Expecting different ref assembly produced by refonly")
+
+            Dim refAssembly1 = Assembly.ReflectionOnlyLoad(image1.ToArray())
+            Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames())
+        End Sub
+
+        Private Function RefAssembly_SensitiveToResourceChanges_RefOnly_emit(ByVal manifestResources As IEnumerable(Of ResourceDescription), name As String) _
+            As ImmutableArray(Of Byte)
+
+            Dim source = Parse("")
+            Dim comp = CreateCompilation(source, options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+            comp.VerifyDiagnostics()
+
+            Dim refonlyOptions = EmitOptions.[Default].WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            Return comp.EmitToArray(refonlyOptions, metadataPEStream:=Nothing, manifestResources:=manifestResources)
+        End Function
+
+        <Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        Public Sub RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
+            Dim hash_resources =
+                {New ResourceDescription("hash_resource", "snKey.snk", Function() New MemoryStream(TestResources.General.snKey, writable:=False), True)}
+
+            Dim moduleComp =
+                CreateEmptyCompilation("", options:=TestOptions.DebugDll.WithDeterministic(True).WithOutputKind(OutputKind.NetModule))
+
+            Dim reference = ModuleMetadata.CreateFromImage(moduleComp.EmitToArray()).GetReference()
+
+            Dim compilation = CreateCompilation("
+<assembly: System.Reflection.AssemblyAlgorithmIdAttribute(12345ui)>
+
+Class Program
+End Class
+", references:={reference}, options:=TestOptions.ReleaseDll)
+
+            Dim refonlyOptions = EmitOptions.[Default].WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            Dim refonlyDiagnostics = compilation.Emit(New MemoryStream(), pdbStream:=Nothing,
+                                                      options:=refonlyOptions, manifestResources:=hash_resources).Diagnostics
+
+            refonlyDiagnostics.Verify(Diagnostic(ERRID.ERR_CryptoHashFailed))
+
+            Dim refoutOptions = EmitOptions.[Default].WithEmitMetadataOnly(False).WithIncludePrivateMembers(False)
+            Dim refoutDiagnostics = compilation.Emit(peStream:=New MemoryStream(), metadataPEStream:=New MemoryStream(),
+                                                     pdbStream:=Nothing, options:=refoutOptions, manifestResources:=hash_resources).Diagnostics
+
+            refoutDiagnostics.Verify(Diagnostic(ERRID.ERR_CryptoHashFailed))
         End Sub
 
         <Fact>
@@ -951,11 +1058,11 @@ Sub(comp) comp.AssertTheseDiagnostics())
 
         Private Sub VerifyRefAssemblyClient(lib_vb As String, source As String, validator As Action(Of VisualBasicCompilation), emitOptions As EmitOptions)
             Dim name = GetUniqueName()
-            Dim libComp = CreateCompilationWithMscorlib({Parse(lib_vb)},
+            Dim libComp = CreateCompilationWithMscorlib40({Parse(lib_vb)},
                 options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
             Dim libImage = libComp.EmitToImageReference(emitOptions)
 
-            Dim comp = CreateCompilationWithMscorlib(source, references:={libImage}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, references:={libImage}, options:=TestOptions.DebugDll)
             validator(comp)
         End Sub
 
@@ -984,7 +1091,7 @@ End Class"
 
             Dim name As String = GetUniqueName()
             Dim source As String = sourceTemplate.Replace("CHANGE", change)
-            Dim comp = CreateCompilationWithMscorlib(source,
+            Dim comp = CreateCompilationWithMscorlib40(source,
                 options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
 
             Using output As New MemoryStream()
@@ -1021,7 +1128,7 @@ Public MustInherit Class PublicClass
     Public Event PublicEvent As System.Action
     Friend Event InternalEvent As System.Action
 End Class"
-            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+            Dim comp As Compilation = CreateEmptyCompilation(source, references:={MscorlibRef},
                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
@@ -1029,7 +1136,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
-            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+            Dim compWithReal = CreateEmptyCompilation("", references:={MscorlibRef, realImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1061,7 +1168,7 @@ End Class"
             CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
-            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+            Dim compWithMetadata = CreateEmptyCompilation("", references:={MscorlibRef, metadataImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1095,7 +1202,7 @@ End Class"
             CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
-            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+            Dim compWithRef = CreateEmptyCompilation("", references:={MscorlibRef, refImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1139,14 +1246,14 @@ Public Class C
         End Set
     End Property
 End Class"
-            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+            Dim comp As Compilation = CreateEmptyCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
-            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+            Dim compWithReal = CreateEmptyCompilation("", references:={MscorlibRef, realImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1163,7 +1270,7 @@ End Class"
             CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
-            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+            Dim compWithMetadata = CreateEmptyCompilation("", references:={MscorlibRef, metadataImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1182,7 +1289,7 @@ End Class"
             CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
-            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+            Dim compWithRef = CreateEmptyCompilation("", references:={MscorlibRef, refImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1217,14 +1324,14 @@ Public Class C
         End RaiseEvent
     End Event
 End Class"
-            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+            Dim comp As Compilation = CreateEmptyCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
-            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+            Dim compWithReal = CreateEmptyCompilation("", references:={MscorlibRef, realImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1242,7 +1349,7 @@ End Class"
             CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
-            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+            Dim compWithMetadata = CreateEmptyCompilation("", references:={MscorlibRef, metadataImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1262,7 +1369,7 @@ End Class"
             CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
-            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+            Dim compWithRef = CreateEmptyCompilation("", references:={MscorlibRef, refImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1284,7 +1391,7 @@ End Class"
 Friend Structure InternalStruct
     Friend Property P As Integer
 End Structure"
-            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+            Dim comp As Compilation = CreateEmptyCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
@@ -1294,7 +1401,7 @@ End Structure"
             CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
-            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+            Dim compWithRef = CreateEmptyCompilation("", references:={MscorlibRef, refImage},
                             options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
             AssertEx.SetEqual(
@@ -1309,7 +1416,7 @@ End Structure"
 
         <Fact>
         Public Sub EmitMetadataOnly_DisallowPdbs()
-            Dim comp = CreateCompilation("", references:={MscorlibRef},
+            Dim comp = CreateEmptyCompilation("", references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Using output As New MemoryStream()
@@ -1322,7 +1429,7 @@ End Structure"
 
         <Fact>
         Public Sub EmitMetadataOnly_DisallowMetadataPeStream()
-            Dim comp = CreateCompilation("", references:={MscorlibRef},
+            Dim comp = CreateEmptyCompilation("", references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Using output As New MemoryStream()
@@ -1341,7 +1448,7 @@ End Structure"
         System.Console.Write(""Hello"")
     End Sub
 End Class "
-            Dim comp = CreateCompilation(source, references:={MscorlibRef},
+            Dim comp = CreateEmptyCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Using output As New MemoryStream()
@@ -1365,7 +1472,7 @@ End Class "
         <WorkItem(4344, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub Bug4344()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module M
@@ -1553,7 +1660,7 @@ Imports System
             </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                                            additionalRefs:={TestReferences.SymbolsTests.DifferByCase.CsharpDifferCaseOverloads},
+                                            references:={TestReferences.SymbolsTests.DifferByCase.CsharpDifferCaseOverloads},
                                  expectedOutput:=<![CDATA[
 Keep calm and carry on.
 The authorities have been called.]]>)
@@ -1590,7 +1697,7 @@ End Module
     </file>
             </compilation>
 
-            Dim c As Compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c As Compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim s = New MemoryStream()
             Assert.True(c.Emit(s).Success)
             c = VisualBasicCompilation.Create("Nothing", references:={MetadataReference.CreateFromImage(s.ToImmutable())})
@@ -1616,7 +1723,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {TestReferences.NetFx.v2_0_50727.mscorlib}, Nothing)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net20.mscorlib}, Nothing)
             Dim metadata = ModuleMetadata.CreateFromImage(compilation.EmitToArray())
 
             ' this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
@@ -1637,21 +1744,21 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=Nothing)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=Nothing)
             Dim peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X86))
+            compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X86))
             peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly Or CorFlags.Requires32Bit, peHeaders.CorHeader.Flags)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
+            compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
             peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
             Assert.True(peHeaders.Requires64Bits)
             Assert.True(peHeaders.RequiresAmdInstructionSet)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu32BitPreferred))
+            compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu32BitPreferred))
             peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.False(peHeaders.Requires64Bits)
             Assert.False(peHeaders.RequiresAmdInstructionSet)
@@ -1670,7 +1777,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.AnyCpu))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.AnyCpu))
             Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -1695,7 +1802,7 @@ End Module
             Assert.Equal(&H1000UL, peHeaders.PEHeader.SizeOfHeapCommit)
 
             ' test an exe as well:
-            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
+            compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
             peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -1731,7 +1838,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm))
             Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -1756,7 +1863,7 @@ End Module
             Assert.Equal(&H1000UL, peHeaders.PEHeader.SizeOfHeapCommit)
 
             ' test an exe as well:
-            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
+            compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
             peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -1792,7 +1899,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64))
             Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -1812,7 +1919,7 @@ End Module
             Assert.Equal(CType(&H8540, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE
 
             ' test an exe as well:
-            compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
+            compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
             peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
@@ -1850,7 +1957,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(highEntropyVirtualAddressSpace:=True)))
             Assert.Equal(CType(&H8560, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
@@ -1868,7 +1975,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeApplication))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeApplication))
             Dim peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CType(&H9540, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
@@ -1886,30 +1993,30 @@ End Module
             </compilation>
 
             ' last four hex digits get zero'ed out
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe)
             Dim peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(baseAddress:=&H10111111)))
             Assert.Equal(CType(&H10110000, ULong), peHeaders.PEHeader.ImageBase)
 
             ' rounded up by 0x8000
-            compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe)
             peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(baseAddress:=&H8000)))
             Assert.Equal(CType(&H10000, ULong), peHeaders.PEHeader.ImageBase)
 
             ' valued less than 0x8000 are being ignored
-            compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe)
             peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(baseAddress:=&H7FFF)))
             Assert.Equal(&H400000UL, peHeaders.PEHeader.ImageBase)
 
             ' default for 32 bit
-            compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X86))
+            compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X86))
             peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H400000UL, peHeaders.PEHeader.ImageBase)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X64))
+            compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X64))
             peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H140000000UL, peHeaders.PEHeader.ImageBase)
 
-            compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithPlatform(Platform.X64))
+            compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithPlatform(Platform.X64))
             peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H180000000UL, peHeaders.PEHeader.ImageBase)
 
@@ -1927,11 +2034,11 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(fileAlignment:=1024)))
             Assert.Equal(1024, peHeaders.PEHeader.FileAlignment)
 
-            compilation = CreateCompilationWithMscorlib(source)
+            compilation = CreateCompilationWithMscorlib40(source)
             peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(fileAlignment:=4096)))
             Assert.Equal(4096, peHeaders.PEHeader.FileAlignment)
         End Sub
@@ -2108,8 +2215,8 @@ Imports System
         ''' <summary>
         ''' Validate the contents of the DeclSecurity metadata table.
         ''' </summary>
-        Private Shared Sub ValidateDeclSecurity(compilation As VisualBasicCompilation, ParamArray expectedEntries As DeclSecurityEntry())
-            Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
+        Private Shared Sub ValidateDeclSecurity([module] As ModuleSymbol, ParamArray expectedEntries As DeclSecurityEntry())
+            Dim metadataReader = [module].GetMetadata().MetadataReader
             Assert.Equal(expectedEntries.Length, metadataReader.DeclarativeSecurityAttributes.Count)
 
             Dim i = 0
@@ -2217,39 +2324,42 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"},
-                                    New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Assert,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H50) &
-                                        "MySecurityAttribute, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" &
-                                        ChrW(1) &
-                                        ChrW(0)})
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"},
+                                                         New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Assert,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H50) &
+                                                             "MySecurityAttribute, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" &
+                                                             ChrW(1) &
+                                                             ChrW(0)})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2272,10 +2382,12 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
@@ -2294,6 +2406,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2315,41 +2428,44 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(2) &
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(2) &
  _
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1" &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1" &
  _
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"})
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2373,41 +2489,44 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "goo",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(2) &
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.Method,
+                                                         .ParentNameOpt = "goo",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(2) &
  _
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1" &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1" &
  _
-                                ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"})
+                                                     ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2429,10 +2548,12 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.NamedType,
@@ -2469,6 +2590,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User2"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2492,10 +2614,12 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
@@ -2532,6 +2656,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User2"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2561,10 +2686,12 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
@@ -2601,6 +2728,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2625,46 +2753,49 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics()
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C1",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"},
-                                New DeclSecurityEntry() With {
-                                    .ActionFlags = DeclarativeSecurityAction.Demand,
-                                    .ParentKind = SymbolKind.NamedType,
-                                    .ParentNameOpt = "C2",
-                                    .PermissionSet =
-                                        "." &
-                                        ChrW(1) &
-                                        ChrW(&H80) &
-                                        ChrW(&H85) &
-                                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
-                                        ChrW(&HE) &
-                                        ChrW(&H1) &
-                                        ChrW(&H54) &
-                                        ChrW(&HE) &
-                                        ChrW(&H4) &
-                                        "Role" &
-                                        ChrW(&H5) &
-                                        "User1"})
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module],
+                                                      New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C1",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"},
+                                                     New DeclSecurityEntry() With {
+                                                         .ActionFlags = DeclarativeSecurityAction.Demand,
+                                                         .ParentKind = SymbolKind.NamedType,
+                                                         .ParentNameOpt = "C2",
+                                                         .PermissionSet =
+                                                             "." &
+                                                             ChrW(1) &
+                                                             ChrW(&H80) &
+                                                             ChrW(&H85) &
+                                                             "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H1) &
+                                                             ChrW(&H54) &
+                                                             ChrW(&HE) &
+                                                             ChrW(&H4) &
+                                                             "Role" &
+                                                             ChrW(&H5) &
+                                                             "User1"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2691,13 +2822,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.RequestOptional").WithArguments("RequestOptional", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.RequestMinimum").WithArguments("RequestMinimum", "Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."))
 
-            ValidateDeclSecurity(compilation,
-                                 New DeclSecurityEntry() With {
+            CompileAndVerify(compilation, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module], New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.RequestOptional,
                                     .ParentKind = SymbolKind.Assembly,
                                     .PermissionSet =
@@ -2765,6 +2897,7 @@ End Module
                                         "Role" &
                                         ChrW(&H5) &
                                         "User2"})
+                             End Sub)
         End Sub
 
         <Fact()>
@@ -2912,7 +3045,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseModule)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseModule)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -2948,7 +3081,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -2985,7 +3118,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -3022,7 +3155,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -3059,7 +3192,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim assembly = compilation.Assembly
@@ -3091,7 +3224,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim result = compilation.Emit(New MemoryStream(), options:=New EmitOptions(outputNameOverride:=" "))
@@ -3143,8 +3276,9 @@ End Class
             Dim lengthHi = &H82
             Dim lengthLo = &H86
 
-            ValidateDeclSecurity(comp,
-                New DeclSecurityEntry() With {
+            CompileAndVerify(comp, symbolValidator:=
+                             Sub([module] As ModuleSymbol)
+                                 ValidateDeclSecurity([module], New DeclSecurityEntry() With {
                     .ActionFlags = DeclarativeSecurityAction.Deny,
                     .ParentKind = SymbolKind.NamedType,
                     .ParentNameOpt = "AClass",
@@ -3161,6 +3295,7 @@ End Class
                         "Hex" &
                         ChrW(lengthHi) & ChrW(lengthLo) &
                         hexFileContent})
+                             End Sub)
         End Sub
 
         <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
@@ -3178,7 +3313,7 @@ end class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File"),
@@ -3198,7 +3333,7 @@ end class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.").WithLocation(3, 25),
                 Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(3, 46))
         End Sub
@@ -3218,7 +3353,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompileAndVerify(comp)
         End Sub
 
@@ -3237,7 +3372,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompileAndVerify(comp)
         End Sub
 
@@ -3258,7 +3393,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompileAndVerify(comp)
         End Sub
 
@@ -3325,7 +3460,7 @@ Public Interface I(Of W As Structure) : End Interface
 </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(refSource).VerifyDiagnostics()
+            Dim comp = CreateCompilationWithMscorlib40(refSource).VerifyDiagnostics()
 
             Dim metadataValidator As Action(Of ModuleSymbol) =
                 Sub([module] As ModuleSymbol)
@@ -3377,9 +3512,9 @@ End Class
 </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
+            Dim comp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
+            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
         End Sub
 
         <Fact>
@@ -3392,7 +3527,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -3408,31 +3543,31 @@ End interface
 </file>
 </compilation>
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
 
             AssertTheseDiagnostics(useCompilation.Emit(New MemoryStream()).Diagnostics, <expected></expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
@@ -3441,7 +3576,7 @@ End interface
 BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
@@ -3450,7 +3585,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
@@ -3459,7 +3594,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
@@ -3485,7 +3620,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -3500,7 +3635,7 @@ End interface
 </file>
 </compilation>
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
@@ -3510,7 +3645,7 @@ End interface
 BC37213: Agnostic assembly cannot have a processor specific module 'PlatformMismatch.netmodule'.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
@@ -3519,7 +3654,7 @@ BC37213: Agnostic assembly cannot have a processor specific module 'PlatformMism
 BC37214: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
@@ -3538,7 +3673,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.X86))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.X86))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -3555,7 +3690,7 @@ End interface
 </compilation>
 
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3564,7 +3699,7 @@ End interface
 BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3573,7 +3708,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -3582,7 +3717,7 @@ BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral
 BC42372: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -3602,7 +3737,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.X86))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.X86))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -3617,7 +3752,7 @@ End interface
 </file>
 </compilation>
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3637,7 +3772,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -3654,7 +3789,7 @@ End interface
 </compilation>
 
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3662,7 +3797,7 @@ End interface
 <expected>
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3670,7 +3805,7 @@ End interface
 <expected>
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -3678,7 +3813,7 @@ End interface
 <expected>
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -3697,7 +3832,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -3712,7 +3847,7 @@ End interface
 </file>
 </compilation>
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3731,7 +3866,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim compRef = New VisualBasicCompilationReference(refCompilation)
@@ -3748,7 +3883,7 @@ End interface
 </compilation>
 
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3756,7 +3891,7 @@ End interface
 <expected>
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3764,7 +3899,7 @@ End interface
 <expected>
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {compRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -3772,7 +3907,7 @@ End interface
 <expected>
 </expected>)
 
-            useCompilation = CreateCompilationWithReferences(useSource,
+            useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
@@ -3791,7 +3926,7 @@ End interface
 </file>
 </compilation>
 
-            Dim refCompilation = CreateCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
+            Dim refCompilation = CreateEmptyCompilationWithReferences(refSource, New MetadataReference() {}, TestOptions.ReleaseModule.WithPlatform(Platform.Itanium))
 
             refCompilation.VerifyEmitDiagnostics()
             Dim imageRef = refCompilation.EmitToImageReference()
@@ -3806,7 +3941,7 @@ End interface
 </file>
 </compilation>
 
-            Dim useCompilation = CreateCompilationWithReferences(useSource,
+            Dim useCompilation = CreateEmptyCompilationWithReferences(useSource,
                 {imageRef},
                 TestOptions.ReleaseDll.WithPlatform(Platform.Itanium))
 
@@ -3823,7 +3958,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
             CompileAndVerify(compilation, verify:=Verification.Fails)
             Assert.NotSame(compilation.Assembly.CorLibrary, compilation.Assembly)
@@ -3859,7 +3994,7 @@ End interface
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(useSource, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(useSource, options:=TestOptions.ReleaseDll)
             Dim metadataReader = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).Module.GetMetadataReader()
 
             Dim P1RVA = 0
@@ -3921,7 +4056,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Using stream As Stream = compilation.EmitToStream()
                 Dim len As Integer = CType(stream.Length, Integer)
                 Dim bytes(len) As Byte
@@ -3966,7 +4101,7 @@ Class C6
 End Class
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Dim bytes = compilation.EmitToArray()
             Using metadata = ModuleMetadata.CreateFromImage(bytes)
                 Dim reader = metadata.MetadataReader
@@ -3991,7 +4126,7 @@ End Class
         <Fact>
         Public Sub FailingEmitter()
             ' Check that Compilation.Emit actually produces compilation errors.
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module M1

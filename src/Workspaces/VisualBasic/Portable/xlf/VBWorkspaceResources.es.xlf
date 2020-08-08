@@ -12,6 +12,16 @@
         <target state="translated">Solo atributos, expresiones o instrucciones pueden hacerse explícitos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Imports">
+        <source>R&amp;emove and Sort Imports</source>
+        <target state="translated">Quitar y ord&amp;enar instrucciones Import</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">Orde&amp;nar instrucciones Import</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;evento&gt;</target>
@@ -39,7 +49,7 @@
       </trans-unit>
       <trans-unit id="typeName">
         <source>&lt;typeName&gt;</source>
-        <target state="translated">&lt;nombreDeTipo&gt;</target>
+        <target state="translated">&lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time">
@@ -74,7 +84,7 @@
       </trans-unit>
       <trans-unit id="expressionIfNothing">
         <source>&lt;expressionIfNothing&gt;</source>
-        <target state="translated">&lt;expresiónIfNothing&gt;</target>
+        <target state="translated">&lt;expressionIfNothing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type">
@@ -134,12 +144,12 @@
       </trans-unit>
       <trans-unit id="stringName">
         <source>&lt;stringName&gt;</source>
-        <target state="translated">&lt;nombreDeCadena&gt;</target>
+        <target state="translated">&lt;stringName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="startIndex">
         <source>&lt;startIndex&gt;</source>
-        <target state="translated">&lt;índiceDeInicio&gt;</target>
+        <target state="translated">&lt;startIndex&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="length">
@@ -174,7 +184,7 @@
       </trans-unit>
       <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
         <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
-        <target state="translated">Si &lt;condición&gt; devuelve True, la función calcula y devuelve &lt;expresiónIfTrue&gt;. De lo contrario, devuelve &lt;expresiónIfFalse&gt;.</target>
+        <target state="translated">Si &lt;condition&gt; devuelve True, la función calcula y devuelve &lt;expressionIfTrue&gt;. De lo contrario, devuelve &lt;expressionIfFalse&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_expression_to_evaluate">
@@ -199,12 +209,12 @@
       </trans-unit>
       <trans-unit id="expressionIfTrue">
         <source>&lt;expressionIfTrue&gt;</source>
-        <target state="translated">&lt;expresiónIfTrue&gt;</target>
+        <target state="translated">&lt;expressionIfTrue&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="expressionIfFalse">
         <source>&lt;expressionIfFalse&gt;</source>
-        <target state="translated">&lt;expresiónIfFalse&gt;</target>
+        <target state="translated">&lt;expressionIfFalse&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
@@ -229,7 +239,7 @@
       </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
-        <target state="translated">&lt;tipoOMiembro&gt;</target>
+        <target state="translated">&lt;typeOrMember&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_of_member_to_return_the_name_of">

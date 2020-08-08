@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _textBuffer = textBuffer;
             _spanTrackingMode = trackingMode;
 
-            var nodeValues = values == null
-                ? null
-                : values.Select(ts => new TagNode(ts, trackingMode));
+            var nodeValues = values?.Select(ts => new TagNode(ts, trackingMode));
 
             var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
             _tree = IntervalTree.Create(introspector, nodeValues);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         {
             var snapshot = snapshotSpan.Snapshot;
-            Contract.Requires(snapshot.TextBuffer == _textBuffer);
+            Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
             var introspector = new IntervalIntrospector(snapshot);
             var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);
@@ -52,50 +52,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             List<ITagSpan<TTag>> result = null;
             foreach (var tagNode in intersectingIntervals)
             {
-                result = result ?? new List<ITagSpan<TTag>>();
+                result ??= new List<ITagSpan<TTag>>();
                 result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
             }
 
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
         }
 
-        public void GetNonIntersectingSpans(SnapshotSpan snapshotSpan, List<ITagSpan<TTag>> beforeSpans, List<ITagSpan<TTag>> afterSpans)
-        {
-            var snapshot = snapshotSpan.Snapshot;
-            Contract.Requires(snapshot.TextBuffer == _textBuffer);
-
-            var introspector = new IntervalIntrospector(snapshot);
-
-            var beforeSpan = new SnapshotSpan(snapshot, 0, snapshotSpan.Start);
-            AddNonIntersectingSpans(beforeSpan, introspector, beforeSpans);
-
-            var afterSpan = new SnapshotSpan(snapshot, snapshotSpan.End, snapshot.Length - snapshotSpan.End);
-            AddNonIntersectingSpans(afterSpan, introspector, afterSpans);
-        }
-
-        private void AddNonIntersectingSpans(
-            SnapshotSpan span, IntervalIntrospector introspector, List<ITagSpan<TTag>> spans)
-        {
-            var snapshot = span.Snapshot;
-            foreach (var tagNode in _tree.GetIntervalsThatIntersectWith(span.Start, span.Length, introspector))
-            {
-                var tagNodeSpan = tagNode.Span.GetSpan(snapshot);
-                if (span.Contains(tagNodeSpan))
-                {
-                    spans.Add(new TagSpan<TTag>(tagNodeSpan, tagNode.Tag));
-                }
-            }
-        }
-
         public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
-        {
-            return _tree.Select(tn => new TagSpan<TTag>(tn.Span.GetSpan(snapshot), tn.Tag));
-        }
+            => _tree.Select(tn => new TagSpan<TTag>(tn.Span.GetSpan(snapshot), tn.Tag));
 
         public bool IsEmpty()
-        {
-            return _tree.IsEmpty();
-        }
+            => _tree.IsEmpty();
 
         public IEnumerable<ITagSpan<TTag>> GetIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans)
         {
@@ -156,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var mergedSpan = new SnapshotSpan(requestedSpans[0].Start, requestedSpans[requestedSpans.Count - 1].End);
             var result = GetIntersectingSpans(mergedSpan);
 
-            int requestIndex = 0;
+            var requestIndex = 0;
 
             var enumerator = result.GetEnumerator();
 

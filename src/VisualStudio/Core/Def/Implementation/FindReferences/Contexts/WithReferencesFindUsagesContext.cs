@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,11 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -27,8 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
-                IFindAllReferencesWindow findReferencesWindow)
-                : base(presenter, findReferencesWindow)
+                IFindAllReferencesWindow findReferencesWindow,
+                ImmutableArray<ITableColumnDefinition> customColumns,
+                bool includeContainingTypeAndMemberColumns,
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
@@ -60,15 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // lock, and I'd like to avoid that.  That does mean that we might do extra
                 // work if multiple threads end up down this path.  But only one of them will
                 // win when we access the lock below.
-                var declarations = ArrayBuilder<Entry>.GetInstance();
+                using var _ = ArrayBuilder<Entry>.GetInstance(out var declarations);
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
-                    var definitionEntry = await CreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition).ConfigureAwait(false);
-                    if (definitionEntry != null)
-                    {
-                        declarations.Add(definitionEntry);
-                    }
+                    var definitionEntry = await TryCreateDocumentSpanEntryAsync(
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
+                    declarations.AddIfNotNull(definitionEntry);
                 }
 
                 var changed = false;
@@ -90,8 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // Let all our subscriptions know that we've updated.
                     NotifyChange();
                 }
-
-                declarations.Free();
             }
 
             private bool HasDeclarationEntries(DefinitionItem definition)
@@ -105,12 +105,26 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
             {
-                // Normal references go into both sets of entries.
+                // Normal references go into both sets of entries.  We ensure an entry for the definition, and an entry
+                // for the reference itself.
                 return OnEntryFoundAsync(
                     reference.Definition,
-                    bucket => CreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan, 
-                        reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference),
+                    bucket => TryCreateDocumentSpanEntryAsync(
+                        bucket, reference.SourceSpan,
+                        reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
+                        reference.SymbolUsageInfo,
+                        reference.AdditionalProperties),
+                    addToEntriesWhenGroupingByDefinition: true,
+                    addToEntriesWhenNotGroupingByDefinition: true);
+            }
+
+            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
+            {
+                // External references go into both sets of entries.  We ensure an entry for the definition, and an
+                // entry for the reference itself.
+                return OnEntryFoundAsync(
+                    reference.Definition,
+                    bucket => Task.FromResult<Entry>(new ExternalReferenceItemEntry(bucket, reference)),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }
@@ -134,6 +148,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // First find the bucket corresponding to our definition.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
+                if (entry == null)
+                {
+                    return;
+                }
 
                 lock (Gate)
                 {

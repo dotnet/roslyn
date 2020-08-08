@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -104,29 +106,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBody = methodBody;
             _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
             TypeSymbol payloadElementType = methodBodyFactory.SpecialType(SpecialType.System_Boolean);
-            _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, payloadElementType);
+            _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, TypeWithAnnotations.Create(payloadElementType));
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
             _methodBodyFactory = methodBodyFactory;
 
             // Set the factory context to generate nodes for the current method
-            var oldMethod = methodBodyFactory.CurrentMethod;
-            methodBodyFactory.CurrentMethod = method;
+            var oldMethod = methodBodyFactory.CurrentFunction;
+            methodBodyFactory.CurrentFunction = method;
 
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
-            if (!method.IsImplicitlyDeclared)
+            if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
 
             // Restore context
-            methodBodyFactory.CurrentMethod = oldMethod;
+            methodBodyFactory.CurrentFunction = oldMethod;
         }
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
+            Debug.Assert(method.MethodKind != MethodKind.LocalFunction && method.MethodKind != MethodKind.AnonymousFunction);
+
             var containingType = method.ContainingType;
             while ((object)containingType != null)
             {
@@ -138,37 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containingType = containingType.ContainingType;
             }
 
-            // Skip lambdas and local functions. They can't have custom attributes.
-            var nonLambda = method.ContainingNonLambdaMember();
-            if (nonLambda?.Kind == SymbolKind.Method)
+            return method switch
             {
-                method = (MethodSymbol)nonLambda;
-
-                if (method.IsDirectlyExcludedFromCodeCoverage)
-                {
-                    return true;
-                }
-
-                var associatedSymbol = method.AssociatedSymbol;
-                switch (associatedSymbol?.Kind)
-                {
-                    case SymbolKind.Property:
-                        if (((PropertySymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
-                        {
-                            return true;
-                        }
-                        break;
-
-                    case SymbolKind.Event:
-                        if (((EventSymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
-                        {
-                            return true;
-                        }
-                        break;
-                }
-            }
-
-            return false;
+                { IsDirectlyExcludedFromCodeCoverage: true } => true,
+                { AssociatedSymbol: PropertySymbol { IsDirectlyExcludedFromCodeCoverage: true } } => true,
+                { AssociatedSymbol: EventSymbol { IsDirectlyExcludedFromCodeCoverage: true } } => true,
+                _ => false
+            };
         }
 
         private static BoundExpressionStatement GetCreatePayloadStatement(
@@ -243,7 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodBodyFactory.Literal(dynamicAnalysisSpans.Length)));
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
+#nullable enable
+        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out LocalSymbol? synthesizedLocal)
+#nullable restore
         {
             BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (_methodBody == original)
@@ -253,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 const int analysisKind = 0;
 
                 ArrayTypeSymbol modulePayloadType =
-                    ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, _payloadType);
+                    ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, TypeWithAnnotations.Create(_payloadType));
 
                 // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                 //
@@ -342,9 +324,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentExpressionStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
-            return AddDynamicAnalysis(original, base.InstrumentExpressionStatement(original, rewritten));
+            return AddDynamicAnalysis(original, base.InstrumentFieldOrPropertyInitializer(original, rewritten));
         }
 
         public override BoundStatement InstrumentGotoStatement(BoundGotoStatement original, BoundStatement rewritten)
@@ -438,14 +420,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentSwitchStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            return AddDynamicAnalysis(original, base.InstrumentPatternSwitchStatement(original, rewritten));
-        }
-
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
-        {
-            ifConditionGotoBody = base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            ifConditionGotoBody = base.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
             WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 
@@ -562,9 +539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.SwitchStatement:
                     syntaxForSpan = ((BoundSwitchStatement)statement).Expression.Syntax;
                     break;
-                case BoundKind.PatternSwitchStatement:
-                    syntaxForSpan = ((BoundPatternSwitchStatement)statement).Expression.Syntax;
-                    break;
                 default:
                     syntaxForSpan = statement.Syntax;
                     break;
@@ -590,6 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
 
@@ -615,6 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     AccessorDeclarationSyntax accessorSyntax = (AccessorDeclarationSyntax)syntax;
                     return SkipAttributes(syntax, accessorSyntax.AttributeLists, accessorSyntax.Modifiers, accessorSyntax.Keyword, null);
 

@@ -1,14 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddFileBanner
@@ -17,26 +26,34 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
     {
         protected abstract bool IsCommentStartCharacter(char ch);
 
+        protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-            
-            if (!context.Span.IsEmpty)
+            var (document, span, cancellationToken) = context;
+            if (!span.IsEmpty)
             {
                 return;
             }
 
-            var position = context.Span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
+            if (document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
+                && !string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                // If we have a defined file header template, allow the analyzer and code fix to handle it
+                return;
+            }
+
+            var position = span.Start;
             var firstToken = root.GetFirstToken();
             if (!firstToken.FullSpan.IntersectsWith(position))
             {
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var banner = syntaxFacts.GetFileBanner(root);
 
             if (banner.Length > 0)
@@ -66,23 +83,51 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
-                        new MyCodeAction(c => AddBannerAsync(document, root, siblingBanner, c)));
+                        new MyCodeAction(_ => AddBannerAsync(document, root, siblingDocument, siblingBanner)),
+                        new Text.TextSpan(position, length: 0));
                     return;
                 }
             }
         }
 
         private Task<Document> AddBannerAsync(
-            Document document, SyntaxNode root, ImmutableArray<SyntaxTrivia> banner, CancellationToken c)
+            Document document, SyntaxNode root,
+            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
         {
+            banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
+
             var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
+        }
+
+        /// <summary>
+        /// Looks at <paramref name="banner"/> to see if it contains the name of <paramref name="sourceDocument"/>
+        /// in it.  If so, those names will be replaced with <paramref name="destinationDocument"/>'s name.
+        /// </summary>
+        private ImmutableArray<SyntaxTrivia> UpdateEmbeddedFileNames(
+            Document sourceDocument, Document destinationDocument, ImmutableArray<SyntaxTrivia> banner)
+        {
+            var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
+            var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
+            if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
+            {
+                return banner;
+            }
+
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+            foreach (var trivia in banner)
+            {
+                var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
+                result.Add(updated);
+            }
+
+            return result.ToImmutable();
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
             Document document, SyntaxNode root, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // If we have a tree already for this document, then just check to see
             // if it has a banner.
@@ -106,8 +151,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Add_file_banner, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CodeFixesResources.Add_file_header, createChangedDocument)
             {
             }
         }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -214,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsSerializable As Boolean
+        Public Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return (_flags And TypeAttributes.Serializable) <> 0
             End Get
@@ -242,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return InterfacesNoUseSiteDiagnostics
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
             If (Me._flags And TypeAttributes.Interface) = 0 Then
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
 
@@ -260,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Try
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
                 Dim interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(Me._handle)
@@ -505,15 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             EnsureNestedTypesAreLoaded()
             EnsureNonTypeMembersAreLoaded()
 
-            Dim result = _lazyMembers.Flatten()
-
-#If DEBUG Then
-            ' In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            ' more obviously.
-            Return result.DeOrder()
-#Else
-            Return result
-#End If
+            Return _lazyMembers.Flatten().ConditionallyDeOrder()
         End Function
 
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
@@ -809,7 +803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Public Overloads Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return GetTypeMembers(name).WhereAsArray(Function(type) type.Arity = arity)
+            Return GetTypeMembers(name).WhereAsArray(Function(type, arity_) type.Arity = arity_, arity)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -1288,7 +1282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                    specialtype <> SpecialType.System_Enum AndAlso specialtype <> SpecialType.System_MulticastDelegate Then
                     Dim base As TypeSymbol = GetDeclaredBase(Nothing)
 
-                    If base?.SpecialType = SpecialType.None AndAlso base.ContainingAssembly?.IsMissing Then
+                    If base IsNot Nothing AndAlso base.SpecialType = SpecialType.None AndAlso base.ContainingAssembly?.IsMissing Then
                         Dim missingType = TryCast(base, MissingMetadataTypeSymbol.TopLevel)
 
                         If missingType IsNot Nothing AndAlso missingType.Arity = 0 Then

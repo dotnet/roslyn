@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -38,7 +41,7 @@ Class B
     Structure S : End Structure
     Interface I : End Interface
 End Class"
-            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             compilation0.VerifyDiagnostics()
@@ -100,7 +103,7 @@ Class A(Of T)
     End Structure
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
             compilation0.VerifyDiagnostics()
@@ -126,7 +129,7 @@ Class C
     End Sub
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -153,7 +156,7 @@ Class B
     End Function
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, references:={metadataRef})
+            Dim compilation0 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, references:={metadataRef})
             Dim compilation1 = compilation0.Clone()
 
             compilation0.VerifyDiagnostics()
@@ -179,10 +182,10 @@ Public Class C
     End Sub
 End Class
 "
-            Dim lib0 = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.DebugDll, assemblyName:="Lib")
-            Dim lib1 = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.DebugDll, assemblyName:="Lib")
+            Dim lib0 = CreateCompilationWithMscorlib40({libSource}, options:=TestOptions.DebugDll, assemblyName:="Lib")
+            Dim lib1 = CreateCompilationWithMscorlib40({libSource}, options:=TestOptions.DebugDll, assemblyName:="Lib")
 
-            Dim compilation0 = CreateCompilationWithMscorlib({source}, {lib0.ToMetadataReference()}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source}, {lib0.ToMetadataReference()}, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference())
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
@@ -218,7 +221,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
@@ -250,7 +253,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
@@ -286,7 +289,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.y")
@@ -320,10 +323,10 @@ Class C
 End Class
 "
 
-            Dim compilation0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll)
 
             Dim peRef0 = compilation0.EmitToImageReference()
-            Dim peAssemblySymbol0 = DirectCast(CreateCompilationWithMscorlib({""}, {peRef0}).GetReferencedAssemblySymbol(peRef0), PEAssemblySymbol)
+            Dim peAssemblySymbol0 = DirectCast(CreateCompilationWithMscorlib40({""}, {peRef0}).GetReferencedAssemblySymbol(peRef0), PEAssemblySymbol)
             Dim peModule0 = DirectCast(peAssemblySymbol0.Modules(0), PEModuleSymbol)
 
             Dim reader0 = peModule0.Module.MetadataReader
@@ -334,7 +337,7 @@ End Class
             Assert.Equal("VB$AnonymousType_1", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("B", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal(2, anonymousTypeMap0.Count)
 
-            Dim compilation1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.DebugDll)
 
             Dim testData = New CompilationTestData()
             compilation1.EmitToArray(testData:=testData)
@@ -390,10 +393,10 @@ Class C
 End Class
 "
 
-            Dim compilation0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll)
 
             Dim peRef0 = compilation0.EmitToImageReference()
-            Dim peAssemblySymbol0 = DirectCast(CreateCompilationWithMscorlib({""}, {peRef0}).GetReferencedAssemblySymbol(peRef0), PEAssemblySymbol)
+            Dim peAssemblySymbol0 = DirectCast(CreateCompilationWithMscorlib40({""}, {peRef0}).GetReferencedAssemblySymbol(peRef0), PEAssemblySymbol)
             Dim peModule0 = DirectCast(peAssemblySymbol0.Modules(0), PEModuleSymbol)
 
             Dim reader0 = peModule0.Module.MetadataReader
@@ -405,7 +408,7 @@ End Class
             Assert.Equal("VB$AnonymousType_2", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("Y", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal(3, anonymousTypeMap0.Count)
 
-            Dim compilation1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.DebugDll)
 
             Dim testData = New CompilationTestData()
             compilation1.EmitToArray(testData:=testData)
@@ -461,10 +464,10 @@ Class C
 End Class
 "
 
-            Dim compilation0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll)
 
             Dim peRef0 = compilation0.EmitToImageReference()
-            Dim peAssemblySymbol0 = DirectCast(CreateCompilationWithMscorlib({""}, {peRef0}).GetReferencedAssemblySymbol(peRef0), PEAssemblySymbol)
+            Dim peAssemblySymbol0 = DirectCast(CreateCompilationWithMscorlib40({""}, {peRef0}).GetReferencedAssemblySymbol(peRef0), PEAssemblySymbol)
             Dim peModule0 = DirectCast(peAssemblySymbol0.Modules(0), PEModuleSymbol)
 
             Dim reader0 = peModule0.Module.MetadataReader
@@ -481,7 +484,7 @@ End Class
 
             Assert.Equal(2, anonymousTypeMap0.Count)
 
-            Dim compilation1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.DebugDll)
 
             Dim testData = New CompilationTestData()
             compilation1.EmitToArray(testData:=testData)
@@ -525,7 +528,7 @@ Class C
 {
     Public x As (a As Integer, b As Boolean)
 }"
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -555,7 +558,7 @@ Class C
 {
     Public x As (a As Integer, c As Integer)
 }"
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -590,7 +593,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -623,7 +626,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -656,7 +659,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -689,7 +692,7 @@ Class C
     End Function
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -728,7 +731,7 @@ Class C
     End Property
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -765,7 +768,7 @@ Class C
     End Property
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -796,7 +799,7 @@ Public Structure Vector
     Public Coordinates As (x As Integer, y As Integer, z As Integer)
 End Structure
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -825,7 +828,7 @@ Public Structure Vector
     Public Coordinates As (x As Integer, z As Integer)
 End Structure
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:= TestOptions.DebugDll, references:= ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -856,7 +859,7 @@ Public Class C
     Public Delegate Function F() As (Integer, Boolean)
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:= TestOptions.DebugDll, references:= ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -886,7 +889,7 @@ End Class
 Public Class C
     Public Delegate Function F() As (x as Integer, z as Integer)
 End Class"
-            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -52,7 +54,7 @@ expectedOutput: "test");
         public void Syntax01()
         {
             // Feature is enabled by default
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public int M() => 1;
@@ -80,15 +82,16 @@ class C
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilation(@"
 interface C
 {
     int M() => 1;
-}");
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
             comp.VerifyDiagnostics(
-    // (4,9): error CS0531: 'C.M()': interface members cannot have a definition
-    //     int M() => 1;
-    Diagnostic(ErrorCode.ERR_InterfaceMemberHasBody, "M").WithArguments("C.M()").WithLocation(4, 9));
+                // (4,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     int M() => 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(4, 9)
+                );
         }
 
         [Fact]
@@ -117,7 +120,7 @@ class C
     // (4,24): error CS0500: 'C.M()' cannot declare a body because it is marked abstract
     //    public abstract int M() => 1;
     Diagnostic(ErrorCode.ERR_AbstractHasBody, "M").WithArguments("C.M()").WithLocation(4, 24),
-    // (4,24): error CS0513: 'C.M()' is abstract but it is contained in non-abstract class 'C'
+    // (4,24): error CS0513: 'C.M()' is abstract but it is contained in non-abstract type 'C'
     //    public abstract int M() => 1;
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("C.M()", "C").WithLocation(4, 24));
         }

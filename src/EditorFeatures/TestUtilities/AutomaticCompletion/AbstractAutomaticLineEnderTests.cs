@@ -1,63 +1,53 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
-using Moq;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 {
+    [UseExportProvider]
     public abstract class AbstractAutomaticLineEnderTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string code);
+        protected abstract string Language { get; }
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
-        internal abstract ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
-            Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
-            ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations);
+        internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace);
 
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45892
         protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            using (var workspace = CreateWorkspace(code))
-            {
-                var view = workspace.Documents.Single().GetTextView();
-                var buffer = workspace.Documents.Single().GetTextBuffer();
-                var nextHandlerInvoked = false;
+            // WPF is required for some reason: https://github.com/dotnet/roslyn/issues/46286
+            using var workspace = TestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, new[] { code }, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-                view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
+            var view = workspace.Documents.Single().GetTextView();
+            var buffer = workspace.Documents.Single().GetTextBuffer();
+            var nextHandlerInvoked = false;
 
-                var commandHandler = CreateCommandHandler(
-                                        GetExportedValue<Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator>(workspace),
-                                        GetExportedValue<ITextUndoHistoryRegistry>(workspace),
-                                        GetExportedValue<IEditorOperationsFactoryService>(workspace));
+            view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
 
-                commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer),
-                                                    assertNextHandlerInvoked
-                                                        ? () => { nextHandlerInvoked = true; }
-                : CreateNextHandler(workspace));
+            var commandHandler = GetCommandHandler(workspace);
+            var nextHandler = assertNextHandlerInvoked ? () => nextHandlerInvoked = true : CreateNextHandler(workspace);
 
-                Test(view, buffer, expected);
+            commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer), nextHandler, TestCommandExecutionContext.Create());
 
-                Assert.Equal(assertNextHandlerInvoked, nextHandlerInvoked);
-            }
+            Test(view, buffer, expected);
+
+            Assert.Equal(assertNextHandlerInvoked, nextHandlerInvoked);
         }
 
-        private void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
+        private static void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
         {
             MarkupTestFile.GetPosition(expectedWithAnnotations, out var expected, out int expectedPosition);
 
@@ -69,14 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             Assert.Equal(expectedPosition, virtualPosition.Position.Position + virtualPosition.VirtualSpaces);
         }
 
-        public T GetService<T>(TestWorkspace workspace)
-        {
-            return workspace.GetService<T>();
-        }
+        public static T GetService<T>(TestWorkspace workspace)
+            => workspace.GetService<T>();
 
-        public T GetExportedValue<T>(TestWorkspace workspace)
-        {
-            return workspace.ExportProvider.GetExportedValue<T>();
-        }
+        public static T GetExportedValue<T>(TestWorkspace workspace)
+            => workspace.ExportProvider.GetExportedValue<T>();
     }
 }

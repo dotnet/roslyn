@@ -1,14 +1,17 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class RudeEditTopLevelTests
-        Inherits RudeEditTestBase
+        Inherits EditingTestBase
 #Region "Imports"
 
         <Fact>
@@ -1505,7 +1508,6 @@ End Class
                 Diagnostic(RudeEditKind.Move, "Public Class X", FeaturesResources.class_))
         End Sub
 
-
 #End Region
 
 #Region "Namespaces"
@@ -1922,7 +1924,36 @@ End Class
                 "Update [Async Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Function F()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Function F()", FeaturesResources.method))
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_IteratorModifier1()
+            Dim src1 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
+            Dim src2 = "Class C : " & vbLf & "Iterator Function F() As Task(Of String) : End Function : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Function F() As Task(Of String) : End Function]@11 -> [Iterator Function F() As Task(Of String) : End Function]@11",
+                "Update [Function F() As Task(Of String)]@11 -> [Iterator Function F() As Task(Of String)]@11")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_IteratorModifier2()
+            Dim src1 = "Class C : " & vbLf & "Iterator Function F() As Task(Of String) : End Function : End Class"
+            Dim src2 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Iterator Function F() As Task(Of String) : End Function]@11 -> [Function F() As Task(Of String) : End Function]@11",
+                "Update [Iterator Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
+
+            edits.VerifyRudeDiagnostics(
+                 Diagnostic(RudeEditKind.ModifiersUpdate, "Function F()", FeaturesResources.method))
         End Sub
 
         <Fact>

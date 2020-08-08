@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -83,27 +89,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw new ArgumentException($"No module found with MVID '{moduleVersionId}'", nameof(moduleVersionId));
         }
 
-        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks)
-        {
-            var references = metadataBlocks.MakeAssemblyReferences(default(Guid), identityComparer: null);
-            return references.ToCompilation();
-        }
-
         internal static CSharpCompilation ToCompilationReferencedModulesOnly(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId)
         {
-            var references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer);
-            return references.ToCompilation();
+            return ToCompilation(metadataBlocks, moduleVersionId, kind: MakeAssemblyReferencesKind.DirectReferencesOnly);
         }
 
-        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataReference> references)
+        internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId, MakeAssemblyReferencesKind kind)
         {
+            var references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, out var referencesBySimpleName);
+            var options = s_compilationOptions;
+            if (referencesBySimpleName != null)
+            {
+                Debug.Assert(kind == MakeAssemblyReferencesKind.AllReferences);
+                var resolver = new EEMetadataReferenceResolver(IdentityComparer, referencesBySimpleName);
+                options = options.WithMetadataReferenceResolver(resolver);
+            }
             return CSharpCompilation.Create(
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
                 references: references,
-                options: s_compilationOptions);
+                options: options);
         }
 
-        internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(
+        internal static ReadOnlyCollection<byte>? GetCustomTypeInfoPayload(
             this CSharpCompilation compilation,
             TypeSymbol type,
             int customModifiersCount,
@@ -114,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 GetTupleElementNames(compilation, type));
         }
 
-        private static ReadOnlyCollection<byte> GetDynamicTransforms(
+        private static ReadOnlyCollection<byte>? GetDynamicTransforms(
             this CSharpCompilation compilation,
             TypeSymbol type,
             int customModifiersCount,
@@ -129,13 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return bytes;
         }
 
-        private static ReadOnlyCollection<string> GetTupleElementNames(
+        private static ReadOnlyCollection<string?>? GetTupleElementNames(
             this CSharpCompilation compilation,
             TypeSymbol type)
         {
-            var builder = ArrayBuilder<string>.GetInstance();
+            var builder = ArrayBuilder<string?>.GetInstance();
             var names = CSharpCompilation.TupleNamesEncoder.TryGetNames(type, builder) && compilation.HasTupleNamesAttributes ?
-                new ReadOnlyCollection<string>(builder.ToArray()) :
+                new ReadOnlyCollection<string?>(builder.ToArray()) :
                 null;
             builder.Free();
             return names;

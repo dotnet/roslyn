@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -46,7 +51,7 @@ namespace Roslyn.Utilities
             int lastSeparator = s.Length;
             while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
             {
-                lastSeparator = lastSeparator - 1;
+                lastSeparator -= 1;
             }
 
             if (lastSeparator != s.Length)
@@ -90,7 +95,7 @@ namespace Roslyn.Utilities
             return FileNameUtilities.GetExtension(path);
         }
 
-        public static string ChangeExtension(string path, string extension)
+        public static string ChangeExtension(string path, string? extension)
         {
             return FileNameUtilities.ChangeExtension(path, extension);
         }
@@ -100,7 +105,8 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        public static string GetFileName(string path, bool includeExtension = true)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        public static string? GetFileName(string? path, bool includeExtension = true)
         {
             return FileNameUtilities.GetFileName(path, includeExtension);
         }
@@ -109,16 +115,15 @@ namespace Roslyn.Utilities
         /// Get directory name from path.
         /// </summary>
         /// <remarks>
-        /// Unlike <see cref="System.IO.Path.GetDirectoryName"/> it doesn't check for invalid path characters
+        /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
-        public static string GetDirectoryName(string path)
+        public static string? GetDirectoryName(string? path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        // Exposed for testing purposes only.
-        internal static string GetDirectoryName(string path, bool isUnixLike)
+        internal static string? GetDirectoryName(string? path, bool isUnixLike)
         {
             if (path != null)
             {
@@ -150,17 +155,17 @@ namespace Roslyn.Utilities
         internal static bool IsSameDirectoryOrChildOf(string child, string parent)
         {
             parent = RemoveTrailingDirectorySeparator(parent);
-
-            while (child != null)
+            string? currentChild = child;
+            while (currentChild != null)
             {
-                child = RemoveTrailingDirectorySeparator(child);
+                currentChild = RemoveTrailingDirectorySeparator(currentChild);
 
-                if (child.Equals(parent, StringComparison.OrdinalIgnoreCase))
+                if (currentChild.Equals(parent, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
 
-                child = GetDirectoryName(child);
+                currentChild = GetDirectoryName(currentChild);
             }
 
             return false;
@@ -169,12 +174,14 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the root part of the path.
         /// </summary>
-        public static string GetPathRoot(string path)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        public static string? GetPathRoot(string? path)
         {
             return GetPathRoot(path, IsUnixLikePlatform);
         }
 
-        private static string GetPathRoot(string path, bool isUnixLike)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        private static string? GetPathRoot(string? path, bool isUnixLike)
         {
             if (path == null)
             {
@@ -277,9 +284,9 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Gets the specific kind of relative or absolute path.
         /// </summary>
-        public static PathKind GetPathKind(string path)
+        public static PathKind GetPathKind(string? path)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            if (RoslynString.IsNullOrWhiteSpace(path))
             {
                 return PathKind.Empty;
             }
@@ -336,9 +343,9 @@ namespace Roslyn.Utilities
         /// <summary>
         /// True if the path is an absolute path (rooted to drive or network share)
         /// </summary>
-        public static bool IsAbsolute(string path)
+        public static bool IsAbsolute([NotNullWhen(true)] string? path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (RoslynString.IsNullOrEmpty(path))
             {
                 return false;
             }
@@ -383,7 +390,7 @@ namespace Roslyn.Utilities
         /// or relative to a drive directory (e.g. "C:abc\def").
         /// </returns>
         /// <seealso cref="CombinePossiblyRelativeAndRelativePaths"/>
-        public static string CombineAbsoluteAndRelativePaths(string root, string relativePath)
+        public static string? CombineAbsoluteAndRelativePaths(string root, string relativePath)
         {
             Debug.Assert(IsAbsolute(root));
 
@@ -393,13 +400,13 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Combine two paths, the first of which may be absolute.
         /// </summary>
-        /// <param name="rootOpt">First path: absolute, relative, or null.</param>
+        /// <param name="root">First path: absolute, relative, or null.</param>
         /// <param name="relativePath">Second path: relative and non-null.</param>
-        /// <returns>null, if <paramref name="rootOpt"/> is null; a combined path, otherwise.</returns>
+        /// <returns>null, if <paramref name="root"/> is null; a combined path, otherwise.</returns>
         /// <seealso cref="CombineAbsoluteAndRelativePaths"/>
-        public static string CombinePossiblyRelativeAndRelativePaths(string rootOpt, string relativePath)
+        public static string? CombinePossiblyRelativeAndRelativePaths(string? root, string? relativePath)
         {
-            if (string.IsNullOrEmpty(rootOpt))
+            if (RoslynString.IsNullOrEmpty(root))
             {
                 return null;
             }
@@ -407,7 +414,7 @@ namespace Roslyn.Utilities
             switch (GetPathKind(relativePath))
             {
                 case PathKind.Empty:
-                    return rootOpt;
+                    return root;
 
                 case PathKind.Absolute:
                 case PathKind.RelativeToCurrentRoot:
@@ -415,12 +422,12 @@ namespace Roslyn.Utilities
                     return null;
             }
 
-            return CombinePathsUnchecked(rootOpt, relativePath);
+            return CombinePathsUnchecked(root, relativePath);
         }
 
-        public static string CombinePathsUnchecked(string root, string relativePath)
+        public static string CombinePathsUnchecked(string root, string? relativePath)
         {
-            Debug.Assert(!string.IsNullOrEmpty(root));
+            RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(root));
 
             char c = root[root.Length - 1];
             if (!IsDirectorySeparator(c) && c != VolumeSeparatorChar)
@@ -449,9 +456,9 @@ namespace Roslyn.Utilities
         /// </summary>
         public static bool IsFilePath(string assemblyDisplayNameOrPath)
         {
-            Debug.Assert(assemblyDisplayNameOrPath != null);
+            RoslynDebug.Assert(assemblyDisplayNameOrPath != null);
 
-            string extension = FileNameUtilities.GetExtension(assemblyDisplayNameOrPath);
+            string? extension = FileNameUtilities.GetExtension(assemblyDisplayNameOrPath);
             return string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(extension, ".exe", StringComparison.OrdinalIgnoreCase)
                 || assemblyDisplayNameOrPath.IndexOf(DirectorySeparatorChar) != -1
@@ -477,7 +484,7 @@ namespace Roslyn.Utilities
                 var comparer = ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
                 int count = 0;
-                var currentPath = path;
+                string? currentPath = path;
                 while (currentPath != null)
                 {
                     var currentName = GetFileName(currentPath);
@@ -627,12 +634,12 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            return IsUnixLikePlatform 
-                ? x == y 
+            return IsUnixLikePlatform
+                ? x == y
                 : char.ToUpperInvariant(x) == char.ToUpperInvariant(y);
         }
 
-        private static int PathHashCode(string path)
+        private static int PathHashCode(string? path)
         {
             int hc = 0;
 
@@ -686,12 +693,57 @@ namespace Roslyn.Utilities
             return filePath;
         }
 
+        /// <summary>
+        /// Unfortunately, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
+        /// From MSDN: The array returned from this method is not guaranteed to contain the complete set of characters
+        /// that are invalid in file and directory names. The full set of invalid characters can vary by file system.
+        /// https://msdn.microsoft.com/en-us/library/system.io.path.getinvalidfilenamechars.aspx
+        /// 
+        /// Additionally, Path.GetInvalidPathChars() doesn't include "?" or "*" which are invalid characters,
+        /// and Path.GetInvalidFileNameChars() includes ":" and "\" which are valid characters.
+        /// 
+        /// The more accurate way is to let the framework parse the path and throw on any errors.
+        /// </summary>
+        public static bool IsValidFilePath([NotNullWhen(true)] string? fullPath)
+        {
+            try
+            {
+                if (RoslynString.IsNullOrEmpty(fullPath))
+                {
+                    return false;
+                }
+
+                // Uncomment when this is fixed: https://github.com/dotnet/roslyn/issues/19592
+                // Debug.Assert(IsAbsolute(fullPath));
+
+                var fileInfo = new FileInfo(fullPath);
+                return !string.IsNullOrEmpty(fileInfo.Name);
+            }
+            catch (Exception ex) when (
+                ex is ArgumentException ||          // The file name is empty, contains only white spaces, or contains invalid characters.
+                ex is PathTooLongException ||       // The specified path, file name, or both exceed the system-defined maximum length.
+                ex is NotSupportedException)        // fileName contains a colon (:) in the middle of the string.
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If the current environment uses the '\' directory separator, replaces all uses of '\'
+        /// in the given string with '/'. Otherwise, returns the string.
+        /// </summary>
+        /// <remarks>
+        /// This method is equivalent to Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig.NormalizeWithForwardSlash
+        /// Both methods should be kept in sync.
+        /// </remarks>
+        public static string NormalizeWithForwardSlash(string p)
+            => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
-        private class PathComparer : IEqualityComparer<string>
+        private class PathComparer : IEqualityComparer<string?>
         {
-            public bool Equals(string x, string y)
+            public bool Equals(string? x, string? y)
             {
                 if (x == null && y == null)
                 {
@@ -706,10 +758,16 @@ namespace Roslyn.Utilities
                 return PathsEqual(x, y);
             }
 
-            public int GetHashCode(string s)
+            public int GetHashCode(string? s)
             {
                 return PathHashCode(s);
             }
+        }
+
+        internal static class TestAccessor
+        {
+            internal static string? GetDirectoryName(string path, bool isUnixLike)
+                => PathUtilities.GetDirectoryName(path, isUnixLike);
         }
     }
 }

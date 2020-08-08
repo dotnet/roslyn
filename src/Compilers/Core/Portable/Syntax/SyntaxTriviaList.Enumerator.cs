@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
@@ -13,15 +18,15 @@ namespace Microsoft.CodeAnalysis
         public struct Enumerator
         {
             private SyntaxToken _token;
-            private GreenNode _singleNodeOrList;
+            private GreenNode? _singleNodeOrList;
             private int _baseIndex;
             private int _count;
 
             private int _index;
-            private GreenNode _current;
+            private GreenNode? _current;
             private int _position;
 
-            internal Enumerator(ref SyntaxTriviaList list)
+            internal Enumerator(in SyntaxTriviaList list)
             {
                 _token = list.Token;
                 _singleNodeOrList = list.Node;
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // PERF: Passing SyntaxToken by ref since it's a non-trivial struct
-            private void InitializeFrom(ref SyntaxToken token, GreenNode greenNode, int index, int position)
+            private void InitializeFrom(in SyntaxToken token, GreenNode greenNode, int index, int position)
             {
                 _token = token;
                 _singleNodeOrList = greenNode;
@@ -49,16 +54,20 @@ namespace Microsoft.CodeAnalysis
             // PERF: Used to initialize an enumerator for leading trivia directly from a token.
             // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
             // by ref since it's a non-trivial struct
-            internal void InitializeFromLeadingTrivia(ref SyntaxToken token)
+            internal void InitializeFromLeadingTrivia(in SyntaxToken token)
             {
-                InitializeFrom(ref token, token.Node.GetLeadingTriviaCore(), 0, token.Position);
+                Debug.Assert(token.Node is object);
+                var node = token.Node.GetLeadingTriviaCore();
+                Debug.Assert(node is object);
+                InitializeFrom(in token, node, 0, token.Position);
             }
 
             // PERF: Used to initialize an enumerator for trailing trivia directly from a token.
             // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
             // by ref since it's a non-trivial struct
-            internal void InitializeFromTrailingTrivia(ref SyntaxToken token)
+            internal void InitializeFromTrailingTrivia(in SyntaxToken token)
             {
+                Debug.Assert(token.Node is object);
                 var leading = token.Node.GetLeadingTriviaCore();
                 int index = 0;
                 if (leading != null)
@@ -73,7 +82,8 @@ namespace Microsoft.CodeAnalysis
                     trailingPosition -= trailingGreen.FullWidth;
                 }
 
-                InitializeFrom(ref token, trailingGreen, index, trailingPosition);
+                Debug.Assert(trailingGreen is object);
+                InitializeFrom(in token, trailingGreen, index, trailingPosition);
             }
 
             public bool MoveNext()
@@ -93,6 +103,7 @@ namespace Microsoft.CodeAnalysis
                     _position += _current.FullWidth;
                 }
 
+                Debug.Assert(_singleNodeOrList is object);
                 _current = GetGreenNodeAt(_singleNodeOrList, newIndex);
                 return true;
             }
@@ -110,10 +121,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal bool TryMoveNextAndGetCurrent(ref SyntaxTrivia current)
+            internal bool TryMoveNextAndGetCurrent(out SyntaxTrivia current)
             {
                 if (!MoveNext())
                 {
+                    current = default;
                     return false;
                 }
 
@@ -127,9 +139,9 @@ namespace Microsoft.CodeAnalysis
             private Enumerator _enumerator;
 
             // SyntaxTriviaList is a relatively big struct so is passed as ref
-            internal EnumeratorImpl(ref SyntaxTriviaList list)
+            internal EnumeratorImpl(in SyntaxTriviaList list)
             {
-                _enumerator = new Enumerator(ref list);
+                _enumerator = new Enumerator(in list);
             }
 
             public SyntaxTrivia Current => _enumerator.Current;

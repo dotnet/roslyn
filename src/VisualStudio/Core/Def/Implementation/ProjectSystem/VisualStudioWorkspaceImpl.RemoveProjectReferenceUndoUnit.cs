@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -13,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly ProjectId _toProjectId;
 
             public RemoveProjectReferenceUndoUnit(
-                VisualStudioWorkspaceImpl workspace, 
-                ProjectId fromProjectId, 
+                VisualStudioWorkspaceImpl workspace,
+                ProjectId fromProjectId,
                 ProjectId toProjectId)
                 : base(workspace, fromProjectId)
             {
@@ -27,8 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var fromProject = currentSolution.GetProject(FromProjectId);
                 var toProject = currentSolution.GetProject(_toProjectId);
 
-                if (fromProject != null && 
-                    toProject != null && 
+                if (fromProject != null &&
+                    toProject != null &&
                     fromProject.ProjectReferences.Any(p => p.ProjectId == _toProjectId))
                 {
                     var updatedProject = fromProject.RemoveProjectReference(new ProjectReference(_toProjectId));

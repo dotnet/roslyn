@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -43,10 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// 3. Add this forked document to the solution.
             /// 4. Finally, update the original document and remove the type from it.
             /// </remarks>
-            internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            public override async Task<Solution> GetModifiedSolutionAsync()
             {
-                var solution = SemanticDocument.Document.Project.Solution;
-
                 // Fork, update and add as new document.
                 var projectToBeUpdated = SemanticDocument.Document.Project;
                 var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, FileName);
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var solutionWithBothDocumentsUpdated = await RemoveTypeFromSourceDocumentAsync(
                       sourceDocument, documentWithMovedType).ConfigureAwait(false);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solutionWithBothDocumentsUpdated));
+                return solutionWithBothDocumentsUpdated;
             }
 
             /// <summary>
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
-                modifiedRoot = await AddFinalNewLineIfDesired(document, modifiedRoot).ConfigureAwait(false);
+                modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
                 // add an empty document to solution, so that we'll have options from the right context.
                 var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
@@ -119,10 +118,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// Add a trailing newline if we don't already have one if that's what the user's 
             /// preference is.
             /// </summary>
-            private async Task<SyntaxNode> AddFinalNewLineIfDesired(Document document, SyntaxNode modifiedRoot)
+            private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
                 var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                var insertFinalNewLine = options.GetOption(FormattingOptions.InsertFinalNewLine);
+                var insertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine);
                 if (insertFinalNewLine)
                 {
                     var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above the type we're moving 'partial'.  
                 // However, keep all the attributes on these types as theses are the 
                 // original attributes and we don't want to mess with them. 
-                AddPartialModifiersToTypeChain(documentEditor, 
+                AddPartialModifiersToTypeChain(documentEditor,
                     removeAttributesAndComments: false, removeTypeInheritance: false);
                 documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
@@ -176,9 +175,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                                                     .Where(syntaxFacts.IsUsingOrExternOrImport)
                                                     .ToImmutableArray();
 
-                bool predicate(SyntaxNode n) => movedImports.Contains(i => i.IsEquivalentTo(n));
                 updatedDocument = await service.RemoveUnnecessaryImportsAsync(
-                    updatedDocument, predicate, CancellationToken).ConfigureAwait(false);
+                    updatedDocument,
+                    n => movedImports.Contains(i => i.IsEquivalentTo(n)),
+                    CancellationToken).ConfigureAwait(false);
 
                 return updatedDocument.Project.Solution;
             }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     var symbol = (ITypeSymbol)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
-                        documentEditor.SetModifiers(node, 
+                        documentEditor.SetModifiers(node,
                             documentEditor.Generator.GetModifiers(node) | DeclarationModifiers.Partial);
                     }
 

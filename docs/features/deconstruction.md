@@ -73,7 +73,7 @@ If the left-hand-side is nested the process will be repeated. For instance, in `
 In the case where the expression on the right is a tuple expression, it is first given a type. So in `long x; string y; (x, y) = (1, null);` the literals on the right-hand-side are typed as `long` and `string` before the deconstruction even starts, which means that no conversions will be needed during the deconstruction steps.
 
 We noted already that tuples (which are syntactic sugar for the `System.ValueTuple` underlying type) don't need to invoke `Deconstruct`.
-The .Net framework also includes a set of `System.Tuple` types. Those are not recognized as C# tuples, and so will rely on the *Deconstruct* pattern. Those `Deconstruct` methods will be provided as extension methods for `System.Tuple` for up to 3 nestings deep (that is 21 elements).
+The .NET framework also includes a set of `System.Tuple` types. Those are not recognized as C# tuples, and so will rely on the *Deconstruct* pattern. Those `Deconstruct` methods will be provided as extension methods for `System.Tuple` for up to 3 nestings deep (that is 21 elements).
 
 A *deconstruction-assignment* returns a tuple value (with elements using default names) which is shaped and typed like the left-hand-side and holds the (converted) parts resulting from deconstruction.
 

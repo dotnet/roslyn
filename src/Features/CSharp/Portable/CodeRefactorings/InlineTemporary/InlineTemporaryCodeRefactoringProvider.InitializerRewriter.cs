@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,13 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         {
             private readonly SemanticModel _semanticModel;
             private readonly ILocalSymbol _localSymbol;
-            private readonly ExpressionSyntax _initializer;
 
-            private InitializerRewriter(ExpressionSyntax initializer, ILocalSymbol localSymbol, SemanticModel semanticModel)
+            private InitializerRewriter(ILocalSymbol localSymbol, SemanticModel semanticModel)
             {
                 _semanticModel = semanticModel;
                 _localSymbol = localSymbol;
-                _initializer = initializer;
             }
 
             private bool IsReference(SimpleNameSyntax name)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             public static ExpressionSyntax Visit(ExpressionSyntax initializer, ILocalSymbol local, SemanticModel semanticModel)
             {
-                var simplifier = new InitializerRewriter(initializer, local, semanticModel);
+                var simplifier = new InitializerRewriter(local, semanticModel);
                 return (ExpressionSyntax)simplifier.Visit(initializer);
             }
         }

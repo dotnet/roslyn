@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void SequencePoints_Body()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 delegate void D();
 class C
@@ -24,13 +26,13 @@ class C
         d();
     }
 }
-";
+");
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -69,10 +71,11 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [Fact]
         public void Nested()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 class Test
 {
@@ -97,12 +100,12 @@ class Test
         return f1(4);
     }
 }
-";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
@@ -195,10 +198,11 @@ class Test
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [Fact]
         public void InitialSequencePoints()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Test
 {
     void Goo(int p)
@@ -207,13 +211,13 @@ class Test
         f1();
     }
 }
-";
+");
             // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Test"" name=""Goo"" parameterNames=""p"">
@@ -255,10 +259,11 @@ class Test
 </symbols>");
         }
 
-        [Fact, WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+        [Fact]
         public void Nested_InitialSequencePoints()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 class Test
 {
@@ -280,13 +285,13 @@ class Test
         return f1(4);
     }
 }
-";
+");
             // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
@@ -381,7 +386,7 @@ class Test
         [Fact]
         public void FieldAndPropertyInitializers()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class B
@@ -396,15 +401,15 @@ class C : B
     Func<int> P { get; } = () => FS();
     public C() : base(() => 3) {}
 }
-";
+");
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""B"" name="".ctor"" parameterNames=""f"">
@@ -496,7 +501,7 @@ class C : B
         [Fact]
         public void ClosuresInCtor()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class B
@@ -516,15 +521,15 @@ class C : B
         h = () => c;
     }
 }
-";
+");
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""B"" name="".ctor"" parameterNames=""f"">
@@ -616,7 +621,7 @@ class C : B
         [Fact]
         public void Queries1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -630,15 +635,15 @@ class C
                 select b * 10;
     }
 }
-";
+");
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -702,7 +707,7 @@ class C
         [Fact]
         public void Queries_GroupBy1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -715,15 +720,15 @@ class C
                      select/*3*/ d.Key;
     }
 }
-";
+");
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -809,7 +814,7 @@ class C
         [Fact]
         public void ForEachStatement_Array()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -826,15 +831,15 @@ class C
             G(a => x1);
         }
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -888,7 +893,7 @@ class C
         [Fact]
         public void ForEachStatement_MultidimensionalArray()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -905,15 +910,15 @@ class C
             G(a => x1);
         }
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -973,7 +978,7 @@ class C
         [Fact]
         public void ForEachStatement_String()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -990,15 +995,15 @@ class C
             G(a => x1);
         }
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -1052,7 +1057,7 @@ class C
         [Fact]
         public void ForEachStatement_Enumerable()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -1070,15 +1075,15 @@ class C
             G(a => x1);
         }
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -1131,7 +1136,7 @@ class C
         [Fact]
         public void ForStatement1()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1146,15 +1151,15 @@ class C
             G(a => x2); 
         }
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -1206,7 +1211,7 @@ class C
         [Fact]
         public void SwitchStatement1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1234,14 +1239,14 @@ class C
         }
     }
 }
-";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             c.VerifyPdb("C.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -1250,6 +1255,7 @@ class C
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""86"" />
+          <slot kind=""35"" offset=""86"" />
           <slot kind=""1"" offset=""86"" />
         </encLocalSlotMap>
         <encLambdaMap>
@@ -1266,32 +1272,32 @@ class C
         <entry offset=""0x6"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
         <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""20"" document=""1"" />
         <entry offset=""0xe"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x21"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
         <entry offset=""0x2e"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3a"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x41"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x54"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x56"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x5d"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x70"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x72"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x43"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x56"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x58"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x5f"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x72"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x74"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x73"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
-        <scope startOffset=""0x21"" endOffset=""0x72"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x72"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x75"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x75"" attributes=""0"" />
+        <scope startOffset=""0x21"" endOffset=""0x74"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x74"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         [Fact]
         public void UsingStatement1()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1311,15 +1317,15 @@ class C
             G(() => x1);
         }
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyDiagnostics();
 
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"" parameterNames=""a, b"">

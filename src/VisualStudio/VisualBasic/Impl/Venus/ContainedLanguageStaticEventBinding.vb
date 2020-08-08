@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -26,9 +29,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 Where(Function(m) m.CanBeReferencedByName AndAlso m.Kind = SymbolKind.Method).
                 Cast(Of IMethodSymbol)()
 
-            Dim syntaxFacts = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
             Dim methodAndMethodSyntaxesWithHandles = methods.
-                Select(Function(m) Tuple.Create(m, GetMethodStatement(syntaxFacts, m))).
+                Select(Function(m) Tuple.Create(m, GetMethodStatement(m))).
                 Where(Function(t) t.Item2.HandlesClause IsNot Nothing).
                 ToArray()
 
@@ -62,20 +64,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
             Dim type = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetTypeByMetadataName(className)
             Dim memberSymbol = ContainedLanguageCodeSupport.LookupMemberId(type, memberId)
             Dim targetDocument = document.Project.Solution.GetDocument(memberSymbol.Locations.First().SourceTree)
-            Dim syntaxFacts = targetDocument.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
 
-            If HandlesEvent(GetMethodStatement(syntaxFacts, memberSymbol), objectName, nameOfEvent) Then
+            If HandlesEvent(GetMethodStatement(memberSymbol), objectName, nameOfEvent) Then
                 Return
             End If
 
-            Dim textBuffer = targetDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container.TryGetTextBuffer()
+            Dim textBuffer = targetDocument.GetTextSynchronously(cancellationToken).Container.TryGetTextBuffer()
             If textBuffer Is Nothing Then
                 Using visualStudioWorkspace.OpenInvisibleEditor(targetDocument.Id)
                     targetDocument = visualStudioWorkspace.CurrentSolution.GetDocument(targetDocument.Id)
                     AddStaticEventBinding(targetDocument, visualStudioWorkspace, className, memberId, objectName, nameOfEvent, cancellationToken)
                 End Using
             Else
-                Dim memberStatement = GetMemberBlockOrBegin(syntaxFacts, memberSymbol)
+                Dim memberStatement = GetMemberBlockOrBegin(memberSymbol)
                 Dim codeModel = targetDocument.Project.LanguageServices.GetService(Of ICodeModelService)()
                 codeModel.AddHandlesClause(targetDocument, objectName & "." & nameOfEvent, memberStatement, cancellationToken)
             End If
@@ -91,20 +92,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
             Dim type = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetTypeByMetadataName(className)
             Dim memberSymbol = ContainedLanguageCodeSupport.LookupMemberId(type, memberId)
             Dim targetDocument = document.Project.Solution.GetDocument(memberSymbol.Locations.First().SourceTree)
-            Dim syntaxFacts = targetDocument.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
 
-            If Not HandlesEvent(GetMethodStatement(syntaxFacts, memberSymbol), objectName, nameOfEvent) Then
+            If Not HandlesEvent(GetMethodStatement(memberSymbol), objectName, nameOfEvent) Then
                 Return
             End If
 
-            Dim textBuffer = targetDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container.TryGetTextBuffer()
+            Dim textBuffer = targetDocument.GetTextSynchronously(cancellationToken).Container.TryGetTextBuffer()
             If textBuffer Is Nothing Then
                 Using visualStudioWorkspace.OpenInvisibleEditor(targetDocument.Id)
                     targetDocument = visualStudioWorkspace.CurrentSolution.GetDocument(targetDocument.Id)
                     RemoveStaticEventBinding(targetDocument, visualStudioWorkspace, className, memberId, objectName, nameOfEvent, cancellationToken)
                 End Using
             Else
-                Dim memberStatement = GetMemberBlockOrBegin(syntaxFacts, memberSymbol)
+                Dim memberStatement = GetMemberBlockOrBegin(memberSymbol)
                 Dim codeModel = targetDocument.Project.LanguageServices.GetService(Of ICodeModelService)()
                 codeModel.RemoveHandlesClause(targetDocument, objectName & "." & nameOfEvent, memberStatement, cancellationToken)
             End If
@@ -130,12 +130,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
             Return False
         End Function
 
-        Private Function GetMemberBlockOrBegin(syntaxFacts As ISyntaxFactsService, member As ISymbol) As SyntaxNode
+        Private Function GetMemberBlockOrBegin(member As ISymbol) As SyntaxNode
             Return member.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).FirstOrDefault()
         End Function
 
-        Private Function GetMethodStatement(syntaxFacts As ISyntaxFactsService, member As ISymbol) As MethodStatementSyntax
-            Dim node = GetMemberBlockOrBegin(syntaxFacts, member)
+        Private Function GetMethodStatement(member As ISymbol) As MethodStatementSyntax
+            Dim node = GetMemberBlockOrBegin(member)
             If node.Kind = SyntaxKind.SubBlock OrElse node.Kind = SyntaxKind.FunctionBlock Then
                 Return DirectCast(DirectCast(node, MethodBlockSyntax).BlockStatement, MethodStatementSyntax)
             ElseIf node.Kind = SyntaxKind.SubStatement OrElse node.Kind = SyntaxKind.FunctionStatement Then

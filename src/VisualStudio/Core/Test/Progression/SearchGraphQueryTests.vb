@@ -1,14 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
     Public Class SearchGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForType() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -40,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545474")>
+        <WpfFact, WorkItem(545474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545474")>
         Public Async Function SearchForNestedType() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -74,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForMember() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -108,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForPartialType() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -156,7 +160,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForMethodInPartialType() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -203,7 +207,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchWithResultsAcrossMultipleTypeParts() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -255,7 +259,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForDottedName1() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -289,7 +293,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForDottedName2() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -311,7 +315,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForDottedName3() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -345,7 +349,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchForDottedName4() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -379,7 +383,7 @@ End Namespace
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function SearchWithNullFilePathsOnProject() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>

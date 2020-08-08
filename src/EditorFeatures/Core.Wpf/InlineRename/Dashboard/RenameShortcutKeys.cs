@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 
@@ -11,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public static string SearchInComments { get; }
         public static string PreviewChanges { get; }
         public static string Apply { get; }
+        public static string RenameFile { get; }
 
         static RenameShortcutKey()
         {
@@ -19,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             SearchInComments = ExtractAccessKey(EditorFeaturesResources.Include_comments, "C");
             PreviewChanges = ExtractAccessKey(EditorFeaturesResources.Preview_changes1, "P");
             Apply = ExtractAccessKey(EditorFeaturesResources.Apply1, "A");
+            RenameFile = ExtractAccessKey(EditorFeaturesResources.Rename_symbols_file, "F");
         }
 
         /// <summary>
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         private static string ExtractAccessKey(string localizedLabel, string defaultValue)
         {
-            int underscoreIndex = localizedLabel.IndexOf('_');
+            var underscoreIndex = localizedLabel.IndexOf('_');
 
             if (underscoreIndex >= 0 && underscoreIndex < localizedLabel.Length - 1)
             {

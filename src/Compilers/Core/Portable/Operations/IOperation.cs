@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -59,5 +61,13 @@ namespace Microsoft.CodeAnalysis
         /// Set to True if compiler generated /implicitly computed by compiler code
         /// </summary>
         bool IsImplicit { get; }
+
+        /// <summary>
+        /// Optional semantic model that was used to generate this operation.
+        /// Non-null for operations generated from source with <see cref="SemanticModel.GetOperation(SyntaxNode, System.Threading.CancellationToken)"/> API
+        /// and operation callbacks made to analyzers.
+        /// Null for operations inside a <see cref="FlowAnalysis.ControlFlowGraph"/>.
+        /// </summary>
+        SemanticModel SemanticModel { get; }
     }
 }

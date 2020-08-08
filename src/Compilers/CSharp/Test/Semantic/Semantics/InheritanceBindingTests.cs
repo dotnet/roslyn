@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -64,7 +66,7 @@ abstract partial class AbstractGoo : IGoo
     private protected void IGoo.Method14() { }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (22,24): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void IGoo.Method1() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method1").WithArguments("abstract").WithLocation(22, 24),
@@ -150,7 +152,7 @@ abstract class AbstractGoo : IGoo
     static int IGoo.Property12 { set { } }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (20,23): error CS0106: The modifier 'abstract' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property1").WithArguments("abstract"),
                 // (21,22): error CS0106: The modifier 'virtual' is not valid for this item
@@ -217,7 +219,7 @@ abstract class AbstractGoo : IGoo
     static int IGoo.this[long x1, int x2, long x3, long x4] { set { } }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (20,23): error CS0106: The modifier 'abstract' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract"),
                 // (21,22): error CS0106: The modifier 'virtual' is not valid for this item
@@ -288,7 +290,7 @@ abstract class AbstractGoo : IGoo
             // If the other errors are fixed ERR_ExternHasBody is reported. 
             // We report all errors at once since they are unrelated, not cascading.
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (20,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action IGoo.Event1 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event1").WithArguments("abstract"),
@@ -373,23 +375,31 @@ class Class : Interface
     }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (13,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Method(int, long)'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method").WithArguments("Interface.Method(int, long)"),
+                //         Interface.Method(1, 2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method").WithArguments("Interface.Method(int, long)").WithLocation(13, 9),
                 // (18,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Method<T>()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method<T>").WithArguments("Interface.Method<T>()"),
+                //         Interface.Method<T>();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Method<T>").WithArguments("Interface.Method<T>()").WithLocation(18, 9),
                 // (27,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Property'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Property").WithArguments("Interface.Property"),
+                //         Interface.Property = 2;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Property").WithArguments("Interface.Property").WithLocation(27, 9),
                 // (28,9): error CS0120: An object reference is required for the non-static field, method, or property 'Interface.Event'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Event").WithArguments("Interface.Event"),
+                //         Interface.Event += null;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Interface.Event").WithArguments("Interface.Event").WithLocation(28, 9),
                 // (31,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"),
+                //         c.Interface.Method(1, 2);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(31, 11),
                 // (32,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"),
+                //         c.Interface.Method<string>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(32, 11),
                 // (33,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"),
+                //         c.Interface.Property = 2;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(33, 11),
                 // (34,11): error CS1061: 'Class' does not contain a definition for 'Interface' and no extension method 'Interface' accepting a first argument of type 'Class' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface"));
+                //         c.Interface.Event += null;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Interface").WithArguments("Class", "Interface").WithLocation(34, 11));
         }
 
         [Fact]
@@ -494,7 +504,7 @@ abstract class Goo : AbstractGoo
     public virtual event System.Action Event3 { add { } remove { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,32): error CS0533: 'Goo.Event1' hides inherited abstract member 'AbstractGoo.Event1'
                 //     public event System.Action Event1 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "Event1").WithArguments("Goo.Event1", "AbstractGoo.Event1"),
@@ -628,7 +638,7 @@ class Derived : Base, Interface
     public override int this[string s] { get { return 0; } set { } } //nothing to override
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (21,25): error CS0115: 'Derived.this[long, long, long, long]': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[long, long, long, long]"),
                 // (22,28): error CS1715: 'Derived.this[long, long, long, char]': type must be 'int' to match overridden member 'Base.this[long, long, long, char]'
@@ -670,7 +680,7 @@ class Derived : Base, Interface
     public override event System.Action Event3 { add { } remove { } } //nothing to override
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (15,41): error CS0115: 'Derived.Event0': no suitable method found to override
                 //     public override event System.Action Event0 { add { } remove { } } //iface
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Event0").WithArguments("Derived.Event0"),
@@ -683,6 +693,459 @@ class Derived : Base, Interface
                 // (18,41): error CS0115: 'Derived.Event3': no suitable method found to override
                 //     public override event System.Action Event3 { add { } remove { } } //nothing to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Event3").WithArguments("Derived.Event3"));
+        }
+
+        [Fact]
+        public void TestSupressOverrideNotExpectedErrorWhenMethodParameterTypeNotFound()
+        {
+            var text = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public override void Method0(String x) { }
+    public override void Method1(string x, String y) { }
+    public override void Method2(String[] x) { }
+    public override void Method3(System.Func<String> x) { }
+    public override void Method4((string a, String b) x) { }
+    public override void Method5(System.Func<(string a, String[] b)> x) { }
+    public override void Method6(Outer<String>.Inner<string> x) { }
+    public override void Method7(Outer<string>.Inner<String> x) { }
+    public override void Method8(Int? x) { }
+}
+
+class Outer<T>
+{
+    public class Inner<U>{}
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,34): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method0(String x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(8, 34),
+                // (9,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method1(string x, String y) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(9, 44),
+                // (10,34): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method2(String[] x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(10, 34),
+                // (11,46): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method3(System.Func<String> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(11, 46),
+                // (12,45): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method4((string a, String b) x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(12, 45),
+                // (13,57): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method5(System.Func<(string a, String[] b)> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(13, 57),
+                // (14,40): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method6(Outer<String>.Inner<string> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(14, 40),
+                // (15,54): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method7(Outer<string>.Inner<String> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(15, 54),
+                // (16,34): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method8(Int? x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(16, 34));
+        }
+
+        [Fact]
+        public void TestSupressOverrideNotExpectedErrorWhenIndexerParameterTypeNotFound()
+        {
+            var text = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public override int this[String x] => 0;
+    public override int this[string x, String y] => 0;
+    public override int this[String[] x] => 0;
+    public override int this[System.Func<String> x] => 0;
+    public override int this[(string a, String b) x] => 0;
+    public override int this[System.Func<(string a, String[] b)> x] => 0;
+    public override int this[Outer<String>.Inner<string> x] => 0;
+    public override int this[Outer<string>.Inner<String> x] => 0;
+    public override int this[Int? x] => 0;
+}
+
+class Outer<T>
+{
+    public class Inner<U>{}
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,30): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[String x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(8, 30),
+                // (9,40): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[string x, String y] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(9, 40),
+                // (10,30): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[String[] x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(10, 30),
+                // (11,42): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[System.Func<String> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(11, 42),
+                // (12,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[(string a, String b) x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(12, 41),
+                // (13,53): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[System.Func<(string a, String[] b)> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(13, 53),
+                // (14,36): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[Outer<String>.Inner<string> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(14, 36),
+                // (15,50): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[Outer<string>.Inner<String> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(15, 50),
+                // (16,30): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[Int? x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(16, 30));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeReturnTypeErrorWhenMethodReturnTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract void Method0();
+    public abstract void Method1();
+    public abstract void Method2();
+    public abstract void Method3();
+    public abstract void Method4();
+    public abstract void Method5();
+    public abstract void Method6();
+    public abstract void Method7();
+}
+
+class Derived : Base
+{
+    public override String Method0() => null;
+    public override String[] Method1() => null;
+    public override System.Func<String> Method2() => null;
+    public override (string a, String b) Method3() => (null, null);
+    public override System.Func<(string a, String[] b)> Method4() => null;
+    public override Outer<String>.Inner<string> Method5() => null;
+    public override Outer<string>.Inner<String> Method6() => null;
+    public override Int? Method7() => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String Method0() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(16, 21),
+                // (17,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String[] Method1() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(17, 21),
+                // (18,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<String> Method2() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(18, 33),
+                // (19,32): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override (string a, String b) Method3() => (null, null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(19, 32),
+                // (20,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<(string a, String[] b)> Method4() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(20, 44),
+                // (21,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<String>.Inner<string> Method5() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(21, 27),
+                // (22,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<string>.Inner<String> Method6() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(22, 41),
+                // (23,21): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Int? Method7() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(23, 21));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenPropertyTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract int Property0 { get; }
+    public abstract int Property1 { get; }
+    public abstract int Property2 { get; }
+    public abstract int Property3 { get; }
+    public abstract int Property4 { get; }
+    public abstract int Property5 { get; }
+    public abstract int Property6 { get; }
+    public abstract int Property7 { get; }
+}
+
+class Derived : Base
+{
+    public override String Property0 => null;
+    public override String[] Property1 => null;
+    public override System.Func<String> Property2 => null;
+    public override (string a, String b) Property3 => (null, null);
+    public override System.Func<(string a, String[] b)> Property4 => null;
+    public override Outer<String>.Inner<string> Property5 => null;
+    public override Outer<string>.Inner<String> Property6 => null;
+    public override Int? Property7 => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String Property0 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(16, 21),
+                // (17,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String[] Property1 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(17, 21),
+                // (18,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<String> Property2 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(18, 33),
+                // (19,32): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override (string a, String b) Property3 => (null, null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(19, 32),
+                // (20,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<(string a, String[] b)> Property4 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(20, 44),
+                // (21,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<String>.Inner<string> Property5 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(21, 27),
+                // (22,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<string>.Inner<String> Property6 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(22, 41),
+                // (23,21): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Int? Property7 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(23, 21));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenIndexerTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract int this[int index] { get; }
+}
+
+class Derived : Base
+{
+    public override String this[int index] => null;
+    public override String[] this[int index] => null;
+    public override System.Func<String> this[int index] => null;
+    public override (string a, String b) this[int index] => (null, null);
+    public override System.Func<(string a, String[] b)> this[int index] => null;
+    public override Outer<String>.Inner<string> this[int index] => null;
+    public override Outer<string>.Inner<String> this[int index] => null;
+    public override Int? this[int index] => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (9,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(9, 21),
+                // (10,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String[] this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(10, 21),
+                // (11,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(11, 33),
+                // (12,32): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override (string a, String b) this[int index] => (null, null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(12, 32),
+                // (13,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<(string a, String[] b)> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(13, 44),
+                // (14,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<String>.Inner<string> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(14, 27),
+                // (15,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<string>.Inner<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(15, 41),
+                // (16,21): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Int? this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(16, 21),
+                // (10,30): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override String[] this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(10, 30),
+                // (11,41): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override System.Func<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(11, 41),
+                // (12,42): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override (string a, String b) this[int index] => (null, null);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(12, 42),
+                // (13,57): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override System.Func<(string a, String[] b)> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(13, 57),
+                // (14,49): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override Outer<String>.Inner<string> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(14, 49),
+                // (15,49): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override Outer<string>.Inner<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(15, 49),
+                // (16,26): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override Int? this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(16, 26));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenEventTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract event System.Action Event0;
+    public abstract event System.Action Event1;
+    public abstract event System.Action Event2;
+    public abstract event System.Action Event3;
+    public abstract event System.Action Event4;
+    public abstract event System.Action Event5;
+    public abstract event System.Action Event6;
+    public abstract event System.Action Event7;
+}
+
+class Derived : Base
+{
+    public override event String Event0;
+    public override event String[] Event1;
+    public override event System.Func<String> Event2;
+    public override event (string a, String b) Event3;
+    public override event System.Func<(string a, String[] b)> Event4;
+    public override event Outer<String>.Inner<string> Event5;
+    public override event Outer<string>.Inner<String> Event6;
+    public override event Int? Event7;
+}
+
+class Outer<T>
+{
+	public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event String Event0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(16, 27),
+                // (17,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event String[] Event1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(17, 27),
+                // (18,39): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event System.Func<String> Event2;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(18, 39),
+                // (19,38): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event (string a, String b) Event3;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(19, 38),
+                // (20,50): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event System.Func<(string a, String[] b)> Event4;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(20, 50),
+                // (21,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event Outer<String>.Inner<string> Event5;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(21, 33),
+                // (22,47): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event Outer<string>.Inner<String> Event6;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(22, 47),
+                // (23,27): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event Int? Event7;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(23, 27),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event6.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event6.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event1.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event1.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event1.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event1.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event5.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event5.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event3.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event3.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event2.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event2.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event4.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event4.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event4.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event4.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event3.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event3.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event7.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event7.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event0.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event0.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event6.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event6.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event2.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event2.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event7.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event7.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event0.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event0.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event5.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event5.remove").WithLocation(14, 7),
+                // (17,36): error CS0066: 'Derived.Event1': event must be of a delegate type
+                //     public override event String[] Event1;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event1").WithArguments("Derived.Event1").WithLocation(17, 36),
+                // (19,48): error CS0066: 'Derived.Event3': event must be of a delegate type
+                //     public override event (string a, String b) Event3;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event3").WithArguments("Derived.Event3").WithLocation(19, 48),
+                // (21,55): error CS0066: 'Derived.Event5': event must be of a delegate type
+                //     public override event Outer<String>.Inner<string> Event5;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event5").WithArguments("Derived.Event5").WithLocation(21, 55),
+                // (22,55): error CS0066: 'Derived.Event6': event must be of a delegate type
+                //     public override event Outer<string>.Inner<String> Event6;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event6").WithArguments("Derived.Event6").WithLocation(22, 55),
+                // (23,32): error CS0066: 'Derived.Event7': event must be of a delegate type
+                //     public override event Int? Event7;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event7").WithArguments("Derived.Event7").WithLocation(23, 32),
+                // (19,48): warning CS0067: The event 'Derived.Event3' is never used
+                //     public override event (string a, String b) Event3;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event3").WithArguments("Derived.Event3").WithLocation(19, 48),
+                // (23,32): warning CS0067: The event 'Derived.Event7' is never used
+                //     public override event Int? Event7;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event7").WithArguments("Derived.Event7").WithLocation(23, 32),
+                // (17,36): warning CS0067: The event 'Derived.Event1' is never used
+                //     public override event String[] Event1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event1").WithArguments("Derived.Event1").WithLocation(17, 36),
+                // (22,55): warning CS0067: The event 'Derived.Event6' is never used
+                //     public override event Outer<string>.Inner<String> Event6;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event6").WithArguments("Derived.Event6").WithLocation(22, 55),
+                // (18,47): warning CS0067: The event 'Derived.Event2' is never used
+                //     public override event System.Func<String> Event2;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event2").WithArguments("Derived.Event2").WithLocation(18, 47),
+                // (21,55): warning CS0067: The event 'Derived.Event5' is never used
+                //     public override event Outer<String>.Inner<string> Event5;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event5").WithArguments("Derived.Event5").WithLocation(21, 55),
+                // (20,63): warning CS0067: The event 'Derived.Event4' is never used
+                //     public override event System.Func<(string a, String[] b)> Event4;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event4").WithArguments("Derived.Event4").WithLocation(20, 63),
+                // (16,34): warning CS0067: The event 'Derived.Event0' is never used
+                //     public override event String Event0;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event0").WithArguments("Derived.Event0").WithLocation(16, 34));
         }
 
         [Fact]
@@ -779,7 +1242,7 @@ class Derived : Base
     public override event System.Action Event { add { } remove { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (14,41): error CS0239: 'Derived.Event': cannot override inherited member 'Base.Event' because it is sealed
                 //     public override event System.Action Event { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Event").WithArguments("Derived.Event", "Base.Event"));
@@ -865,7 +1328,7 @@ partial class Derived2
     public override string Method2() { return null; }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (13,28): error CS0111: Type 'Derived' already defines a member called 'Method1' with the same parameter types
                 //     public override string Method1() { return null; }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method1").WithArguments("Method1", "Derived"),
@@ -905,7 +1368,7 @@ class Derived : Base
     public override int Event() { return 1; }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (16,25): error CS0505: 'Derived.field()': cannot override because 'Base.field' is not a function
                 //     public override int field() { return 1; }
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "field").WithArguments("Derived.field()", "Base.field"),
@@ -967,7 +1430,7 @@ class Derived : Base
     public override int Event { get; set; }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (16,25): error CS0544: 'Derived.field': cannot override because 'Base.field' is not a property
                 //     public override int field { get; set; }
                 Diagnostic(ErrorCode.ERR_CantOverrideNonProperty, "field").WithArguments("Derived.field", "Base.field"),
@@ -1029,7 +1492,7 @@ class Derived : Base
     public override event System.Action Delegate { add { } remove { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (16,41): error CS0072: 'Derived.field': cannot override; 'Base.field' is not an event
                 //     public override event System.Action field { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_CantOverrideNonEvent, "field").WithArguments("Derived.field", "Base.field"),
@@ -1512,7 +1975,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,33): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref"),
                 // (8,28): error CS0115: 'Derived.this[int, long]': no suitable method found to override
@@ -1544,7 +2007,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (10,33): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (9,28): error CS0115: 'Derived.this[int]': no suitable method found to override
@@ -1574,7 +2037,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,33): error CS1551: Indexers must have at least one parameter
                 Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]"),
                 // (9,28): error CS0115: 'Derived.this[System.Exception, System.ArgumentException, System.Exception]': no suitable method found to override
@@ -1606,7 +2069,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,28): error CS0115: 'Derived.this[string[], string[]]': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[string[], string[]]"),
                 // (9,28): error CS0115: 'Derived.this[string[][], string[]]': no suitable method found to override
@@ -1634,7 +2097,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,28): error CS0115: 'Derived.this[System.Collections.Generic.List<int>, System.Collections.Generic.Dictionary<string, long>]': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[System.Collections.Generic.List<int>, System.Collections.Generic.Dictionary<string, long>]"),
                 // (9,28): error CS0115: 'Derived.this[System.Collections.Generic.Dictionary<int, long>, System.Collections.Generic.List<string>]': no suitable method found to override
@@ -1659,7 +2122,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,28): error CS0115: 'Derived.this[int, long]': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[int, long]"),
                 // (9,28): error CS0115: 'Derived.this[int]': no suitable method found to override
@@ -1686,7 +2149,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,28): error CS0115: 'Derived.this[int, params short[]]': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[int, params short[]]"),
                 // (9,28): error CS0115: 'Derived.this[int]': no suitable method found to override
@@ -1713,7 +2176,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,32): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref"),
                 // (8,33): error CS0631: ref and out are not valid in this context
@@ -1742,7 +2205,7 @@ abstract class Derived : Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,33): error CS0631: ref and out are not valid in this context
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
                 // (8,33): error CS0631: ref and out are not valid in this context
@@ -1848,7 +2311,7 @@ class Derived<A, B, C> : Base<A, B>
     protected override void Method<V>(List<V> x, List<B>[] y) { }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method").WithArguments("Derived<A, B>.Method(B)"),
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method").WithArguments("Derived<A, B>.Method(System.Collections.Generic.List<B>)"),
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method").WithArguments("Derived<A, B>.Method<V>(A, V)"),
@@ -1893,7 +2356,7 @@ class Derived : Base<int, int>
     protected override void Method<V, W>(List<W> x, List<V> y) { }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method").WithArguments("Derived.Method()"),
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method").WithArguments("Derived.Method<V, U>()"),
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method").WithArguments("Derived.Method<V>(int, V)"),
@@ -1941,7 +2404,7 @@ class Derived : Base<string>
     public override object this[string x] { get { return null; } set { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,28): error CS1715: 'Derived.this[string]': type must be 'string' to match overridden member 'Base<string>.this[string]'
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "this").WithArguments("Derived.this[string]", "Base<string>.this[string]", "string"));
         }
@@ -1962,7 +2425,7 @@ class Derived : Base<string>
     public override int this[object x, object y] { get { return 0; } set { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,25): error CS0115: 'Derived.this[object, object]': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("Derived.this[object, object]"));
         }
@@ -2149,42 +2612,33 @@ class Derived : Base
                 // (22,19): warning CS0114: 'Derived.Property2' hides inherited member 'Base.Property2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public object Property2 { get; set; } //missed override keyword
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Property2").WithArguments("Derived.Property2", "Base.Property2").WithLocation(22, 19),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.set").WithLocation(19, 7),
                 // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.get'
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.set'
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.get'
                 // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property11.get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property11.get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property4.set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property4.set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property9.set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property9.set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property7.get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property7.get").WithLocation(19, 7),
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.get").WithLocation(19, 7),
                 // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property5.get'
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property5.get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property10.get'
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property9.set'
                 // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property10.get").WithLocation(19, 7));
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property9.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property7.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property7.get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property4.set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property4.set").WithLocation(19, 7));
         }
 
 
@@ -2257,42 +2711,33 @@ class Derived : Base
                 // (22,19): warning CS0114: 'Derived.this[int, int, int, string]' hides inherited member 'Base.this[int, int, int, string]'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public object this[int w, int x, int y , string z] { get { return 0; } set { } } //missed override keyword
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "this").WithArguments("Derived.this[int, int, int, string]", "Base.this[int, int, int, string]").WithLocation(22, 19),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, int, string].get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, int, string].get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, string].set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, string].set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, int].get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, int].get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, string, int].get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, string, int].get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, int, int].set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, int, int].set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, string].set'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].set").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, int, int].get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, int, int].get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].get").WithLocation(19, 7),
-                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, string, int].get'
-                // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, string, int].get").WithLocation(19, 7),
                 // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, int].set'
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, int].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, string].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, string].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, int, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, int, int].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, string].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].set").WithLocation(19, 7),
                 // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, string].get'
                 // class Derived : Base
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].get").WithLocation(19, 7));
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, int, int].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, int, int].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, string, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, string, int].get").WithLocation(19, 7));
         }
 
         [Fact]
@@ -2313,7 +2758,7 @@ class Derived : Base
     public override event System.Action<int> Event3 { add { } remove { } } //wrong type
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (12,32): warning CS0114: 'Derived.Event2' hides inherited member 'Base.Event2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public event System.Action Event2 { add { } remove { } } //missed override keyword
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Event2").WithArguments("Derived.Event2", "Base.Event2"),
@@ -2429,7 +2874,7 @@ class Concrete : Abstract2
     public override long this[string x, int y, string z] { get { return 0; } set { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (17,7): error CS0534: 'Concrete' does not implement inherited abstract member 'Abstract1.this[int, string, int].get'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Concrete").WithArguments("Concrete", "Abstract1.this[int, string, int].get"),
                 // (17,7): error CS0534: 'Concrete' does not implement inherited abstract member 'Abstract1.this[int, string, int].set'
@@ -2474,7 +2919,7 @@ class Concrete : Abstract2
         }
 
         [Fact]
-        public void TestNoImplementationOfInterfaceMethod()
+        public void TestNoImplementationOfInterfaceMethod_01()
         {
             var text = @"
 interface Interface
@@ -2506,6 +2951,56 @@ class Class : Interface
                 // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method1()'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method1()").WithLocation(10, 15));
+        }
+
+        [Fact]
+        public void TestNoImplementationOfInterfaceMethod_02()
+        {
+            var source1 =
+@"
+public class C1 {}
+";
+
+            var comp11 = CreateCompilation(new AssemblyIdentity("lib1", new Version("4.2.1.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                                           new[] { source1 }, TargetFrameworkUtil.GetReferences(TargetFramework.Standard, null).ToArray(), TestOptions.DebugDll.WithPublicSign(true));
+            comp11.VerifyDiagnostics();
+            var comp12 = CreateCompilation(new AssemblyIdentity("lib1", new Version("4.1.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                                           new[] { source1 }, TargetFrameworkUtil.GetReferences(TargetFramework.Standard, null).ToArray(), TestOptions.DebugDll.WithPublicSign(true));
+            comp12.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1 {}
+";
+
+            var comp2 = CreateCompilation(new[] { source2 }, references: new[] { comp12.EmitToImageReference() }, assemblyName: "lib2");
+            comp2.VerifyDiagnostics();
+
+            var source3 =
+@"
+interface I1
+{
+    void Method1();
+}
+
+#pragma warning disable CS1701
+class C3 : C2,
+#pragma warning restore CS1701
+               I1
+{
+}
+";
+            var comp3 = CreateCompilation(new[] { source3 }, references: new[] { comp11.EmitToImageReference(), comp2.EmitToImageReference() }, assemblyName: "lib3");
+
+            // The unification warning shouldn't suppress the CS0535 error.
+            comp3.VerifyDiagnostics(
+                // (10,16): warning CS1701: Assuming assembly reference 'lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'lib2' matches identity 'lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'lib1', you may need to supply runtime policy
+                //                I1
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "I1").WithArguments("lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib2", "lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib1").WithLocation(10, 16),
+                // (10,16): error CS0535: 'C3' does not implement interface member 'I1.Method1()'
+                // class C3 : C2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.Method1()").WithLocation(10, 16)
+                );
         }
 
         [Fact]
@@ -2673,15 +3168,14 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Method2(int)'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Method2(int)").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Method1()'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Method1()").WithLocation(8, 14)
+                );
         }
 
         [Fact]
@@ -2701,7 +3195,7 @@ class Base : Interface2
     public object Method1() { return null; }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface2").WithArguments("Base", "Interface2.Method2()"));
         }
 
@@ -2729,15 +3223,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.Property2'. 'Base.Property2' cannot implement 'Interface.Property2' because it does not have the matching return type of 'object'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.Property2", "Base.Property2", "object").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Property1'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Property1").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.Property2'. 'Base.Property2' cannot implement 'Interface.Property2' because it does not have the matching return type of 'object'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.Property2", "Base.Property2", "object").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -2764,15 +3260,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.this[string]'. 'Base.this[string]' cannot implement 'Interface.this[string]' because it does not have the matching return type of 'object'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.this[string]", "Base.this[string]", "object").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.this[int]'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.this[int]").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.this[string]'. 'Base.this[string]' cannot implement 'Interface.this[string]' because it does not have the matching return type of 'object'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.this[string]", "Base.this[string]", "object").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -2799,15 +3297,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.Event2'. 'Base.Event2' cannot implement 'Interface.Event2' because it does not have the matching return type of 'Action'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.Event2", "Base.Event2", "System.Action").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Event1'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Event1").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.Event2'. 'Base.Event2' cannot implement 'Interface.Event2' because it does not have the matching return type of 'Action'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.Event2", "Base.Event2", "System.Action").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -2855,7 +3355,7 @@ class Derived2 : Base, Interface
     void BaseInterface.Method4() { } //fine
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (20,10): error CS0538: 'object' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Object").WithArguments("object"),
                 // (21,10): error CS0538: 'Base' in explicit interface declaration is not an interface
@@ -2916,7 +3416,7 @@ class Derived2 : Base, Interface
     int BaseInterface.Property4 { get { return 1; } } //fine
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (19,9): error CS0538: 'object' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Object").WithArguments("object"),
                 // (20,9): error CS0538: 'Base' in explicit interface declaration is not an interface
@@ -2977,7 +3477,7 @@ class Derived2 : Base, Interface
     int BaseInterface.this[string x, string y] { get { return 1; } } //fine
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (19,9): error CS0538: 'object' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Object").WithArguments("object"),
                 // (20,9): error CS0538: 'Base' in explicit interface declaration is not an interface
@@ -3038,7 +3538,7 @@ class Derived2 : Base, Interface
     event System.Action BaseInterface.Event4 { add { } remove { } } //fine
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (19,25): error CS0538: 'object' in explicit interface declaration is not an interface
                 //     event System.Action System.Object.Event1 { add { } remove { } } //not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "System.Object").WithArguments("object"),
@@ -3076,16 +3576,10 @@ public class C : I<object>
     void I<dynamic>.F() { } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,10): error CS0540: 'C.I<dynamic>.F()': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>"),
-                 // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
-                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.F()"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -3102,16 +3596,10 @@ public class C : I<object>
     int I<dynamic>.P { set { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.P': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>"),
-               // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
-               Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.P"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -3128,16 +3616,9 @@ public class C : I<object>
     int I<dynamic>.this[int x] { set { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.this[int]': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.this[int]", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.this[int]'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.this[int]"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.this[int]", "I<dynamic>"));
         }
 
         [Fact]
@@ -3154,16 +3635,10 @@ public class C : I<object>
     event System.Action I<dynamic>.E { add { } remove { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,25): error CS0540: 'C.I<dynamic>.E': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.E", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.E'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.E"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.E", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -3191,7 +3666,7 @@ partial class Base : Interface
     protected internal void Method6() { }
     partial void Method7();
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method7()'. 'Base.Method7()' cannot implement an interface member because it is not public.
                 // partial class Base : Interface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method7()", "Base.Method7()").WithLocation(13, 22),
@@ -3656,7 +4131,7 @@ class Derived : Base
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,10): warning CS0108: 'IDerived.Method1()' hides inherited member 'IBase.Method1()'. Use the new keyword if hiding was intended.
                 //     void Method1();
                 Diagnostic(ErrorCode.WRN_NewRequired, "Method1").WithArguments("IDerived.Method1()", "IBase.Method1()"),
@@ -3754,7 +4229,7 @@ class Derived : Base
     public new int Property { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (5,20): warning CS0109: The member 'C.field' does not hide an accessible member. The new keyword is not required.
                 //     public new int field;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "field").WithArguments("C.field"),
@@ -4135,7 +4610,7 @@ abstract class Derived2 : Derived
     public virtual event System.Action Event12 { add { } remove { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (28,32): error CS0533: 'Derived.Event1' hides inherited abstract member 'Base.Event1'
                 //     public event System.Action Event1 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "Event1").WithArguments("Derived.Event1", "Base.Event1"),
@@ -4205,6 +4680,56 @@ public class Class : Interface<int>
         }
 
         [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethodWithDifferingConstraints()
+        {
+            var text = @"
+public interface Interface<T>
+{
+    void Method<V>(int i) where V : new();
+    void Method<V>(T i);
+}
+
+public class Class : Interface<int>
+{
+    void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+    public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,25): warning CS0473: Explicit interface implementation 'Class.Interface<int>.Method<V>(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<int>.Method<V>(int)").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethodWithDifferingConstraints_OppositeDeclarationOrder()
+        {
+            var text = @"
+public interface Interface<T>
+{
+    void Method<V>(T i);
+    void Method<V>(int i) where V : new();
+}
+
+public class Class : Interface<int>
+{
+    void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+    public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,25): warning CS0473: Explicit interface implementation 'Class.Interface<int>.Method<V>(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<int>.Method<V>(int)").WithLocation(10, 25),
+                // (10,48): error CS0304: Cannot create an instance of the variable type 'V' because it does not have the new() constraint
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new V()").WithArguments("V").WithLocation(10, 48),
+                // (11,17): error CS0425: The constraints for type parameter 'V' of method 'Class.Method<V>(int)' must match the constraints for type parameter 'V' of interface method 'Interface<int>.Method<V>(int)'. Consider using an explicit interface implementation instead.
+                //     public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Method").WithArguments("V", "Class.Method<V>(int)", "V", "Interface<int>.Method<V>(int)").WithLocation(11, 17));
+        }
+
+        [Fact]
         public void TestExplicitImplementationAmbiguousInterfaceIndexer()
         {
             var text = @"
@@ -4246,11 +4771,20 @@ public class Derived : Base<int>, Interface<int, int>
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(int)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(T)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(U)
-            });
+            //Both Base methods implement Interface.Method(int)
+            //Both Base methods implement Interface.Method(T)
+            //Both Base methods implement Interface.Method(U)
+            CreateCompilation(text).VerifyDiagnostics(
+                // (15,35): warning CS1956: Member 'Base<int>.Method(int)' implements interface member 'Interface<int, int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.Method(int)' implements interface member 'Interface<int, int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.Method(int)' implements interface member 'Interface<int, int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.Method(int)", "Interface<int, int>.Method(int)", "Derived").WithLocation(15, 35)
+                );
         }
 
         [Fact]
@@ -4275,13 +4809,16 @@ public class Derived : Base<int>, Interface<int, int>
 }
 ";
             // CONSIDER: Dev10 doesn't report these warnings -  not sure why
-            CreateStandardCompilation(text).VerifyDiagnostics(
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"),
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"),
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35));
         }
 
         [Fact]
@@ -4306,7 +4843,7 @@ public class Derived : Base<int>, Interface<int, int>
     public new void Method(int i) { } //overrides Base's interface mapping
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4331,7 +4868,7 @@ public class Derived : Base<int>, Interface<int, int>
     public new long this[int i] { set { } } //overrides Base's interface mapping
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4355,7 +4892,7 @@ public class Derived2 : Derived
     public override void Method(int i) { base.Method(i); }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4379,7 +4916,7 @@ public class Derived2 : Derived
     public override long this[int i] { set { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4397,10 +4934,26 @@ public class Derived : Base<short, int>
     public override void Method(short s, int i) { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 4, Column = 25, IsWarning = true }, //can't tell which method Derived is trying to override
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 10, Column = 26 }, //can't override either Method since they unify to the same signature
-            });
+            CSharpCompilation comp = CreateCompilation(text);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<TShort, TInt>.Method(TShort, int)' and 'Base<TShort, TInt>.Method(short, TInt)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(short s, int i) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<TShort, TInt>.Method(TShort, int)", "Base<TShort, TInt>.Method(short, TInt)", "Derived").WithLocation(10, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (4,25): warning CS1957: Member 'Derived.Method(short, int)' overrides 'Base<short, int>.Method(short, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(TShort s, int i) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<short, int>.Method(short, int)", "Derived.Method(short, int)").WithLocation(4, 25),
+                    // (10,26): error CS0462: The inherited members 'Base<TShort, TInt>.Method(TShort, int)' and 'Base<TShort, TInt>.Method(short, TInt)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(short s, int i) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<TShort, TInt>.Method(TShort, int)", "Base<TShort, TInt>.Method(short, TInt)", "Derived").WithLocation(10, 26)
+                    );
+            }
         }
 
         [Fact]
@@ -4418,7 +4971,7 @@ public class Derived : Base<short, int>
     public override long this[short s, int i] { set { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (10,26): error CS0462: The inherited members 'Base<TShort, TInt>.this[TShort, int]' and 'Base<TShort, TInt>.this[short, TInt]' have the same signature in type 'Derived', so they cannot be overridden
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "this").WithArguments("Base<TShort, TInt>.this[TShort, int]", "Base<TShort, TInt>.this[short, TInt]", "Derived"));
         }
@@ -4439,9 +4992,22 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 5, Column = 25, IsWarning = true }, //C# can distinguish, but runtime can't
-            });
+            var compilation = CreateCompilation(text);
+            if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+            {
+                // We no longer report a runtime ambiguous override because the compiler
+                // produces a methodimpl record to disambiguate.
+                compilation.VerifyDiagnostics(
+                    );
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // (5,25): warning CS1957: Member 'Derived.Method(int, ref int)' overrides 'Base<int>.Method(int, ref int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(int @in, ref int @ref) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int>.Method(int, ref int)", "Derived.Method(int, ref int)").WithLocation(5, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -4582,7 +5148,7 @@ public class Derived1 : Base
     public override void Method17() { }
 }
 ";
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (30,38): error CS0507: 'Derived1.Method2()': cannot change access modifiers when overriding 'internal' inherited member 'Base.Method2()'
                 //     protected internal override void Method2() { }
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method2").WithArguments("Derived1.Method2()", "internal", "Base.Method2()").WithLocation(30, 38),
@@ -4841,7 +5407,7 @@ public class Derived1 : Base
     public override long Property1 { get; private set; }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "set").WithArguments("Derived1.Property1.set", "protected", "Base.Property1.set"));
         }
 
@@ -4859,7 +5425,7 @@ public class Derived1 : Base
     public override long this[int x] { get { return 0; } private set { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,66): error CS0507: 'Derived1.this[int].set': cannot change access modifiers when overriding 'protected' inherited member 'Base.this[int].set'
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "set").WithArguments("Derived1.this[int].set", "protected", "Base.this[int].set"));
         }
@@ -5221,7 +5787,7 @@ class Class : Interface
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (19,19): error CS0551: Explicit interface implementation 'Class.Interface.this[int, int, int, string]' is missing accessor 'Interface.this[int, int, int, string].set'
                 //     int Interface.this[int w, int x, int y, string z] { get { return 1; } }
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("Class.Interface.this[int, int, int, string]", "Interface.this[int, int, int, string].set").WithLocation(19, 19),
@@ -5294,7 +5860,7 @@ public class Derived1 : Base
     public override long Property1 { get; private set; }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived1.Property1.set"));
         }
 
@@ -5311,7 +5877,7 @@ public class Derived1 : Base
     public override long this[int x] { get { return 0; } private set { } }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,66): error CS0115: 'Derived1.this[int].set': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived1.this[int].set"));
         }
@@ -5344,7 +5910,7 @@ public class Derived : Base2
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (19,9): error CS0205: Cannot call an abstract base member: 'Base2.Property1'
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property1").WithArguments("Base2.Property1").WithLocation(19, 9),
                 // (21,18): error CS0205: Cannot call an abstract base member: 'Base2.Property1'
@@ -5378,7 +5944,7 @@ public class Derived : Base2
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (19,9): error CS0205: Cannot call an abstract base member: 'Base2.this[long]'
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base[0]").WithArguments("Base2.this[long]").WithLocation(19, 9),
                 // (21,18): error CS0205: Cannot call an abstract base member: 'Base2.this[long]'
@@ -5466,7 +6032,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (31,26): error CS0506: 'Derived2.Method(int)': cannot override inherited member 'Derived<int>.Method(int)' because it is not marked virtual, abstract, or override
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "Method").WithArguments("Derived2.Method(int)", "Derived<int>.Method(int)"),
                 // (32,26): error CS0506: 'Derived2.Method(int, int, System.Collections.Generic.List<int>, System.Collections.Generic.Dictionary<int, int>)': cannot override inherited member 'Derived<int>.Method(int, int, System.Collections.Generic.List<int>, System.Collections.Generic.Dictionary<int, int>)' because it is not marked virtual, abstract, or override
@@ -5502,7 +6068,7 @@ class Derived2 : Base2
     public override void Method(int x, ref int y, out Exception z) { z = null; }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (14,26): error CS0663: 'Derived2' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'out'
                 //     public override void Method(int x, ref int y, out Exception z) { z = null; }
                 Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("Derived2", "method", "ref", "out").WithLocation(14, 26));
@@ -5524,7 +6090,7 @@ abstract class Base2 : Base
     public abstract void Method(int x, params int[] z);
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (10,26): error CS0533: 'Base2.Method(int, System.Exception[])' hides inherited abstract member 'Base.Method(int, params System.Exception[])'
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "Method").WithArguments("Base2.Method(int, System.Exception[])", "Base.Method(int, params System.Exception[])"),
                 // (10,26): warning CS0114: 'Base2.Method(int, System.Exception[])' hides inherited member 'Base.Method(int, params System.Exception[])'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
@@ -5557,7 +6123,7 @@ class Derived : Base2<int>
     public sealed override List<int> Property2 { set { } }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int>.Property2.get'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int>.Property2.get"),
                 // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int>.Property1.set'
@@ -5576,7 +6142,7 @@ public abstract class Base<T>
     public abstract List<T> Property1 { get; internal set; }
     public abstract List<T> Property2 { set; internal get; }
 }";
-            var comp1 = CreateStandardCompilation(text1);
+            var comp1 = CreateCompilation(text1);
 
             var text2 = @"
 using System.Collections.Generic;
@@ -5591,7 +6157,7 @@ class Derived : Base2<int>
     public sealed override List<int> Property2 { set { } }
 }";
 
-            CreateStandardCompilation(text2, new[] { new CSharpCompilationReference(comp1) }).VerifyDiagnostics(
+            CreateCompilation(text2, new[] { new CSharpCompilationReference(comp1) }).VerifyDiagnostics(
                 // (10,38): error CS0546: 'Derived.Property1': cannot override because 'Base<int>.Property1' does not have an overridable set accessor
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "Property1").WithArguments("Derived.Property1", "Base<int>.Property1"),
                 // (11,38): error CS0545: 'Derived.Property2': cannot override because 'Base<int>.Property2' does not have an overridable get accessor
@@ -5614,7 +6180,7 @@ public class Base<T>
     public virtual List<T> Property1 { get; set; }
     public virtual List<T> Property2 { set { } get { return null; } }
 }";
-            var compilation1 = CreateStandardCompilation(source1);
+            var compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -5629,7 +6195,7 @@ class Derived2 : Derived
     public override List<int> Property1 { set { } }
     public override List<int> Property2 { get { return null; } }
 }";
-            var comp = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
+            var comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
             comp.VerifyDiagnostics(
                 // (11,31): error CS0239: 'Derived2.Property1': cannot override inherited member 'Derived.Property1' because it is sealed
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Property1").WithArguments("Derived2.Property1", "Derived.Property1"),
@@ -5659,7 +6225,7 @@ class Derived : Base<List<int>>
     public new int Property { set{ } }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,21): error CS0111: Type 'Derived' already defines a member called 'Method' with the same parameter types
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Method").WithArguments("Method", "Derived"),
                 // (13,20): error CS0102: The type 'Derived' already contains a definition for 'Property'
@@ -5748,7 +6314,7 @@ class NS4
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,19): warning CS0109: The member 'NS1.Base2.Method' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("NS1.Base2.Method"),
                 // (35,30): error CS0505: 'NS2.Derived.Method<U>(System.Collections.Generic.List<int>)': cannot override because 'NS2.Base2.Method' is not a function
@@ -5808,7 +6374,7 @@ partial class NS1
 }";
 
             // TODO: Dev10 reports fewer cascading errors
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (24,20): error CS0102: The type 'NS1' already contains a definition for 'Base'
                 //     abstract class Base<T>
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Base").WithArguments("NS1", "Base"),
@@ -5871,7 +6437,7 @@ partial class Derived
     protected new virtual void Method<T>() { }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,31): warning CS0109: The member 'Base.Method()' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Base.Method()"),
                 // (14,30): error CS0102: The type 'Derived' already contains a definition for 'Property'
@@ -5912,7 +6478,7 @@ class Derived : Base
     }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (12,20): warning CS0109: The member 'Derived.MethOd' does not hide an accessible member. The new keyword is not required.
                 //     public new int MethOd = 2, Method = 3, METhod = 4;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "MethOd").WithArguments("Derived.MethOd"),
@@ -5995,7 +6561,7 @@ class C : I
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             // This also forces computation of IsMetadataVirtual.
             compilation.VerifyDiagnostics(
@@ -6052,7 +6618,7 @@ abstract public class Class1
         public override void Member1() { base.Member1(); } // OK
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Member1").WithArguments("Class1.Class2.Class3.Member1()", "Class1.Class2.Member1"));
         }
 
@@ -6078,7 +6644,7 @@ class C2 : C1, I1, I2
     public new void Bar() { }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var c2Type = comp.Assembly.Modules[0].GlobalNamespace.GetTypeMembers("C2").Single();
             comp.VerifyDiagnostics(DiagnosticDescription.None);
             Assert.True(c2Type.Interfaces().All(iface => iface.Name == "I1" || iface.Name == "I2"));
@@ -6127,7 +6693,7 @@ class Class2 : I2 // Implicit implementation
     // Additional out - CS0535
     public void Method<U>(ref int a, out U[] b, out List<U>[] c) { b = null; c = null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (21,7): error CS0535: 'Derived' does not implement interface member 'I2.Method<T>(out int, ref T[], System.Collections.Generic.List<T>[])'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Derived", "I2.Method<T>(out int, ref T[], System.Collections.Generic.List<T>[])"),
                 // (24,7): error CS0535: 'Class' does not implement interface member 'I2.Method<T>(out int, ref T[], System.Collections.Generic.List<T>[])'
@@ -6178,7 +6744,7 @@ class Class2 : I2, I1<string>
     void I2.Method<U>(ref int a, out U[] b, out List<U>[] c) { b = null; c = null; }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (24,13): error CS0539: 'Class.Method<U>(int, U[], System.Collections.Generic.List<U>[])' in explicit interface declaration is not a member of interface
                 //     void I2.Method<U>(int a, U[] b, List<U>[] c) { b = null; }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Class.Method<U>(int, U[], System.Collections.Generic.List<U>[])"),
@@ -6295,7 +6861,7 @@ class Class7 : Base7, Interface
 {
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (17,16): error CS0535: 'Class1' does not implement interface member 'Interface.Method<T>(long, int)'
                 // class Class1 : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class1", "Interface.Method<T>(long, int)").WithLocation(17, 16),
@@ -6398,7 +6964,7 @@ class Class7 : Interface
     void Interface.Method<T>(int i, long l) { } //wrong parameter types
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "INterface").WithArguments("INterface"),
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "INterface").WithArguments("INterface"),
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Class1.Method<T, U>(long, int)"),
@@ -6469,7 +7035,7 @@ abstract class Derived : Base, I3, I1
 {
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (18,25): error CS0102: The type 'Class' already contains a definition for 'Property'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Property").WithArguments("Class", "Property"),
                 // (19,26): error CS0111: Type 'Class' already defines a member called 'Method' with the same parameter types
@@ -6513,7 +7079,13 @@ abstract partial class Class : I3
     void I3.Method(int a = 3, params System.Exception[] b) { }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,24): error CS8646: 'I2.Method<T>(int, ref T[], out List<T>)' is explicitly implemented more than once.
+                // abstract partial class Class : I2, I1
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "Class").WithArguments("I2.Method<T>(int, ref T[], out System.Collections.Generic.List<T>)").WithLocation(8, 24),
+                // (8,24): error CS8646: 'I1.Property' is explicitly implemented more than once.
+                // abstract partial class Class : I2, I1
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "Class").WithArguments("I1.Property").WithLocation(8, 24),
                 // (25,24): warning CS1066: The default value specified for parameter 'a' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     void I3.Method(int a = 3, params System.Exception[] b) { }
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "a").WithArguments("a"),
@@ -6568,7 +7140,7 @@ abstract class Derived : Base2, I1
     void I1.Method<T>(int a, ref T[] b, out List<T> c) { c = null; }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (7,32): error CS0535: 'Class' does not implement interface member 'I1.Method(int, params System.Exception[])'
                 // abstract partial class Class : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Class", "I1.Method(int, params System.Exception[])").WithLocation(7, 32),
@@ -6604,7 +7176,7 @@ class Class2 : I1
     void I1.Method(int a = 3, params System.Exception[] b) { base.Method(a, b); }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (19,24): warning CS1066: The default value specified for parameter 'a' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     void I1.Method(int a = 3, params System.Exception[] b) { base.Method(a, b); }
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "a").WithArguments("a"),
@@ -6683,7 +7255,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (25,63): error CS0535: 'Derived1<U, T>' does not implement interface member 'Outer<U>.Inner<int>.Interface<long, T>.Method<K>(U, int[], System.Collections.Generic.List<long>, Outer<U>.Inner<int>.Interface<T, K>)'
                 // internal class Derived1<U, T> : Outer<U>.Inner<T>.Base<U, T>, Outer<U>.Inner<int>.Interface<long, T>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<U>.Inner<int>.Interface<long, T>").WithArguments("Derived1<U, T>", "Outer<U>.Inner<int>.Interface<long, T>.Method<K>(U, int[], System.Collections.Generic.List<long>, Outer<U>.Inner<int>.Interface<T, K>)").WithLocation(25, 63),
@@ -6801,7 +7373,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (48,52): error CS0539: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, K>)' in explicit interface declaration is not a member of interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, K>)"),
                 // (42,35): error CS0535: 'Outer<T>.Inner<U>.Derived4' does not implement interface member 'Outer<U>.Inner<T>.Interface<T, U>.Method<Z>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, Z>)'
@@ -6888,7 +7460,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,64): warning CS0693: Type parameter 'X' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
                 //             void Outer<X>.Inner<int>.Interface<long, Y>.Method<X>(X A, int[] b, List<long> C, Dictionary<Y, X> d)
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "X").WithArguments("X", "Outer<T>.Inner<U>.Derived1<X, Y>"),
@@ -6954,7 +7526,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,64): warning CS0693: Type parameter 'X' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "X").WithArguments("X", "Outer<T>.Inner<U>.Derived1<X, Y>"),
                 // (17,64): warning CS0693: Type parameter 'X' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
@@ -7011,7 +7583,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,43): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Base<V, W>'
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "V").WithArguments("V", "Outer<T>.Inner<U>.Base<V, W>"),
                 // (10,46): warning CS0693: Type parameter 'W' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Base<V, W>'
@@ -7096,7 +7668,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (44,15): error CS0540: 'Outer<T>.Inner<U>.Derived4.Property': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<T, U>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "Outer<T>.Inner<U>.Interface<T, U>"),
                 // (44,31): error CS0539: 'Outer<T>.Inner<U>.Derived4.Property' in explicit interface declaration is not a member of interface
@@ -7159,7 +7731,7 @@ class Test
     {
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                // (16,7): error CS0535: 'Derived' does not implement interface member 'Interface.Method(System.Collections.Generic.List<int>)'
                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.Method(System.Collections.Generic.List<int>)"));
         }
@@ -7225,7 +7797,7 @@ class Test : I3
     public void M8(long[] x) { Console.WriteLine(""I3.M8+I1.M9""); } // Implements both I3.M8 and I1.M8
     public void M9(params long[] x) { Console.WriteLine(""I3.M9+I1.M9""); } // Implements both I3.M9 and I1.M9
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (32,14): error CS0738: 'Test' does not implement interface member 'I3.P'. 'Test.P' cannot implement 'I3.P' because it does not have the matching return type of 'long'.
                 // class Test : I3
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I3").WithArguments("Test", "I3.P", "Test.P", "long").WithLocation(32, 14),
@@ -7285,7 +7857,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
 // (20,27): warning CS0473: Explicit interface implementation 'Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
 //     void I1<Int32, Int32>.Method<V>(int x, Func<int, int, V> v, int z) { }
 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)"),
@@ -7336,7 +7908,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,11): error CS0767: "Cannot inherit interface 'I1<int, int>' with the specified type parameters because it causes method 'I1<int, int>.Method(out System.Func<int, int>)' to contain overloads which differ only on ref and out."
                 Diagnostic(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, "I1").WithArguments("I1<int, int>", "I1<int, int>.Method(out System.Func<int, int>)"));
         }
@@ -7382,7 +7954,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
 // (25,16): warning CS0108: 'ImplicitInBase.Method(int, System.Func<int, int>, params int[])' hides inherited member 'Base.Method(int, System.Func<int, int>, int[])'. Use the new keyword if hiding was intended.
 //     public int Method(int x, Func<int, int> v, params int[] y) { Console.WriteLine("int Method(int x, Func<int, int> v, params int[] y)"); return 0; }
 Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("ImplicitInBase.Method(int, System.Func<int, int>, params int[])", "Base.Method(int, System.Func<int, int>, int[])"),
@@ -7434,7 +8006,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,11): error CS0767: "Cannot inherit interface 'I1<int, int>' with the specified type parameters because it causes method 'I1<int, int>.Method(ref System.Func<int, int>)' to contain overloads which differ only on ref and out."
                 Diagnostic(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, "I1").WithArguments("I1<int, int>", "I1<int, int>.Method(ref System.Func<int, int>)"),
                 // (3,11): error CS0767: "Cannot inherit interface 'I1<int, int>' with the specified type parameters because it causes method 'I1<int, int>.Method(out System.Func<int, int>)' to contain overloads which differ only on ref and out."
@@ -7480,7 +8052,7 @@ class Derived3 : Derived2
     public override int P { set { } }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,26): error CS0506: 'Derived.M()': cannot override inherited member 'Base.M()' because it is not marked virtual, abstract, or override
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M").WithArguments("Derived.M()", "Base.M()"),
                 // (15,25): error CS0506: 'Derived.P': cannot override inherited member 'Base.P' because it is not marked virtual, abstract, or override
@@ -7506,7 +8078,7 @@ class Test
     public static void Main() { I i = new C1(); i.Finalize(); }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,10): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 //     void Finalize();
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize").WithLocation(4, 10),
@@ -7540,7 +8112,7 @@ class Test
     public static void Main() { I i = new Derived(); i.Finalize(i.Finalize()); }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
@@ -7557,7 +8129,7 @@ class A<T> : global::T
     void T.T<S>() { }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,10): error CS0538: 'T' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "T").WithArguments("T"),
                 // (6,7): error CS0535: 'A<T>' does not implement interface member 'T.T<S>()'
@@ -7578,7 +8150,7 @@ class A<T> : global::T
     int T.T { get; set; }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,9): error CS0538: 'T' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "T").WithArguments("T"),
                 // (6,7): error CS0535: 'A<T>' does not implement interface member 'T.T'
@@ -7599,7 +8171,7 @@ class A<T> : global::T
     event System.Action T.T { add { } remove { } }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,25): error CS0538: 'T' in explicit interface declaration is not an interface
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "T").WithArguments("T"),
                 // (6,7): error CS0535: 'A<T>' does not implement interface member 'T.T'
@@ -7609,7 +8181,7 @@ class A<T> : global::T
         private static CSharpCompilation CompileAndVerifyDiagnostics(string text, ErrorDescription[] expectedErrors, params CSharpCompilation[] baseCompilations)
         {
             var refs = new List<MetadataReference>(baseCompilations.Select(c => new CSharpCompilationReference(c)));
-            var comp = CreateStandardCompilation(text, refs);
+            var comp = CreateCompilation(text, refs);
             var actualErrors = comp.GetDiagnostics();
 
             //ostensibly, we could just pass exactMatch: true to VerifyErrorCodes, but that method is short-circuited when 0 errors are expected
@@ -7640,7 +8212,1529 @@ public class A
         public override int P { get; set; }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31974, "https://github.com/dotnet/roslyn/issues/31974")]
+        public void Issue31974()
+        {
+            const string source = @"
+namespace Ns1
+{
+    public interface I1<I1T1>
+    {
+        void M();
+        int P {get; set;}
+        event System.Action E;
+    }
+
+    public class C0<ST1, ST2>
+    { }
+
+    public interface I2<I2T1, I2T2> : I1<C0<I2T1, I2T2>>
+    {
+    }
+
+    class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+    {
+        void I1<C0<C1T1, C1T2>>.M()
+        {
+        }
+
+        void global::Ns1.I1<C0<C1T1, C1T2>>.M()
+        {
+        }
+
+        int I1<C0<C1T1, C1T2>>.P
+        {
+            get => throw null;
+            set => throw null;
+        }
+
+        int global::Ns1.I1<C0<C1T1, C1T2>>.P
+        {
+            get => throw null;
+            set => throw null;
+        }
+
+        event System.Action I1<C0<C1T1, C1T2>>.E
+        {
+            add => throw null;
+            remove => throw null;
+        }
+
+        event System.Action global::Ns1.I1<C0<C1T1, C1T2>>.E
+        {
+            add => throw null;
+            remove => throw null;
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.P' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.P").WithLocation(18, 11),
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.E' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.E").WithLocation(18, 11),
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.M()' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.M()").WithLocation(18, 11)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_01()
+        {
+            var source = @"
+public interface I0<T> { }
+public interface I1 : I0<object> { }
+public interface I2 : I0<dynamic> { }
+public interface I3 : I0<object> { }
+
+public class C : I1, I2 { }
+public class D : I1, I3 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,23): error CS1966: 'I2': cannot implement a dynamic interface 'I0<dynamic>'
+                // public interface I2 : I0<dynamic> { }
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("I2", "I0<dynamic>").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_02()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(11, 21),
+                // (11,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(11, 21)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_03()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+    public void M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(12, 21),
+                // (12,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(12, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T?[] value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T?[] value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T?[] value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(((ArrayTypeSymbol)c2Goo.Parameters[0].Type).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>((T a, T? b)? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>((T a, T? b)? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>((T a, T? b)? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+            var tuple = c2Goo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
+        {
+            var source = @"
+interface I
+{
+    T? Goo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public T? Goo<T>() where T : struct => default;
+}
+
+class C2 : I
+{
+    T? I.Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
+        {
+            var source = @"
+interface I
+{
+    T?[] Goo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public T?[] Goo<T>() where T : struct => default;
+}
+
+class C2 : I
+{
+    T?[] I.Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(((ArrayTypeSymbol)c2Goo.ReturnType).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
+        {
+            var source = @"
+interface I
+{
+    (T a, T? b)? Goo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public (T a, T? b)? Goo<T>() where T : struct => default;
+}
+
+class C2 : I
+{
+    (T a, T? b)? I.Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.ReturnType.IsNullableType());
+            var tuple = c2Goo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T?[] value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T?[] value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(((ArrayTypeSymbol)dGoo.Parameters[0].Type).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>((T a, T? b)? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>((T a, T? b)? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+            var tuple = dGoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T? Goo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T? Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T?[] Goo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T?[] Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(((ArrayTypeSymbol)dGoo.ReturnType).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract (T a, T? b)? Goo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override (T a, T? b)? Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.ReturnType.IsNullableType());
+            var tuple = dGoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter_WithStructConstraint()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (14,29): error CS8652: The feature 'constraints for override and explicit interface implementation methods' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     void I.Goo<T>(T? value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "where").WithArguments("constraints for override and explicit interface implementation methods", "8.0").WithLocation(14, 29)
+                );
+        }
+
+        [Fact]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter_WithStructConstraint()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T? value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void AllowStructConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AllowClassConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : class;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (9,42): error CS8652: The feature 'constraints for override and explicit interface implementation methods' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     public override void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "where").WithArguments("constraints for override and explicit interface implementation methods", "8.0").WithLocation(9, 42)
+                );
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasStructConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasClassConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasStructConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived<U> : Base
+{
+    public override void Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived<U>.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived<U>.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasClassConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived<U> : Base
+{
+    public override void Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived<U>.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived<U>.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void AllowStructConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : struct;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AllowClassConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : class;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasStructConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasClassConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasStructConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C<U> : I
+{
+    void I.Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C<U>.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C<U>.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasClassConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C<U> : I
+{
+    void I.Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C<U>.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C<U>.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter()
+        {
+            var source = @"
+interface I
+{
+    void Goo();
+}
+
+class C : I
+{
+    void I.Goo() where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,18): error CS0080: Constraints are not allowed on non-generic declarations
+                //     void I.Goo() where U : class { }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
+        public void ErrorIfDuplicateConstraintClause()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C<U> : I
+{
+    void I.Goo<T>(T? value) where T : struct where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,52): error CS0409: A constraint clause has already been specified for type parameter 'T'. All of the constraints for a type parameter must be specified in a single where clause.
+                //     void I.Goo<T>(T? value) where T : struct where T : class { }
+                Diagnostic(ErrorCode.ERR_DuplicateConstraintClause, "T").WithArguments("T").WithLocation(9, 52)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasStructAndClassConstraints1()
+        {
+            var source = @"
+abstract class Base
+{
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,26): error CS0115: 'Derived.Goo<T>(T)': no suitable method found to override
+                //     public override void Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
+                // (8,60): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     public override void Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(8, 60));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasStructAndClassConstraints2()
+        {
+            var source = @"
+abstract class Base
+{
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class, struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,26): error CS0115: 'Derived.Goo<T>(T)': no suitable method found to override
+                //     public override void Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
+                // (8,59): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     public override void Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(8, 59));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasStructAndClassConstraints3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,60): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     public override void Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(9, 60));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitImplementation_HasStructAndClassConstraints1()
+        {
+            var source = @"
+interface I
+{
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,12): error CS0539: 'C.Goo<T>(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
+                // (8,46): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void I.Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(8, 46));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitImplementation_HasStructAndClassConstraints2()
+        {
+            var source = @"
+interface I
+{
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class, struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,12): error CS0539: 'C.Goo<T>(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
+                // (8,45): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void I.Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(8, 45));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitImplementation_HasStructAndClassConstraints3()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : struct;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,46): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     void I.Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(9, 46));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasNullableClassConstraint()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : class?;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class? { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,52): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : class? { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "class?").WithLocation(10, 52));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasNullableClassConstraint()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T value) where T : class?;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class? { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : class? { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "class?").WithLocation(10, 38));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasReferenceTypeConstraint1()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,52): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "Stream").WithLocation(10, 52));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasReferenceTypeConstraint2()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class, Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,59): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : class, Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "Stream").WithLocation(10, 59));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasReferenceTypeConstraint3()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T, U>(T value) where T : class where U : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T, U>(T value) where T : class where U : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,71): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T, U>(T value) where T : class where U Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "Stream").WithLocation(10, 71));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasReferenceTypeConstraint1()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T>(T value) where T : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "Stream").WithLocation(10, 38));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasReferenceTypeConstraint2()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T>(T value) where T : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class, Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : class, Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "Stream").WithLocation(10, 45));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasReferenceTypeConstraint3()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T, U>(T value) where T : class where U : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T, U>(T value) where T : class where U : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,57): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T, U>(T value) where T : class where U : Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "Stream").WithLocation(10, 57));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasStructConstraint_AndInterfaceDoesNot1()
+        {
+            var source = @"
+interface I
+{
+    void Goo<U>(U value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8666: Method 'C.I.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'U' of overridden or explicitly implemented method 'I.Goo<U>(U)' is not a non-nullable value type.
+                //     void I.Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("C.I.Goo<T>(T)", "T", "U", "I.Goo<U>(U)").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasStructConstraint_AndInterfaceDoesNot2()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : class;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8666: Method 'C.I.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not a non-nullable value type.
+                //     void I.Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("C.I.Goo<T>(T)", "T", "T", "I.Goo<T>(T)").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasStructConstraint_AndInterfaceDoesNot3()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T>(T value) where T : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,16): error CS8666: Method 'C.I.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not a non-nullable value type.
+                //     void I.Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("C.I.Goo<T>(T)", "T", "T", "I.Goo<T>(T)").WithLocation(10, 16)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenDoesNot1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8666: Method 'Derived.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not a non-nullable value type.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base.Goo<T>(T)").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenDoesNot2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : class;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8666: Method 'Derived.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not a non-nullable value type.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base.Goo<T>(T)").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenDoesNot3()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,30): error CS8666: Method 'Derived.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not a non-nullable value type.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base.Goo<T>(T)").WithLocation(10, 30)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasClassConstraint_AndInterfaceDoesNot1()
+        {
+            var source = @"
+interface I
+{
+    void Goo<U>(U value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Method 'C.I.Goo<T>(T)' specifies a 'class' constraint for type parameter 'T', but corresponding type parameter 'U' of overridden or explicitly implemented method 'I.Goo<U>(U)' is not a reference type.
+                //     void I.Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideRefConstraintNotSatisfied, "T").WithArguments("C.I.Goo<T>(T)", "T", "U", "I.Goo<U>(U)").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasClassConstraint_AndInterfaceDoesNot2()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : struct;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Method 'C.I.Goo<T>(T)' specifies a 'class' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not a reference type.
+                //     void I.Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideRefConstraintNotSatisfied, "T").WithArguments("C.I.Goo<T>(T)", "T", "T", "I.Goo<T>(T)").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasClassConstraint_AndInterfaceDoesNot3()
+        {
+            var source = @"
+using System;
+interface I
+{
+    void Goo<T>(T value) where T : Enum;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,16): error CS8665: Method 'C.I.Goo<T>(T)' specifies a 'class' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not a reference type.
+                //     void I.Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideRefConstraintNotSatisfied, "T").WithArguments("C.I.Goo<T>(T)", "T", "T", "I.Goo<T>(T)").WithLocation(10, 16)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasClassConstraint_AndOverriddenDoesNot1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Method 'Derived.Goo<T>(T)' specifies a 'class' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not a reference type.
+                //     public override void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideRefConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base.Goo<T>(T)").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasClassConstraint_AndOverriddenDoesNot2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Method 'Derived.Goo<T>(T)' specifies a 'class' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not a reference type.
+                //     public override void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideRefConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base.Goo<T>(T)").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasClassConstraint_AndOverriddenDoesNot3()
+        {
+            var source = @"
+using System;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Enum;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,30): error CS8665: Method 'Derived.Goo<T>(T)' specifies a 'class' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not a reference type.
+                //     public override void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideRefConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base.Goo<T>(T)").WithLocation(10, 30)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenHasEnumConstraint()
+        {
+            var source = @"
+using System;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Enum;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,30): error CS8666: Method 'Derived.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not a non-nullable value type.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base.Goo<T>(T)").WithLocation(10, 30)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenHasNullableConstraint()
+        {
+            var source = @"
+abstract class Base<U>
+{
+    public abstract void Goo<T>(T value) where T : U;
+}
+
+class Derived : Base<int?>
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8666: Method 'Derived.Goo<T>(T)' specifies a 'struct' constraint for type parameter 'T', but corresponding type parameter 'T' of overridden or explicitly implemented method 'Base<int?>.Goo<T>(T)' is not a non-nullable value type.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideValConstraintNotSatisfied, "T").WithArguments("Derived.Goo<T>(T)", "T", "T", "Base<int?>.Goo<T>(T)").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void NoError_WhenOverrideHasStructConstraint_AndOverriddenHasUnmanagedConstraint()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : unmanaged;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoError_WhenOverrideHasClassConstraint_AndOverriddenHasReferenceTypeConstraint()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasDefaultConstructorConstraint1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : new();
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : new() { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,52): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : new() { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "new()").WithLocation(9, 52)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasDefaultConstructorConstraint2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : class, new();
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class, new() { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,59): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : class, new() { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "new()").WithLocation(9, 59)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasUnmanagedConstraint1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : unmanaged;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : unmanaged { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,52): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : unmanaged { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(9, 52)
+                );
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasUnmanagedConstraint2()
+        {
+            var source = @"
+interface I {}
+
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : unmanaged, I;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : unmanaged, I { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (11,52): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : unmanaged, I { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(11, 52)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34583, "https://github.com/dotnet/roslyn/issues/34583")]
+        public void ExplicitImplementationOfNullableStructWithMultipleTypeParameters()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T, U>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T, U>(T? value) where T : struct {}
+}
+
+class C2 : I
+{
+    void I.Goo<T, U>(T? value) {}
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -36,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService, textUndoHistoryRegistry As ITextUndoHistoryRegistry)
             _editorOperationsFactoryService = editorOperationsFactoryService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
@@ -67,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return TypeOf item IsNot AbstractGenerateCodeItem
         End Function
 
-        Private Function GetTypesAndDeclarationsInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))
+        Private Shared Function GetTypesAndDeclarationsInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))
             Try
                 Dim typesAndDeclarations As New Dictionary(Of INamedTypeSymbol, SyntaxNode)
                 Dim nodesToVisit As New Stack(Of SyntaxNode)
@@ -128,8 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         eventContainer:=Nothing,
                         semanticModel:=semanticModel,
                         workspaceSupportsDocumentChanges:=workspaceSupportsDocumentChanges,
-                        symbolDeclarationService:=symbolDeclarationService,
-                    cancellationToken:=cancellationToken)
+                        symbolDeclarationService:=symbolDeclarationService)
 
                     ' Add the (<ClassName> Events) item only if it actually has things within it
                     If typeEvents.ChildItems.Count > 0 Then
@@ -148,8 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                                     propertySymbol,
                                     semanticModel,
                                     workspaceSupportsDocumentChanges,
-                                    symbolDeclarationService,
-                                    cancellationToken))
+                                    symbolDeclarationService))
                         End If
                     Next
                 End If
@@ -158,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return items
         End Function
 
-        Private Function CreateItemForEnum(type As INamedTypeSymbol,
+        Private Shared Function CreateItemForEnum(type As INamedTypeSymbol,
                                            typeSymbolIdIndex As Integer,
                                            tree As SyntaxTree,
                                            symbolDeclarationService As ISymbolDeclarationService,
@@ -206,7 +207,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             End If
-
 
             ' Get any of the methods named "Finalize" in this class, and list them first. The legacy
             ' behavior that we will consider a method a finalizer even if it is shadowing the real
@@ -291,14 +291,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         ''' type of the eventContainer.</param>
         ''' <param name="eventContainer">If this is an entry for a WithEvents member, the WithEvents
         ''' property itself.</param>
-        Private Function CreateItemForEvents(containingType As INamedTypeSymbol,
+        Private Shared Function CreateItemForEvents(containingType As INamedTypeSymbol,
                                              position As Integer,
                                              eventType As ITypeSymbol,
                                              eventContainer As IPropertySymbol,
                                              semanticModel As SemanticModel,
                                              workspaceSupportsDocumentChanges As Boolean,
-                                             symbolDeclarationService As ISymbolDeclarationService,
-                                             cancellationToken As CancellationToken) As NavigationBarItem
+                                             symbolDeclarationService As ISymbolDeclarationService) As NavigationBarItem
 
             Dim rightHandMemberItems As New List(Of NavigationBarItem)
 
@@ -328,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             ' Generate an item for each event
             For Each e In accessibleEvents
                 If eventToImplementingMethods.ContainsKey(e) Then
-                    Dim methodSpans = GetSpansInDocument(eventToImplementingMethods(e), semanticModel.SyntaxTree, symbolDeclarationService, cancellationToken)
+                    Dim methodSpans = GetSpansInDocument(eventToImplementingMethods(e), semanticModel.SyntaxTree, symbolDeclarationService)
 
                     ' Dev11 arbitrarily will navigate to the last method that implements the event
                     ' if more than one exists
@@ -382,15 +381,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End If
         End Function
 
-        Private Function GetSpansInDocument(symbol As ISymbol, tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
+        Private Shared Function GetSpansInDocument(symbol As ISymbol, tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
             If cancellationToken.IsCancellationRequested Then
                 Return SpecializedCollections.EmptyList(Of TextSpan)()
             End If
 
-            Return GetSpansInDocument(SpecializedCollections.SingletonEnumerable(symbol), tree, symbolDeclarationService, cancellationToken)
+            Return GetSpansInDocument(SpecializedCollections.SingletonEnumerable(symbol), tree, symbolDeclarationService)
         End Function
 
-        Private Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
+        Private Shared Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService) As IList(Of TextSpan)
             Return list.SelectMany(AddressOf symbolDeclarationService.GetDeclarations) _
                         .Where(Function(r) r.SyntaxTree.Equals(tree)) _
                         .Select(Function(r) r.GetSyntax().FullSpan) _
@@ -516,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private Sub GenerateCodeForItem(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
             ' We'll compute everything up front before we go mutate state
-            Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
             Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
             Dim generatedTree = newDocument.GetSyntaxRootSynchronously(cancellationToken)
             Dim generatedNode = generatedTree.GetAnnotatedNodes(AbstractGenerateCodeItem.GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)

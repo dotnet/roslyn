@@ -1,25 +1,21 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Composition
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <ExportFormattingRule(NodeBasedFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
-    <ExtensionOrder(After:=AlignTokensFormattingRule.Name)>
     Friend Class NodeBasedFormattingRule
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Node Based Formatting Rule"
 
-        Public Overrides Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation),
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation),
                                                             node As SyntaxNode,
-                                                            optionSet As OptionSet,
-                                                            nextOperation As NextAction(Of AnchorIndentationOperation))
-            nextOperation.Invoke(operations)
+                                                            ByRef nextOperation As NextAnchorIndentationOperationAction)
+            nextOperation.Invoke()
 
             If TypeOf node Is StatementSyntax AndAlso Not IsBlockSyntax(node) Then
                 Dim baseToken = node.GetFirstToken(includeZeroWidth:=True)
@@ -41,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function IsBlockSyntax(node As SyntaxNode) As Boolean
+        Private Shared Function IsBlockSyntax(node As SyntaxNode) As Boolean
             Dim pair = GetFirstAndLastMembers(node)
             If pair.Equals(Nothing) Then
                 Return False
@@ -50,11 +46,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return True
         End Function
 
-        Public Overrides Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation),
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation),
                                                       node As SyntaxNode,
-                                                      optionSet As OptionSet,
-                                                      nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(operations)
+                                                      ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             Dim xmlDocument = TryCast(node, XmlDocumentSyntax)
             If xmlDocument IsNot Nothing Then
@@ -201,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         '    	Return
         '    Next
 
-        Private Function GetOuterBlockWithDifferentStartTokenUsingXmlElement(firstTokenOfInnerBlock As SyntaxToken) As SyntaxNode
+        Private Shared Function GetOuterBlockWithDifferentStartTokenUsingXmlElement(firstTokenOfInnerBlock As SyntaxToken) As SyntaxNode
             Dim outerBlock = firstTokenOfInnerBlock.Parent
             Dim outerBlockGetFirstToken = outerBlock.GetFirstToken()
             While outerBlock IsNot Nothing AndAlso
@@ -226,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return outerBlock
         End Function
 
-        Private Sub AddXmlEmptyElement(operations As List(Of IndentBlockOperation),
+        Private Shared Sub AddXmlEmptyElement(operations As List(Of IndentBlockOperation),
                                        node As XmlNodeSyntax,
                                        baseToken As SyntaxToken,
                                        startToken As SyntaxToken,
@@ -239,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             AddIndentBlockOperation(operations, startToken, token)
         End Sub
 
-        Private Sub AddXmlElementIndentBlockOperation(operations As List(Of IndentBlockOperation),
+        Private Shared Sub AddXmlElementIndentBlockOperation(operations As List(Of IndentBlockOperation),
                                                       xmlNode As XmlNodeSyntax,
                                                       baseToken As SyntaxToken,
                                                       alignmentStartToken As SyntaxToken,
@@ -297,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function IsFirstXmlElementTokenOnLine(xmlToken As SyntaxToken) As Boolean
+        Private Shared Function IsFirstXmlElementTokenOnLine(xmlToken As SyntaxToken) As Boolean
             If xmlToken.LeadingTrivia.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia) Then
                 Return True
             End If
@@ -311,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return previousToken.TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
         End Function
 
-        Private Function GetFirstAndLastMembers(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
+        Private Shared Function GetFirstAndLastMembers(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
             Dim [namespace] = TryCast(node, NamespaceBlockSyntax)
             If [namespace] IsNot Nothing Then
                 Return ValueTuple.Create(
@@ -486,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function GetEndTokenForForBlock(node As ForOrForEachBlockSyntax) As SyntaxToken
+        Private Shared Function GetEndTokenForForBlock(node As ForOrForEachBlockSyntax) As SyntaxToken
             If node.NextStatement IsNot Nothing Then
                 Return node.NextStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True)
             End If
@@ -514,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return node.GetLastToken(includeZeroWidth:=True)
         End Function
 
-        Private Function GetForBlockCount(node As ForOrForEachBlockSyntax, forBlocks As IEnumerable(Of ForOrForEachBlockSyntax)) As Integer
+        Private Shared Function GetForBlockCount(node As ForOrForEachBlockSyntax, forBlocks As IEnumerable(Of ForOrForEachBlockSyntax)) As Integer
             Dim count As Integer = 0
             For Each forBlock In forBlocks
                 If forBlock Is node Then

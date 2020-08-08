@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using System.Linq;
 
@@ -52,6 +55,18 @@ public class C {
             Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
+        public void DefaultAwaitExpressionInfo()
+        {
+            AwaitExpressionInfo info = default;
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.False(info.IsDynamic);
+            Assert.Equal(0, info.GetHashCode());
         }
 
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
@@ -176,8 +191,32 @@ class C
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
             var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
-            var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
+            var symbolV = (ILocalSymbol)semanticModel.GetDeclaredSymbol(decl);
             Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Dynamic()
+        {
+            string source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        dynamic d = Task.CompletedTask;
+        await d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var info = model.GetAwaitExpressionInfo(expr);
+            Assert.True(info.IsDynamic);
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.Null(info.GetResultMethod);
         }
     }
 }

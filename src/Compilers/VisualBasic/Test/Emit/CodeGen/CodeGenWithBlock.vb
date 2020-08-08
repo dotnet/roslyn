@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 
@@ -2608,7 +2610,7 @@ End Structure
 
         <Fact()>
         Public Sub TestWith_NestedWithWithInferredVarType2()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Structure Struct
@@ -2649,7 +2651,7 @@ End Structure
 
         <Fact()>
         Public Sub TestWith_NestedWithWithInferredVarType3()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2690,7 +2692,7 @@ End Structure
         <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
         <Fact()>
         Public Sub TestWith_NestedWithWithLambdasAndObjectInitializers()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Structure SS1
@@ -2760,7 +2762,7 @@ End Class
 </compilation>, expectedOutput:="Success=a").VerifyDiagnostics()
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub TestWith_MyBase()
             Dim c = CompileAndVerify(
 <compilation>

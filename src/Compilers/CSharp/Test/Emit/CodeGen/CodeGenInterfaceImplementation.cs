@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -351,17 +353,17 @@ class Test
 
             var asmRef = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { asmRef },
                 assemblyName: "OHI_ExpImpImplVBNested001");
 
-            var comp2 = CreateStandardCompilation(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new[] { asmRef, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ExpImpImplVBNested002");
 
-            var comp3 = CreateStandardCompilation(
+            var comp3 = CreateCompilation(
                 text3,
                 references: new MetadataReference[] { asmRef, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -2632,7 +2634,7 @@ public class D : B, I
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
@@ -2727,7 +2729,7 @@ public class D : B<char>, I<char>
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.DebugDll);
 
             var global = comp.GlobalNamespace;
             var derivedType = global.GetMember<NamedTypeSymbol>("D");

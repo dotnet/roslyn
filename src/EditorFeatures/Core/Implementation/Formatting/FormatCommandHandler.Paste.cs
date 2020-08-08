@@ -1,15 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -17,20 +21,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     internal partial class FormatCommandHandler
     {
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+            => nextHandler();
+
+        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            return nextHandler();
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text))
+            {
+                ExecuteCommandWorker(args, nextHandler, context.OperationContext.UserCancellationToken);
+            }
         }
 
-        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
-        {
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Format_Paste,
-                message: EditorFeaturesResources.Formatting_pasted_text,
-                allowCancel: true,
-                action: c => ExecuteCommandWorker(args, nextHandler, c.CancellationToken));
-        }
-
-        private void ExecuteCommandWorker(PasteCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
+        private static void ExecuteCommandWorker(PasteCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
         {
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
 

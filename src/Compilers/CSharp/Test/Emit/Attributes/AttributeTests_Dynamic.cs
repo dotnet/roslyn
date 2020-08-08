@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -96,9 +99,9 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void TestCompileDynamicAttributes()
         {
-            var comp = CreateCompilationWithMscorlibAndSystemCore(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
 
-            CompileAndVerify(comp, symbolValidator: module =>
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
             {
                 DynamicAttributeValidator.ValidateDynamicAttributes(module);
             });
@@ -531,7 +534,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                     }
                     else
                     {
-                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                         TypedConstant argument = dynamicAttribute.CommonConstructorArguments.Single();
                         Assert.Equal(TypedConstantKind.Array, argument.Kind);
@@ -555,7 +558,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void CS1980ERR_DynamicAttributeMissing()
         {
-            var comp = CreateStandardCompilation(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationWithMscorlib46(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,31): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Outer<T> : Base1<dynamic>
@@ -662,7 +665,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // (57,25): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] F4(Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] x) { return x; }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(57, 25),
-                // (57,46): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // (57,46): error CS198 0: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] F4(Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] x) { return x; }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(57, 46),
                 // (57,66): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -686,7 +689,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // (60,66): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] Prop2 { get { return field17; } set { field17 = value; } }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(60, 66),
-                // (60,94): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // (60,94): error CS1980: C annot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] Prop2 { get { return field17; } set { field17 = value; } }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(60, 94),
                 // (60,114): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -710,7 +713,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // (68,37): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static (dynamic, object, dynamic) F5((dynamic, object, dynamic) x) { return x; }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(68, 37),
-                // (34,19): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // (34,19): error CS1980: Cannot  define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static dynamic[] field2;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(34, 19),
                 // (35,19): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -805,7 +808,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(33, 19)
                 );
         }
-        
+
         [Fact]
         public void TestDynamicAttributeForScript_Field()
         {
@@ -816,7 +819,7 @@ dynamic x = 0;
                 source: source,
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                references: new[] { SystemCoreRef, DesktopCSharpRef });
+                references: new[] { SystemCoreRef, CSharpDesktopRef });
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -905,7 +908,7 @@ Gen<dynamic> x = null;";
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
         }
-        
+
         [Fact, WorkItem(531108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531108")]
         public void DynamicAttributeCtorCS1980BreakingChange()
         {
@@ -923,14 +926,14 @@ namespace System
         }
     }
 }";
-            var customRef = CreateStandardCompilation(customDynamicAttrSource).ToMetadataReference();
+            var customRef = CreateCompilationWithMscorlib46(customDynamicAttrSource).ToMetadataReference();
 
             var source = @"
 public class C<T>
 {
     public C<dynamic> field2;   // Uses missing ctor ""DynamicAttribute(bool[] transformFlags)"", generates CS1980
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { customRef });
+            var comp = CreateCompilationWithMscorlib46(source, references: new[] { customRef });
             comp.VerifyDiagnostics(
                 // (4,14): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public C<dynamic> field2;   // Uses missing ctor "DynamicAttribute(bool[] transformFlags)", generates CS1980
@@ -942,7 +945,7 @@ public class C<T>
     public dynamic field1;      // Uses available ctor ""DynamicAttribute()"", No CS1980 in native compiler.
 }";
             // Bug 531108-Won't Fix
-            comp = CreateStandardCompilation(source, references: new[] { customRef });
+            comp = CreateCompilationWithMscorlib46(source, references: new[] { customRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public dynamic field1;      // Uses available ctor "DynamicAttribute()", No CS1980 in native compiler.
@@ -974,7 +977,7 @@ public class C
 [Dynamic(new bool[] { true })]
 public struct S { }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (4,2): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 Diagnostic(ErrorCode.ERR_ExplicitDynamicAttr, "Dynamic(new[] { true })"),
                 // (19,2): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
@@ -1001,7 +1004,7 @@ public class C
     public void dynamic([dynamic]dynamic dynamic) { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (2,2): error CS0246: The type or namespace name 'dynamicAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [dynamic]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "dynamic").WithArguments("dynamicAttribute").WithLocation(2, 2),
@@ -1043,7 +1046,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
@@ -1087,7 +1090,7 @@ class C
 }";
 
             // Make sure we emit without errors when dynamic attributes are not present. 
-            CompileAndVerify(source, expectedSignatures: new[]
+            CompileAndVerifyWithMscorlib40(source, new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c",
@@ -1112,7 +1115,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c",
@@ -1144,10 +1147,10 @@ class C
         d(null);
     }
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             CompileAndVerify(comp, verify: Verification.Fails);
@@ -1178,10 +1181,10 @@ class C
         D d = () => { dynamic y = x; };
     }
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
             CompileAndVerify(comp, verify: Verification.Fails);
@@ -1195,12 +1198,12 @@ class C
 {
     static dynamic[] P { get; set; }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C",
                     "<P>k__BackingField",
-                    ".field [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] private static System.Object[] <P>k__BackingField")
+                    ".field [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private static System.Object[] <P>k__BackingField")
             });
         }
 
@@ -1229,7 +1232,7 @@ class C
         F(new object[0]);
     }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c__DisplayClass0_0",
@@ -1249,7 +1252,7 @@ class C
         {
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: GetNoCS1980String(typeName: @"Gen<dynamic>"),
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
 
         [Theory]
@@ -1259,7 +1262,7 @@ class C
         {
             var comp = CreateCompilationWithMscorlib45(
                 source: GetNoCS1980String(typeName: @"dynamic"),
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2));
 
             comp.VerifyDiagnostics(
                 // (2,7): error CS1962: The typeof operator cannot be used on the dynamic type
@@ -1295,12 +1298,12 @@ class C
         public void TestDynamicAttributeInAliasContext(SourceCodeKind sourceCodeKind)
         {
             string source =
-                "using X = Gen<dynamic>;     // No CS1980" 
+                "using X = Gen<dynamic>;     // No CS1980"
                 + GetNoCS1980String(typeName: "X");
 
             CompileAndVerify(CreateCompilationWithMscorlib45(
                 source: source,
-                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)));
+                parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
 
         [Theory]
@@ -1329,7 +1332,7 @@ public class Gen2<T> : X    // CS1980
   }
 }";
 
-            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)).VerifyDiagnostics(
                 // (21,24): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Gen2<T> : X    // CS1980
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 24),

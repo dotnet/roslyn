@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,53 +16,65 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
 
-                var parameters = GetAllSymbols(containingSymbolResolution).SelectMany(
-                    s => Resolve(reader, s, metadataName));
-                return CreateSymbolInfo(parameters);
-            }
-
-            private static IEnumerable<IParameterSymbol> Resolve(
-                SymbolKeyReader reader, ISymbol container, string metadataName)
-            {
-                if (container is IMethodSymbol method)
+                if (containingSymbolFailureReason != null)
                 {
-                    return method.Parameters.Where(
-                        p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
+                    failureReason = $"({nameof(ParameterSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                    return default;
                 }
-                else if (container is IPropertySymbol property)
-                {
-                    return property.Parameters.Where(
-                        p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
-                }
-                else if (container is IEventSymbol eventSymbol)
-                {
-                    // Parameters can be owned by events in VB.  i.e. it's legal in VB to have:
-                    //
-                    //      Public Event E(a As Integer, b As Integer);
-                    //
-                    // In this case it's equivalent to:
-                    //
-                    //      Public Delegate UnutterableCompilerName(a As Integer, b As Integer)
-                    //      public Event E As UnutterableCompilerName
-                    //
-                    // So, in this case, to resolve the parameter, we go have to map the event,
-                    // then find the delegate it returns, then find the parameter in the delegate's
-                    // 'Invoke' method.
-                    var delegateInvoke = (eventSymbol.Type as INamedTypeSymbol)?.DelegateInvokeMethod;
 
-                    if (delegateInvoke != null)
+                using var result = PooledArrayBuilder<IParameterSymbol>.GetInstance();
+                foreach (var container in containingSymbolResolution)
+                {
+                    switch (container)
                     {
-                        return delegateInvoke.Parameters.Where(
-                            p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
+                        case IMethodSymbol method:
+                            Resolve(result, reader, metadataName, method.Parameters);
+                            break;
+                        case IPropertySymbol property:
+                            Resolve(result, reader, metadataName, property.Parameters);
+                            break;
+                        case IEventSymbol eventSymbol:
+                            // Parameters can be owned by events in VB.  i.e. it's legal in VB to have:
+                            //
+                            //      Public Event E(a As Integer, b As Integer);
+                            //
+                            // In this case it's equivalent to:
+                            //
+                            //      Public Delegate UnutterableCompilerName(a As Integer, b As Integer)
+                            //      public Event E As UnutterableCompilerName
+                            //
+                            // So, in this case, to resolve the parameter, we go have to map the event,
+                            // then find the delegate it returns, then find the parameter in the delegate's
+                            // 'Invoke' method.
+                            var delegateInvoke = (eventSymbol.Type as INamedTypeSymbol)?.DelegateInvokeMethod;
+
+                            if (delegateInvoke != null)
+                            {
+                                Resolve(result, reader, metadataName, delegateInvoke.Parameters);
+                            }
+                            break;
                     }
                 }
 
-                return SpecializedCollections.EmptyEnumerable<IParameterSymbol>();
+                return CreateResolution(result, $"({nameof(ParameterSymbolKey)} '{metadataName}' not found)", out failureReason);
+            }
+
+            private static void Resolve(
+                PooledArrayBuilder<IParameterSymbol> result, SymbolKeyReader reader,
+                string metadataName, ImmutableArray<IParameterSymbol> parameters)
+            {
+                foreach (var parameter in parameters)
+                {
+                    if (SymbolKey.Equals(reader.Compilation, parameter.MetadataName, metadataName))
+                    {
+                        result.AddIfNotNull(parameter);
+                    }
+                }
             }
         }
     }

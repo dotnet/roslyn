@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim actualItems = Await service.GetItemsAsync(document, Nothing)
                 actualItems.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
-                AssertEqual(expectedItems, actualItems, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)().IsCaseSensitive)
+                AssertEqual(expectedItems, actualItems, document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive)
             End Using
         End Function
 
@@ -44,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim model As New NavigationBarModel(items, VersionStamp.Create(), service)
-                Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.TextBuffer.CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
+                Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
-                Dim isCaseSensitive = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)().IsCaseSensitive
+                Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
 
                 AssertEqual(leftItem, selectedItems.TypeItem, isCaseSensitive)
                 Assert.Equal(leftItemGrayed, selectedItems.ShowTypeItemGrayed)

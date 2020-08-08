@@ -1,7 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System.Linq;
-using Roslyn.Utilities;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,14 +14,19 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingType);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingTypeResolution = reader.ReadSymbolKey();
+                var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
 
-                var fields = GetAllSymbols<INamedTypeSymbol>(containingTypeResolution)
-                    .SelectMany(t => t.GetMembers(metadataName)).OfType<IFieldSymbol>();
-                return CreateSymbolInfo(fields);
+                if (containingTypeFailureReason != null)
+                {
+                    failureReason = $"({nameof(FieldSymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
+                    return default;
+                }
+
+                using var result = GetMembersOfNamedType<IFieldSymbol>(containingTypeResolution, metadataName);
+                return CreateResolution(result, $"({nameof(FieldSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
         }
     }

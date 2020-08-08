@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text;
@@ -9,48 +11,40 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
     public class LongestCommonSubsequenceTests
     {
-        LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
+        private readonly LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
 
         private class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
         {
             protected override bool ItemsEqual(string oldSequence, int oldIndex, string newSequence, int newIndex)
-            {
-                return oldSequence[oldIndex] == newSequence[newIndex];
-            }
+                => oldSequence[oldIndex] == newSequence[newIndex];
 
             public IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(string oldSequence, string newSequence)
-            {
-                return GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public IEnumerable<SequenceEdit> GetEdits(string oldSequence, string newSequence)
-            {
-                return GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public double ComputeDistance(string oldSequence, string newSequence)
-            {
-                return ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
         }
 
-        private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
+        private static void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
         {
-            StringBuilder sb = new StringBuilder(expectedPairsStr.Length);
-            foreach (KeyValuePair<int, int> actPair in actualPairs)
+            var sb = new StringBuilder(expectedPairsStr.Length);
+            foreach (var actPair in actualPairs)
             {
                 sb.AppendFormat("[{0},{1}]", actPair.Key, actPair.Value);
             }
-            string actualPairsStr = sb.ToString();
+            var actualPairsStr = sb.ToString();
             Assert.Equal(expectedPairsStr, actualPairsStr);
         }
 
-        private void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
+        private static void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
         {
-            char[] oldChars = oldStr.ToCharArray();
-            char[] newChars = new char[newStr.Length];
+            var oldChars = oldStr.ToCharArray();
+            var newChars = new char[newStr.Length];
 
-            foreach (SequenceEdit edit in edits)
+            foreach (var edit in edits)
             {
                 Assert.True(edit.Kind == EditKind.Delete || edit.Kind == EditKind.Insert || edit.Kind == EditKind.Update);
                 switch (edit.Kind)
@@ -74,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
                 }
             }
 
-            string editedStr = new String(newChars);
+            var editedStr = new String(newChars);
             Assert.Equal(editedStr, newStr);
 
             Array.ForEach(oldChars, (c) => { Assert.Equal('\0', c); });
@@ -83,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void EmptyStrings()
         {
-            string str1 = "";
-            string str2 = "";
+            var str1 = "";
+            var str2 = "";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
@@ -96,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void InsertToEmpty()
         {
-            string str1 = "";
-            string str2 = "ABC";
+            var str1 = "";
+            var str2 = "ABC";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
@@ -106,12 +100,11 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             Assert.Equal(1.0, lcs.ComputeDistance(str1, str2));
         }
 
-
         [Fact]
         public void InsertAtBeginning()
         {
-            string str1 = "ABC";
-            string str2 = "XYZABC";
+            var str1 = "ABC";
+            var str2 = "XYZABC";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,5][1,4][0,3]");
 
@@ -123,8 +116,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void InsertAtEnd()
         {
-            string str1 = "ABC";
-            string str2 = "ABCXYZ";
+            var str1 = "ABC";
+            var str2 = "ABCXYZ";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,2][1,1][0,0]");
 
@@ -136,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void InsertInMidlle()
         {
-            string str1 = "ABC";
-            string str2 = "ABXYC";
+            var str1 = "ABC";
+            var str2 = "ABXYC";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,4][1,1][0,0]");
 
@@ -149,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void DeleteToEmpty()
         {
-            string str1 = "ABC";
-            string str2 = "";
+            var str1 = "ABC";
+            var str2 = "";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
@@ -162,8 +155,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void DeleteAtBeginning()
         {
-            string str1 = "ABCD";
-            string str2 = "C";
+            var str1 = "ABCD";
+            var str2 = "C";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,0]");
 
@@ -175,8 +168,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void DeleteAtEnd()
         {
-            string str1 = "ABCD";
-            string str2 = "AB";
+            var str1 = "ABCD";
+            var str2 = "AB";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[1,1][0,0]");
 
@@ -188,8 +181,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void DeleteInMiddle()
         {
-            string str1 = "ABCDE";
-            string str2 = "ADE";
+            var str1 = "ABCDE";
+            var str2 = "ADE";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[4,2][3,1][0,0]");
 
@@ -201,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void ReplaceAll()
         {
-            string str1 = "ABC";
-            string str2 = "XYZ";
+            var str1 = "ABC";
+            var str2 = "XYZ";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
@@ -214,8 +207,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void ReplaceAtBeginning()
         {
-            string str1 = "ABCD";
-            string str2 = "XYD";
+            var str1 = "ABCD";
+            var str2 = "XYD";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[3,2]");
 
@@ -227,8 +220,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void ReplaceAtEnd()
         {
-            string str1 = "ABCD";
-            string str2 = "ABXYZ";
+            var str1 = "ABCD";
+            var str2 = "ABXYZ";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[1,1][0,0]");
 
@@ -240,8 +233,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void ReplaceInMiddle()
         {
-            string str1 = "ABCDE";
-            string str2 = "AXDE";
+            var str1 = "ABCDE";
+            var str2 = "AXDE";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[4,3][3,2][0,0]");
 
@@ -253,8 +246,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void Combination1()
         {
-            string str1 = "ABBCDEFIJ";
-            string str2 = "AABDEEGH";
+            var str1 = "ABBCDEFIJ";
+            var str2 = "AABDEEGH";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[5,4][4,3][1,2][0,0]");
 
@@ -266,8 +259,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void Combination2()
         {
-            string str1 = "AAABBCCDDD";
-            string str2 = "ABXCD";
+            var str1 = "AAABBCCDDD";
+            var str2 = "ABXCD";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[7,4][5,3][3,1][0,0]");
 
@@ -279,8 +272,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void Combination3()
         {
-            string str1 = "ABCABBA";
-            string str2 = "CBABAC";
+            var str1 = "ABCABBA";
+            var str2 = "CBABAC";
 
             // 2 possible matches:
             // "[6,4][4,3][3,2][1,1]" <- this one is backwards compatible
@@ -295,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void Reorder1()
         {
-            string str1 = "AB";
-            string str2 = "BA";
+            var str1 = "AB";
+            var str2 = "BA";
 
             // 2 possible matches:
             // "[0,1]" <- this one is backwards compatible
@@ -316,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var x9 = new string('x', 9);
             var x10 = new string('x', 10);
             var x99 = new string('x', 99);
-            var x100 = new string('x', 100);
             var x1000 = new string('x', 1000);
 
             var y1000 = new string('y', 1000);
@@ -325,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var sx99 = s + x99;
             var sx1000 = s + new string('x', 1000);
             var sx100000000 = s + new string('x', 100000000);
-            
+
             Assert.Equal(0.900, lcs.ComputeDistance(s, sx9), precision: 3);
             Assert.Equal(0.990, lcs.ComputeDistance(s, sx99), precision: 3);
             Assert.Equal(1.000, lcs.ComputeDistance(s, sx1000), precision: 3);

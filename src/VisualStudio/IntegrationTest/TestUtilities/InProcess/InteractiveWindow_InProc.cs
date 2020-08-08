@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using System;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -22,14 +28,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const int DefaultTimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
-        private readonly string _windowTitle;
+        private readonly Guid _windowId;
         private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
-        protected InteractiveWindow_InProc(string viewCommand, string windowTitle)
+        protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
             _viewCommand = viewCommand;
-            _windowTitle = windowTitle;
+            _windowId = windowId;
             _timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
         }
 
@@ -40,6 +46,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             CloseWindow();
 
             _interactiveWindow = AcquireInteractiveWindow();
+
+            Contract.ThrowIfNull(_interactiveWindow);
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
@@ -55,13 +63,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public bool IsInitializing
-            => _interactiveWindow.IsInitializing;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
 
         public string GetReplText()
-            => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText());
+
+        protected override bool HasActiveTextView()
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView) is object;
 
         protected override IWpfTextView GetActiveTextView()
-            => _interactiveWindow.TextView;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView);
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -93,8 +104,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             var replText = GetReplTextWithoutPrompt();
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            if (lastPromptIndex > 0)
+                replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
 
-            replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
             var lastSubmissionIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
             if (lastSubmissionIndex > 0)
@@ -140,7 +152,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 firstNewLineIndex = replText.IndexOf(Environment.NewLine, lastSubmissionTextIndex);
             }
 
-            string lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
+            var lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
 
             return lastReplInputWithReplSubmissionText.Replace(ReplSubmissionText, string.Empty);
         }
@@ -157,21 +169,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SubmitText(string text)
         {
-            _interactiveWindow.SubmitAsync(new[] { text }).Wait();
+            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            _interactiveWindow.SubmitAsync(new[] { text }).WithCancellation(cts.Token).Wait();
         }
 
         public void CloseWindow()
         {
-            var dte = GetDTE();
-
-            foreach (EnvDTE.Window window in dte.Windows)
+            InvokeOnUIThread(cancellationToken =>
             {
-                if (window.Caption == _windowTitle)
+                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                if (ErrorHandler.Succeeded(shell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFrameOnly, _windowId, out var windowFrame)))
                 {
-                    window?.Close();
-                    break;
+                    ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
                 }
-            }
+            });
         }
 
         public void ShowWindow(bool waitForPrompt = true)
@@ -185,10 +196,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForPredicate(() => GetReplText().EndsWith(ReplPromptText));
+            => WaitForPredicate(GetReplText, value => value.EndsWith(ReplPromptText));
 
         public void WaitForReplOutput(string outputText)
-            => WaitForPredicate(() => GetReplText().EndsWith(outputText + Environment.NewLine + ReplPromptText));
+            => WaitForPredicate(GetReplText, value => value.EndsWith(outputText + Environment.NewLine + ReplPromptText));
 
         public void ClearScreen()
         {
@@ -197,36 +208,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void InsertCode(string text)
         {
-            _interactiveWindow.InsertCode(text);
+            InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
         }
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForPredicate(() => GetLastReplOutput().Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForPredicate(() => GetLastReplInput().Contains(outputText));
+            => WaitForPredicate(GetLastReplInput, value => value.Contains(outputText));
 
-        private void WaitForPredicate(Func<bool> predicate)
+        private void WaitForPredicate(Func<string> getValue, Func<string, bool> isExpectedValue)
         {
             var beginTime = DateTime.UtcNow;
-            while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            while (!isExpectedValue(getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
-                Task.Delay(50);
+                Thread.Sleep(50);
             }
 
-            if (!predicate())
+            string value;
+            if (!isExpectedValue(value = getValue()))
             {
-                var replText = GetReplText();
-                throw new Exception($"Predicate never assigned a value after {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. REPL text: {replText}.");
+                throw new Exception($"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. Actual content:{Environment.NewLine}[[{value}]]");
             }
         }
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            return _interactiveWindow.TextView.TextBuffer;
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer);
         }
     }
 }

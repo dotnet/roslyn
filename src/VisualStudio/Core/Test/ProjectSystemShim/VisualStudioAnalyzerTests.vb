@@ -1,45 +1,65 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
+    <UseExportProvider>
     Public Class VisualStudioAnalyzerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub GetReferenceCalledMultipleTimes()
-            Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", New MockVsFileChangeEx(), Nothing, Nothing, Nothing, Nothing, Nothing)
-                Dim reference1 = analyzer.GetReference()
-                Dim reference2 = analyzer.GetReference()
+            Using workspace = New TestWorkspace()
+                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspaceImpl)(
+                                    Function()
+                                        Return Nothing
+                                    End Function)
 
-                Assert.True(Object.ReferenceEquals(reference1, reference2))
+                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, New MockDiagnosticUpdateSourceRegistrationService())
+
+                Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
+                    Dim reference1 = analyzer.GetReference()
+                    Dim reference2 = analyzer.GetReference()
+
+                    Assert.True(Object.ReferenceEquals(reference1, reference2))
+                End Using
             End Using
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub AnalyzerErrorsAreUpdated()
-            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(Nothing, New MockDiagnosticUpdateSourceRegistrationService())
+            Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspaceImpl)(
+                                    Function()
+                                        Return Nothing
+                                    End Function)
+
+            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, New MockDiagnosticUpdateSourceRegistrationService())
 
             Dim file = Path.GetTempFileName()
             Dim eventHandler = New EventHandlers(file)
 
             AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
-            Using analyzer = New VisualStudioAnalyzer(file, New MockVsFileChangeEx(), hostDiagnosticUpdateSource, ProjectId.CreateNewId(), Nothing, New MockAnalyzerAssemblyLoader(), LanguageNames.VisualBasic)
-                Dim reference = analyzer.GetReference()
-                reference.GetAnalyzers(LanguageNames.VisualBasic)
+            Using workspace = New TestWorkspace()
+                Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
+                    Dim reference = analyzer.GetReference()
+                    reference.GetAnalyzers(LanguageNames.VisualBasic)
 
-                RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                    RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
+                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                End Using
+
+                IO.File.Delete(file)
             End Using
-
-            IO.File.Delete(file)
         End Sub
 
         Private Class EventHandlers

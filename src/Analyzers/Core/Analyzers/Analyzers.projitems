@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Analyzers</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" GenerateSource="true" Link="AnalyzersResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractParenthesesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AbstractAddRequiredParenthesesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\AbstractConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\AnalyzerHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\SuppressMessageAttributeState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetScope.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetSymbolResolver.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetSymbolResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleDiagnosticAnalyzerBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchStatementDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchExpressionHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\PopulateSwitchStatementHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\AbstractQualifyMemberAccessDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\AbstractRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.BlockAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\AbstractSimplifyConditionalDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyBooleanExpressionConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\Helpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\AbstractUseCompoundAssignmentDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\UseCompoundAssignmentUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\AbstractUseConditionalExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForAssignment\AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForAssignment\UseConditionalExpressionForAssignmentHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\UseConditionalExpressionForReturnHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\AbstractUseInferredMemberNameDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\AbstractUseIsNullForReferenceEqualsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\Analyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\Analyzer.OperationDeconstructor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\AbstractValidateFormatStringDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringOption.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

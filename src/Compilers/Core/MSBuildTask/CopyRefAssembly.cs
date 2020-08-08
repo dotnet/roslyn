@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.IO;
@@ -20,14 +24,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public string DestinationPath { get; set; }
 
-        static CopyRefAssembly()
-        {
-            AssemblyResolution.Install();
-        }
-
         public CopyRefAssembly()
         {
             TaskResources = ErrorString.ResourceManager;
+
+            // These required properties will all be assigned by MSBuild. Suppress warnings about leaving them with
+            // their default values.
+            SourcePath = null!;
+            DestinationPath = null!;
         }
 
         public override bool Execute()
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (File.Exists(DestinationPath))
             {
-                Guid source;
+                var source = Guid.Empty;
                 try
                 {
                     source = ExtractMvid(SourcePath);
@@ -84,8 +88,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                ManagedCompiler.LogErrorOutput(e.ToString(), Log);
+                var util = new TaskLoggingHelper(this);
+                util.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                util.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
                 return false;
             }
 

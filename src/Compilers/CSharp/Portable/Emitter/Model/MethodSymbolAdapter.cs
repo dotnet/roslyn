@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -69,15 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
             }
 
-            if (!this.IsDefinition)
-            {
-                PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-                return moduleBeingBuilt.Translate(this.ContainingType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                  diagnostics: context.Diagnostics);
-            }
+            NamedTypeSymbol containingType = this.ContainingType;
+            var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            return this.ContainingType;
+            return moduleBeingBuilt.Translate(containingType,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                diagnostics: context.Diagnostics,
+                needDeclaration: this.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.ReturnTypeWithAnnotations.CustomModifiers);
             }
         }
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.RefCustomModifiers.As<Cci.ICustomModifier>();
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
             }
         }
 
@@ -244,9 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
-            foreach (var arg in this.TypeArguments)
+            foreach (var arg in this.TypeArgumentsWithAnnotations)
             {
-                yield return moduleBeingBuilt.Translate(arg,
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.Type,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }

@@ -1,6 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -11,24 +17,27 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class TemporaryWorkspace : Workspace
     {
-        public TemporaryWorkspace(Solution solution)
+        private TemporaryWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
         {
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
-            this.SetCurrentSolution(solution);
+            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
+
+            RegisterDocumentOptionProviders(documentOptionsProviderFactories);
         }
 
-        public TemporaryWorkspace(SolutionInfo solutionInfo)
-            : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
-        {
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+        public TemporaryWorkspace(Solution solution) : this()
+            => this.SetCurrentSolution(solution);
 
+        public TemporaryWorkspace(SolutionInfo solutionInfo, SerializableOptionSet options) : this()
+        {
             this.OnSolutionAdded(solutionInfo);
+            this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
         }
 
         // for now, temproary workspace is not mutable. consumer can still freely fork solution as they wish
-        // they just can't apply thsoe changes back to the workspace.
+        // they just can't apply those changes back to the workspace.
         public override bool CanApplyChange(ApplyChangesKind feature) => false;
 
         public override bool CanOpenDocuments => false;

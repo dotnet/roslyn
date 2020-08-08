@@ -1,16 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -32,13 +36,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IVsRunningDocumentTable4 _runningDocumentTable;
 
         public VisualStudioDocumentNavigationService(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
         }
 
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
@@ -52,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
             if (boundedTextSpan != textSpan)
@@ -84,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
 
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
@@ -101,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
             if (boundedPosition != position)
@@ -124,77 +132,90 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
         {
-            // Navigation should not change the context of linked files and Shared Projects.
-            documentId = workspace.GetDocumentIdInCurrentContext(documentId);
+            return TryNavigateToLocation(workspace,
+                documentId,
+                _ => textSpan,
+                text => GetVsTextSpan(text, textSpan),
+                options);
 
-            if (!IsForeground())
+            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan)
             {
-                throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
-            }
-
-            var document = OpenDocument(workspace, documentId, options);
-            if (document == null)
-            {
-                return false;
-            }
-
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var textBuffer = text.Container.GetTextBuffer();
-
-            var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
-            if (boundedTextSpan != textSpan)
-            {
-                try
+                var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
+                if (boundedTextSpan != textSpan)
                 {
-                    throw new ArgumentOutOfRangeException();
+                    try
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
+                    catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                    {
+                    }
                 }
-                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
-                {
-                }
+
+                return text.GetVsTextSpanForSpan(boundedTextSpan);
             }
-
-            var vsTextSpan = text.GetVsTextSpanForSpan(boundedTextSpan);
-
-            if (IsSecondaryBuffer(workspace, documentId) &&
-                !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
-            {
-                return false;
-            }
-
-            return NavigateTo(textBuffer, vsTextSpan);
         }
 
         public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
         {
-            // Navigation should not change the context of linked files and Shared Projects.
-            documentId = workspace.GetDocumentIdInCurrentContext(documentId);
+            return TryNavigateToLocation(workspace,
+                documentId,
+                (document) => GetTextSpanFromLineAndOffset(document, lineNumber, offset),
+                (text) => GetVsTextSpan(text, lineNumber, offset),
+                options);
 
-            if (!IsForeground())
+            static TextSpan GetTextSpanFromLineAndOffset(Document document, int lineNumber, int offset)
             {
-                throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
+                var text = document.GetTextSynchronously(CancellationToken.None);
+
+                var linePosition = new LinePosition(lineNumber, offset);
+                return text.Lines.GetTextSpan(new LinePositionSpan(linePosition, linePosition));
             }
 
-            var document = OpenDocument(workspace, documentId, options);
-            if (document == null)
+            static VsTextSpan GetVsTextSpan(SourceText text, int lineNumber, int offset)
             {
-                return false;
+                return text.GetVsTextSpanForLineOffset(lineNumber, offset);
             }
-
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var textBuffer = text.Container.GetTextBuffer();
-
-            var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
-
-            if (IsSecondaryBuffer(workspace, documentId) &&
-                !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
-            {
-                return false;
-            }
-
-            return NavigateTo(textBuffer, vsTextSpan);
         }
 
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
+        {
+            return TryNavigateToLocation(workspace,
+                documentId,
+                (document) => GetTextSpanFromPosition(document, position, virtualSpace),
+                (text) => GetVsTextSpan(text, position, virtualSpace),
+                options);
+
+            static TextSpan GetTextSpanFromPosition(Document document, int position, int virtualSpace)
+            {
+                var text = document.GetTextSynchronously(CancellationToken.None);
+                text.GetLineAndOffset(position, out var lineNumber, out var offset);
+
+                offset += virtualSpace;
+
+                var linePosition = new LinePosition(lineNumber, offset);
+                return text.Lines.GetTextSpan(new LinePositionSpan(linePosition, linePosition));
+            }
+
+            static VsTextSpan GetVsTextSpan(SourceText text, int position, int virtualSpace)
+            {
+                var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
+                if (boundedPosition != position)
+                {
+                    try
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
+                    catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                    {
+                    }
+                }
+
+                return text.GetVsTextSpanForPosition(boundedPosition, virtualSpace);
+            }
+        }
+
+        private bool TryNavigateToLocation(Workspace workspace, DocumentId documentId, Func<Document, TextSpan> getTextSpanForMapping, Func<SourceText, VsTextSpan> getVsTextSpan, OptionSet options)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -204,36 +225,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
             }
 
-            var document = OpenDocument(workspace, documentId, options);
-            if (document == null)
+            using (OpenNewDocumentStateScope(options ?? workspace.Options))
             {
-                return false;
-            }
-
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var textBuffer = text.Container.GetTextBuffer();
-
-            var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
-            if (boundedPosition != position)
-            {
-                try
+                // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                var spanMappingService = document?.Services.GetService<ISpanMappingService>();
+                if (spanMappingService != null)
                 {
-                    throw new ArgumentOutOfRangeException();
+                    var mappedSpan = GetMappedSpan(spanMappingService, document, getTextSpanForMapping(document));
+                    if (mappedSpan.HasValue)
+                    {
+                        return TryNavigateToMappedFile(workspace, document, mappedSpan.Value);
+                    }
                 }
-                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+
+                document = OpenDocument(workspace, documentId);
+                if (document == null)
                 {
+                    return false;
                 }
+
+                var text = document.GetTextSynchronously(CancellationToken.None);
+                var textBuffer = text.Container.GetTextBuffer();
+
+                var vsTextSpan = getVsTextSpan(text);
+                if (IsSecondaryBuffer(workspace, documentId) &&
+                    !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
+                {
+                    return false;
+                }
+
+                return NavigateTo(textBuffer, vsTextSpan);
             }
+        }
 
-            var vsTextSpan = text.GetVsTextSpanForPosition(boundedPosition, virtualSpace);
-
-            if (IsSecondaryBuffer(workspace, documentId) &&
-                !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
+        private bool TryNavigateToMappedFile(Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult)
+        {
+            var vsWorkspace = (VisualStudioWorkspaceImpl)workspace;
+            // TODO - Move to IOpenDocumentService - https://github.com/dotnet/roslyn/issues/45954
+            // Pass the original result's project context so that if the mapped file has the same context available, we navigate
+            // to the mapped file with a consistent project context.
+            vsWorkspace.OpenDocumentFromPath(mappedSpanResult.FilePath, generatedDocument.Project.Id);
+            if (_runningDocumentTable.TryGetBufferFromMoniker(_editorAdaptersFactoryService, mappedSpanResult.FilePath, out var textBuffer))
             {
-                return false;
+                var vsTextSpan = new VsTextSpan
+                {
+                    iStartIndex = mappedSpanResult.LinePositionSpan.Start.Character,
+                    iStartLine = mappedSpanResult.LinePositionSpan.Start.Line,
+                    iEndIndex = mappedSpanResult.LinePositionSpan.End.Character,
+                    iEndLine = mappedSpanResult.LinePositionSpan.End.Line
+                };
+
+                return NavigateTo(textBuffer, vsTextSpan);
             }
 
-            return NavigateTo(textBuffer, vsTextSpan);
+            return false;
+        }
+
+        private static MappedSpanResult? GetMappedSpan(ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan)
+        {
+            var results = System.Threading.Tasks.Task.Run(async () =>
+            {
+                return await spanMappingService.MapSpansAsync(generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), CancellationToken.None).ConfigureAwait(true);
+            }).WaitAndGetResult(CancellationToken.None);
+
+            if (!results.IsDefaultOrEmpty)
+            {
+                return results.First();
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -249,9 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         ///     https://devdiv.visualstudio.com/DevDiv/_workitems?id=235409
         /// </summary>
         private static int GetPositionWithinDocumentBounds(int position, int documentLength)
-        {
-            return Math.Min(documentLength, Math.Max(position, 0));
-        }
+            => Math.Min(documentLength, Math.Max(position, 0));
 
         /// <summary>
         /// It is unclear why, but we are sometimes asked to navigate to a <see cref="TextSpan"/>
@@ -262,34 +321,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// See https://github.com/dotnet/roslyn/issues/7660 for more details.
         /// </summary>
         private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
-        {
-            return TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
-        }
+            => TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
 
-        private static Document OpenDocument(Workspace workspace, DocumentId documentId, OptionSet options)
+        private static Document OpenDocument(Workspace workspace, DocumentId documentId)
         {
-            options = options ?? workspace.Options;
-
             // Always open the document again, even if the document is already open in the 
             // workspace. If a document is already open in a preview tab and it is opened again 
             // in a permanent tab, this allows the document to transition to the new state.
             if (workspace.CanOpenDocuments)
             {
-                if (options.GetOption(NavigationOptions.PreferProvisionalTab))
-                {
-                    // If we're just opening the provisional tab, then do not "activate" the document
-                    // (i.e. don't give it focus).  This way if a user is just arrowing through a set 
-                    // of FindAllReferences results, they don't have their cursor placed into the document.
-                    var state = __VSNEWDOCUMENTSTATE.NDS_Provisional | __VSNEWDOCUMENTSTATE.NDS_NoActivate;
-                    using (var scope = new NewDocumentStateScope(state, VSConstants.NewDocumentStateReason.Navigation))
-                    {
-                        workspace.OpenDocument(documentId);
-                    }
-                }
-                else
-                {
-                    workspace.OpenDocument(documentId);
-                }
+                workspace.OpenDocument(documentId);
             }
 
             if (!workspace.IsDocumentOpen(documentId))
@@ -320,19 +361,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return ErrorHandler.Succeeded(
                     textManager.NavigateToLineAndColumn2(
-                        vsTextBuffer, VSConstants.LOGVIEWID.TextView_guid, vsTextSpan.iStartLine, vsTextSpan.iStartIndex, vsTextSpan.iEndLine, vsTextSpan.iEndIndex, (uint)_VIEWFRAMETYPE.vftCodeWindow));
+                        vsTextBuffer,
+                        VSConstants.LOGVIEWID.TextView_guid,
+                        vsTextSpan.iStartLine,
+                        vsTextSpan.iStartIndex,
+                        vsTextSpan.iEndLine,
+                        vsTextSpan.iEndIndex,
+                        (uint)_VIEWFRAMETYPE.vftCodeWindow));
             }
         }
 
         private bool IsSecondaryBuffer(Workspace workspace, DocumentId documentId)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
+            if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
             {
                 return false;
             }
 
-            var containedDocument = visualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
+            var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
             if (containedDocument == null)
             {
                 return false;
@@ -342,8 +388,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
+            => spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out _);
+
+        private IDisposable OpenNewDocumentStateScope(OptionSet options)
         {
-            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out var spanInPrimaryBuffer);
+            var state = options.GetOption(NavigationOptions.PreferProvisionalTab)
+                ? __VSNEWDOCUMENTSTATE.NDS_Provisional
+                : __VSNEWDOCUMENTSTATE.NDS_Permanent;
+
+            if (!options.GetOption(NavigationOptions.ActivateTab))
+            {
+                state |= __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+            }
+
+            return new NewDocumentStateScope(state, VSConstants.NewDocumentStateReason.Navigation);
         }
     }
 }

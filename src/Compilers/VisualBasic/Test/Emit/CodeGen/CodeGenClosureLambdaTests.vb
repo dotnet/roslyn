@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -48,7 +50,7 @@ End Class
         <Fact()>
         Public Sub TestAnonymousTypeInsideGroupBy_Queryable_1()
             Dim compilation =
-                CompilationUtils.CreateCompilationWithReferences(
+                CompilationUtils.CreateEmptyCompilationWithReferences(
                     <compilation>
                         <file name="a.vb">
 Imports System
@@ -537,7 +539,7 @@ End Module
 
         <Fact>
         Public Sub InvalidGoto()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -579,7 +581,7 @@ End Module
 
         <Fact>
         Public Sub InvalidGotoNoImmediateLifting()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -664,7 +666,7 @@ End Module
 
         <Fact>
         Public Sub InvalidGotoLiftingAboveGoto()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -714,7 +716,7 @@ End Module
 
         <Fact>
         Public Sub InvalidGotoLiftingAboveGoto2()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -767,7 +769,7 @@ End Module
 
         <Fact>
         Public Sub InvalidGotoLiftingBetweenGotoAndLabel()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -821,7 +823,7 @@ End Module
 
         <Fact>
         Public Sub InvalidGotoLiftingBetweenGotoAndLabel2()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -877,7 +879,7 @@ End Module
 
         <Fact>
         Public Sub InvalidGotoLiftingBetweenGotoAndLabel3()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1835,7 +1837,7 @@ End Module
 
         <Fact>
         Public Sub InvalidLiftByRef()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1865,7 +1867,7 @@ End Module
 
         <Fact>
         Public Sub InvalidLiftMeInStruct()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1900,7 +1902,7 @@ BC36638: Instance members and 'Me' cannot be used within a lambda expression in 
 
         <Fact>
         Public Sub InvalidLiftByRestrictedType()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2256,7 +2258,7 @@ End Class
         ' This sample crashes whole VS in Dev10.
         <Fact>
         Public Sub CatchIntoLiftedError()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2946,11 +2948,11 @@ Public Class c1(Of T, U)
 End Class
     </file>
 </compilation>, expectedOutput:=
-"Level1" & vbCrLf &
-"Level2" & vbCrLf &
-"Level3" & vbCrLf &
-"Level4" & vbCrLf &
-"Level5" & vbCrLf)
+"Level1" & Environment.NewLine &
+"Level2" & Environment.NewLine &
+"Level3" & Environment.NewLine &
+"Level4" & Environment.NewLine &
+"Level5" & Environment.NewLine)
         End Sub
 
         <WorkItem(542121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542121")>

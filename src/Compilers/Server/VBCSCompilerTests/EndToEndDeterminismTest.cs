@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             try
             {
                 string finalFlags = null;
-                using (var serverData = ServerUtil.CreateServer())
+                using (var serverData = await ServerUtil.CreateServer())
                 {
                     finalFlags = $"{ _flags } /shared:{ serverData.PipeName } /pathmap:{tempDir.Path}=/ /out:{ outFile } { srcFile }";
                     var result = CompilerServerUnitTests.RunCommandLineCompiler(
@@ -42,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     {
                         AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.Output }");
                     }
-                    await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+                    var listener = await serverData.Complete().ConfigureAwait(false);
+                    Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
                 }
                 var bytes = File.ReadAllBytes(outFile);
                 AssertEx.NotNull(bytes);

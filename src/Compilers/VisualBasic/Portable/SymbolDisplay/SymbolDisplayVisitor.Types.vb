@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -95,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable) Then
-                    If IsNullableType(symbol) AndAlso symbol IsNot symbol.OriginalDefinition Then
+                    If ITypeSymbolHelpers.IsNullableType(symbol) AndAlso symbol IsNot symbol.OriginalDefinition Then
                         symbol.TypeArguments(0).Accept(Me.NotFirstVisitor())
                         AddPunctuation(SyntaxKind.QuestionToken)
                         Return
@@ -328,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="tupleSymbol"></param>
         ''' <returns></returns>
         Private Shared Function CanUseTupleTypeName(tupleSymbol As INamedTypeSymbol) As Boolean
-            Dim currentUnderlying As INamedTypeSymbol = tupleSymbol.TupleUnderlyingType
+            Dim currentUnderlying As INamedTypeSymbol = GetTupleUnderlyingTypeOrSelf(tupleSymbol)
 
             If currentUnderlying.Arity = 1 Then
                 Return False
@@ -342,10 +344,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                currentUnderlying = tupleSymbol.TupleUnderlyingType
+                currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol)
             End While
 
             Return True
+        End Function
+
+        Private Shared Function GetTupleUnderlyingTypeOrSelf(tupleSymbol As INamedTypeSymbol) As INamedTypeSymbol
+            Return If(tupleSymbol.TupleUnderlyingType, tupleSymbol)
         End Function
 
         Private Shared Function HasNonDefaultTupleElements(tupleSymbol As INamedTypeSymbol) As Boolean
@@ -370,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not element.IsImplicitlyDeclared Then
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
                     AddSpace()
-                    AddPunctuation(SyntaxKind.AsKeyword)
+                    AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()
                 End If
 
@@ -552,8 +558,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Shared Function IsNullableType(symbol As INamedTypeSymbol) As Boolean
-            Return symbol.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T
-        End Function
     End Class
 End Namespace

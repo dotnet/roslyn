@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1286,7 +1288,7 @@ End Class
         private static void VerifyResolution(string markup, string[] fxCopFullyQualifiedNames, SuppressMessageAttributeState.TargetScope scope, string language, string rootNamespace)
         {
             // Parse out the span containing the declaration of the expected symbol
-            MarkupTestFile.GetPositionAndSpans(markup, 
+            MarkupTestFile.GetPositionAndSpans(markup,
                 out var source, out var pos, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             Assert.True(pos != null || spans.Count > 0, "Must specify a position or spans marking expected symbols for resolution");

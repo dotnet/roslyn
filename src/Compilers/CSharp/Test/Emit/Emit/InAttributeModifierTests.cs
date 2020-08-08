@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Methods_Parameters()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class TestRef
 {
     public void M(in int p)
@@ -35,14 +37,23 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            var verifier = CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            verifyParameter(verifier.Compilation);
+
+            verifier = CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            verifyParameter(verifier.Compilation);
+
+            void verifyParameter(Compilation comp)
+            {
+                var m = (IMethodSymbol)comp.GetMember("TestRef.M");
+                Assert.Empty(m.Parameters[0].GetAttributes());
+            }
         }
 
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Methods_ReturnTypes()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class TestRef
 {
     private int value = 5;
@@ -62,14 +73,14 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Properties()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class TestRef
 {
     private int value = 5;
@@ -86,14 +97,14 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Indexers_Parameters()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class TestRef
 {
     public int this[in int p]
@@ -113,14 +124,14 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Indexers_ReturnTypes()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class TestRef
 {
     private int value = 5;
@@ -137,14 +148,14 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Delegates_Parameters()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public delegate void D(in int p);
 ");
 
@@ -163,14 +174,14 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Delegates_ReturnTypes()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public delegate ref readonly int D();
 ");
 
@@ -190,10 +201,10 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
-        
+
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_Parameters()
         {
@@ -240,7 +251,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -293,7 +304,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -349,7 +360,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -402,7 +413,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -462,7 +473,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -516,7 +527,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -569,7 +580,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -618,10 +629,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.M(in ?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,13): error CS0570: 'TestRef.M(in int)' is not supported by the language
                 //         obj.M(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -674,7 +685,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (7,38): error CS0570: 'TestRef.M()' is not supported by the language
                 //         System.Console.WriteLine(obj.M());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M()").WithLocation(7, 38));
@@ -733,7 +744,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (7,38): error CS1546: Property, indexer, or event 'TestRef.P' is not supported by the language; try directly calling accessor method 'TestRef.get_P()'
                 //         System.Console.WriteLine(obj.P);
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "P").WithArguments("TestRef.P", "TestRef.get_P()").WithLocation(7, 38));
@@ -748,7 +759,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (7,38): error CS0570: 'TestRef.get_P()' is not supported by the language
                 //         System.Console.WriteLine(obj.get_P());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("TestRef.get_P()").WithLocation(7, 38));
@@ -804,10 +815,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in ?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in ?, ?)'
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in int]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in int, int)'
                 //         obj[value] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in ?]", "TestRef.set_Item(in ?, ?)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in int]", "TestRef.set_Item(in int, int)").WithLocation(8, 9));
 
             code = @"
 public class Test
@@ -820,10 +831,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.set_Item(in ?, ?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,13): error CS0570: 'TestRef.set_Item(in int, int)' is not supported by the language
                 //         obj.set_Item(value, 0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in ?, ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in int, int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -883,10 +894,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(?)'
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[int]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(int)'
                 //         System.Console.WriteLine(obj[0]);
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[?]", "TestRef.get_Item(?)").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[int]", "TestRef.get_Item(int)").WithLocation(7, 34));
 
             code = @"
 public class Test
@@ -898,10 +909,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,38): error CS0570: 'TestRef.get_Item(?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS0570: 'TestRef.get_Item(int)' is not supported by the language
                 //         System.Console.WriteLine(obj.get_Item(0));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(?)").WithLocation(7, 38));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(int)").WithLocation(7, 38));
         }
 
         [Fact]
@@ -955,13 +966,13 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,17): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in ?)").WithLocation(6, 17),
-                // (12,9): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in int)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         func(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in ?)").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in int)").WithLocation(12, 9));
         }
 
         [Fact]
@@ -1014,7 +1025,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
                 //         Process(() => ref value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
@@ -1069,10 +1080,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.M(?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,13): error CS0570: 'TestRef.M(in int)' is not supported by the language
                 //         obj.M(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -1125,7 +1136,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (7,38): error CS0570: 'TestRef.M()' is not supported by the language
                 //         System.Console.WriteLine(obj.M());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M()").WithLocation(7, 38));
@@ -1184,7 +1195,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (7,38): error CS1546: Property, indexer, or event 'TestRef.P' is not supported by the language; try directly calling accessor method 'TestRef.get_P()'
                 //         System.Console.WriteLine(obj.P);
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "P").WithArguments("TestRef.P", "TestRef.get_P()").WithLocation(7, 38));
@@ -1199,7 +1210,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (7,38): error CS0570: 'TestRef.get_P()' is not supported by the language
                 //         System.Console.WriteLine(obj.get_P());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("TestRef.get_P()").WithLocation(7, 38));
@@ -1255,10 +1266,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(?, ?)'
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in int]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in int, int)'
                 //         obj[value] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[?]", "TestRef.set_Item(?, ?)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in int]", "TestRef.set_Item(in int, int)").WithLocation(8, 9));
 
             code = @"
 public class Test
@@ -1271,10 +1282,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.set_Item(?, ?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,13): error CS0570: 'TestRef.set_Item(in int, int)' is not supported by the language
                 //         obj.set_Item(value, 0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(?, ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in int, int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -1334,10 +1345,10 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(?)'
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[int]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(int)'
                 //         System.Console.WriteLine(obj[0]);
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[?]", "TestRef.get_Item(?)").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[int]", "TestRef.get_Item(int)").WithLocation(7, 34));
 
             code = @"
 public class Test
@@ -1349,10 +1360,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,38): error CS0570: 'TestRef.get_Item(?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS0570: 'TestRef.get_Item(int)' is not supported by the language
                 //         System.Console.WriteLine(obj.get_Item(0));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(?)").WithLocation(7, 38));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(int)").WithLocation(7, 38)
+                );
         }
 
         [Fact]
@@ -1406,13 +1418,13 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(?)' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,17): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(?)").WithLocation(6, 17),
-                // (12,9): error CS0570: 'D.Invoke(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in int)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         func(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(?)").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in int)").WithLocation(12, 9));
         }
 
         [Fact]
@@ -1465,7 +1477,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
                 //         Process(() => ref value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
@@ -1488,7 +1500,7 @@ class Test
     public virtual void M(in object x) { }
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (9,27): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual void M(in object x) { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in object x").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 27));
@@ -1509,7 +1521,7 @@ class Test
     public virtual ref readonly object M() => ref value;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object M() => ref value;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
@@ -1530,7 +1542,7 @@ class Test
     public virtual ref readonly object M => ref value;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object M => ref value;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
@@ -1550,7 +1562,7 @@ class Test
     public virtual object this[in object p] => null;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (9,32): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual object this[in object p] => null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in object p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 32));
@@ -1571,7 +1583,7 @@ class Test
     public virtual ref readonly object this[object p] => ref value;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object this[object p] => ref value;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
@@ -1592,7 +1604,7 @@ namespace System
 }
 public delegate void D(in int p);";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (11,24): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 // public delegate void D(in int p);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in int p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 24));
@@ -1613,7 +1625,7 @@ namespace System
 }
 public delegate ref readonly int D();";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (11,17): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 // public delegate ref readonly int D();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 17));
@@ -1632,7 +1644,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1652,7 +1664,7 @@ abstract class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1673,7 +1685,7 @@ class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1693,7 +1705,7 @@ abstract class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1714,7 +1726,7 @@ class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1735,7 +1747,7 @@ class Test
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
@@ -1756,7 +1768,7 @@ class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1776,7 +1788,7 @@ abstract class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1797,7 +1809,7 @@ class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1818,7 +1830,7 @@ class Test
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
@@ -1838,7 +1850,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1858,7 +1870,7 @@ abstract class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
@@ -1879,7 +1891,7 @@ class Test
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -1899,7 +1911,7 @@ abstract class Test
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
@@ -1921,7 +1933,7 @@ class Test
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
@@ -1938,15 +1950,15 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("D");
 
                 var invokeParameter = type.DelegateInvokeMethod.Parameters.Single();
-                Assert.Empty(invokeParameter.CustomModifiers);
+                Assert.Empty(invokeParameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(invokeParameter.RefCustomModifiers);
 
                 var beginInvokeParameter = type.GetMethod("BeginInvoke").Parameters.First();
-                Assert.Empty(beginInvokeParameter.CustomModifiers);
+                Assert.Empty(beginInvokeParameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(beginInvokeParameter.RefCustomModifiers);
 
                 var endInvokeParameter = type.GetMethod("EndInvoke").Parameters.First();
-                Assert.Empty(endInvokeParameter.CustomModifiers);
+                Assert.Empty(endInvokeParameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(endInvokeParameter.RefCustomModifiers);
             };
 
@@ -1963,11 +1975,11 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("D");
 
                 var invokeMethod = type.DelegateInvokeMethod;
-                Assert.Empty(invokeMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(invokeMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(invokeMethod.RefCustomModifiers);
 
                 var endInvokeMethod = type.GetMethod("EndInvoke");
-                Assert.Empty(endInvokeMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(endInvokeMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(endInvokeMethod.RefCustomModifiers);
             };
 
@@ -1987,7 +1999,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2007,7 +2019,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2027,7 +2039,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2047,7 +2059,7 @@ public class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_LogicalNot").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2068,10 +2080,10 @@ public class Test
                 var parameters = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_Addition").Parameters;
                 Assert.Equal(2, parameters.Length);
 
-                Assert.Empty(parameters[0].CustomModifiers);
+                Assert.Empty(parameters[0].TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(parameters[0].RefCustomModifiers);
 
-                Assert.Empty(parameters[1].CustomModifiers);
+                Assert.Empty(parameters[1].TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(parameters[1].RefCustomModifiers);
             };
 
@@ -2091,7 +2103,7 @@ public class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod(".ctor").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
@@ -2132,7 +2144,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (8,13): error CS0570: 'TestRef.M(ref int)' is not supported by the language
                 //         obj.M(ref value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(ref int)").WithLocation(8, 13));
@@ -2183,7 +2195,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (7,25): error CS0570: 'TestRef.M()' is not supported by the language
                 //         var value = obj.M();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M()").WithLocation(7, 25));
@@ -2233,7 +2245,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (7,25): error CS0570: 'TestRef.P' is not supported by the language
                 //         var value = obj.P;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "P").WithArguments("TestRef.P").WithLocation(7, 25));
@@ -2285,7 +2297,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[ref int]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(ref int, int)'
                 //         obj[value] = 0;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[ref int]", "TestRef.set_Item(ref int, int)").WithLocation(8, 9));
@@ -2301,7 +2313,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (8,13): error CS0570: 'TestRef.set_Item(ref int, int)' is not supported by the language
                 //         obj.set_Item(value, 0);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(ref int, int)").WithLocation(8, 13));
@@ -2353,7 +2365,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (7,21): error CS0570: 'TestRef.this[int]' is not supported by the language
                 //         var value = obj[5];
                 Diagnostic(ErrorCode.ERR_BindToBogus, "obj[5]").WithArguments("TestRef.this[int]").WithLocation(7, 21));
@@ -2386,7 +2398,7 @@ public class Test
   {
   }
 }";
-            
+
             var code = @"
 public class Test
 {
@@ -2402,7 +2414,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (6,17): error CS0570: 'D.Invoke(ref int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
                 Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(ref int)").WithLocation(6, 17),
@@ -2455,7 +2467,7 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
                 //         Process(() => ref value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
@@ -2467,7 +2479,7 @@ public class Test
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_Class_Abstract()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public abstract class Parent
 {
     public abstract void M(in int p);
@@ -2478,7 +2490,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2504,18 +2516,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_Class_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Parent
 {
     public virtual void M(in int p) {}
@@ -2526,7 +2538,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2551,18 +2563,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_ImplicitInterfaces_NonVirtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     void M(in int p);
@@ -2573,7 +2585,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2599,25 +2611,25 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitParameter = type.GetMethod("M").Parameters.Single();
-                Assert.Empty(implicitParameter.CustomModifiers);
+                Assert.Empty(implicitParameter.TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.M");
                 Assert.Equal("void Parent.M(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.Single();
-                Assert.Empty(explicitParameter.CustomModifiers);
+                Assert.Empty(explicitParameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_ImplicitInterfaces_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     void M(in int p);
@@ -2628,7 +2640,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2654,18 +2666,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_ExplicitInterfaces()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     void M(in int p);
@@ -2676,7 +2688,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -2701,18 +2713,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("Parent.M").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_Class_Abstract()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public abstract class Parent
 {
     public abstract ref readonly int M();
@@ -2723,7 +2735,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -2746,18 +2758,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_Class_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Parent
 {
     public virtual ref readonly int M() { throw null; }
@@ -2768,7 +2780,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -2791,18 +2803,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_ImplicitInterfaces_NonVirtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int M();
@@ -2813,7 +2825,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var method = type.GetMethod("M");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -2836,18 +2848,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitMethod = type.GetMethod("M");
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_ImplicitInterfaces_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int M();
@@ -2858,7 +2870,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var implicitMethod = type.GetMethod("M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             });
 
@@ -2881,18 +2893,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_ExplicitInterfaces()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int M();
@@ -2903,7 +2915,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var implicitMethod = type.GetMethod("M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             });
 
@@ -2926,18 +2938,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("Parent.M");
 
-                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                Assert.Empty(implicitMethod.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Properties_Class_Abstract()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public abstract class Parent
 {
     public abstract ref readonly int P { get; }
@@ -2948,7 +2960,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -2971,18 +2983,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Properties_Class_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Parent
 {
     public virtual ref readonly int P { get { throw null; } }
@@ -2993,7 +3005,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3017,18 +3029,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Properties_ImplicitInterface_NonVirtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int P { get; }
@@ -3039,7 +3051,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3063,18 +3075,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitproperty = type.GetProperty("P");
-                Assert.Empty(implicitproperty.TypeCustomModifiers);
+                Assert.Empty(implicitproperty.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(implicitproperty.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Properties_ImplicitInterface_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int P { get; }
@@ -3085,7 +3097,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3109,18 +3121,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Properties_ExplicitInterface()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int P { get; }
@@ -3131,7 +3143,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var property = type.GetProperty("P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
@@ -3155,18 +3167,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("Parent.P");
 
-                Assert.Empty(property.TypeCustomModifiers);
+                Assert.Empty(property.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_Class_Abstract()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public abstract class Parent
 {
     public abstract int this[in int p] { set; }
@@ -3177,7 +3189,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3203,18 +3215,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_Class_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Parent
 {
     public virtual int this[in int p] { set { } }
@@ -3225,7 +3237,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3251,18 +3263,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_ImplicitInterface_NonVirtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     int this[in int p] { set; }
@@ -3273,7 +3285,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3299,25 +3311,25 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitParameter = type.GetProperty("this[]").Parameters.Single();
-                Assert.Empty(implicitParameter.CustomModifiers);
+                Assert.Empty(implicitParameter.TypeWithAnnotations.CustomModifiers);
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.set_Item");
                 Assert.Equal("void Parent.this[in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.First();
-                Assert.Empty(explicitParameter.CustomModifiers);
+                Assert.Empty(explicitParameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_ImplicitInterface_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     int this[in int p] { set; }
@@ -3328,7 +3340,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3354,18 +3366,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_ExplicitInterface()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     int this[in int p] { set; }
@@ -3376,7 +3388,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3402,18 +3414,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("Parent.Item").Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_Class_Abstract()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public abstract class Parent
 {
     public abstract ref readonly int this[int p] { get; }
@@ -3424,7 +3436,7 @@ public abstract class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3448,18 +3460,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_Class_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Parent
 {
     public virtual ref readonly int this[int p] { get { throw null; } }
@@ -3470,7 +3482,7 @@ public class Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3494,18 +3506,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_ImplicitInterface_NonVirtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int this[int p] { get; }
@@ -3516,7 +3528,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3540,18 +3552,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_ImplicitInterface_Virtual()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int this[int p] { get; }
@@ -3562,7 +3574,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3586,18 +3598,18 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_ExplicitInterface()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public interface Parent
 {
     ref readonly int this[int p] { get; }
@@ -3608,7 +3620,7 @@ public interface Parent
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
                 var indexer = type.GetProperty("this[]");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
@@ -3632,24 +3644,24 @@ public class Program
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("Parent.Item");
 
-                Assert.Empty(indexer.TypeCustomModifiers);
+                Assert.Empty(indexer.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
         public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameters()
         {
-            var reference = CreateStandardCompilation("public delegate void D(in int p);");
+            var reference = CreateCompilation("public delegate void D(in int p);");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3669,20 +3681,20 @@ public class Test
     private static int value = 5;
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
         public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_ReturnTypes()
         {
-            var reference = CreateStandardCompilation("public delegate ref readonly int D();");
+            var reference = CreateCompilation("public delegate ref readonly int D();");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -3702,14 +3714,14 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
-        
+
         [Fact]
         public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameters_DuplicateModifierTypes()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 
 namespace System.Runtime.InteropServices
 {
@@ -3721,7 +3733,7 @@ public delegate void D(in int p);");
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
 
-                Assert.Empty(parameter.CustomModifiers);
+                Assert.Empty(parameter.TypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
@@ -3745,14 +3757,14 @@ public class Test
     private static int value = 5;
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
         public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_ReturnTypes_DuplicateModifierTypes()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
@@ -3763,7 +3775,7 @@ public delegate ref readonly int D();");
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
+                Assert.Empty(method.ReturnTypeWithAnnotations.CustomModifiers);
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
@@ -3787,8 +3799,8 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -3804,19 +3816,19 @@ public class Test : ITest
     public int M() => 0;
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (6,21): error CS8152: 'Test' does not implement interface member 'ITest.M()'. 'Test.M()' cannot implement 'ITest.M()' because it does not have matching return by reference.
                 // public class Test : ITest
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "ITest").WithArguments("Test", "ITest.M()", "Test.M()").WithLocation(6, 21));
 
             var interfaceMethod = comp.GetTypeByMetadataName("ITest").GetMethod("M");
             Assert.Equal(RefKind.RefReadOnly, interfaceMethod.RefKind);
-            Assert.Empty(interfaceMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(interfaceMethod.ReturnTypeWithAnnotations.CustomModifiers);
             AssertSingleInAttributeRequiredModifier(interfaceMethod.RefCustomModifiers);
 
             var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
             Assert.Equal(RefKind.None, classMethod.RefKind);
-            Assert.Empty(classMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(classMethod.ReturnTypeWithAnnotations.CustomModifiers);
             Assert.Empty(classMethod.RefCustomModifiers);
         }
 
@@ -3833,19 +3845,19 @@ public class Test : ParentTest
     public override int M() => 0;
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,25): error CS8148: 'Test.M()' must match by reference return of overridden member 'ParentTest.M()'
                 //     public override int M() => 0;
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "M").WithArguments("Test.M()", "ParentTest.M()").WithLocation(8, 25));
 
             var parentMethod = comp.GetTypeByMetadataName("ParentTest").GetMethod("M");
             Assert.Equal(RefKind.RefReadOnly, parentMethod.RefKind);
-            Assert.Empty(parentMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(parentMethod.ReturnTypeWithAnnotations.CustomModifiers);
             AssertSingleInAttributeRequiredModifier(parentMethod.RefCustomModifiers);
 
             var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
             Assert.Equal(RefKind.None, classMethod.RefKind);
-            Assert.Empty(classMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(classMethod.ReturnTypeWithAnnotations.CustomModifiers);
             Assert.Empty(classMethod.RefCustomModifiers);
         }
 
@@ -3908,7 +3920,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -3969,9 +3981,9 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
-        
+
         [Fact]
         public void OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Indexers_Parameters()
         {
@@ -4045,7 +4057,7 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -4130,13 +4142,13 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
         public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_Class_Virtual()
         {
-            var testRef = CreateStandardCompilation(@"
+            var testRef = CreateCompilation(@"
 namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
@@ -4176,14 +4188,14 @@ public class Program
                 Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
             };
 
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
         public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_Class_Abstract()
         {
-            var testRef = CreateStandardCompilation(@"
+            var testRef = CreateCompilation(@"
 namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
@@ -4223,14 +4235,14 @@ public class Program
                 Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
             };
 
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
         public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_ExplicitInterface()
         {
-            var testRef = CreateStandardCompilation(@"
+            var testRef = CreateCompilation(@"
 namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
@@ -4272,14 +4284,14 @@ public class Program
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
             };
 
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
         public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_Virtual()
         {
-            var testRef = CreateStandardCompilation(@"
+            var testRef = CreateCompilation(@"
 namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
@@ -4324,14 +4336,14 @@ public class Program
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
             };
 
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
         public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_NonVirtual()
         {
-            var testRef = CreateStandardCompilation(@"
+            var testRef = CreateCompilation(@"
 namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
@@ -4377,8 +4389,8 @@ public class Program
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
             };
 
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4390,8 +4402,8 @@ namespace System.Runtime.InteropServices
     public class InAttribute {}
 }";
 
-            var ref1 = CreateStandardCompilation(refCode).EmitToImageReference();
-            var ref2 = CreateStandardCompilation(refCode).EmitToImageReference();
+            var ref1 = CreateCompilation(refCode).EmitToImageReference();
+            var ref2 = CreateCompilation(refCode).EmitToImageReference();
 
             var user = @"
 public class Test
@@ -4399,7 +4411,7 @@ public class Test
     public ref readonly int M() => throw null;
 }";
 
-            CreateStandardCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
+            CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public ref readonly int M() => throw null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 12));

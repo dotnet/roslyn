@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -59,7 +61,7 @@ Module M
 End Module
 
             ]]>,
-            Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
+            Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, Environment.NewLine),
             Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "        "),
             Diagnostic(ERRID.ERR_ExpectedXmlName, "x"))
 
@@ -114,7 +116,7 @@ End Module
 VB
 
             ]]>,
-        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
+        Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, Environment.NewLine),
         Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "             "),
         Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
         Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "VB"))
@@ -1355,7 +1357,7 @@ dim x5=<a:b></ a : b >
 dim x6=<a b : c="1" />
 end module
 ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "  "),
-    Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
+    Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, Environment.NewLine),
     Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
     Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
     Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, " "),
@@ -2000,7 +2002,7 @@ Return
             Diagnostic(ERRID.ERR_ExpectedEndModule, "Module M"),
             Diagnostic(ERRID.ERR_MissingXmlEndTag, <![CDATA[<<%= x +
 Return
-%>]]>.Value),
+%>]]>),
             Diagnostic(ERRID.ERR_ExpectedExpression, ""),
             Diagnostic(ERRID.ERR_Syntax, "Return"),
             Diagnostic(ERRID.ERR_ExpectedXmlEndEmbedded, ""),
@@ -2015,7 +2017,7 @@ Return : %>/>
 ]]>,
             Diagnostic(ERRID.ERR_ExpectedEndModule, "Module M"),
             Diagnostic(ERRID.ERR_MissingXmlEndTag, <![CDATA[<<%= x +
-Return : %>]]>.Value),
+Return : %>]]>),
             Diagnostic(ERRID.ERR_ExpectedExpression, ""),
             Diagnostic(ERRID.ERR_Syntax, "Return"),
             Diagnostic(ERRID.ERR_ExpectedXmlEndEmbedded, ""),
@@ -4468,7 +4470,7 @@ End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
         Dim source = "
 Imports <xmlns = ""http://xml"">
 "
-        Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll)
 
         Const bug123533IsFixed = False
 
@@ -4501,7 +4503,7 @@ Imports <xmlns = "http://xml">
         Const bug123533IsFixed = False
 
         If bug123533IsFixed Then
-            CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(import))).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(import))).VerifyDiagnostics()
         Else
             Assert.Throws(Of ArgumentException)(Sub() GlobalImport.Parse(import))
         End If

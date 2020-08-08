@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 
@@ -36,7 +38,7 @@ End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -144,7 +146,7 @@ End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -187,7 +189,7 @@ End Module
     </file>
 </compilation>
             Dim ref = MetadataReference.CreateFromImage(TestResources.General.DelegatesWithoutInvoke.AsImmutableOrNull())
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>
 BC30657: 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has a return type that is not supported or parameter types that are not supported.
@@ -245,7 +247,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -319,7 +321,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -362,7 +364,7 @@ End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -398,7 +400,7 @@ End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -434,7 +436,7 @@ End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -508,7 +510,7 @@ End Class
                     </file>
                          </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -651,7 +653,7 @@ Imports System
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -704,7 +706,7 @@ Imports System
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 If optionValue = "On" Then
 
@@ -746,7 +748,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -801,7 +803,7 @@ BC30794: No accessible 'Test2' is most specific:
 </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(c1,
 <expected>
 BC31143: Method 'Public Sub ParamArrayNarrowingReferenceSub(b As Byte, ParamArray p As Derived())' does not have a signature compatible with delegate 'Delegate Sub ParamArrayNarrowingReferenceDelegate(b As Integer, p As Base())'.
@@ -838,7 +840,7 @@ End Module
 
                 Dim ref = MetadataReference.CreateFromImage(TestResources.General.DelegateByRefParamArray.AsImmutableOrNull())
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
                 AssertTheseDiagnostics(c1,
 <expected>
 BC31143: Method 'Public Sub SubWithNoParams(goo As Integer)' does not have a signature compatible with delegate 'Delegate Sub DelegateByRefParamArray.DelegateSubWithParamAndParamArrayOfReferenceTypes(A_0 As Integer, ParamArray A_1 As DelegateByRefParamArray_Base())'.
@@ -889,7 +891,7 @@ BC31143: Method 'Public Sub SubWithNoParams(goo As Integer)' does not have a sig
 </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(c1,
 <expected>
 BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Function MyFunction1(p As Byte) As Integer' and delegate 'Delegate Function MyDelegateFunction(p As Integer) As Byte'.
@@ -937,7 +939,7 @@ BC36663: Option Strict On does not allow narrowing in implicit type conversions 
 </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(c1,
 <expected>
 BC31143: Method 'Public Sub goo1(p As Integer)' does not have a signature compatible with delegate 'Delegate Sub MyDelegate1(ByRef p As Integer)'.
@@ -971,7 +973,7 @@ BC31143: Method 'Public Sub goo2(ByRef p As Integer)' does not have a signature 
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
                 CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -1020,7 +1022,7 @@ End Module
     </file>
 </compilation>
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe)
             CompilationUtils.AssertNoErrors(c)
             CompileAndVerify(c,
             <![CDATA[
@@ -1091,7 +1093,7 @@ End Module
     </file>
     </compilation>
 
-                Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+                Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
                 CompilationUtils.AssertTheseDiagnostics(c, <errors></errors>)
                 'NOTE: No error in Dev11
             Next
@@ -1155,7 +1157,7 @@ End Module
     </file>
     </compilation>
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c,
 <errors>
 BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Sub Test111()' and delegate 'Delegate Sub Action(Of Long)(obj As Long)'.
@@ -1188,7 +1190,7 @@ BC36663: Option Strict On does not allow narrowing in implicit type conversions 
     </file>
     </compilation>
 
-                Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef})
+                Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef})
 
                 CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -1267,7 +1269,7 @@ End Module
     ]]></file>
                                  </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             CompileAndVerify(compilation, expectedOutput:="2")
         End Sub
@@ -1303,7 +1305,7 @@ End Module
     ]]></file>
                                  </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
@@ -1363,7 +1365,7 @@ End Module
     ]]></file>
                                  </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -93,7 +95,7 @@ End Namespace
         </file>
     </compilation>
             Dim q = New AsyncQueue(Of CompilationEvent)()
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
             VerifyEvents(q,
                 "CompilationStartedEvent",
                 "SymbolDeclaredCompilationEvent(<empty>  @ TestQueuedSymbols.vb: (0,0)-(25,0))",
@@ -136,10 +138,10 @@ End Module
     </compilation>
             Dim q = New AsyncQueue(Of CompilationEvent)()
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=compilationOptions).WithEventQueue(q)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=compilationOptions).WithEventQueue(q)
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
             compilation.VerifyDiagnostics()

@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 
@@ -20,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The symbol from the earlier compilation,
         /// or null if the edit represents an addition.
         /// </summary>
-        public ISymbol OldSymbol { get; }
+        public ISymbol? OldSymbol { get; }
 
         /// <summary>
         /// The symbol from the later compilation,
         /// or null if the edit represents a deletion.
         /// </summary>
-        public ISymbol NewSymbol { get; }
+        public ISymbol? NewSymbol { get; }
 
         /// <summary>
         /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The map does not need to map all syntax nodes in the active method, only those syntax nodes
         /// that declare a local or generate a long lived local.
         /// </remarks>
-        public Func<SyntaxNode, SyntaxNode> SyntaxMap { get; }
+        public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
         /// <summary>
         /// True if the edit is an update of the active method and local values
@@ -64,12 +69,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// True if the edit is an update of an active method and local values should be preserved; false otherwise.
         /// </param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="oldSymbol"/> or <paramref name="newSymbol"/> is null and the edit isn't an <see cref="SemanticEditKind.Insert"/> or <see cref="SemanticEditKind.Delete"/>, respectively.
+        /// <paramref name="oldSymbol"/> or <paramref name="newSymbol"/> is null and the edit isn't a <see cref="SemanticEditKind.Insert"/> or <see cref="SemanticEditKind.Delete"/>, respectively.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="kind"/> is not a valid kind.
         /// </exception>
-        public SemanticEdit(SemanticEditKind kind, ISymbol oldSymbol, ISymbol newSymbol, Func<SyntaxNode, SyntaxNode> syntaxMap = null, bool preserveLocalVariables = false)
+        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false)
         {
             if (oldSymbol == null && kind != SemanticEditKind.Insert)
             {
@@ -93,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Emit
             this.SyntaxMap = syntaxMap;
         }
 
+        internal static SemanticEdit Create(SemanticEditKind kind, ISymbolInternal oldSymbol, ISymbolInternal newSymbol, Func<SyntaxNode, SyntaxNode>? syntaxMap = null, bool preserveLocalVariables = false)
+        {
+            return new SemanticEdit(kind, oldSymbol?.GetISymbol(), newSymbol?.GetISymbol(), syntaxMap, preserveLocalVariables);
+        }
+
         public override int GetHashCode()
         {
             return Hash.Combine(OldSymbol,
@@ -100,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Emit
                    (int)Kind));
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SemanticEdit && Equals((SemanticEdit)obj);
         }

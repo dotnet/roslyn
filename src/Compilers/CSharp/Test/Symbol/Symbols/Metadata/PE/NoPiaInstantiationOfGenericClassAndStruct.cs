@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -473,7 +475,7 @@ public class DrivedClass
         {
             //Test class that inherits Generic(Of NoPIAType)
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", sources: null,
+            var localConsumer = CreateCompilationWithMscorlib40(assemblyName: "Dummy", source: (string[])null,
                 references: new[]
                 {
                     TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1,
@@ -549,10 +551,10 @@ public class TypeRefs1
     }
 }";
 
-            var localType = CreateStandardCompilation(assemblyName: "Dummy", text: localTypeSource,
+            var localType = CreateCompilation(assemblyName: "Dummy", source: localTypeSource,
                 references: new[] { TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true) });
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", sources: null,
+            var localConsumer = CreateCompilation(assemblyName: "Dummy", source: (string[])null,
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,
@@ -573,9 +575,9 @@ public class TypeRefs1
 
         public CSharpCompilation CreateCompilation(string source)
         {
-            return CreateStandardCompilation(
+            return CreateCompilationWithMscorlib46(
                 assemblyName: "Dummy",
-                sources: (null == source) ? null : new string[] { source },
+                source: (null == source) ? null : new string[] { source },
                 references: new[]
                 {
                     TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1,

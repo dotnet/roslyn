@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -720,12 +722,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var parameterModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterModopt");
                 Assert.True(parameterModoptIndexer.IsIndexer);
                 Assert.False(parameterModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in parameter type)
-                Assert.NotEqual(parameterModoptIndexer.Parameters.Last().CustomModifiers.Length, parameterModoptIndexer.GetMethod.Parameters.Last().CustomModifiers.Length);
+                Assert.NotEqual(parameterModoptIndexer.Parameters.Last().TypeWithAnnotations.CustomModifiers.Length, parameterModoptIndexer.GetMethod.Parameters.Last().TypeWithAnnotations.CustomModifiers.Length);
 
                 var returnTypeModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnTypeModopt");
                 Assert.True(returnTypeModoptIndexer.IsIndexer);
                 Assert.False(returnTypeModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in return type)
-                Assert.NotEqual(returnTypeModoptIndexer.TypeCustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnTypeCustomModifiers.Length);
+                Assert.NotEqual(returnTypeModoptIndexer.TypeWithAnnotations.CustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnTypeWithAnnotations.CustomModifiers.Length);
             });
         }
 

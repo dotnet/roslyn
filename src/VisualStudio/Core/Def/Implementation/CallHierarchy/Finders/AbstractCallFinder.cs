@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -37,18 +39,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         }
 
         internal void SetDocuments(IImmutableSet<Document> documents)
-        {
-            this.Documents = documents;
-        }
+            => this.Documents = documents;
 
         public abstract string DisplayName { get; }
 
         public virtual string SearchCategory => DisplayName;
 
         public void CancelSearch()
-        {
-            _cancellationSource.Cancel();
-        }
+            => _cancellationSource.Cancel();
 
         public void StartSearch(Workspace workspace, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
         {
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         private async Task SearchAsync(Workspace workspace, CallHierarchySearchScope scope, ICallHierarchySearchCallback callback, CancellationToken cancellationToken)
         {
             var project = workspace.CurrentSolution.GetProject(_projectId);
-            
+
             if (project == null)
             {
                 throw new Exception(string.Format(WorkspacesResources.The_symbol_0_cannot_be_located_within_the_current_solution, SymbolName));
@@ -120,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                     return null;
                 }
 
-                var activeDocument = documentTrackingService.GetActiveDocument();
+                var activeDocument = documentTrackingService.TryGetActiveDocument();
                 if (activeDocument != null)
                 {
                     if (scope == CallHierarchySearchScope.CurrentProject)
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         protected virtual async Task SearchWorkerAsync(ISymbol symbol, Project project, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
-            var callers = await GetCallers(symbol, project, documents, cancellationToken).ConfigureAwait(false);
+            var callers = await GetCallersAsync(symbol, project, documents, cancellationToken).ConfigureAwait(false);
 
             var initializerLocations = new List<CallHierarchyDetail>();
 
@@ -163,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                     }
                     else
                     {
-                        var callingProject = project.Solution.GetProject(caller.CallingSymbol.ContainingAssembly);
-                        var item = await Provider.CreateItem(caller.CallingSymbol, callingProject, caller.Locations, cancellationToken).ConfigureAwait(false);
+                        var callingProject = project.Solution.GetProject(caller.CallingSymbol.ContainingAssembly, cancellationToken);
+                        var item = await Provider.CreateItemAsync(caller.CallingSymbol, callingProject, caller.Locations, cancellationToken).ConfigureAwait(false);
                         callback.AddResult(item);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
@@ -178,6 +176,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             }
         }
 
-        protected abstract Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken);
+        protected abstract Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken);
     }
 }

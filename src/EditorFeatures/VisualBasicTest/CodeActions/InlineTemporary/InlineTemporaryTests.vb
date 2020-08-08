@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
@@ -1974,6 +1975,24 @@ Dim q = From x In "" Select z = (Sub() Return) _
             Await TestAsync(code, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestParenthesizeIfNecessary18CommentsAfterLineContinuation() As Task
+            Dim code =
+<MethodBody>
+Dim [||]s = Sub() Return
+Dim q = From x In "" Select z = s _ ' Test
+        Distinct
+</MethodBody>
+
+            Dim expected =
+<MethodBody>
+Dim q = From x In "" Select z = (Sub() Return) _ ' Test
+        Distinct
+</MethodBody>
+
+            Await TestAsync(code, expected)
+        End Function
+
         <WorkItem(542997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542997")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestParenthesizeIfNecessary19() As Task
@@ -2896,6 +2915,42 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestEscapeKeywordsIfNeeded5CommentsAfterLineContinuation() As Task
+            Dim code =
+<File>
+Imports System.Linq
+Module Program
+    Sub Main()
+        Dim y = From x In ""
+ _ ' Test
+        Dim z[||] = 1
+        Take()
+        Dim t = z
+    End Sub
+    Sub Take()
+    End Sub
+End Module
+</File>
+
+            Dim expected =
+<File>
+Imports System.Linq
+Module Program
+    Sub Main()
+        Dim y = From x In ""
+ _ ' Test
+        [Take]()
+        Dim t = 1
+    End Sub
+    Sub Take()
+    End Sub
+End Module
+</File>
+
+            Await TestAsync(code, expected, parseOptions:=New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic16))
+        End Function
+
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Async Function TestEscapeKeywordsIfNeeded6() As Task
@@ -3574,7 +3629,7 @@ Module M
     Sub Main()
         With ""
             Dim x = .Equals("", "", StringComparison.InvariantCulture) ' Inline x
-            Dim y = New List(Of String) With {.Capacity = CBool({|Conflict:.Equals("", "", StringComparison.InvariantCulture)|}).GetHashCode}
+            Dim y = New List(Of String) With {.Capacity = {|Conflict:CBool(.Equals("", "", StringComparison.InvariantCulture))|}.GetHashCode}
         End With
     End Sub
 End Module

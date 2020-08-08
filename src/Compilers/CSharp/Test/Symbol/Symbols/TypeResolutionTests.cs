@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -44,7 +47,7 @@ namespace System
 
             var c1 = CSharpCompilation.Create("Test1",
                 syntaxTrees: new[] { Parse(source1) },
-                references: new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+                references: new[] { Net40.mscorlib });
 
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist"));
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist`1"));
@@ -61,7 +64,7 @@ namespace System
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(c1),
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             NamedTypeSymbol c2TestClass = c2.GetTypeByMetadataName("System.TestClass");
@@ -71,7 +74,7 @@ namespace System
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(c2),
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             NamedTypeSymbol c3TestClass = c3.GetTypeByMetadataName("System.TestClass");
@@ -85,7 +88,7 @@ namespace System
                 {
                     new CSharpCompilationReference(c1),
                     new CSharpCompilationReference(c2),
-                    TestReferences.NetFx.v4_0_21006.mscorlib
+                    Net40.mscorlib
                 });
 
             NamedTypeSymbol c4TestClass = c4.GetTypeByMetadataName("System.TestClass");
@@ -114,8 +117,7 @@ namespace System
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree("class C { }") },
                 references: new[] {
                     MscorlibRef,
-                    MetadataReference.CreateFromImage(File.ReadAllBytes(
-                        CorLightup.Desktop.GetAssemblyLocation(typeof(TypeTests).GetTypeInfo().Assembly)))
+                    MetadataReference.CreateFromImage(File.ReadAllBytes(typeof(TypeTests).GetTypeInfo().Assembly.Location))
                 });
 
             var intSym = c.Assembly.GetTypeByReflectionType(typeof(int), includeReferences: true);

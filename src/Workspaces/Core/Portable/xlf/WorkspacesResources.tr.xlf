@@ -2,9 +2,109 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
+        <source>Adding analyzer config documents is not supported.</source>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin eklenmesi desteklenmiyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Belirtilen yapılandırma dosyası okunurken bir hata oluştu: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_files">
+        <source>C# files</source>
+        <target state="translated">C# dosyalarını</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="translated">'{0}' içinde olmayan eylem uygulanamıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
+        <source>Changing analyzer config documents is not supported.</source>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin değiştirilmesi desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_document_0_is_not_supported">
+        <source>Changing document '{0}' is not supported.</source>
+        <target state="translated">Değişen belge '{0}' desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Core_EditorConfig_Options">
+        <source>Core EditorConfig Options</source>
+        <target state="translated">Çekirdek EditorConfig seçenekleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="translated">DateTimeKind Utc olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="translated">Hedef tür bir {0}, {1}, {2} veya {3} olmalı, ancak {4} belirtildi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">Belge, söz dizimi ağaçlarını desteklemiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="translated">'{0}' kaynak dosyasının içeriği okunurken hata oluştu -- '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Girinti ve aralığı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Yeni satır tercihleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_submission_project_can_reference_submission_projects">
+        <source>Only submission project can reference submission projects.</source>
+        <target state="translated">Gönderim projelerine yalnızca gönderim projesi başvurabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="translated">Seçenekler belirtilen Çözümden gelmedi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="translated">Proje belirtilen başvuruyu içermiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Sadece Yeniden Düzenlenme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="translated">.Editorconfig ayarları daha yüksek dizinlerden devralmak isterseniz aşağıdaki satırı Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
+        <source>Removing analyzer config documents is not supported.</source>
+        <target state="translated">Çözümleyici yapılandırma belgelerinin kaldırılması desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">{0}' öğesini '{1}' olarak yeniden adlandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Solution_does_not_contain_specified_reference">
+        <source>Solution does not contain specified reference</source>
+        <target state="translated">Çözüm belirtilen başvuruyu içermiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -82,9 +182,54 @@
         <target state="translated">Projelerin eklenmesi desteklenmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="translated">Sembolün projesi, sağlanan çözümde bulunamadı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="translated">Ad alanını klasör yapısına eşitle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="translated">Proje belirtilen başvuruyu zaten içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_already_contains_the_specified_reference">
+        <source>The solution already contains the specified reference.</source>
+        <target state="translated">Çözüm belirtilen başvuruyu zaten içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="translated">Bilinmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="translated">Visual Basic dosyaları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
+        <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
+        <target state="translated">İçeri aktarmalar eklemek, bir genişletme yöntemini '{0}' ile aynı ada sahip kapsam içine alacaktır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="translated">Çalışma alanı hatası</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Çalışma alanı boş değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="translated">{0}, farklı bir projede.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -165,11 +310,6 @@
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">Çözüm belirtilen belgeyi zaten içeriyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">Çözüm belirtilen belgeyi içermiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -267,11 +407,6 @@
         <target state="translated">{0} hala açık.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Aynı anahtara, ancak farklı bir değere sahip olan bir öğe zaten var.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">Birden çok boyutlu diziler seri hale getirilemez.</target>
@@ -285,11 +420,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">Belirtilen yol mutlak olmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">Atama gereksizdir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
@@ -315,11 +445,6 @@
       <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
         <source>Invalid number of parameters for unary operator.</source>
         <target state="translated">Birli operatör için parametre sayısı geçersiz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">Mutlak yok bekleniyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -360,21 +485,6 @@
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Eklendi:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">Geçtiği her yerde '{0}' ifadesini düzelt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">{1}' içinde geçtiği her yerde '{0}' ifadesini düzelt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Çözüm'de geçtiği her yerde '{0}' ifadesini düzelt</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -467,11 +577,6 @@
         <target state="translated">Görevi gerçekleştirmek için '{0}' türünde hizmet gerekli, ancak bu hizmet çalışma alanında yok.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">Sağlanan tanı null olamaz.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
         <source>At least one diagnostic must be supplied.</source>
         <target state="translated">En az bir tanı sağlanmalıdır.</target>
@@ -552,11 +657,6 @@
         <target state="translated">Bu çalışma alanı, belgeleri açıp kapatmayı desteklemiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Kullanım:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Özel Durumlar:</target>
@@ -575,26 +675,6 @@
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Uyarı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">PopulateSwitch</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">Üye erişimi nitelenmiş olmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">{0}' deyimine küme ayracı ekleyin.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Seçenekler Çalışma alanından gelmedi</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
@@ -627,110 +707,10 @@
         <target state="translated">{0}' türünün seri durumdan çıkarma okuyucusu, yanlış sayıda değer okudu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">Baş Harfleri Büyük Olmak Üzere Bitişik</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Abstract_Method">
-        <source>Abstract Method</source>
-        <target state="translated">Soyut Metot</target>
-        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
       <trans-unit id="Async_Method">
         <source>Async Method</source>
         <target state="translated">Zaman Uyumsuz Metot</target>
         <note>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Begins_with_I">
-        <source>Begins with I</source>
-        <target state="translated">I ile başlar</target>
-        <note>{locked:I}</note>
-      </trans-unit>
-      <trans-unit id="Class">
-        <source>Class</source>
-        <target state="translated">Sınıf</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Delegate">
-        <source>Delegate</source>
-        <target state="translated">Temsilci</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Enum">
-        <source>Enum</source>
-        <target state="translated">Sabit listesi</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Event">
-        <source>Event</source>
-        <target state="translated">Olay</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Interface">
-        <source>Interface</source>
-        <target state="translated">Arabirim</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Non_Field_Members">
-        <source>Non-Field Members</source>
-        <target state="translated">Alan Olmayan Üyeler</target>
-        <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_Method">
-        <source>Private Method</source>
-        <target state="translated">Özel Metot</target>
-        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Field">
-        <source>Private or Internal Field</source>
-        <target state="translated">Özel veya İç Alan</target>
-        <note>{locked: private}{locked: internal}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Static_Field">
-        <source>Private or Internal Static Field</source>
-        <target state="translated">Özel veya İç Statik Alan</target>
-        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Property">
-        <source>Property</source>
-        <target state="translated">Özellik</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Public_or_Protected_Field">
-        <source>Public or Protected Field</source>
-        <target state="translated">Genel veya Korunan Alan</target>
-        <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Static_Field">
-        <source>Static Field</source>
-        <target state="translated">Statik Alan</target>
-        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Static_Method">
-        <source>Static Method</source>
-        <target state="translated">Statik Metot</target>
-        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Struct">
-        <source>Struct</source>
-        <target state="translated">Yapı</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Types">
-        <source>Types</source>
-        <target state="translated">Türler</target>
-        <note>{locked:types} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Method">
-        <source>Method</source>
-        <target state="translated">Metot</target>
-        <note>{locked:method} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Missing_prefix_colon_0">
-        <source>Missing prefix: '{0}'</source>
-        <target state="translated">Eksik ön ek: '{0}'</target>
-        <note />
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
@@ -739,52 +719,12 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">Hiçbiri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Missing_suffix_colon_0">
-        <source>Missing suffix: '{0}'</source>
-        <target state="translated">Eksik son ek: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
-        <source>These non-leading words must begin with an upper case letter: {0}</source>
-        <target state="translated">Başta olmayan bu sözcükler büyük harf karakterle başlamalıdır: {0}</target>
+        <target state="translated">yok</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Öneri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
-        <source>These non-leading words must begin with a lowercase letter: {0}</source>
-        <target state="translated">Başta olmayan bu sözcükler küçük harf karakterle başlamalıdır: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
-        <source>These words cannot contain lower case characters: {0}</source>
-        <target state="translated">Bu sözcükler küçük harf karakter içeremez: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
-        <source>These words cannot contain upper case characters: {0}</source>
-        <target state="translated">Bu sözcükler büyük harf karakter içeremez: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
-        <source>These words must begin with upper case characters: {0}</source>
-        <target state="translated">Bu sözcükler büyük harf karakterle başlamalıdır: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
-        <source>The first word, '{0}', must begin with an upper case character</source>
-        <target state="translated">İlk sözcük ('{0}') büyük harf karakterle başlamalıdır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
-        <source>The first word, '{0}', must begin with a lower case character</source>
-        <target state="translated">İlk sözcük ('{0}') küçük harf karakterle başlamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="File_0_size_of_1_exceeds_maximum_allowed_size_of_2">
@@ -795,6 +735,16 @@
       <trans-unit id="Changing_document_property_is_not_supported">
         <source>Changing document properties is not supported</source>
         <target state="translated">Belge özelliklerinin değiştirilmesi desteklenmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="dot_NET_Coding_Conventions">
+        <source>.NET Coding Conventions</source>
+        <target state="translated">.NET kodlama kuralları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="translated">Toplanan değişkenler:</target>
         <note />
       </trans-unit>
     </body>

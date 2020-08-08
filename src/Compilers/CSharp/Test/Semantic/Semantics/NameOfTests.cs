@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -235,7 +237,7 @@ class Test<T>
     static string s;
 }";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term 'int'
                 //         s = nameof(int);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 20),
@@ -293,7 +295,7 @@ class Test<T>
                 // (28,20): error CS0103: The name 'List2' does not exist in the current context
                 //         s = nameof(List2<>.Add);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List2<>").WithArguments("List2").WithLocation(28, 20),
-                // (31,20): error CS8149: An alias-qualified name is not an expression.
+                // (31,20): error CS8083: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
                 // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
@@ -305,7 +307,7 @@ class Test<T>
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
-                // (35,20): error CS8150: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // (35,20): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
                 //         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "System.Linq.Enumerable.Select<int, int>").WithLocation(35, 20),
                 // (43,13): error CS0103: The name 'nameof' does not exist in the current context
@@ -523,7 +525,7 @@ class Program
     [Obsolete(""Please do not use this method: "" + nameof(Program.Old), true)]
     static void Old() { }
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 EntryMethodName
 Correct
 Correct");
@@ -532,7 +534,7 @@ Correct");
         [Fact]
         public void TestNameofLowerLangVersion()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     Program(string s = nameof(Program))
@@ -547,16 +549,18 @@ class Program
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
+        [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void TestNameofIndexerName()
         {
             var source = @"
+using System.Linq;
 class C
 {
     public static void Main(string[] args)
     {
         var t = typeof(C);
-        foreach (var m in t.GetMethods())
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t).OrderBy(m => m.Name))
         {
             System.Console.WriteLine(m.Name);
         }
@@ -568,13 +572,10 @@ class C
         get { return 0; }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"Main
-Other
-get__Other
-ToString
-Equals
-GetHashCode
-GetType");
+            CompileAndVerify(source, expectedOutput:
+@"get__Other
+Main
+Other");
         }
 
         [Fact]
@@ -610,7 +611,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -634,7 +635,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -653,11 +654,11 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
@@ -675,14 +676,14 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
                     // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(N)").WithArguments("nameof operator", "6").WithLocation(7, 9),
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
@@ -701,7 +702,7 @@ class Program
         return 1;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
@@ -727,7 +728,7 @@ class Program
         return string.Empty;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
@@ -757,7 +758,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //         Use(nameof(a.Extension));
@@ -804,7 +805,7 @@ namespace N1
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (22,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //                 Use(nameof(a.Extension));
@@ -841,9 +842,9 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(14, 22)
                 );
@@ -874,7 +875,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,22): error CS0572: 'Nested': cannot reference a type through an expression; try 'A.Nested' instead
                 //         Use(nameof(a.Nested));
@@ -923,7 +924,7 @@ namespace N1
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (21,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //                 Use(nameof(A.Extension));
@@ -956,7 +957,7 @@ public class Program
     private static void Use(object o) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
@@ -995,9 +996,9 @@ public class Program
     private static void Use(object o) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(16, 22)
                 );
@@ -1025,7 +1026,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1057,7 +1058,7 @@ public class Program
         SS = SS + S1 + S2;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1074,7 +1075,7 @@ public class Program
 {
     public string S = nameof(Class.Method);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,36): error CS0122: 'Class.Method()' is inaccessible due to its protection level
                 //     public string S = nameof(Class.Method);
@@ -1100,7 +1101,7 @@ public class Program
 {
     public string S = nameof(I3.Property);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,33): error CS0229: Ambiguity between 'I1.Property' and 'I2.Property'
                 //     public string S = nameof(I3.Property);
@@ -1128,7 +1129,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1342,6 +1343,71 @@ class Program
         System.Console.WriteLine(value);
     }
 }", expectedOutput: "Main");
+        }
+
+        [Fact, WorkItem(20600, "https://github.com/dotnet/roslyn/issues/20600")]
+        public void PermitInstanceQualifiedFromType()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        new C().M();
+        new C<int>().M();
+        System.Console.WriteLine(""passed"");
+    }
+}
+class C
+{
+    public string Instance1 = null;
+    public static string Static1 = null;
+    public string Instance2 => string.Empty;
+    public static string Static2 => string.Empty;
+      
+    public void M()
+    {
+        nameof(C.Instance1).Verify(""Instance1"");
+        nameof(C.Instance1.Length).Verify(""Length"");
+        nameof(C.Static1).Verify(""Static1"");
+        nameof(C.Static1.Length).Verify(""Length"");
+        nameof(C.Instance2).Verify(""Instance2"");
+        nameof(C.Instance2.Length).Verify(""Length"");
+        nameof(C.Static2).Verify(""Static2"");
+        nameof(C.Static2.Length).Verify(""Length"");
+    }
+}
+class C<T>
+{
+    public string Instance1 = null;
+    public static string Static1 = null;
+    public string Instance2 => string.Empty;
+    public static string Static2 => string.Empty;
+
+    public void M()
+    {
+        nameof(C<string>.Instance1).Verify(""Instance1"");
+        nameof(C<string>.Instance1.Length).Verify(""Length"");
+        nameof(C<string>.Static1).Verify(""Static1"");
+        nameof(C<string>.Static1.Length).Verify(""Length"");
+        nameof(C<string>.Instance2).Verify(""Instance2"");
+        nameof(C<string>.Instance2.Length).Verify(""Length"");
+        nameof(C<string>.Static2).Verify(""Static2"");
+        nameof(C<string>.Static2.Length).Verify(""Length"");
+    }
+}
+public static class Extensions
+{
+    public static void Verify(this string actual, string expected)
+    {
+        if (expected != actual) throw new System.Exception($""expected={expected}; actual={actual}"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
         }
     }
 }

@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -31,23 +35,24 @@ namespace myNamespace
     }
 }";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35701")]
+        [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName);
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
             dialog.ClickCancel(encapsulateField.DialogName);
             dialog.VerifyClosed(encapsulateField.DialogName);
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName);
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
             dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
@@ -70,7 +75,7 @@ namespace myNamespace
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);

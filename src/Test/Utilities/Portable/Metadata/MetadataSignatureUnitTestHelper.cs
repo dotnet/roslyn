@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -74,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.False(string.IsNullOrWhiteSpace(fullyQualifiedTypeName), "'fullyQualifiedTypeName' can't be null or empty");
             Assert.False(string.IsNullOrWhiteSpace(memberName), "'memberName' can't be null or empty");
 
-            var retVal = true; actualSignatures = new List<string>();
+            var retVal = true;
+            actualSignatures = new List<string>();
             var signatures = appDomainHost.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
             var signatureAssertText = "Signature(\"" + fullyQualifiedTypeName + "\", \"" + memberName + "\", \"{0}\"),";
 
@@ -96,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         actualSignatures.Clear();
                         actualSignatures.Add(actualSignature);
-                        found = true; break;
+                        found = true;
+                        break;
                     }
                     else
                     {

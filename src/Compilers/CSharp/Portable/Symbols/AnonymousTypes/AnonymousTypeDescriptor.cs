@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Describes anonymous type in terms of fields
     /// </summary>
-    internal struct AnonymousTypeDescriptor : IEquatable<AnonymousTypeDescriptor>
+    internal readonly struct AnonymousTypeDescriptor : IEquatable<AnonymousTypeDescriptor>
     {
         /// <summary> Anonymous type location </summary>
         public readonly Location Location;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
             for (int i = 0; i < count; i++)
             {
-                if (!myFields[i].Type.Equals(otherFields[i].Type, comparison))
+                if (!myFields[i].TypeWithAnnotations.Equals(otherFields[i].TypeWithAnnotations, comparison))
                 {
                     return false;
                 }
@@ -106,19 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Creates a new anonymous type descriptor based on 'this' one, 
         /// but having field types passed as an argument.
         /// </summary>
-        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeSymbol> newFieldTypes)
+        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeWithAnnotations> newFieldTypes)
         {
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(newFieldTypes.Length == this.Fields.Length);
 
-            AnonymousTypeField[] newFields = new AnonymousTypeField[this.Fields.Length];
-            for (int i = 0; i < newFields.Length; i++)
-            {
-                var field = this.Fields[i];
-                newFields[i] = new AnonymousTypeField(field.Name, field.Location, newFieldTypes[i]);
-            }
-
-            return new AnonymousTypeDescriptor(newFields.AsImmutable(), this.Location);
+            var newFields = this.Fields.SelectAsArray((field, i, types) => new AnonymousTypeField(field.Name, field.Location, types[i]), newFieldTypes);
+            return new AnonymousTypeDescriptor(newFields, this.Location);
         }
     }
 }

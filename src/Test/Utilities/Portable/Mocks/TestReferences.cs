@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using Roslyn.Test.Utilities;
 
 public static class TestReferences
 {
@@ -17,46 +21,46 @@ public static class TestReferences
             public static PortableExecutableReference AppCS => s_appCS.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_moduleCS00 = new Lazy<PortableExecutableReference>(
-        () => ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference(display: "ModuleCS00.mod"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference(display: "ModuleCS00.mod"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference ModuleCS00 => s_moduleCS00.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_moduleCS01 = new Lazy<PortableExecutableReference>(
-        () => ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS01).GetReference(display: "ModuleCS01.mod"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS01).GetReference(display: "ModuleCS01.mod"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference ModuleCS01 => s_moduleCS01.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_moduleVB01 = new Lazy<PortableExecutableReference>(
-        () => ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference(display: "ModuleVB01.mod"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference(display: "ModuleVB01.mod"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference ModuleVB01 => s_moduleVB01.Value;
         }
 
         public static class InterfaceAndClass
         {
             private static readonly Lazy<PortableExecutableReference> s_CSClasses01 = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).GetReference(display: "CSClasses01.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).GetReference(display: "CSClasses01.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference CSClasses01 => s_CSClasses01.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_CSInterfaces01 = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).GetReference(display: "CSInterfaces01.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).GetReference(display: "CSInterfaces01.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference CSInterfaces01 => s_CSInterfaces01.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_VBClasses01 = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.VBClasses01).GetReference(display: "VBClasses01.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.VBClasses01).GetReference(display: "VBClasses01.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference VBClasses01 => s_VBClasses01.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_VBClasses02 = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.VBClasses02).GetReference(display: "VBClasses02.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.VBClasses02).GetReference(display: "VBClasses02.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference VBClasses02 => s_VBClasses02.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_VBInterfaces01 = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.VBInterfaces01).GetReference(display: "VBInterfaces01.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.MetadataTests.InterfaceAndClass.VBInterfaces01).GetReference(display: "VBInterfaces01.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference VBInterfaces01 => s_VBInterfaces01.Value;
         }
     }
@@ -66,190 +70,44 @@ public static class TestReferences
         public static class Minimal
         {
             private static readonly Lazy<PortableExecutableReference> s_mincorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib).GetReference(display: "mincorlib.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib).GetReference(display: "mincorlib.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference mincorlib => s_mincorlib.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_minasync = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasync).GetReference(display: "minasync.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasync).GetReference(display: "minasync.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference minasync => s_minasync.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_minasynccorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasynccorlib).GetReference(display: "minasynccorlib.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.minasynccorlib).GetReference(display: "minasynccorlib.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference minasynccorlib => s_minasynccorlib.Value;
         }
 
         public static class ValueTuple
         {
             private static readonly Lazy<PortableExecutableReference> s_tuplelib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib).GetReference(display: "System.ValueTuple.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib).GetReference(display: "System.ValueTuple.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference tuplelib => s_tuplelib.Value;
         }
 
         public static class silverlight_v5_0_5_0
         {
             private static readonly Lazy<PortableExecutableReference> s_system = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+                () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll"),
+                LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference System => s_system.Value;
-        }
-
-        public static class v4_0_21006
-        {
-            private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(display: "mscorlib.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference mscorlib => s_mscorlib.Value;
-        }
-
-        public static class v2_0_50727
-        {
-            private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib, v2.0.50727"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference mscorlib => s_mscorlib.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.System).GetReference(display: "System.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System => s_system.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_microsoft_VisualBasic = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference Microsoft_VisualBasic => s_microsoft_VisualBasic.Value;
-        }
-
-        public static class v3_5_30729
-        {
-            private static readonly Lazy<PortableExecutableReference> s_systemCore = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v3_5_30729.System_Core_v3_5_30729.AsImmutableOrNull()).GetReference(display: "System.Core, v3.5.30729"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference SystemCore => s_systemCore.Value;
-        }
-
-        public static class v4_0_30319
-        {
-            private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference mscorlib => s_mscorlib.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Core = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"R:\v4_0_30319\System.Core.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Core => s_system_Core.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Configuration = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Configuration).GetReference(filePath: @"R:\v4_0_30319\System.Configuration.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Configuration => s_system_Configuration.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(filePath: @"R:\v4_0_30319\System.dll", display: "System.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System => s_system.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Data = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Data).GetReference(filePath: @"R:\v4_0_30319\System.Data.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Data => s_system_Data.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Xml = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Xml).GetReference(filePath: @"R:\v4_0_30319\System.Xml.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Xml => s_system_Xml.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Xml_Linq = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Xml_Linq).GetReference(filePath: @"R:\v4_0_30319\System.Xml.Linq.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Xml_Linq => s_system_Xml_Linq.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Windows_Forms = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Windows_Forms).GetReference(filePath: @"R:\v4_0_30319\System.Windows.Forms.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Windows_Forms => s_system_Windows_Forms.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_microsoft_CSharp = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(filePath: @"R:\v4_0_30319\Microsoft.CSharp.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference Microsoft_CSharp => s_microsoft_CSharp.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_microsoft_VisualBasic = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_VisualBasic).GetReference(filePath: @"R:\v4_0_30319\Microsoft.VisualBasic.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference Microsoft_VisualBasic => s_microsoft_VisualBasic.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_microsoft_JScript = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_JScript).GetReference(display: "Microsoft.JScript.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference Microsoft_JScript => s_microsoft_JScript.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_ComponentModel_Composition = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_ComponentModel_Composition).GetReference(display: "System.ComponentModel.Composition.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_ComponentModel_Composition => s_system_ComponentModel_Composition.Value;
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Web_Services = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Web_Services).GetReference(display: "System.Web.Services.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Web_Services => s_system_Web_Services.Value;
-
-            public static class System_EnterpriseServices
-            {
-                private static readonly Lazy<PortableExecutableReference> s_system_EnterpriseServices = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_EnterpriseServices).GetReference(display: "System.EnterpriseServices.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-                public static PortableExecutableReference dll => s_system_EnterpriseServices.Value;
-            }
-
-            private static readonly Lazy<PortableExecutableReference> s_system_Runtime_Serialization = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization).GetReference(display: "System.Runtime.Serialization.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference System_Runtime_Serialization => s_system_Runtime_Serialization.Value;
-        }
-
-        public static class v4_0_30316_17626
-        {
-            private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: @"mscorlib.v4_0_30319_17626.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
-        LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference mscorlib => s_mscorlib.Value;
         }
     }
 
     public static class NetStandard13
     {
         private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.ReferenceAssemblies_netstandard1_3.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
-        LazyThreadSafetyMode.PublicationOnly);
+            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.netstandard13.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
+            LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntime => s_systemRuntime.Value;
-    }
-
-    public static class NetStandard20
-    {
-        private static readonly Lazy<PortableExecutableReference> s_netstandard = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/netstandard.dll")).GetReference(display: "netstandard.dll (netstandard 2.0 ref)"),
-        LazyThreadSafetyMode.PublicationOnly);
-        public static PortableExecutableReference NetStandard => s_netstandard.Value;
-
-        private static readonly Lazy<PortableExecutableReference> s_mscorlib = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/mscorlib.dll")).GetReference(display: "mscorlib.dll (netstandard 2.0 ref)"),
-        LazyThreadSafetyMode.PublicationOnly);
-        public static PortableExecutableReference MscorlibRef => s_mscorlib.Value;
-
-        private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/System.Runtime.dll")).GetReference(display: "System.Runtime.dll (netstandard 2.0 ref)"),
-        LazyThreadSafetyMode.PublicationOnly);
-        public static PortableExecutableReference SystemRuntimeRef => s_systemRuntime.Value;
-
-        private static readonly Lazy<PortableExecutableReference> s_systemDynamicRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/System.Dynamic.Runtime.dll")).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 2.0 ref)"),
-        LazyThreadSafetyMode.PublicationOnly);
-        public static PortableExecutableReference SystemDynamicRuntimeRef => s_systemDynamicRuntime.Value;
     }
 
     public static class DiagnosticTests
@@ -837,7 +695,7 @@ public static class TestReferences
         public static class NoPia
         {
             private static readonly Lazy<PortableExecutableReference> s_stdOle = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.ProprietaryPias.stdole).GetReference(display: "stdole.dll"),
+        () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.ProprietaryPias.stdole).GetReference(display: "stdole.dll"),
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference StdOle => s_stdOle.Value;
 

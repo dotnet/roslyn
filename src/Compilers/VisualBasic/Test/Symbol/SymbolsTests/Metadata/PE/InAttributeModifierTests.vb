@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -31,7 +33,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -58,7 +60,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -88,7 +90,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="5")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="5")
         End Sub
 
         <Fact>
@@ -113,7 +115,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="4")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="4")
         End Sub
 
         <Fact>
@@ -140,7 +142,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
@@ -169,7 +171,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
@@ -202,7 +204,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
@@ -230,7 +232,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
@@ -262,7 +264,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
@@ -295,7 +297,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
@@ -325,10 +327,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = obj.P
                         ~
                                                 </expected>)
@@ -354,10 +356,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = TestRef.P
                             ~
                                                 </expected>)
@@ -384,10 +386,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = obj.P
                         ~
                                                 </expected>)
@@ -412,10 +414,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'P' is of an unsupported type.
+BC30643: Property 'TestRef.P' is of an unsupported type.
         Dim value = obj.P
                         ~
                                                 </expected>)
@@ -442,10 +444,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(ByRef p As Integer)' is of an unsupported type.
         Dim value = obj(p)
                     ~~~
                                                 </expected>)
@@ -471,10 +473,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(ByRef p As Integer)' is of an unsupported type.
         Dim value = obj(p)
                     ~~~
                                                 </expected>)
@@ -501,10 +503,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(p As Integer)' is of an unsupported type.
         Dim value = obj(0)
                     ~~~
                                                 </expected>)
@@ -529,10 +531,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(p As Integer)' is of an unsupported type.
         Dim value = obj(0)
                     ~~~
                                                 </expected>)
@@ -559,10 +561,10 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
-BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
+BC30643: Property 'TestRef.Item(p As Integer)' is of an unsupported type.
         Dim value = obj(0)
                     ~~~
                                                 </expected>)
@@ -586,7 +588,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'D' has a return type that is not supported or parameter types that are not supported.
@@ -613,7 +615,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'BeginInvoke' has a return type that is not supported or parameter types that are not supported.
@@ -640,7 +642,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'EndInvoke' has a return type that is not supported or parameter types that are not supported.
@@ -666,7 +668,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'D' has a return type that is not supported or parameter types that are not supported.
@@ -692,7 +694,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30657: 'EndInvoke' has a return type that is not supported or parameter types that are not supported.
@@ -728,7 +730,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30452: Operator '+' is not defined for types 'Test' and 'Test'.
@@ -764,7 +766,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30452: Operator '+' is not defined for types 'Test' and 'Test'.
@@ -800,7 +802,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30452: Operator '+' is not defined for types 'Test' and 'Test'.
@@ -835,7 +837,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30487: Operator 'Not' is not defined for type 'Test'.
@@ -870,7 +872,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib40(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30311: Value of type 'Test' cannot be converted to 'Integer'.
@@ -907,7 +909,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -941,7 +943,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -978,7 +980,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
 
         <Fact>
@@ -1017,7 +1019,7 @@ End Class
     </file>
                 </compilation>
 
-            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+            CompileAndVerify(source, references:={reference}, expectedOutput:="20")
         End Sub
     End Class
 

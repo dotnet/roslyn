@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new GenericNameSignatureHelpProvider();
-        }
+            => new GenericNameSignatureHelpProvider();
 
         #region "Declaring generic type objects"
 
@@ -622,6 +623,33 @@ class C
             expectedOrderedItems.Add(new SignatureHelpTestItem("S C.Goo<S, T>(S s, T t) where T : class, S, IGoo, new()", "GooSummary", "ParamT", currentParameterIndex: 1));
 
             await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestUnmanagedConstraint()
+        {
+            var markup = @"
+
+class C
+{
+    /// <summary>
+    /// summary headline
+    /// </summary>
+    /// <typeparam name=""T"">T documentation</typeparam>
+    void M<T>(T arg) where T : unmanaged
+    {
+    }
+
+    void Bar()
+    {
+        [|M<$$|]>
+    }
+}";
+
+            await TestAsync(markup, new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void C.M<T>(T arg) where T : unmanaged", "summary headline", "T documentation", currentParameterIndex: 0)
+            });
         }
 
         #endregion

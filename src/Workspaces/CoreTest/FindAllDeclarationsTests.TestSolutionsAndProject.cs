@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             declarations = declarations.OrderBy(d => d.ToString());
             expectedResults = expectedResults.OrderBy(r => r).ToArray();
 
-            for (int i = 0; i < expectedResults.Length; i++)
+            for (var i = 0; i < expectedResults.Length; i++)
             {
                 var actualResult = declarations.ElementAt(i).ToString();
                 var expectedResult = expectedResults[i];
@@ -57,22 +59,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static void VerifyInnerExceptionArgumentNull(AggregateException ex, string argName)
-        {
-            var exception = ex.InnerException as ArgumentNullException;
-            Assert.True(exception != null, string.Format("Expected InnerException to be 'System.ArgumentNullException' was '{0}'", ex.InnerException.ToString()));
-            Assert.True(exception.ParamName.Contains(argName), string.Format("Expected InnerException ParamName to contain '{0}', actual ParamName is: '{1}'", argName, exception.ParamName));
-        }
-
-        private static void VerifyInnerExceptionIsType<T>(Exception ex) where T : Exception
-        {
-            Assert.True(ex.InnerException is T, string.Format("Expected InnerException to be '{0}' was '{1}'", typeof(T).Name, ex.InnerException.ToString()));
-        }
-
         private static Solution CreateSolution()
-        {
-            return new AdhocWorkspace().CurrentSolution;
-        }
+            => new AdhocWorkspace().CurrentSolution;
 
         private static Solution GetSingleProjectSolution(params string[] sourceTexts)
         {
@@ -80,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolution()
                     .AddProject(pid, "TestCases", "TestCases", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
-            for (int i = 0; i < sourceTexts.Length; i++)
+            for (var i = 0; i < sourceTexts.Length; i++)
             {
                 var did = DocumentId.CreateNewId(pid);
                 solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
@@ -92,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static Solution GetMultipleProjectSolution(params string[] sourceTexts)
         {
             var solution = CreateSolution();
-            for (int i = 0; i < sourceTexts.Length; i++)
+            for (var i = 0; i < sourceTexts.Length; i++)
             {
                 var pid = ProjectId.CreateNewId();
                 var did = DocumentId.CreateNewId(pid);
@@ -106,36 +94,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         private static Solution GetSolution(WorkspaceKind workspaceKind)
-        {
-            switch (workspaceKind)
+            => workspaceKind switch
             {
-                case WorkspaceKind.SingleClass:
-                    return GetSingleProjectSolution(SingleClass);
-                case WorkspaceKind.SingleClassWithSingleMethod:
-                    return GetSingleProjectSolution(SingleClassWithSingleMethod);
-                case WorkspaceKind.SingleClassWithSingleProperty:
-                    return GetSingleProjectSolution(SingleClassWithSingleProperty);
-                case WorkspaceKind.SingleClassWithSingleField:
-                    return GetSingleProjectSolution(SingleClassWithSingleField);
-                case WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod:
-                    return GetMultipleProjectSolution(SingleClassWithSingleMethod, SingleClassWithSingleMethod);
-                case WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty:
-                    return GetMultipleProjectSolution(SingleClassWithSingleProperty, SingleClassWithSingleProperty);
-                case WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField:
-                    return GetMultipleProjectSolution(SingleClassWithSingleField, SingleClassWithSingleField);
-                case WorkspaceKind.NestedClass:
-                    return GetSingleProjectSolution(NestedClass);
-                case WorkspaceKind.TwoNamespacesWithIdenticalClasses:
-                    return GetSingleProjectSolution(Namespace1, Namespace2);
-                default:
-                    return null;
-            }
-        }
+                WorkspaceKind.SingleClass => GetSingleProjectSolution(SingleClass),
+                WorkspaceKind.SingleClassWithSingleMethod => GetSingleProjectSolution(SingleClassWithSingleMethod),
+                WorkspaceKind.SingleClassWithSingleProperty => GetSingleProjectSolution(SingleClassWithSingleProperty),
+                WorkspaceKind.SingleClassWithSingleField => GetSingleProjectSolution(SingleClassWithSingleField),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod => GetMultipleProjectSolution(SingleClassWithSingleMethod, SingleClassWithSingleMethod),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty => GetMultipleProjectSolution(SingleClassWithSingleProperty, SingleClassWithSingleProperty),
+                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField => GetMultipleProjectSolution(SingleClassWithSingleField, SingleClassWithSingleField),
+                WorkspaceKind.NestedClass => GetSingleProjectSolution(NestedClass),
+                WorkspaceKind.TwoNamespacesWithIdenticalClasses => GetSingleProjectSolution(Namespace1, Namespace2),
+                _ => null,
+            };
 
         private static Project GetProject(WorkspaceKind workspaceKind)
-        {
-            return GetSolution(workspaceKind).Projects.First();
-        }
+            => GetSolution(workspaceKind).Projects.First();
 
         public enum WorkspaceKind
         {

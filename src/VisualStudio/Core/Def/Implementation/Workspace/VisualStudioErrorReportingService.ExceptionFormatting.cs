@@ -1,9 +1,16 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -16,16 +23,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return GetStackForAggregateException(exception, aggregate);
             }
 
+            if (exception is RemoteInvocationException remoteException)
+            {
+                return GetStackForRemoteException(remoteException);
+            }
+
             return GetStackForException(exception, includeMessageOnly: false);
+        }
+
+        private static string GetStackForRemoteException(RemoteInvocationException remoteException)
+        {
+            var text = GetStackForException(remoteException, includeMessageOnly: true);
+            if (remoteException.ErrorData == null)
+            {
+                return text;
+            }
+
+            text = $"{text}{Environment.NewLine}---> (Remote Exception) {remoteException.ErrorData.ToString()} <--- {Environment.NewLine}";
+            return text;
         }
 
         private static string GetStackForAggregateException(Exception exception, AggregateException aggregate)
         {
             var text = GetStackForException(exception, includeMessageOnly: true);
-            for (int i = 0; i < aggregate.InnerExceptions.Count; i++)
+            for (var i = 0; i < aggregate.InnerExceptions.Count; i++)
             {
-                text = string.Format("{0}{1}---> (Inner Exception #{2}) {3}{4}{5}", text,
-                    Environment.NewLine, i, GetFormattedExceptionStack(aggregate.InnerExceptions[i]), "<---", Environment.NewLine);
+                text = $"{text}{Environment.NewLine}---> (Inner Exception #{i}) {GetFormattedExceptionStack(aggregate.InnerExceptions[i])} <--- {Environment.NewLine}";
             }
 
             return text;

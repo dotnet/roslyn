@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CSharp.RuntimeBinder;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class DestructorTests : EmitMetadataTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ClassDestructor()
         {
             var text = @"
@@ -75,7 +76,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedClassDestructor()
         {
@@ -129,7 +130,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedSubClassDestructor()
         {
@@ -210,7 +211,7 @@ public class Program
             compVerifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SubclassDestructor()
         {
             var text = @"
@@ -255,7 +256,7 @@ public class Program
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
                 });
 
-        compVerifier.VerifyIL("Base.Finalize", @"
+            compVerifier.VerifyIL("Base.Finalize", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -274,7 +275,7 @@ public class Program
   IL_0013:  ret
 }
 ");
-        compVerifier.VerifyIL("Derived.Finalize", @"
+            compVerifier.VerifyIL("Derived.Finalize", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -293,10 +294,10 @@ public class Program
   IL_0013:  ret
 }
 ");
-        compVerifier.VerifyDiagnostics();
+            compVerifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void DestructorOverridesNonDestructor()
         {
             var text = @"
@@ -361,7 +362,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void BaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -417,7 +418,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void GenericBaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -455,6 +456,7 @@ public class Program
     }
 }
 ";
+
             var validator = GetDestructorValidator("Derived");
             var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
@@ -662,7 +664,7 @@ public class M<T> : L<T>
 
 } // end of class D
 ";
-            var compilation = CreateCompilationWithCustomILSource("", text);
+            var compilation = CreateCompilationWithILAndMscorlib40("", text);
 
             var globalNamespace = compilation.GlobalNamespace;
 
@@ -685,7 +687,7 @@ public class B : A
     ~B() { }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             // NOTE: has warnings, but not errors.
             compilation.VerifyDiagnostics(

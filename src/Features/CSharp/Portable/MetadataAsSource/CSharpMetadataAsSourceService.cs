@@ -1,65 +1,62 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 {
-    internal class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
+    internal partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
     {
-        private static readonly IFormattingRule s_memberSeparationRule = new FormattingRule();
+        private static readonly AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
+        public static readonly CSharpMetadataAsSourceService Instance = new CSharpMetadataAsSourceService();
 
-        public CSharpMetadataAsSourceService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ICodeGenerationService>())
+        private CSharpMetadataAsSourceService()
         {
         }
 
-        protected override async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+        protected override async Task<Document> AddAssemblyInfoRegionAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
-            string assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            string assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly);
+            var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
+            var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(symbolCompilation, symbol.ContainingAssembly);
 
             var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
                 .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
 
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = oldRoot.WithLeadingTrivia(new[]
-                {
-                    SyntaxFactory.Trivia(regionTrivia),
-                    SyntaxFactory.CarriageReturnLineFeed,
-                    SyntaxFactory.Comment("// " + assemblyPath),
-                    SyntaxFactory.CarriageReturnLineFeed,
-                    SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
-                    SyntaxFactory.CarriageReturnLineFeed,
-                    SyntaxFactory.CarriageReturnLineFeed
-                });
+            var newRoot = oldRoot.WithPrependedLeadingTrivia(
+                SyntaxFactory.Trivia(regionTrivia),
+                SyntaxFactory.CarriageReturnLineFeed,
+                SyntaxFactory.Comment("// " + assemblyPath),
+                SyntaxFactory.CarriageReturnLineFeed,
+                SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
+                SyntaxFactory.CarriageReturnLineFeed,
+                SyntaxFactory.CarriageReturnLineFeed);
 
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
-        {
-            return s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
-        }
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
+            => s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
 
-        protected override async Task<Document> ConvertDocCommentsToRegularComments(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
+        protected override async Task<Document> ConvertDocCommentsToRegularCommentsAsync(Document document, IDocumentationCommentFormattingService docCommentFormattingService, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -72,141 +69,167 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             => ImmutableArray.Create<AbstractReducer>(
                 new CSharpNameReducer(),
                 new CSharpEscapingReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpDefaultExpressionReducer());
 
-        private class FormattingRule : AbstractFormattingRule
+        /// <summary>
+        /// Adds <c>#nullable enable</c> and <c>#nullable disable</c> annotations to the file as necessary.  Note that
+        /// this does not try to be 100% accurate, but rather it handles the most common cases out there.  Specifically,
+        /// if a file contains any nullable annotated/not-annotated types, then we prefix the file with <c>#nullable
+        /// enable</c>.  Then if we hit any members that explicitly have *oblivious* types, but no annotated or
+        /// non-annotated types, then we switch to <c>#nullable disable</c> for those specific members.
+        /// <para/>
+        /// This is technically innacurate for possible, but very uncommon cases.  For example, if the user's code
+        /// explicitly did something like this:
+        /// 
+        /// <code>
+        /// public void Goo(string goo,
+        ///                 #nullable disable
+        ///                 string bar
+        ///                 #nullable enable
+        ///                 string baz);
+        /// </code>
+        /// 
+        /// Then we would be unable to handle that.  However, this is highly unlikely to happen, and so we accept the
+        /// inaccuracy for the purpose of simplicity and for handling the much more common cases of either the entire
+        /// file being annotated, or the user individually disabling annotations at the member level.
+        /// </summary>
+        protected override async Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken)
         {
-            protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
-            {
-                var previousToken = token1;
-                var currentToken = token2;
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var options = (CSharpParseOptions)tree.Options;
 
-                // We are not between members or usings if the last token wasn't the end of a statement or if the current token
-                // is the end of a scope.
-                if ((previousToken.Kind() != SyntaxKind.SemicolonToken && previousToken.Kind() != SyntaxKind.CloseBraceToken) ||
-                    currentToken.Kind() == SyntaxKind.CloseBraceToken)
-                {
-                    return null;
-                }
+            // Only valid for C# 8 and above.
+            if (options.LanguageVersion < LanguageVersion.CSharp8)
+                return document;
 
-                SyntaxNode previousMember = FormattingRangeHelper.GetEnclosingMember(previousToken);
-                SyntaxNode nextMember = FormattingRangeHelper.GetEnclosingMember(currentToken);
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                // Is the previous statement an using directive? If so, treat it like a member to add
-                // the right number of lines.
-                if (previousToken.Kind() == SyntaxKind.SemicolonToken && previousToken.Parent.Kind() == SyntaxKind.UsingDirective)
-                {
-                    previousMember = previousToken.Parent;
-                }
+            var (_, annotatedOrNotAnnotated) = GetNullableAnnotations(root);
 
-                if (previousMember == null || nextMember == null || previousMember == nextMember)
-                {
-                    return null;
-                }
+            // If there are no annotated or not-annotated types, then no need to add `#nullable enable`.
+            if (!annotatedOrNotAnnotated)
+                return document;
 
-                // If we have two members of the same kind, we won't insert a blank line 
-                if (previousMember.Kind() == nextMember.Kind())
-                {
-                    return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
-                }
+            var newRoot = AddNullableRegions(root, cancellationToken);
+            newRoot = newRoot.WithPrependedLeadingTrivia(CreateNullableTrivia(enable: true));
 
-                // Force a blank line between the two nodes by counting the number of lines of
-                // trivia and adding one to it.
-                var triviaList = token1.TrailingTrivia.Concat(token2.LeadingTrivia);
-                return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines);
-            }
-
-            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
-            {
-                return;
-            }
-
-            protected override bool IsNewLine(char c)
-            {
-                return SyntaxFacts.IsNewLine(c);
-            }
+            return document.WithSyntaxRoot(newRoot);
         }
 
-        private class DocCommentConverter : CSharpSyntaxRewriter
+        private static (bool oblivious, bool annotatedOrNotAnnotated) GetNullableAnnotations(SyntaxNode node)
         {
-            private readonly IDocumentationCommentFormattingService _formattingService;
-            private readonly CancellationToken _cancellationToken;
+            return (HasAnnotation(node, NullableSyntaxAnnotation.Oblivious),
+                    HasAnnotation(node, NullableSyntaxAnnotation.AnnotatedOrNotAnnotated));
+        }
 
-            public static SyntaxNode ConvertToRegularComments(SyntaxNode node, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
+        private static bool HasAnnotation(SyntaxNode node, SyntaxAnnotation annotation)
+        {
+            // see if any child nodes have this annotation.  Ignore anything in attributes (like `[Obsolete]void Goo()`
+            // as these are not impacted by `#nullable` regions.  Instead, we only care about signature types.
+            var annotatedChildren = node.GetAnnotatedNodes(annotation);
+            return annotatedChildren.Any(n => n.GetAncestorOrThis<AttributeSyntax>() == null);
+        }
+
+        private static SyntaxTrivia[] CreateNullableTrivia(bool enable)
+        {
+            var keyword = enable ? SyntaxKind.EnableKeyword : SyntaxKind.DisableKeyword;
+            return new[]
             {
-                var converter = new DocCommentConverter(formattingService, cancellationToken);
+                SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(keyword), isActive: enable)),
+                SyntaxFactory.ElasticCarriageReturnLineFeed,
+                SyntaxFactory.ElasticCarriageReturnLineFeed,
+            };
+        }
 
-                return converter.Visit(node);
-            }
-
-            private DocCommentConverter(IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
-                : base(visitIntoStructuredTrivia: false)
+        private TSyntax AddNullableRegions<TSyntax>(TSyntax node, CancellationToken cancellationToken)
+            where TSyntax : SyntaxNode
+        {
+            return node switch
             {
-                _formattingService = formattingService;
-                _cancellationToken = cancellationToken;
-            }
+                CompilationUnitSyntax compilationUnit => (TSyntax)(object)compilationUnit.WithMembers(AddNullableRegions(compilationUnit.Members, cancellationToken)),
+                NamespaceDeclarationSyntax ns => (TSyntax)(object)ns.WithMembers(AddNullableRegions(ns.Members, cancellationToken)),
+                TypeDeclarationSyntax type => (TSyntax)(object)AddNullableRegionsAroundTypeMembers(type, cancellationToken),
+                _ => node,
+            };
+        }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+        private SyntaxList<MemberDeclarationSyntax> AddNullableRegions(
+            SyntaxList<MemberDeclarationSyntax> members,
+            CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var builder);
+
+            foreach (var member in members)
+                builder.Add(AddNullableRegions(member, cancellationToken));
+
+            return SyntaxFactory.List(builder);
+        }
+
+        private TypeDeclarationSyntax AddNullableRegionsAroundTypeMembers(
+            TypeDeclarationSyntax type, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var builder);
+
+            var currentlyEnabled = true;
+
+            foreach (var member in type.Members)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                if (node == null)
+                if (member is BaseTypeDeclarationSyntax)
                 {
-                    return node;
+                    // if we hit a type, and we're currently disabled, then switch us back to enabled for that type.
+                    // This ensures whenever we walk into a type-decl, we're always in the enabled-state.
+                    builder.Add(TransitionTo(AddNullableRegions(member, cancellationToken), enabled: true, ref currentlyEnabled));
+                    continue;
                 }
 
-                // Process children first
-                node = base.Visit(node);
+                // we hit a member.  see what sort of types it contained.
+                var (oblivious, annotatedOrNotAnnotated) = GetNullableAnnotations(member);
 
-                // Check the leading trivia for doc comments.
-                if (node.GetLeadingTrivia().Any(SyntaxKind.SingleLineDocumentationCommentTrivia))
+                // if we have null annotations, transition us back to the enabled state
+                if (annotatedOrNotAnnotated)
                 {
-                    var newLeadingTrivia = new List<SyntaxTrivia>();
-
-                    foreach (var trivia in node.GetLeadingTrivia())
-                    {
-                        if (trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)
-                        {
-                            newLeadingTrivia.Add(SyntaxFactory.Comment("//"));
-                            newLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
-
-                            var structuredTrivia = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
-                            newLeadingTrivia.AddRange(ConvertDocCommentToRegularComment(structuredTrivia));
-                        }
-                        else
-                        {
-                            newLeadingTrivia.Add(trivia);
-                        }
-                    }
-
-                    node = node.WithLeadingTrivia(newLeadingTrivia);
+                    builder.Add(TransitionTo(member, enabled: true, ref currentlyEnabled));
                 }
-
-                return node;
+                else if (oblivious)
+                {
+                    // if we didn't have null annotations, and we had an explicit oblivious type,
+                    // then definitely transition us to the disabled state
+                    builder.Add(TransitionTo(member, enabled: false, ref currentlyEnabled));
+                }
+                else
+                {
+                    // had no types at all.  no need to change state.
+                    builder.Add(member);
+                }
             }
 
-            private IEnumerable<SyntaxTrivia> ConvertDocCommentToRegularComment(DocumentationCommentTriviaSyntax structuredTrivia)
+            var result = type.WithMembers(SyntaxFactory.List(builder));
+            if (!currentlyEnabled)
             {
-                var xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString(), "///");
+                // switch us back to enabled as we leave the type.
+                result = result.WithCloseBraceToken(
+                    result.CloseBraceToken.WithPrependedLeadingTrivia(CreateNullableTrivia(enable: true)));
+            }
 
-                var docComment = DocumentationComment.FromXmlFragment(xmlFragment);
+            return result;
+        }
 
-                var commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(_formattingService, docComment);
-
-                foreach (var line in commentLines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line))
-                    {
-                        yield return SyntaxFactory.Comment("// " + line);
-                    }
-                    else
-                    {
-                        yield return SyntaxFactory.Comment("//");
-                    }
-
-                    yield return SyntaxFactory.ElasticCarriageReturnLineFeed;
-                }
+        private static MemberDeclarationSyntax TransitionTo(MemberDeclarationSyntax member, bool enabled, ref bool currentlyEnabled)
+        {
+            if (enabled == currentlyEnabled)
+            {
+                // already in the right state.  don't start a #nullable region
+                return member;
+            }
+            else
+            {
+                // switch to the desired state and add the right trivia to the node.
+                currentlyEnabled = enabled;
+                return member.WithPrependedLeadingTrivia(CreateNullableTrivia(currentlyEnabled));
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static string DiffReport<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, Func<T, string> toString = null, string separator = ",\r\n")
+        public static string DiffReport<T>(IEnumerable<T> expected, IEnumerable<T> actual, string separator, IEqualityComparer<T> comparer = null, Func<T, string> toString = null)
         {
             var lcs = (comparer != null) ? new LCS<T>(comparer) : LCS<T>.Default;
             toString = toString ?? new Func<T, string>(obj => obj.ToString());
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var exlines = Lines(expected);
             var aclines = Lines(actual);
-            return DiffReport(exlines, aclines, separator: "\r\n");
+            return DiffReport(exlines, aclines, separator: Environment.NewLine);
         }
 
         /// <summary>

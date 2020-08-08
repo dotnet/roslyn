@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Reflection;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 //test
 
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.SymbolsTests.MDTestLib2,
                 TestReferences.SymbolsTests.Methods.CSMethods,
                 TestReferences.SymbolsTests.Methods.VBMethods,
-                TestReferences.NetFx.v4_0_21006.mscorlib,
+                Net40.mscorlib,
                 TestReferences.SymbolsTests.Methods.ByRefReturn
             },
             options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal("void TC10.M1()", localM1.ToTestDisplayString());
             Assert.True(localM1.ReturnsVoid);
             Assert.Equal(Accessibility.Public, localM1.DeclaredAccessibility);
-            Assert.Same(module2, localM1.Locations.Single().MetadataModule);
+            Assert.Same(module2, localM1.Locations.Single().MetadataModuleInternal);
 
             Assert.Equal("void TC10.M2(System.Int32 m1_1)", localM2.ToTestDisplayString());
             Assert.True(localM2.ReturnsVoid);
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(localM1_1.IsOverride);
             Assert.False(localM1_1.IsStatic);
             Assert.False(localM1_1.IsExtern);
-            Assert.Equal(0, localM1_1.CustomModifiers.Length);
+            Assert.Equal(0, localM1_1.TypeWithAnnotations.CustomModifiers.Length);
 
             Assert.Equal("TC8 TC10.M3()", localM3.ToTestDisplayString());
             Assert.False(localM3.ReturnsVoid);
@@ -111,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.False(basicC1_M1.Parameters[0].IsOptional);
             Assert.False(basicC1_M1.Parameters[0].HasExplicitDefaultValue);
-            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModule);
+            Assert.Same(module4, basicC1_M1.Parameters[0].Locations.Single().MetadataModuleInternal);
 
             Assert.True(basicC1_M2.Parameters[0].IsOptional);
             Assert.False(basicC1_M2.Parameters[0].HasExplicitDefaultValue);
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(basicC1, basicC1_M11.TypeParameters[1].ConstraintTypes().Single());
 
             var basicC1_M12 = (MethodSymbol)basicC1.GetMembers("M12").Single();
-            Assert.Equal(0, basicC1_M12.TypeArguments.Length);
+            Assert.Equal(0, basicC1_M12.TypeArgumentsWithAnnotations.Length);
             Assert.False(basicC1_M12.IsVararg);
             Assert.False(basicC1_M12.IsExtern);
             Assert.False(basicC1_M12.IsStatic);
@@ -434,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 mrefs: new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -470,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -561,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -654,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL,
                 });
 
@@ -688,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp,
                 });
 
@@ -764,7 +767,7 @@ class Invoke
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(); // No errors, as in Dev10
         }
 
@@ -777,7 +780,7 @@ class Abstract : MetadataModifiers
     //CS0534 for methods 2, 5, 8, 9, 11, 12, 14, 15
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (2,7): error CS0534: 'Abstract' does not implement inherited abstract member 'MetadataModifiers.M02()'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Abstract").WithArguments("Abstract", "MetadataModifiers.M02()"),
@@ -821,7 +824,7 @@ class Override : MetadataModifiers
     public override void M15() { }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (4,26): error CS0506: 'Override.M00()': cannot override inherited member 'MetadataModifiers.M00()' because it is not marked virtual, abstract, or override
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M00").WithArguments("Override.M00()", "MetadataModifiers.M00()"),
@@ -1170,7 +1173,7 @@ class Override : MetadataModifiers
 } 
 ";
 
-            var compilation = CreateCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("cls1").GetMembers())
             {
@@ -1232,7 +1235,7 @@ class Override : MetadataModifiers
 } // end of class Microsoft.FSharp.Control.IDelegateEvent`1
 ";
 
-            var compilation = CreateCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("Microsoft.FSharp.Control.IDelegateEvent`1").GetMembers())
             {
@@ -1257,7 +1260,7 @@ public class D
 ";
             var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature);
 
-            var c = CreateStandardCompilation(source, new[] { longFormRef });
+            var c = CreateCompilation(source, new[] { longFormRef });
 
             c.VerifyDiagnostics(
                 // (6,20): error CS0570: 'C.RT()' is not supported by the language
@@ -1281,7 +1284,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.SignatureCycle2);
 
-            var c = CreateStandardCompilation(source, new[] { lib });
+            var c = CreateCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics();
         }
@@ -1301,7 +1304,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.TypeSpecInWrongPlace);
 
-            var c = CreateStandardCompilation(source, new[] { lib });
+            var c = CreateCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics(
                 // (6,14): error CS0570: 'User.X(?)' is not supported by the language
@@ -1310,7 +1313,7 @@ class P
         }
 
         [WorkItem(666162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666162")]
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [Fact]
         public void Repro666162()
         {
             var il = @"
@@ -1340,11 +1343,11 @@ class P
 ";
 
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation("", new[] { ilRef });
+            var comp = CreateEmptyCompilation("", new[] { ilRef });
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var method = type.GetMember<MethodSymbol>("M");
-            Assert.NotNull(method.ReturnType);
+            Assert.False(method.ReturnTypeWithAnnotations.IsDefault);
         }
 
         [Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")]
@@ -1364,7 +1367,7 @@ public class D
 ";
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags) };
 
-            var comp = CreateStandardCompilation(source, references: references);
+            var comp = CreateCompilation(source, references: references);
 
             // The method, field and nested type with public and private accessibility flags get loaded as private.
             comp.VerifyDiagnostics(

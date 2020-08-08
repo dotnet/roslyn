@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjName = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -19,8 +23,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CaseCorrection()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        private void CaseCorrection()
         {
             VisualStudio.Editor.SetText(@"Module Goo
     Sub M()
@@ -33,8 +37,8 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(48);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void UndoWithEndConstruct()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        private void UndoWithEndConstruct()
         {
             VisualStudio.Editor.SetText(@"Module Module1
     Sub Main()
@@ -51,8 +55,8 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(54);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void UndoWithoutEndConstruct()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        private void UndoWithoutEndConstruct()
         {
             VisualStudio.Editor.SetText(@"Module Module1
 
@@ -75,8 +79,8 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnSave()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        private void CommitOnSave()
         {
             VisualStudio.Editor.SetText(@"Module Module1
     Sub Main()
@@ -86,15 +90,15 @@ End Module
 
             VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
             VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);
-            VisualStudio.ExecuteCommand("File.SaveSelectedItems");
+            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.S, ShiftState.Ctrl));
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x   As   Integer)");
             VisualStudio.Editor.Verify.CaretPosition(45);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnFocusLost()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        private void CommitOnFocusLost()
         {
             VisualStudio.Editor.SetText(@"Module M
     Sub M()
@@ -106,15 +110,15 @@ End Module");
             VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
             VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
             VisualStudio.Editor.SendKeys("                  ");
-            VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
+            VisualStudio.SolutionExplorer.CloseCodeFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
             VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
     End Sub
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.LineCommit)]
-        void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        private void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
             try
             {
@@ -129,7 +133,7 @@ End Module");
                 VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
                 VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
                 VisualStudio.Editor.SendKeys("                  ");
-                VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
+                VisualStudio.SolutionExplorer.CloseCodeFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
                 VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
      End Sub

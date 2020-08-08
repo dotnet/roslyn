@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -149,7 +152,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, additionalRefs:={SystemCoreRef},
+            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, references:={SystemCoreRef},
                              expectedOutput:=
             <![CDATA[
 1
@@ -290,7 +293,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
@@ -309,6 +312,9 @@ End Module
             Assert.Equal("Function <generated method>.BeginInvoke(ByRef Pp1 As System.Int64, DelegateCallback As System.AsyncCallback, DelegateAsyncState As System.Object) As System.IAsyncResult", x16.GetMember("BeginInvoke").ToTestDisplayString())
             Assert.Equal(MethodKind.Ordinary, x16.GetMember(Of MethodSymbol)("EndInvoke").MethodKind)
             Assert.Equal("Function <generated method>.EndInvoke(ByRef Pp1 As System.Int64, DelegateAsyncResult As System.IAsyncResult) As System.Int64", x16.GetMember("EndInvoke").ToTestDisplayString())
+
+            Assert.IsType(GetType(AnonymousTypeManager.AnonymousDelegatePublicSymbol), x16)
+            Assert.False(DirectCast(x16, INamedTypeSymbol).IsSerializable)
 
             Dim node15 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 15)
             Dim x15 = DirectCast(semanticModel.GetDeclaredSymbol(node15), LocalSymbol).Type
@@ -468,7 +474,7 @@ VB$AnonymousDelegate_6`2[System.Int64,System.Int64]
         <Fact>
         <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
         Public Sub ContainingSymbol()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Test

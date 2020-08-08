@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -435,7 +438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <WorkItem(11795, "https://github.com/dotnet/roslyn/issues/11795")>
         Public Sub ResolutionScopeNilRef()
             Dim options = TestOptions.ReleaseDll.WithDeterministic(True)
-            Dim comp1 = CreateCompilationWithMscorlib(
+            Dim comp1 = CreateCompilationWithMscorlib40(
 {"Public Class A
 End Class"},
                 options:=options,
@@ -444,7 +447,7 @@ End Class"},
             Dim bytes1 = comp1.EmitToArray()
             Dim ref1 = AssemblyMetadata.CreateFromImage(bytes1).GetReference()
 
-            Dim comp2 = CreateCompilationWithMscorlib(
+            Dim comp2 = CreateCompilationWithMscorlib40(
 {"Public Class B
     Inherits A
 End Class"},
@@ -470,7 +473,7 @@ End Class"
 
             Dim invalidAssemblyRefTypeRef As Byte() = {2, 0, 82, 0, 0, 0} ' 2 is (AssemblyRef << 2 | 2)
             Dim ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidAssemblyRefTypeRef)).GetReference()
-            Dim comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            Dim comp3 = CreateCompilationWithMscorlib40({source3}, options:=options, references:={ref2})
             comp3.VerifyDiagnostics()
             Dim tree = comp3.SyntaxTrees(0)
             Dim model = comp3.GetSemanticModel(comp3.SyntaxTrees(0))
@@ -483,7 +486,7 @@ End Class"
             ' As above but with nil ModuleRef.
             Dim invalidModuleRefTypeRef As Byte() = {1, 0, 82, 0, 0, 0} ' 1 is (ModuleRef << 2 | 1)
             ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidModuleRefTypeRef)).GetReference()
-            comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            comp3 = CreateCompilationWithMscorlib40({source3}, options:=options, references:={ref2})
             comp3.VerifyDiagnostics()
             tree = comp3.SyntaxTrees(0)
             model = comp3.GetSemanticModel(tree)
@@ -496,7 +499,7 @@ End Class"
             ' As above but with nil TypeRef.
             Dim invalidTypeRefTypeRef As Byte() = {3, 0, 82, 0, 0, 0} ' 3 is (TypeRef << 2 | 3)
             ref2 = AssemblyMetadata.CreateFromImage(ReplaceBytes(bytes2, validAssemblyRefTypeRef, invalidTypeRefTypeRef)).GetReference()
-            comp3 = CreateCompilationWithMscorlib({source3}, options:=options, references:={ref2})
+            comp3 = CreateCompilationWithMscorlib40({source3}, options:=options, references:={ref2})
             comp3.VerifyDiagnostics()
             tree = comp3.SyntaxTrees(0)
             model = comp3.GetSemanticModel(tree)
@@ -505,6 +508,42 @@ End Class"
             Assert.Equal("B", type.ToTestDisplayString())
             Assert.False(type.IsErrorType())
             Assert.True(type.BaseType.IsErrorType()) ' Handled exception decoding base type TypeRef.
+        End Sub
+
+        <Fact>
+        Public Sub TestFunctionPointerInMetadata()
+            Dim csharpComp = CreateCSharpCompilation("
+unsafe public class C
+{
+    public delegate*<void> field;
+}", parseOptions:=New CSharp.CSharpParseOptions().WithLanguageVersion(CSharp.LanguageVersion.Preview),
+    compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(True))
+
+            Dim vbComp = CreateVisualBasicCompilation(Nothing, "
+Public Module M
+    Public Sub S(c As C)
+        Dim f = c.field
+    End Sub
+End Module
+",
+                referencedCompilations:={csharpComp},
+                referencedAssemblies:=LatestVbReferences,
+                compilationOptions:=TestOptions.DebugDll)
+
+            vbComp.AssertTheseDiagnostics(
+<expected>
+BC30656: Field 'field' is of an unsupported type.
+        Dim f = c.field
+                ~~~~~~~
+</expected>
+            )
+
+            Dim c = vbComp.GetTypeByMetadataName("C")
+            Dim field = c.GetField("field")
+            Assert.True(field.HasUnsupportedMetadata)
+            Assert.True(field.Type.HasUnsupportedMetadata)
+            Assert.True(field.Type.IsErrorType())
+            Assert.NotNull(field.GetUseSiteErrorInfo())
         End Sub
 
         Private Shared Function ReplaceBytes(bytes As ImmutableArray(Of Byte), before As Byte(), after As Byte()) As ImmutableArray(Of Byte)

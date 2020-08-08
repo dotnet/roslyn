@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -17,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic15 = 15
         VisualBasic15_3 = 1503
         VisualBasic15_5 = 1505
+        VisualBasic16 = 1600
+
         Latest = Integer.MaxValue
     End Enum
 
@@ -32,7 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic14,
                     LanguageVersion.VisualBasic15,
                     LanguageVersion.VisualBasic15_3,
-                    LanguageVersion.VisualBasic15_5
+                    LanguageVersion.VisualBasic15_5,
+                    LanguageVersion.VisualBasic16
 
                     Return True
             End Select
@@ -60,6 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "15.3"
                 Case LanguageVersion.VisualBasic15_5
                     Return "15.5"
+                Case LanguageVersion.VisualBasic16
+                    Return "16"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select
@@ -75,14 +82,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
-                Case LanguageVersion.Latest
-                    Return LanguageVersion.VisualBasic15_5
-                Case LanguageVersion.Default
-                    Return LanguageVersion.VisualBasic15
+                Case LanguageVersion.Latest,
+                     LanguageVersion.Default
+                    Return LanguageVersion.VisualBasic16
                 Case Else
                     Return version
             End Select
         End Function
+
+        Friend ReadOnly Property CurrentVersion As LanguageVersion
+            Get
+                Return LanguageVersion.VisualBasic16
+            End Get
+        End Property
 
         ''' <summary>
         ''' Displays the version number in the format understood on the command-line (/langver flag).
@@ -107,6 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "15.3"
                 Case LanguageVersion.VisualBasic15_5
                     Return "15.5"
+                Case LanguageVersion.VisualBasic16
+                    Return "16"
                 Case LanguageVersion.Default
                     Return "default"
                 Case LanguageVersion.Latest
@@ -119,7 +133,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Parse a LanguageVersion from a string input, as the command-line compiler does.
         ''' </summary>
-        <Extension>
         Public Function TryParse(version As String, ByRef result As LanguageVersion) As Boolean
             If version Is Nothing Then
                 result = LanguageVersion.Default
@@ -143,6 +156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = LanguageVersion.VisualBasic15_3
                 Case "15.5"
                     result = LanguageVersion.VisualBasic15_5
+                Case "16"
+                    result = LanguageVersion.VisualBasic16
                 Case "default"
                     result = LanguageVersion.Default
                 Case "latest"

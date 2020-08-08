@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -28,7 +29,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
-            CodeImport import = GetCodeImport(1);
+            var import = GetCodeImport(1);
             Assert.Throws<COMException>(() => { var value = import.Name; });
         }
 
@@ -36,7 +37,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FullName()
         {
-            CodeImport import = GetCodeImport(1);
+            var import = GetCodeImport(1);
             Assert.Throws<COMException>(() => { var value = import.FullName; });
         }
 
@@ -44,7 +45,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
-            CodeImport import = GetCodeImport(1);
+            var import = GetCodeImport(1);
 
             Assert.Equal(vsCMElement.vsCMElementImportStmt, import.Kind);
         }
@@ -53,7 +54,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Namespace()
         {
-            CodeImport import = GetCodeImport(1);
+            var import = GetCodeImport(1);
 
             Assert.Equal("System", import.Namespace);
         }
@@ -62,7 +63,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Alias()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
 
             Assert.Equal("Goo", import.Alias);
         }
@@ -71,7 +72,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -79,7 +80,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -87,7 +88,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -95,7 +96,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -103,7 +104,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -111,7 +112,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -119,7 +120,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
@@ -127,8 +128,8 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
-            CodeImport import = GetCodeImport(2);
-            TextPoint startPoint = import.GetStartPoint(vsCMPart.vsCMPartNavigate);
+            var import = GetCodeImport(2);
+            var startPoint = import.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(2, startPoint.Line);
             Assert.Equal(13, startPoint.LineCharOffset);
@@ -138,7 +139,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -146,8 +147,8 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
-            TextPoint startPoint = import.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
+            var import = GetCodeImport(2);
+            var startPoint = import.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(2, startPoint.Line);
             Assert.Equal(1, startPoint.LineCharOffset);
@@ -157,7 +158,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
@@ -165,7 +166,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
@@ -173,7 +174,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
@@ -181,7 +182,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
@@ -189,7 +190,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
@@ -197,7 +198,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
@@ -205,7 +206,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
@@ -213,9 +214,9 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
 
-            TextPoint endPoint = import.GetEndPoint(vsCMPart.vsCMPartNavigate);
+            var endPoint = import.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(2, endPoint.Line);
             Assert.Equal(24, endPoint.LineCharOffset);
@@ -225,7 +226,7 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
@@ -233,9 +234,9 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
 
-            TextPoint endPoint = import.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
+            var endPoint = import.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(2, endPoint.Line);
             Assert.Equal(25, endPoint.LineCharOffset);
@@ -245,9 +246,9 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
 
-            TextPoint startPoint = import.StartPoint;
+            var startPoint = import.StartPoint;
 
             Assert.Equal(2, startPoint.Line);
             Assert.Equal(1, startPoint.LineCharOffset);
@@ -257,9 +258,9 @@ using Goo = System.Data;")
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
-            CodeImport import = GetCodeImport(2);
+            var import = GetCodeImport(2);
 
-            TextPoint endPoint = import.EndPoint;
+            var endPoint = import.EndPoint;
 
             Assert.Equal(2, endPoint.Line);
             Assert.Equal(25, endPoint.LineCharOffset);

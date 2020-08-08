@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -112,7 +114,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "AnotherAttribute").WithArguments("AnotherAttribute"),
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "A1").WithArguments("A1", "Do not use A1"),
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "G(Of Integer, AnotherAttribute)").WithArguments("G(Of Integer, AnotherAttribute)"),
@@ -270,7 +272,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}).AssertTheseDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).AssertTheseDiagnostics(
             <![CDATA[
 BC40008: 'Public Shared Sub ObsoleteMethod1()' is obsolete.
         ObsoleteMethod1()
@@ -408,7 +410,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "10").WithArguments("Public Shared Widening Operator CType(x As Integer) As Test"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "CType(""10"", Test)").WithArguments("Public Shared Narrowing Operator CType(x As String) As Test"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "-c").WithArguments("Public Shared Operator -(x As Test) As Test"),
@@ -466,7 +468,7 @@ End Class
     </file>
 </compilation>
 
-            Dim peReference = MetadataReference.CreateFromImage(CreateCompilationWithMscorlibAndVBRuntime(peSource).EmitToArray())
+            Dim peReference = MetadataReference.CreateFromImage(CreateCompilationWithMscorlib40AndVBRuntime(peSource).EmitToArray())
 
             Dim source =
 <compilation>
@@ -494,7 +496,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndReferences(source, {peReference}).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndReferences(source, {peReference}).VerifyDiagnostics(
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "TestClass1").WithArguments("TestClass1"),
                         Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "TestClass2").WithArguments("TestClass2", "TestClass2 is obsolete"),
                         Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "TestClass3").WithArguments("TestClass3", "Do not use TestClass3"),
@@ -584,7 +586,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "F5"),
                     Diagnostic(ERRID.ERR_RequiredConstExpr, "F5"),
                     Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "P1"),
@@ -648,7 +650,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -710,7 +712,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -760,7 +762,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC40008: 'A' is obsolete.
             Return New A()
@@ -830,7 +832,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC40008: 'A' is obsolete.
             M(New A())
@@ -896,7 +898,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithConcurrentBuild(False)).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithConcurrentBuild(False)).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -916,7 +918,7 @@ end class
     </file>
 </compilation>
 
-            Dim other = CreateCompilationWithMscorlib(s)
+            Dim other = CreateCompilationWithMscorlib40(s)
 
             s =
 <compilation>
@@ -930,7 +932,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndReferences(s, {New VisualBasicCompilationReference(other)}).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndReferences(s, {New VisualBasicCompilationReference(other)}).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "C").WithArguments("C"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "o.Goo()").WithArguments("Public Sub Goo()"))
 
@@ -998,7 +1000,7 @@ Public Delegate Sub MyDeleg()
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "XEvent").WithArguments("Public Event XEvent()"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "MyDeleg").WithArguments("MyDeleg"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "MyDeleg").WithArguments("MyDeleg"),
@@ -1049,7 +1051,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "Att()").WithArguments("Public Sub New()", "Constructor"),
                 Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "Att").WithArguments("Public Sub New()", "Constructor"),
                 Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "Field:=1").WithArguments("Public Field As Integer", "Field"),
@@ -1126,7 +1128,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A.B.C1").WithArguments("A.B.C1"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A.B.C2(Of Integer)").WithArguments("A.B.C2(Of Integer)"),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "A.B.C2(Of Integer)").WithArguments("A.B.C2(Of Integer)"),
@@ -1144,10 +1146,1256 @@ End Class
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "a.b.c2(Of Integer).E(Of Integer)").WithArguments("A.B.C2(Of Integer).E(Of Integer)"))
         End Sub
 
+        Private ReadOnly ObsoleteAttributeSource As XElement = <file name="ObsoleteAttribute.vb"><![CDATA[
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Sub New()
+        End Sub
+    
+        Public Sub New(message As String)
+        End Sub
+    
+        Public Sub New(message As String, isError As Boolean)
+        End Sub
+    
+        Public Property DiagnosticId As String
+        Public Property UrlFormat As String
+    End Class
+End Namespace
+]]></file>
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_01()
+
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete(DiagnosticId:="TEST1")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]>
+    </file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_02()
+
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete(UrlFormat:="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/{0}")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]>
+    </file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/BC40008", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_03()
+
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete(UrlFormat:="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/{0}/{1}")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]>
+    </file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_04()
+
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete(UrlFormat:="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/elementname-is-obsolete-visual-basic-warning")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]>
+    </file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/elementname-is-obsolete-visual-basic-warning", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadAttribute_01()
+
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete(DiagnosticId:="TEST1")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Sub New()
+        End Sub
+    
+        Public Sub New(message As String)
+        End Sub
+    
+        Public Sub New(message As String, isError As Boolean)
+        End Sub
+    
+        Public Dim DiagnosticId As String
+        Public Property DiagnosticId As String
+    End Class
+End Namespace
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(
+                Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "DiagnosticId").WithArguments("DiagnosticId", "class", "System.ObsoleteAttribute").WithLocation(4, 15),
+                Diagnostic(ERRID.ERR_MultiplyDefinedType3, "DiagnosticId").WithArguments("DiagnosticId", "Public DiagnosticId As String", "class").WithLocation(27, 25))
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_05()
+
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete("don't use", false, DiagnosticId:="TEST1", UrlFormat:="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/{0}")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]>
+    </file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()", "don't use").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("TEST1", diag.Id)
+            Assert.Equal(ERRID.WRN_UseOfObsoleteSymbol2, DirectCast(diag.Code, ERRID))
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadAttribute_02()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete(DiagnosticId:="A", DiagnosticId:="B", UrlFormat:="C", UrlFormat:="D")>
+    Sub M1()
+    End Sub
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            Dim diags = comp.GetDiagnostics()
+            diags.Verify(Diagnostic("A", "M1()").WithArguments("Public Sub M1()").WithLocation(9, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("C", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_Suppression_01()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C1
+    <Obsolete("don't use", false, DiagnosticId:="TEST1")>
+    Sub M1()
+    End Sub
+
+    <Obsolete>
+    Sub M2()
+    End Sub
+
+    Sub M3()
+        M1()
+        M2()
+
+#Disable Warning TEST1
+        M1()
+        M2()
+#Enable Warning TEST1
+
+#Disable Warning BC40008
+        M1()
+        M2()
+    End Sub
+End Class
+]]></file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.VerifyDiagnostics(
+                Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()", "don't use").WithLocation(13, 9),
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M2()").WithArguments("Public Sub M2()").WithLocation(14, 9),
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M2()").WithArguments("Public Sub M2()").WithLocation(18, 9),
+                Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()", "don't use").WithLocation(22, 9))
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_FromMetadata_01()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class C1
+    <Obsolete("don't use", false, DiagnosticId:="TEST1")>
+    Public Sub M1()
+    End Sub
+
+    <Obsolete>
+    Public Sub M2()
+    End Sub
+End Class
+]]></file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M3()
+        M1()
+        M2()
+
+#Disable Warning TEST1
+        M1()
+        M2()
+#Enable Warning TEST1
+
+#Disable Warning BC40008
+        M1()
+        M2()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+            Dim expected = {
+                Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()", "don't use").WithLocation(5, 9),
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M2()").WithArguments("Public Sub M2()").WithLocation(6, 9),
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M2()").WithArguments("Public Sub M2()").WithLocation(10, 9),
+                Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()", "don't use").WithLocation(14, 9)
+            }
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            comp2.VerifyDiagnostics(expected)
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            comp2.VerifyDiagnostics(expected)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_FromMetadata_02()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class C1
+    <Obsolete(DiagnosticId:="TEST1")>
+    Public Sub M1()
+    End Sub
+
+    <Obsolete("don't use", DiagnosticId:="TEST2")>
+    Public Sub M2()
+    End Sub
+    
+    <Obsolete("don't use", false, DiagnosticId:="TEST3")>
+    Public Sub M3()
+    End Sub
+End Class
+]]></file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M4()
+        M1()
+        M2()
+        M3()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+            Dim expected = {
+                Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9),
+                Diagnostic("TEST2", "M2()").WithArguments("Public Sub M2()", "don't use").WithLocation(6, 9),
+                Diagnostic("TEST3", "M3()").WithArguments("Public Sub M3()", "don't use").WithLocation(7, 9)
+            }
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            comp2.VerifyDiagnostics(expected)
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            comp2.VerifyDiagnostics(expected)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_FromMetadata_03()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class C1
+    <Obsolete(DiagnosticId:="TEST1", UrlFormat:="https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/{0}")>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_FromMetadata_04()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class C1
+    <Obsolete(DiagnosticId:=Nothing, UrlFormat:=Nothing)>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+    <%= ObsoleteAttributeSource %>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_01()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class C1
+    <Obsolete(Flag:=False, DiagnosticId:="TEST1")>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+    <file name="ObsoleteAttribute.vb"><![CDATA[
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+
+        Public Property Flag As Boolean
+        Public Property DiagnosticId As String
+    End Class
+End Namespace
+]]></file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_02()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class C1
+    <Obsolete(DiagnosticId:="TEST1", UrlFormat:="TEST2")>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+    <file name="ObsoleteAttribute.vb"><![CDATA[
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+
+        Public Dim DiagnosticId As String
+        Public Dim UrlFormat As String
+    End Class
+End Namespace
+]]></file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_03()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Enum E1
+    A
+    B
+End Enum
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Property ByteProp As Byte
+        Public Property SByteProp As SByte
+        Public Property BooleanProp As Boolean
+        Public Property ShortProp As Short
+        Public Property UshortProp As UShort
+        Public Property CharProp As Char
+        Public Property IntProp As Integer
+        Public Property UintProp As UInteger
+        Public Property FloatProp As Single
+        Public Property LongProp As Long
+        Public Property UlongProp As ULong
+        Public Property DoubleProp As Double
+        Public Property EnumProp As E1
+        Public Property DiagnosticId As String
+    End Class
+End Namespace
+
+Public Class C1
+    <Obsolete(
+        ByteProp:=0,
+        SByteProp:=0,
+        BooleanProp:=false,
+        ShortProp:=0,
+        UShortProp:=0,
+        CharProp:="\0",
+        IntProp:=0,
+        UIntProp:=0,
+        FloatProp:=0,
+        LongProp:=0,
+        ULongProp:=0,
+        DoubleProp:=0,
+        EnumProp:=E1.A,
+        DiagnosticId:="TEST1")>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_04()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Enum E1
+    A
+    B
+End Enum
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Property IntProp As Integer()
+        Public Property EnumProp As E1()
+        Public Property DiagnosticId As String
+    End Class
+End Namespace
+
+Public Class C1
+    <Obsolete(
+        IntProp:={0, 1, 2},
+        EnumProp:={E1.A, E1.B},
+        DiagnosticId:="TEST1")>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_05()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Enum E1
+    A
+    B
+End Enum
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Property DiagnosticId As Char()
+        Public Property UrlFormat As Char()
+    End Class
+End Namespace
+
+Public Class C1
+    <Obsolete(
+        DiagnosticId:={"A"},
+        UrlFormat:={"B"})>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_06()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Enum E1
+    A
+    B
+End Enum
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Property DiagnosticId As Char()
+        Public Property UrlFormat As Char()
+    End Class
+End Namespace
+
+Public Class C1
+    <Obsolete(
+        DiagnosticId:=Nothing,
+        UrlFormat:=Nothing)>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_07()
+
+            ' In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
+            Dim ilSource = "
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.class public auto ansi beforefieldinit C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void 
+          M1() cil managed
+  {
+    .custom instance void System.ObsoleteAttribute::.ctor() = ( 01 00 04 00                                         // ....
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 41  // T..DiagnosticId.A
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 42  // T..DiagnosticId.B
+                                                                54 0E 09 55 72 6C 46 6F 72 6D 61 74 01 43           // T..UrlFormat.C
+                                                                54 0E 09 55 72 6C 46 6F 72 6D 61 74 01 44 )         // T..UrlFormat.D
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method C1::M1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi beforefieldinit System.ObsoleteAttribute
+       extends [mscorlib]System.Attribute
+{
+  .field private string '<DiagnosticId>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .field private string '<UrlFormat>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .method public hidebysig specialname instance string 
+          get_DiagnosticId() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_DiagnosticId
+
+  .method public hidebysig specialname instance void 
+          set_DiagnosticId(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_DiagnosticId
+
+  .method public hidebysig specialname instance string 
+          get_UrlFormat() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_UrlFormat
+
+  .method public hidebysig specialname instance void 
+          set_UrlFormat(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_UrlFormat
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::.ctor
+
+  .property instance string DiagnosticId()
+  {
+    .get instance string System.ObsoleteAttribute::get_DiagnosticId()
+    .set instance void System.ObsoleteAttribute::set_DiagnosticId(string)
+  } // end of property ObsoleteAttribute::DiagnosticId
+  .property instance string UrlFormat()
+  {
+    .get instance string System.ObsoleteAttribute::get_UrlFormat()
+    .set instance void System.ObsoleteAttribute::set_UrlFormat(string)
+  } // end of property ObsoleteAttribute::UrlFormat
+} // end of class System.ObsoleteAttribute
+"
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+
+            Dim ilComp = CompileIL(ilSource)
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={ilComp})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("A", "M1()").WithArguments("Public Overloads Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("C", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_08()
+
+            ' In this program C1.M1 has an ObsoleteAttribute with multiple values provided for DiagnosticId and UrlFormat
+            Dim ilSource = "
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.class public auto ansi beforefieldinit C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void 
+          M1() cil managed
+  {
+    .custom instance void System.ObsoleteAttribute::.ctor() = ( 01 00 02 00                                         // ....
+                                                                54 0E 0C 44 69 61 67 6E 6F 73 74 69 63 49 64 01 41  // T..DiagnosticId.A
+                                                                0E 09 55 72 6C 46 6F 72 6D 61 74 01 42 )            // ..UrlFormat.B
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method C1::M1
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public auto ansi beforefieldinit System.ObsoleteAttribute
+       extends [mscorlib]System.Attribute
+{
+  .field private string '<DiagnosticId>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .field private string '<UrlFormat>k__BackingField'
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
+  .method public hidebysig specialname instance string 
+          get_DiagnosticId() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_DiagnosticId
+
+  .method public hidebysig specialname instance void 
+          set_DiagnosticId(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<DiagnosticId>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_DiagnosticId
+
+  .method public hidebysig specialname instance string 
+          get_UrlFormat() cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0006:  ret
+  } // end of method ObsoleteAttribute::get_UrlFormat
+
+  .method public hidebysig specialname instance void 
+          set_UrlFormat(string 'value') cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  stfld      string System.ObsoleteAttribute::'<UrlFormat>k__BackingField'
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::set_UrlFormat
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method ObsoleteAttribute::.ctor
+
+  .property instance string DiagnosticId()
+  {
+    .get instance string System.ObsoleteAttribute::get_DiagnosticId()
+    .set instance void System.ObsoleteAttribute::set_DiagnosticId(string)
+  } // end of property ObsoleteAttribute::DiagnosticId
+  .property instance string UrlFormat()
+  {
+    .get instance string System.ObsoleteAttribute::get_UrlFormat()
+    .set instance void System.ObsoleteAttribute::set_UrlFormat(string)
+  } // end of property ObsoleteAttribute::UrlFormat
+} // end of class System.ObsoleteAttribute
+"
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+
+            Dim ilComp = CompileIL(ilSource)
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={ilComp})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic("A", "M1()").WithArguments("Public Overloads Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
+        <Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")>
+        Public Sub Obsolete_CustomDiagnosticId_BadMetadata_09()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Enum E1
+    A
+    B
+End Enum
+
+Namespace System
+    Public Class ObsoleteAttribute
+        Inherits Attribute
+    
+        Public Property DiagnosticId As Object
+        Public Property UrlFormat As Object
+    End Class
+End Namespace
+
+Public Class C1
+    <Obsolete(
+        DiagnosticId:="A",
+        UrlFormat:="B")>
+    Public Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C2
+    Inherits C1
+
+    Sub M2()
+        M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib40(source1)
+            comp1.VerifyDiagnostics()
+
+
+            Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
+            Dim diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            Dim diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+
+
+            comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
+            diags = comp2.GetDiagnostics()
+            diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
+
+            diag = diags.Single()
+            Assert.Equal("", diag.Descriptor.HelpLinkUri)
+        End Sub
+
         <WorkItem(578023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>
         <Fact>
         Public Sub TestObsoleteInAlias()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports X = C
@@ -1198,7 +2446,7 @@ Imports A(Of C()).B
         <WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")>
         <Fact>
         Public Sub TestObsoleteOnVirtualMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1288,7 +2536,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithReferences(source1, WinRtRefs)
+            Dim compilation1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs)
             compilation1.VerifyDiagnostics()
 
             Dim source2 =
@@ -1333,7 +2581,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat(New VisualBasicCompilationReference(compilation1)))
+            Dim compilation2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat(New VisualBasicCompilationReference(compilation1)))
 
             Dim expected = <![CDATA[
 BC40000: 'Class1' is obsolete: 'Class1 is deprecated.'.
@@ -1354,7 +2602,7 @@ BC31142: 'Windows.Foundation.Metadata.DeprecatedAttribute' cannot be applied to 
 ]]>
             compilation2.AssertTheseDiagnostics(expected)
 
-            compilation2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat(compilation1.EmitToImageReference()))
+            compilation2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat(compilation1.EmitToImageReference()))
 
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
@@ -1420,7 +2668,7 @@ public class Test
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {ref})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {ref})
 
             Dim expected = <![CDATA[
 BC40000: 'Public Shared Overloads Sub Goo()' is obsolete: 'hello'.
@@ -1456,7 +2704,7 @@ BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
     </file>
 </compilation>
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {ref})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source3, {ref})
 
             Dim expected2 = <![CDATA[
 BC40000: 'Public Sub Goo()' is obsolete: 'hello'.
@@ -1490,7 +2738,7 @@ End Module
     </file>
 </compilation>
 
-            Dim vbCompilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource, {ref})
+            Dim vbCompilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource, {ref})
 
             vbCompilation.AssertTheseDiagnostics((<![CDATA[
 BC30668: 'S' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
@@ -1572,7 +2820,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithReferences(source1, WinRtRefs)
+            Dim compilation1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs)
 
             Dim expected = <![CDATA[
 BC40000: 'Sub Goo()' is obsolete: 'IGoo1.Goo has been deprecated'.
@@ -1616,7 +2864,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CreateCompilationWithReferences(source0, WinRtRefs, TestOptions.ReleaseDll)
+            Dim compilation0 = CreateEmptyCompilationWithReferences(source0, WinRtRefs, TestOptions.ReleaseDll)
 
             compilation0.VerifyDiagnostics()
 
@@ -1634,7 +2882,7 @@ End Class]]>
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithReferences(source1, WinRtRefs.Append(New VisualBasicCompilationReference(compilation0)))
+            Dim compilation1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs.Append(New VisualBasicCompilationReference(compilation0)))
 
             Dim expected = <![CDATA[
 BC30911: 'Set' accessor of 'Public Property ExceptionalProp As String' is obsolete: 'Changed my mind; don't put this prop.'.
@@ -1646,7 +2894,7 @@ BC30911: 'Get' accessor of 'Public Property ExceptionalProp As String' is obsole
 ]]>
             compilation1.AssertTheseDiagnostics(expected)
 
-            Dim compilation2 = CreateCompilationWithReferences(source1, WinRtRefs.Append(compilation0.EmitToImageReference()))
+            Dim compilation2 = CreateEmptyCompilationWithReferences(source1, WinRtRefs.Append(compilation0.EmitToImageReference()))
 
             compilation2.AssertTheseDiagnostics(expected)
         End Sub

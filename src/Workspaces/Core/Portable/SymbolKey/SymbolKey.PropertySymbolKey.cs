@@ -1,7 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System.Linq;
-using Roslyn.Utilities;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,31 +17,47 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
                 var isIndexer = reader.ReadBoolean();
-                var refKinds = reader.ReadRefKindArray();
-                var originalParameterTypes = reader.ReadSymbolKeyArray().Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
+                using var refKinds = reader.ReadRefKindArray();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
 
-                if (originalParameterTypes.Any(s_typeIsNull))
+                if (containingTypeFailureReason != null)
                 {
+                    failureReason = $"({nameof(PropertySymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
                     return default;
                 }
 
-                var properties = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>()
-                    .SelectMany(t => t.GetMembers())
-                    .OfType<IPropertySymbol>()
-                    .Where(p => p.Parameters.Length == refKinds.Length &&
-                                p.MetadataName == metadataName &&
-                                p.IsIndexer == isIndexer);
-                var matchingProperties = properties.Where(p =>
-                    ParameterRefKindsMatch(p.OriginalDefinition.Parameters, refKinds) &&
-                    reader.ParameterTypesMatch(p.OriginalDefinition.Parameters, originalParameterTypes));
+                if (parameterTypesFailureReason != null)
+                {
+                    failureReason = $"({nameof(PropertySymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";
+                    return default;
+                }
 
-                return CreateSymbolInfo(matchingProperties);
+                if (parameterTypes.IsDefault)
+                {
+                    failureReason = $"({nameof(PropertySymbolKey)} no parameter types)";
+                    return default;
+                }
+
+                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataNameOpt: null);
+                using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
+                foreach (var property in properties)
+                {
+                    if (property.Parameters.Length == refKinds.Count &&
+                        property.MetadataName == metadataName &&
+                        property.IsIndexer == isIndexer &&
+                        ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) &&
+                        reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
+                    {
+                        result.AddIfNotNull(property);
+                    }
+                }
+
+                return CreateResolution(result, $"({nameof(PropertySymbolKey)} '{metadataName}' not found)", out failureReason);
             }
         }
     }

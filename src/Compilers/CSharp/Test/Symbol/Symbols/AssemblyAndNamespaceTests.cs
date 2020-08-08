@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ";
             var simpleName = GetUniqueName();
-            var comp = CreateStandardCompilation(text, assemblyName: simpleName);
+            var comp = CreateCompilation(text, assemblyName: simpleName);
             var sym = comp.Assembly;
             // See bug 2058: the following lines assume System.Reflection.AssemblyName preserves the case of
             // the "displayName" passed to it, but it sometimes does not.
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     class A {}
 }
 ";
-            var comp = CreateStandardCompilation(text, assemblyName: "Test");
+            var comp = CreateCompilation(text, assemblyName: "Test");
 
             var sym = comp.SourceModule;
             Assert.Equal("Test.dll", sym.Name);
@@ -154,7 +156,7 @@ namespace NS.NS1 {
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(text);
+            var comp1 = CreateCompilation(text);
             var compRef = new CSharpCompilationReference(comp1);
 
             var comp = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
@@ -195,13 +197,13 @@ namespace NS.NS1 {
     struct SGoo {}
 }
 ";
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "Compilation1");
-            var comp2 = CreateStandardCompilation(text2, assemblyName: "Compilation2");
+            var comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
+            var comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
 
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
+            var comp = CreateEmptyCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text3) },
             //                        references: new MetadataReference[] { compRef1, compRef2 });
@@ -306,7 +308,7 @@ namespace NS.NS1 {
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateEmptyCompilation(@"
 namespace NS1 {
 	class A { }
 }	
@@ -337,7 +339,7 @@ namespace NS
         [Fact]
         public void GenericNamespace()
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateEmptyCompilation(@"
 namespace Goo<T>
 {
     class Program    
@@ -366,9 +368,9 @@ namespace Goo<T>
         {
             var source = @"public class C { }";
 
-            var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
+            var aliasedCorlib = TestMetadata.Net451.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
-            var comp = CreateCompilation(source, new[] { aliasedCorlib });
+            var comp = CreateEmptyCompilation(source, new[] { aliasedCorlib });
 
             // NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             // However, we've already changed how special type lookup works, so this is not a major issue.
@@ -433,6 +435,39 @@ class App
             // When we look in a single assembly, we don't consider referenced assemblies.
             Assert.Null(comp.Assembly.GetTypeByMetadataName("System.Threading.Tasks.Task"));
             Assert.Equal(taskType, comp.Assembly.CorLibrary.GetTypeByMetadataName("System.Threading.Tasks.Task"));
+        }
+
+        [WorkItem(863435, "DevDiv/Personal")]
+        [Fact]
+        public void CS1671ERR_BadModifiersOnNamespace01()
+        {
+            var test = @"
+public namespace NS // CS1671
+{
+    class Test
+    {
+        public static int Main()
+        {
+            return 1;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void CS1671ERR_BadModifiersOnNamespace02()
+        {
+            var test = @"[System.Obsolete]
+namespace N { }
+";
+
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]").WithLocation(1, 1));
         }
     }
 }

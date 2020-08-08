@@ -1,27 +1,31 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Commanding
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
+    <[UseExportProvider]>
     Public Class GoToDefinitionCancellationTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestCancellation()
             ' Run without cancelling.
-            Dim updates As Integer = Me.Cancel(Integer.MaxValue, False)
+            Dim updates As Integer = Cancel(Integer.MaxValue, False)
             Assert.InRange(updates, 0, Integer.MaxValue)
             Dim i As Integer = 0
             While i < updates
-                Dim n As Integer = Me.Cancel(i, True)
+                Dim n As Integer = Cancel(i, True)
                 Assert.Equal(n, i + 1)
                 i = i + 1
             End While
@@ -53,9 +57,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(
-                    definition,
-                    exportProvider:=MinimalTestExportProvider.CreateExportProvider(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))))
+            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -64,49 +66,45 @@ class C
                 Dim mockDocumentNavigationService =
                     DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
-                Dim commandHandler = New GoToDefinitionCommandHandler(New TestWaitIndicator(New TestWaitContext(100)))
-                commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value)
+                GoToDefinitionCommandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
                 Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
                 Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
-                commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value)
+                GoToDefinitionCommandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
                 Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
                 Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
             End Using
         End Sub
 
-        Private Function Cancel(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Integer
+        Private Shared Function Cancel(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Integer
             Dim definition =
 <Workspace>
-<Project Language="C#" CommonReferences="true">
-<Document>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
             class [|C|] { $$C c; }"
         </Document>
-</Project>
+    </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, exportProvider:=GoToTestHelpers.ExportProvider)
+            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                 Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
                 Dim navigatedTo = False
+                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() navigatedTo = True)
-                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
 
-                Dim cursorBuffer = cursorDocument.TextBuffer
+                Dim cursorBuffer = cursorDocument.GetTextBuffer()
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(presenters)
+                Dim goToDefService = New CSharpGoToDefinitionService(threadingContext, New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter))
 
-                Dim waitContext = New TestWaitContext(updatesBeforeCancel)
-                Dim waitIndicator = New TestWaitIndicator(waitContext)
-                Dim commandHandler = New GoToDefinitionCommandHandler(waitIndicator)
-
-                commandHandler.TryExecuteCommand(document, cursorPosition, goToDefService)
+                Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
+                GoToDefinitionCommandHandler.TryExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
 
                 Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
 

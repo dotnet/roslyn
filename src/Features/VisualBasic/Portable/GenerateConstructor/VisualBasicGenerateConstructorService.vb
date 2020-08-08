@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Utilities
@@ -14,6 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
             Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function
@@ -22,8 +30,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 semanticModel As SemanticModel,
                 arguments As IEnumerable(Of ArgumentSyntax),
                 reservedNames As IList(Of String),
+                parameterNamingRule As NamingRule,
                 cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, cancellationToken)
+            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, parameterNamingRule, cancellationToken)
         End Function
 
         Protected Overrides Function GetArgumentType(
@@ -156,12 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
-        Friend Overrides Function GetDelegatingConstructor(state As State,
-                                                           document As SemanticDocument,
-                                                           argumentCount As Integer,
-                                                           namedType As INamedTypeSymbol,
-                                                           candidates As ISet(Of IMethodSymbol),
-                                                           cancellationToken As CancellationToken) As IMethodSymbol
+        Protected Overrides Function GetDelegatingConstructor(
+                state As State,
+                document As SemanticDocument,
+                argumentCount As Integer,
+                namedType As INamedTypeSymbol,
+                candidates As ISet(Of IMethodSymbol),
+                cancellationToken As CancellationToken) As IMethodSymbol
             Dim oldToken = state.Token
             Dim tokenKind = oldToken.Kind()
             Dim simpleName = DirectCast(oldToken.Parent, SimpleNameSyntax)
@@ -209,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 Dim typeNameToReplace = DirectCast(oldToken.Parent, TypeSyntax)
                 Dim newTypeName As TypeSyntax
-                If namedType IsNot state.TypeToGenerateIn Then
+                If Not Equals(namedType, state.TypeToGenerateIn) Then
                     While True
                         Dim parentType = TryCast(typeNameToReplace.Parent, TypeSyntax)
                         If parentType Is Nothing Then
@@ -232,12 +242,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                     Dim newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount)
                     If newArgumentList IsNot oldArgumentList Then
                         newNode = newNode.ReplaceNode(oldArgumentList, newArgumentList)
-                        newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), TypeSyntax)
                     End If
                 End If
 
                 Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, document.SemanticModel)
                 If speculativeModel IsNot Nothing Then
+                    ' Since the SpeculationAnalyzer will generate a new tree when speculating an AsNewClause, always find the newTypeName
+                    ' node from the tree the speculation model is generated from.
+                    newTypeName = speculativeModel.SyntaxTree.GetRoot().GetAnnotatedNodes(Of TypeSyntax)(s_annotation).Single()
+
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newTypeName.Parent, cancellationToken)
                     Return GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -19,10 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         internal static Span SpanToShow;
         internal static PreviewTagger Tagger;
 
-        public PreviewUpdater(ITextView textView)
+        public PreviewUpdater(IThreadingContext threadingContext, ITextView textView)
+            : base(threadingContext)
         {
             PreviewUpdater.TextView = textView;
-            Tagger = new PreviewTagger(textView, textView.TextBuffer);
+            Tagger = new PreviewTagger(textView.TextBuffer);
         }
 
         public void CloseWorkspace()
@@ -38,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var documentText = document.GetTextAsync().Result.ToString();
             if (TextView.TextBuffer.CurrentSnapshot.GetText() != documentText)
             {
-                UpdateBuffer(document, spanSource, out var container, out var documentBackedByTextBuffer);
+                UpdateBuffer(document, spanSource, out _, out _);
             }
 
             // Picking a different span: no text change; update span anyway.
@@ -78,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
-            var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+            var contentTypeService = document.Project.LanguageServices.GetRequiredService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
             TextView.TextBuffer.ChangeContentType(contentType, null);

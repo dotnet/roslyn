@@ -1,52 +1,60 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
-    [Export(typeof(TestExtensionErrorHandler))]
     [Export(typeof(IExtensionErrorHandler))]
-    internal class TestExtensionErrorHandler : IExtensionErrorHandler
+    [Export(typeof(ITestErrorHandler))]
+    internal class TestExtensionErrorHandler : IExtensionErrorHandler, ITestErrorHandler
     {
         private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
 
+        public ImmutableList<Exception> Exceptions => _exceptions;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestExtensionErrorHandler()
+        {
+        }
+
         public void HandleError(object sender, Exception exception)
         {
-            if (exception == null)
+            // Work around bug that is fixed in https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/209513
+            if (exception is NullReferenceException &&
+                exception.StackTrace.Contains("SpanTrackingWpfToolTipPresenter"))
             {
-                // Log an exception saying we didn't get an exception. I'd consider throwing here, but double-faults are just caught and consumed by
-                // the editor so that won't give a good debugging experience either.
-                try
-                {
-                    ThrowExceptionToGetStackTrace();
-                }
-                catch (Exception e)
-                {
-                    exception = e;
-                }
+                return;
             }
 
-            ImmutableInterlocked.Update(
-                ref _exceptions,
-                (list, item) => list.Add(item),
-                exception);
-        }
+            // Work around for https://github.com/dotnet/roslyn/issues/42982
+            if (exception is NullReferenceException &&
+                exception.StackTrace.Contains("Microsoft.CodeAnalysis.Completion.Providers.AbstractEmbeddedLanguageCompletionProvider.GetLanguageProviders"))
+            {
+                return;
+            }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowExceptionToGetStackTrace()
-        {
-            throw new Exception($"{nameof(TestExtensionErrorHandler)}.{nameof(HandleError)} called with null exception");
-        }
+            // Work around for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1091056
+            if (exception is InvalidOperationException &&
+                exception.StackTrace.Contains("Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionTelemetryHost"))
+            {
+                return;
+            }
 
-        public ImmutableList<Exception> GetExceptions()
-        {
-            // We'll clear off our list, so that way we don't report this for other tests
-            return Interlocked.Exchange(ref _exceptions, ImmutableList<Exception>.Empty);
+            // This exception is unexpected and as such we want the containing test case to
+            // fail. Unfortuntately throwing an exception here is not going to help because
+            // the editor is going to catch and swallow it. Store it here and wait for the 
+            // containing workspace to notice it and throw.
+            _exceptions = _exceptions.Add(exception);
         }
     }
 }

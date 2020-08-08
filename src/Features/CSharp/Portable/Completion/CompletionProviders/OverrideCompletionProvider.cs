@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -15,8 +19,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
+    [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public OverrideCompletionProvider()
         {
         }
@@ -31,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
-        }
+            => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
         {
@@ -70,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             modifiers = new DeclarationModifiers();
             seenAccessibility = Accessibility.NotApplicable;
             var overrideToken = default(SyntaxToken);
-            bool isUnsafe = false;
-            bool isSealed = false;
-            bool isAbstract = false;
+            var isUnsafe = false;
+            var isSealed = false;
+            var isAbstract = false;
 
             while (IsOnStartLine(token.SpanStart, text, startLine) && !token.IsKind(SyntaxKind.None))
             {
@@ -163,7 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 token = previousToken;
             }
 
-            startToken = token;
             modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed);
             return overrideToken.IsKind(SyntaxKind.OverrideKeyword) && IsOnStartLine(overrideToken.Parent.SpanStart, text, startLine);
         }
@@ -193,17 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (caretTarget is MethodDeclarationSyntax methodDeclaration)
             {
-                // abstract override blah(); : move to the end of the line
-                if (methodDeclaration.Body == null)
-                {
-                    return methodDeclaration.GetLocation().SourceSpan.End;
-                }
-                else
-                {
-                    // move to the end of the last statement in the method
-                    var lastStatement = methodDeclaration.Body.Statements.Last();
-                    return lastStatement.GetLocation().SourceSpan.End;
-                }
+                return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
             }
             else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +12,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal abstract partial class AbstractAnonymousTypeDisplayService : IAnonymousTypeDisplayService
     {
         public abstract IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position,
-            ISymbolDisplayService displayService);
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
             ISymbol orderSymbol,
             IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
             SemanticModel semanticModel,
-            int position,
-            ISymbolDisplayService displayService)
+            int position)
         {
             if (!directNormalAnonymousTypeReferences.Any())
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             anonymousTypeParts.Add(PlainText(FeaturesResources.Anonymous_Types_colon));
             anonymousTypeParts.AddRange(LineBreak());
 
-            for (int i = 0; i < transitiveNormalAnonymousTypeReferences.Count; i++)
+            for (var i = 0; i < transitiveNormalAnonymousTypeReferences.Count; i++)
             {
                 if (i != 0)
                 {
@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 anonymousTypeParts.AddRange(Space());
                 anonymousTypeParts.Add(PlainText(FeaturesResources.is_));
                 anonymousTypeParts.AddRange(Space());
-                anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position, displayService));
+                anonymousTypeParts.AddRange(GetAnonymousTypeParts(anonymousType, semanticModel, position));
             }
 
             // Now, inline any delegate anonymous types we've got.
-            anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position, displayService);
+            anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
             var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveNormalAnonymousTypeReferences);
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return new AnonymousTypeDisplayInfo(anonymousTypeToName, anonymousTypeParts);
         }
 
-        private Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
+        private static Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
             IList<INamedTypeSymbol> anonymousTypes)
         {
-            int current = 0;
+            var current = 0;
             var anonymousTypeToName = new Dictionary<INamedTypeSymbol, string>();
             foreach (var type in anonymousTypes)
             {
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return anonymousTypeToName;
         }
 
-        private string GenerateAnonymousTypeName(int current)
+        private static string GenerateAnonymousTypeName(int current)
         {
-            char c = (char)('a' + current);
+            var c = (char)('a' + current);
             if (c >= 'a' && c <= 'z')
             {
                 return "'" + c.ToString();
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return "'" + current.ToString();
         }
 
-        private IList<INamedTypeSymbol> OrderAnonymousTypes(
+        private static IList<INamedTypeSymbol> OrderAnonymousTypes(
             IList<INamedTypeSymbol> transitiveAnonymousTypeReferences,
             ISymbol symbol)
         {
@@ -139,45 +139,35 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return transitiveReferences;
         }
 
-        protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
+        protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
             }
         }
 
-        protected SymbolDisplayPart PlainText(string text)
-        {
-            return Part(SymbolDisplayPartKind.Text, text);
-        }
+        protected static SymbolDisplayPart PlainText(string text)
+            => Part(SymbolDisplayPartKind.Text, text);
 
-        private SymbolDisplayPart Part(SymbolDisplayPartKind kind, string text)
-        {
-            return Part(kind, null, text);
-        }
+        private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, string text)
+            => Part(kind, null, text);
 
-        private SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
-        {
-            return new SymbolDisplayPart(kind, symbol, text);
-        }
+        private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+            => new SymbolDisplayPart(kind, symbol, text);
 
-        protected IEnumerable<SymbolDisplayPart> Space(int count = 1)
+        protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
             }
         }
 
-        protected SymbolDisplayPart Punctuation(string text)
-        {
-            return Part(SymbolDisplayPartKind.Punctuation, text);
-        }
+        protected static SymbolDisplayPart Punctuation(string text)
+            => Part(SymbolDisplayPartKind.Punctuation, text);
 
-        protected SymbolDisplayPart Keyword(string text)
-        {
-            return Part(SymbolDisplayPartKind.Keyword, text);
-        }
+        protected static SymbolDisplayPart Keyword(string text)
+            => Part(SymbolDisplayPartKind.Keyword, text);
     }
 }

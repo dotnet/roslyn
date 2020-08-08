@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
@@ -18,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override bool IncludeSuppressedDiagnostics => true;
         protected override bool IncludeUnsuppressedDiagnostics => false;
         protected override int CodeActionIndex => 0;
-        private string FixAllActionEquivalenceKey => FeaturesResources.Remove_Suppression + UserDiagnosticAnalyzer.Decsciptor.Id;
 
         protected class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -35,14 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             }
 
             public UserDiagnosticAnalyzer(bool reportDiagnosticsWithoutLocation = false)
-            {
-                _reportDiagnosticsWithoutLocation = reportDiagnosticsWithoutLocation;
-            }
+                => _reportDiagnosticsWithoutLocation = reportDiagnosticsWithoutLocation;
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-            }
+                => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
@@ -54,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         public class CSharpDiagnosticWithLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
         {
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
@@ -369,7 +366,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -465,7 +462,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -565,7 +562,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             #endregion
@@ -690,7 +687,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -808,9 +805,7 @@ class Class2
     </Project>
 </Workspace>";
 
-
-
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -939,15 +934,15 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 
         public class CSharpDiagnosticWithoutLocationRemoveSuppressionTests : CSharpRemoveSuppressionTests
         {
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(reportDiagnosticsWithoutLocation: true), new CSharpSuppressionCodeFixProvider());
             }
 
@@ -1064,9 +1059,7 @@ class Class2
     </Project>
 </Workspace>";
 
-
-
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 

@@ -1,16 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
-            var tmpWorkspace = workspace ?? new AdhocWorkspace(DesktopMefHostServices.DefaultServices);
+            var tmpWorkspace = workspace ?? new AdhocWorkspace();
             var languageServices = tmpWorkspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {
@@ -71,10 +70,9 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (var appConfigStream = new FileStream(commandLineArguments.AppConfigPath, FileMode.Open, FileAccess.Read))
-                    {
-                        assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
-                    }
+                    using var appConfigStream = new FileStream(commandLineArguments.AppConfigPath, FileMode.Open, FileAccess.Read);
+
+                    assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                 }
                 catch (Exception e)
                 {
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis
             // and names the compilation after the file that contains it. We don't want to create a compilation, 
             // bind Mains etc. here. Besides the msbuild always includes /out in the command line it produces.
             // So if we don't have the /out argument we name the compilation "<anonymous>".
-            string assemblyName = (commandLineArguments.OutputFileName != null) ?
+            var assemblyName = (commandLineArguments.OutputFileName != null) ?
                 Path.GetFileNameWithoutExtension(commandLineArguments.OutputFileName) : "<anonymous>";
 
             // TODO (tomat): what should be the assemblyName when compiling a netmodule? Should it be /moduleassemblyname

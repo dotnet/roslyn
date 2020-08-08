@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
     internal partial class CSharpGenerateVariableService :
         AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpGenerateVariableService()
+        {
+        }
+
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
             => node is PropertyDeclarationSyntax;
 
@@ -102,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return false;
         }
 
-        private bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
+        private static bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
         {
             if (identifierName.IsKind(SyntaxKind.GenericName))
             {
@@ -113,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             // In this case, we would want to generate offer a member called 'Goo'.  however, if we have
             // something like "Goo < string >" then that's clearly something generic and we don't want
             // to offer to generate a member there.
-            var localRoot = identifierName.GetAncestor<StatementSyntax>() ?? 
+            var localRoot = identifierName.GetAncestor<StatementSyntax>() ??
                             identifierName.GetAncestor<MemberDeclarationSyntax>() ??
                             identifierName.SyntaxTree.GetRoot(cancellationToken);
 
             // In order to figure this out (without writing our own parser), we just try to parse out a
             // type name here.  If we get a generic name back, without any errors, then we'll assume the
-            // user realy is typing a generic name, and thus should not get recommendations to create a
+            // user really is typing a generic name, and thus should not get recommendations to create a
             // variable.
             var localText = localRoot.ToString();
             var startIndex = identifierName.Span.Start - localRoot.Span.Start;
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             return parsedType.IsKind(SyntaxKind.GenericName) && !parsedType.ContainsDiagnostics;
         }
 
-        private bool IsLegal(
+        private static bool IsLegal(
             SemanticDocument document,
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
@@ -143,6 +149,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             }
 
             if (expression.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.IsPatternExpression))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.NameColon) &&
+                expression.Parent.IsParentKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
             {
                 return true;
             }
@@ -161,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 
                 var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(
-                        GenerateTypeSyntax(type, options, assignExpression, semanticModel, cancellationToken),
+                        type.GenerateTypeSyntax(),
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.VariableDeclarator(token, null, SyntaxFactory.EqualsValueClause(
                                 assignExpression.OperatorToken, assignExpression.Right)))));
@@ -175,26 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
 
             newRoot = null;
             return false;
-        }
-
-        private static TypeSyntax GenerateTypeSyntax(ITypeSymbol type, OptionSet options, ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            // if there isn't a semantic model, we cannot perform further analysis.
-            if (semanticModel != null)
-            {
-                if (type.ContainsAnonymousType())
-                {
-                    return SyntaxFactory.IdentifierName("var");
-                }
-
-                if (type.TypeKind != TypeKind.Delegate &&
-                    TypeStyleHelper.IsImplicitTypePreferred(expression, semanticModel, options, cancellationToken))
-                {
-                    return SyntaxFactory.IdentifierName("var");
-                }
-            }
-
-            return type.GenerateTypeSyntax();
         }
     }
 }

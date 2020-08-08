@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
@@ -50,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function HasVarianceAmbiguity(containingType As NamedTypeSymbol, i1 As NamedTypeSymbol, i2 As NamedTypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Debug.Assert(i1.IsInterfaceType() AndAlso i2.IsInterfaceType())
             Debug.Assert(i1.IsGenericType AndAlso i2.IsGenericType)
-            Debug.Assert(i1.OriginalDefinition = i2.OriginalDefinition)
+            Debug.Assert(TypeSymbol.Equals(i1.OriginalDefinition, i2.OriginalDefinition, TypeCompareKind.ConsiderEverything))
 
             ' Go through all type arguments of all containing types. Order doesn't matters, so we 
             ' go inside-out.

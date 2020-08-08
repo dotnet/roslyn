@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -179,7 +182,7 @@ End Module
 
         <Fact()>
         Public Sub SimpleLabel()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SimpleLabel">
     <file name="a.vb">
 Module M
@@ -211,7 +214,7 @@ End Module
         <WorkItem(543378, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543378")>
         <Fact()>
         Public Sub DuplicatedLabel()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="DuplicatedLabel">
     <file name="a.vb">
 Module M
@@ -253,7 +256,7 @@ End Module
 
         <Fact()>
         Public Sub NumericLabel()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NumericLabel">
     <file name="a.vb">
 Module M
@@ -283,7 +286,7 @@ End Module
 
         <Fact()>
         Public Sub SameLabelNameInDifferentScope()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SameLabelNameInDifferentScope">
     <file name="a.vb">
 Module M
@@ -318,7 +321,7 @@ End Module
 
         <Fact()>
         Public Sub LabelOnCaseElse()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LabelOnCaseElse">
     <file name="a.vb">
 Module M
@@ -356,7 +359,7 @@ End Module
 
         <Fact()>
         Public Sub LabelOnIfElse()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LabelOnIfElse">
     <file name="a.vb">
 Module M
@@ -392,7 +395,7 @@ End Module
 
         <Fact()>
         Public Sub GotoLabelDefinedInTryFromCatch()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoLabelDefinedInTryFromCatch">
     <file name="a.vb">
 Module M
@@ -426,7 +429,7 @@ End Module
 
         <Fact()>
         Public Sub GoToInNestedLambda()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GoToInNestedLambda">
     <file name="a.vb">
 Module M

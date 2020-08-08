@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
@@ -36,29 +39,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         int IVsHierarchyEvents.OnInvalidateIcon(IntPtr hicon)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsHierarchyEvents.OnInvalidateItems(uint itemidParent)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsHierarchyEvents.OnItemAdded(uint itemidParent, uint itemidSiblingPrev, uint itemidAdded)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsHierarchyEvents.OnItemDeleted(uint itemid)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsHierarchyEvents.OnItemsAppended(uint itemidParent)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsHierarchyEvents.OnPropertyChanged(uint itemid, int propid, uint flags)
         {
@@ -66,17 +59,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                  propid == (int)__VSHPROPID.VSHPROPID_Name) &&
                 itemid == (uint)VSConstants.VSITEMID.Root)
             {
-                string newDisplayName = GetProjectDisplayName(Hierarchy);
-                string newPath = GetProjectFilePath(Hierarchy);
+                var filePath = Hierarchy.TryGetProjectFilePath();
 
-                UpdateProjectDisplayNameAndFilePath(newDisplayName, newPath);
-            }
+                if (filePath != null && File.Exists(filePath))
+                {
+                    VisualStudioProject.FilePath = filePath;
+                }
 
-            if ((propid == (int)__VSHPROPID.VSHPROPID_ProjectIDGuid) &&
-                 itemid == (uint)VSConstants.VSITEMID.Root)
-            {
-                // this should happen while project loading if it ever happens
-                Guid = GetProjectIDGuid(Hierarchy);
+                if (Hierarchy.TryGetName(out var name))
+                {
+                    VisualStudioProject.DisplayName = name;
+                }
             }
 
             return VSConstants.S_OK;

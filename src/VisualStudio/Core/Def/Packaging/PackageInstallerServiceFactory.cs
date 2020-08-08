@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -10,18 +12,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
@@ -47,9 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
-        // We refer to the package services through proxy types so that we can
-        // delay loading their DLLs until we actually need them.
-        private IPackageServicesProxy _packageServices;
+        private readonly Lazy<IVsPackageInstallerServices> _packageInstallerServices;
+        private readonly Lazy<IVsPackageInstaller2> _packageInstaller;
+        private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
+        private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
+
+        private JoinableTask<ImmutableArray<PackageSource>?> _packageSourcesAsync;
+        private IVsPackage _nugetPackageManager;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
@@ -57,34 +64,122 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         // refresh on the UI thread.  If we hear about project changes, we only refresh that
         // project.  If we hear about a solution level change, we'll refresh all projects.
         private bool _solutionChanged;
-        private HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
+        private readonly HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
             new ConcurrentDictionary<ProjectId, ProjectState>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PackageInstallerService(
+            IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(workspace, SymbolSearchOptions.Enabled,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices> packageInstallerServices,
+            [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2> packageInstaller,
+            [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller> packageUninstaller,
+            [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider> packageSourceProvider)
+            : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _packageInstallerServices = packageInstallerServices;
+            _packageInstaller = packageInstaller;
+            _packageUninstaller = packageUninstaller;
+            _packageSourceProvider = packageSourceProvider;
         }
 
-        public ImmutableArray<PackageSource> PackageSources { get; private set; } = ImmutableArray<PackageSource>.Empty;
+        public async ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
+        {
+            // Only read from _packageSourcesAsync once, since OnSourceProviderSourcesChanged could reset it to default
+            // at any time while this method is running.
+            JoinableTask<ImmutableArray<PackageSource>?> packageSourcesAsync;
+            lock (_gate)
+            {
+                if (_packageSourcesAsync is null)
+                {
+                    _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
+                }
+
+                packageSourcesAsync = _packageSourcesAsync;
+            }
+
+            if (packageSourcesAsync.IsCompleted)
+            {
+                // Since the task is already completed, we know this 'await' will complete synchronously.
+                return await packageSourcesAsync;
+            }
+            else if (allowSwitchToMainThread)
+            {
+                return await packageSourcesAsync.JoinAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // The result was not available and switching to the main thread is not allowed. Return without caching
+                // a result.
+                return null;
+            }
+        }
+
+        private async Task<ImmutableArray<PackageSource>?> GetPackageSourcesImplAsync()
+        {
+            CancellationToken cancellationToken;
+            lock (_gate)
+            {
+                // Read the current cancellation token within the gate to ensure the token source is not disposed at the
+                // time of the read.
+                cancellationToken = _tokenSource.Token;
+            }
+
+            try
+            {
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // The failure may have been caused by a workspace change. The task has already been invalidated at
+                // a higher level, so just return indicating the data is not complete.
+                return null;
+            }
+
+            try
+            {
+                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
+                    .SelectAsArray(r => new PackageSource(r.Key, r.Value));
+            }
+            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            {
+                // These exceptions can happen when the nuget.config file is broken.
+                return ImmutableArray<PackageSource>.Empty;
+            }
+            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            {
+                // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
+                // https://github.com/dotnet/roslyn/issues/40857
+                return ImmutableArray<PackageSource>.Empty;
+            }
+        }
 
         public event EventHandler PackageSourcesChanged;
 
-        private bool IsEnabled => _packageServices != null;
+        private bool IsEnabled
+        {
+            get
+            {
+                return _packageInstallerServices != null
+                    && _packageInstaller != null
+                    && _packageUninstaller != null
+                    && _packageSourceProvider != null;
+            }
+        }
 
         bool IPackageInstallerService.IsEnabled(ProjectId projectId)
         {
-            if (_packageServices == null)
+            if (!IsEnabled)
             {
                 return false;
             }
@@ -100,28 +195,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         protected override void EnableService()
         {
-            // Our service has been enabled.  Now load the VS package dlls.
-            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-
-            var packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
-            var packageInstaller = componentModel.GetExtensions<IVsPackageInstaller2>().FirstOrDefault();
-            var packageUninstaller = componentModel.GetExtensions<IVsPackageUninstaller>().FirstOrDefault();
-            var packageSourceProvider = componentModel.GetExtensions<IVsPackageSourceProvider>().FirstOrDefault();
-
-            if (packageInstallerServices == null ||
-                packageInstaller == null ||
-                packageUninstaller == null ||
-                packageSourceProvider == null)
+            if (!IsEnabled)
             {
                 return;
             }
 
-            _packageServices = new PackageServicesProxy(
-                packageInstallerServices, packageInstaller, packageUninstaller, packageSourceProvider);
-
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _packageServices.SourcesChanged += OnSourceProviderSourcesChanged;
+            _packageSourceProvider.Value.SourcesChanged += OnSourceProviderSourcesChanged;
         }
 
         protected override void StartWorking()
@@ -134,30 +215,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-            OnWorkspaceChanged(null, new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.SolutionAdded, null, null));
+            OnWorkspaceChanged(localSolutionChanged: true, localChangedProject: null);
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
         {
-            if (!this.IsForeground())
+            lock (_gate)
             {
-                this.InvokeBelowInputPriority(() => OnSourceProviderSourcesChanged(sender, e));
-                return;
-            }
-
-            this.AssertIsForeground();
-
-            try
-            {
-                PackageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
-                    .Select(r => new PackageSource(r.Key, r.Value))
-                    .ToImmutableArrayOrEmpty();
-            }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
-            {
-                // These exceptions can happen when the nuget.config file is broken.
-                PackageSources = ImmutableArray<PackageSource>.Empty;
+                // Reset the task for loading package sources.
+                _packageSourcesAsync = null;
             }
 
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
@@ -177,15 +243,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
             // it just to make sure that someone isn't trying to install a package into a workspace
             // other than the VisualStudioWorkspace.
-            if (workspace == _workspace && _workspace != null && _packageServices != null)
+            if (workspace == _workspace && _workspace != null && IsEnabled)
             {
                 var projectId = documentId.ProjectId;
                 var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
                 var dteProject = _workspace.TryGetDTEProject(projectId);
                 if (dteProject != null)
                 {
-                    var description = string.Format(ServicesVSResources.Install_0, packageName);
-
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
@@ -207,18 +271,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             try
             {
-                if (!_packageServices.IsPackageInstalled(dteProject, packageName))
+                if (!_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
 
                     if (versionOpt == null)
                     {
-                        _packageServices.InstallLatestPackage(
+                        _packageInstaller.Value.InstallLatestPackage(
                             source, dteProject, packageName, includePrerelease, ignoreDependencies: false);
                     }
                     else
                     {
-                        _packageServices.InstallPackage(
+                        _packageInstaller.Value.InstallPackage(
                             source, dteProject, packageName, versionOpt, ignoreDependencies: false);
                     }
 
@@ -247,9 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private static string GetStatusBarText(string packageName, string installedVersion)
-        {
-            return installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
-        }
+            => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
             string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
@@ -258,11 +320,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                if (_packageServices.IsPackageInstalled(dteProject, packageName))
+                if (_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
-                    _packageServices.UninstallPackage(dteProject, packageName, removeDependencies: true);
+                    _packageUninstaller.Value.UninstallPackage(dteProject, packageName, removeDependencies: true);
 
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0_completed,
                         GetStatusBarText(packageName, installedVersion));
@@ -293,14 +355,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                var installedPackages = _packageServices.GetInstalledPackages(dteProject);
+                var installedPackages = _packageInstallerServices.Value.GetInstalledPackages(dteProject);
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
-            }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
-            {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
@@ -309,21 +366,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return null;
         }
 
-        private bool IsKnownNugetIssue(ArgumentException exception)
-        {
-            // See https://github.com/NuGet/Home/issues/4706
-            // Nuget throws on legal projects.  We do not want to report this exception
-            // as it is known (and NFWs are expensive), but we do want to report if we 
-            // run into anything else.
-            return exception.Message.Contains("is not a valid version string");
-        }
-
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             ThisCanBeCalledOnAnyThread();
 
-            bool localSolutionChanged = false;
-            ProjectId localChangedProject = null;
+            var solutionChanged = false;
+            ProjectId chnagedProject = null;
             switch (e.Kind)
             {
                 default:
@@ -334,7 +382,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    localChangedProject = e.ProjectId;
+                    chnagedProject = e.ProjectId;
                     break;
 
                 case WorkspaceChangeKind.SolutionAdded:
@@ -342,10 +390,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    localSolutionChanged = true;
+                    solutionChanged = true;
                     break;
             }
 
+            this.OnWorkspaceChanged(solutionChanged, chnagedProject);
+        }
+
+        private void OnWorkspaceChanged(bool localSolutionChanged, ProjectId localChangedProject)
+        {
             lock (_gate)
             {
                 // Augment the data that the foreground thread will process.
@@ -364,7 +417,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // they've all come in.
                 var cancellationToken = _tokenSource.Token;
                 Task.Delay(TimeSpan.FromSeconds(1), cancellationToken)
-                    .ContinueWith(_ => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, ForegroundTaskScheduler);
+                    .ContinueWith(
+                        async _ =>
+                        {
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+                            ProcessBatchedChangesOnForeground(cancellationToken);
+                        },
+                        cancellationToken,
+                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default).Unwrap();
             }
         }
 
@@ -379,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // If we've been disconnected, then there's no point proceeding.
-            if (_workspace == null || _packageServices == null)
+            if (_workspace == null || !IsEnabled)
             {
                 return;
             }
@@ -399,8 +461,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // After processing this single project, yield so the foreground thread
             // can do more work.  Then go and loop again so we can process the 
             // rest of the projects.
-            Task.Factory.SafeStartNew(
-                () => ProcessBatchedChangesOnForeground(cancellationToken), cancellationToken, ForegroundTaskScheduler);
+            Task.Factory.SafeStartNewFromAsync(
+                async () =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                    ProcessBatchedChangesOnForeground(cancellationToken);
+                },
+                cancellationToken,
+                TaskScheduler.Default);
         }
 
         private ProjectId DequeueNextProject(Solution solution)
@@ -432,7 +501,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             this.AssertIsForeground();
 
             // Remove anything we have associated with this project.
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var projectState);
+            _projectToInstalledPackageAndVersion.TryRemove(projectId, out _);
 
             var project = solution.GetProject(projectId);
             if (project == null)
@@ -465,7 +534,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Calling into NuGet.  Assume they may fail for any reason.
             try
             {
-                var installedPackageMetadata = _packageServices.GetInstalledPackages(dteProject);
+                var installedPackageMetadata = _packageInstallerServices.Value.GetInstalledPackages(dteProject);
                 foreach (var metadata in installedPackageMetadata)
                 {
                     if (metadata.VersionString != null)
@@ -476,18 +545,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 isEnabled = true;
             }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
+            catch (InvalidOperationException)
             {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
+                // NuGet throws an InvalidOperationException if details
+                // for the project fail to load. We don't need to report
+                // these, and can assume that this will work on a future
+                // project change
+                // This should be removed with https://github.com/dotnet/roslyn/issues/33187
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
 
             var state = new ProjectState(isEnabled, installedPackages);
-            _projectToInstalledPackageAndVersion.AddOrUpdate(
-                projectId, state, (_1, _2) => state);
+            _projectToInstalledPackageAndVersion[projectId] = state;
         }
 
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
@@ -564,19 +635,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return result;
         }
 
-        public void ShowManagePackagesDialog(string packageName)
+        public bool CanShowManagePackagesDialog()
+            => TryGetOrLoadNuGetPackageManager(out _);
+
+        private bool TryGetOrLoadNuGetPackageManager(out IVsPackage nugetPackageManager)
         {
             this.AssertIsForeground();
 
+            if (_nugetPackageManager != null)
+            {
+                nugetPackageManager = _nugetPackageManager;
+                return true;
+            }
+
+            nugetPackageManager = null;
             var shell = (IVsShell)_serviceProvider.GetService(typeof(SVsShell));
             if (shell == null)
             {
-                return;
+                return false;
             }
 
             var nugetGuid = new Guid("5fcc8577-4feb-4d04-ad72-d6c629b083cc");
-            shell.LoadPackage(ref nugetGuid, out var nugetPackage);
-            if (nugetPackage == null)
+            shell.LoadPackage(ref nugetGuid, out nugetPackageManager);
+            _nugetPackageManager = nugetPackageManager;
+            return nugetPackageManager != null;
+        }
+
+        public void ShowManagePackagesDialog(string packageName)
+        {
+            if (!TryGetOrLoadNuGetPackageManager(out var nugetPackageManager))
             {
                 return;
             }
@@ -587,7 +674,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // We get that interface for it and then pass it a SearchQuery that effectively
             // wraps the package name we're looking for.  The NuGet package will then read
             // out that string and populate their search box with it.
-            var extensionProvider = (IVsPackageExtensionProvider)nugetPackage;
+            var extensionProvider = (IVsPackageExtensionProvider)nugetPackageManager;
             var extensionGuid = new Guid("042C2B4B-C7F7-49DB-B7A2-402EB8DC7892");
             var emptyGuid = Guid.Empty;
             var searchProvider = (IVsSearchProvider)extensionProvider.CreateExtensionInstance(ref emptyGuid, ref extensionGuid);
@@ -604,9 +691,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         public void ReportResult(IVsSearchTask pTask, IVsSearchItemResult pSearchItemResult)
-        {
-            pSearchItemResult.InvokeAction();
-        }
+            => pSearchItemResult.InvokeAction();
 
         public void ReportResults(IVsSearchTask pTask, uint dwResults, IVsSearchItemResult[] pSearchItemResults)
         {
@@ -615,73 +700,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private class SearchQuery : IVsSearchQuery
         {
             public SearchQuery(string packageName)
-            {
-                this.SearchString = packageName;
-            }
+                => this.SearchString = packageName;
 
             public string SearchString { get; }
 
             public uint ParseError => 0;
 
             public uint GetTokens(uint dwMaxTokens, IVsSearchToken[] rgpSearchTokens)
-            {
-                return 0;
-            }
-        }
-
-        private class PackageServicesProxy : IPackageServicesProxy
-        {
-            private readonly IVsPackageInstaller2 _packageInstaller;
-            private readonly IVsPackageInstallerServices _packageInstallerServices;
-            private readonly IVsPackageSourceProvider _packageSourceProvider;
-            private readonly IVsPackageUninstaller _packageUninstaller;
-
-            public PackageServicesProxy(
-                IVsPackageInstallerServices packageInstallerServices,
-                IVsPackageInstaller2 packageInstaller,
-                IVsPackageUninstaller packageUninstaller,
-                IVsPackageSourceProvider packageSourceProvider)
-            {
-                _packageInstallerServices = packageInstallerServices;
-                _packageInstaller = packageInstaller;
-                _packageUninstaller = packageUninstaller;
-                _packageSourceProvider = packageSourceProvider;
-            }
-
-            public event EventHandler SourcesChanged
-            {
-                add
-                {
-                    _packageSourceProvider.SourcesChanged += value;
-                }
-
-                remove
-                {
-                    _packageSourceProvider.SourcesChanged -= value;
-                }
-            }
-
-            public IEnumerable<PackageMetadata> GetInstalledPackages(EnvDTE.Project project)
-            {
-                return _packageInstallerServices.GetInstalledPackages(project)
-                                  .Select(m => new PackageMetadata(m.Id, m.VersionString))
-                                  .ToList();
-            }
-
-            public bool IsPackageInstalled(EnvDTE.Project project, string id)
-                => _packageInstallerServices.IsPackageInstalled(project, id);
-
-            public void InstallPackage(string source, EnvDTE.Project project, string packageId, string version, bool ignoreDependencies)
-                => _packageInstaller.InstallPackage(source, project, packageId, version, ignoreDependencies);
-
-            public void InstallLatestPackage(string source, EnvDTE.Project project, string packageId, bool includePrerelease, bool ignoreDependencies)
-                => _packageInstaller.InstallLatestPackage(source, project, packageId, includePrerelease, ignoreDependencies);
-
-            public IEnumerable<KeyValuePair<string, string>> GetSources(bool includeUnOfficial, bool includeDisabled)
-                => _packageSourceProvider.GetSources(includeUnOfficial, includeDisabled);
-
-            public void UninstallPackage(EnvDTE.Project project, string packageId, bool removeDependencies)
-                => _packageUninstaller.UninstallPackage(project, packageId, removeDependencies);
+                => 0;
         }
     }
 }

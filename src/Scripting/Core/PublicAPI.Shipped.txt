@@ -95,19 +95,26 @@ Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(params System.Refle
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(System.Collections.Generic.IEnumerable<string> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(System.Collections.Generic.IEnumerable<System.Reflection.Assembly> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.AllowUnsafe.get -> bool
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.CheckOverflow.get -> bool
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.EmitDebugInformation.get -> bool
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.FileEncoding.get -> System.Text.Encoding
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.FilePath.get -> string
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.Imports.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.MetadataReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.MetadataResolver.get -> Microsoft.CodeAnalysis.MetadataReferenceResolver
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.OptimizationLevel.get -> Microsoft.CodeAnalysis.OptimizationLevel
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.SourceResolver.get -> Microsoft.CodeAnalysis.SourceReferenceResolver
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WarningLevel.get -> int
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithAllowUnsafe(bool allowUnsafe) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithCheckOverflow(bool checkOverflow) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithEmitDebugInformation(bool emitDebugInformation) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithFileEncoding(System.Text.Encoding encoding) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithFilePath(string filePath) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithImports(params string[] imports) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithImports(System.Collections.Generic.IEnumerable<string> imports) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithMetadataResolver(Microsoft.CodeAnalysis.MetadataReferenceResolver resolver) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithOptimizationLevel(Microsoft.CodeAnalysis.OptimizationLevel optimizationLevel) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(params Microsoft.CodeAnalysis.MetadataReference[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(params string[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(params System.Reflection.Assembly[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
@@ -115,6 +122,7 @@ Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(System.Collections
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(System.Collections.Generic.IEnumerable<string> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithReferences(System.Collections.Generic.IEnumerable<System.Reflection.Assembly> references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithSourceResolver(Microsoft.CodeAnalysis.SourceReferenceResolver resolver) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithWarningLevel(int warningLevel) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>
 Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver
 Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Equals(Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver other) -> bool

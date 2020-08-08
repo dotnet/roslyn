@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -23,7 +25,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, ","),
                     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
@@ -51,7 +53,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConv, "i").WithArguments("int", "bool"));
         }
 
@@ -72,7 +74,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("bool?", "bool"));
         }
 
@@ -90,7 +92,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
                     Diagnostic(ErrorCode.ERR_RbraceExpected, ")")
@@ -106,7 +108,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
                     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
@@ -137,7 +139,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).
+            CreateCompilation(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.ERR_LabelNotFound, "outerLoop").WithArguments("outerLoop"),
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "j"),
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outerLoop"));
@@ -162,7 +164,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text).
+            CreateCompilationWithMscorlib40AndSystemCore(text).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.ERR_NoImplicitConv,
 @"from x in new[] { 1, 2, 3 }
@@ -190,7 +192,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement });
         }

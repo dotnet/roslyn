@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,10 +11,12 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -145,10 +149,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) => 
+        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) =>
             MetadataTokens.LocalVariableHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
-        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) => 
+        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) =>
             MetadataTokens.LocalConstantHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
         private BlobHandle SerializeLocalConstantSignature(ILocalDefinition localConstant)
@@ -726,44 +730,52 @@ namespace Microsoft.Cci
 
         private DocumentHandle GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
         {
-            DocumentHandle documentHandle;
-            if (!index.TryGetValue(document, out documentHandle))
+            if (index.TryGetValue(document, out var documentHandle))
             {
-                DebugSourceInfo info = document.GetSourceInfo();
+                return documentHandle;
+            }
 
-                documentHandle = _debugMetadataOpt.AddDocument(
-                    name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
-                    hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
-                    hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
-                    language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+            return AddDocument(document, index);
+        }
 
-                index.Add(document, documentHandle);
+        private DocumentHandle AddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
+        {
+            DocumentHandle documentHandle;
+            DebugSourceInfo info = document.GetSourceInfo();
 
-                if (info.EmbeddedTextBlob != null)
-                {
-                    _debugMetadataOpt.AddCustomDebugInformation(
-                        parent: documentHandle,
-                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
-                        value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
-                }
+            documentHandle = _debugMetadataOpt.AddDocument(
+                name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
+                hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
+                language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+
+            index.Add(document, documentHandle);
+
+            if (info.EmbeddedTextBlob != null)
+            {
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: documentHandle,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
+                    value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
             }
 
             return documentHandle;
         }
 
         /// <summary>
-        /// Add document entries for any embedded text document that does not yet have an entry.
+        /// Add document entries for all debug documents that do not yet have an entry.
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
+        public void AddRemainingDebugDocuments(IReadOnlyDictionary<string, DebugSourceDocument> documents)
         {
-            foreach (var document in documents)
+            foreach (var kvp in documents
+                .Where(kvp => !_documentIndex.ContainsKey(kvp.Value))
+                .OrderBy(kvp => kvp.Key))
             {
-                Debug.Assert(document.GetSourceInfo().EmbeddedTextBlob != null);
-                GetOrAddDocument(document, _documentIndex);
+                AddDocument(kvp.Value, _documentIndex);
             }
         }
 
@@ -812,13 +824,150 @@ namespace Microsoft.Cci
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
-                throw new PdbWritingException(e);
+                throw new SymUnmanagedWriterException(e.Message, e);
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
+        }
+
+        /// <summary>
+        /// Capture the set of compilation options to allow a compilation 
+        /// to be reconstructed from the pdb
+        /// </summary>
+        private void EmbedCompilationOptions(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
+
+            WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
+
+            if (module.EmitOptions.FallbackSourceFileEncoding != null)
+            {
+                WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
+            }
+
+            if (module.EmitOptions.DefaultSourceFileEncoding != null)
+            {
+                WriteValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
+            }
+
+            int portabilityPolicy = 0;
+            if (module.CommonCompilation.Options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
+            {
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
+            }
+
+            if (portabilityPolicy != 0)
+            {
+                WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+            }
+
+            var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
+            var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
+            if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
+            {
+                WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
+            }
+
+            var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
+
+            module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        /// <summary>
+        /// Writes information about metadata references to the pdb so the same
+        /// reference can be found on sourcelink to create the compilation again
+        /// </summary>
+        private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            // Order of information
+            // File name (null terminated string): A.exe
+            // Extern Alias (null terminated string): a1,a2,a3
+            // MetadataImageKind (byte)
+            // EmbedInteropTypes (boolean)
+            // COFF header Timestamp field (4 byte int)
+            // COFF header SizeOfImage field (4 byte int)
+            // MVID (Guid, 24 bytes)
+            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            {
+                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
+                {
+                    var fileName = PathUtilities.GetFileName(portableReference.FilePath);
+                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
+                    var peReader = GetReader(reference);
+
+                    // Don't write before checking that we can get a peReader for the metadata reference
+                    if (peReader is null)
+                        continue;
+
+                    // Write file name first
+                    builder.WriteUTF8(fileName);
+
+                    // Make sure to add null terminator
+                    builder.WriteByte(0);
+
+                    // Extern alias
+                    if (portableReference.Properties.Aliases.Any())
+                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+
+                    // Always null terminate the extern alias list
+                    builder.WriteByte(0);
+
+                    byte kindAndEmbedInteropTypes = (byte)(portableReference.Properties.EmbedInteropTypes
+                        ? 0b10
+                        : 0b0);
+
+                    kindAndEmbedInteropTypes |= portableReference.Properties.Kind switch
+                    {
+                        MetadataImageKind.Assembly => 1,
+                        MetadataImageKind.Module => 0,
+                        _ => throw ExceptionUtilities.UnexpectedValue(portableReference.Properties.Kind)
+                    };
+
+                    builder.WriteByte(kindAndEmbedInteropTypes);
+                    builder.WriteInt32(peReader.PEHeaders.CoffHeader.TimeDateStamp);
+                    builder.WriteInt32(peReader.PEHeaders.PEHeader.SizeOfImage);
+
+                    var metadataReader = peReader.GetMetadataReader();
+                    var moduleDefinition = metadataReader.GetModuleDefinition();
+                    builder.WriteGuid(metadataReader.GetGuid(moduleDefinition.Mvid));
+                }
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            static PEReader GetReader(ISymbol symbol)
+                => symbol switch
+                {
+                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
+                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
+                    _ => null
+                };
         }
     }
 }

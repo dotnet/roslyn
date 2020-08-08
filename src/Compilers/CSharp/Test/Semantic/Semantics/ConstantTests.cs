@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -772,7 +775,7 @@ class C
         F(U64.Min - 2); // overflows at compile time in checked mode
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (32,11): error CS0221: Constant value '128' cannot be converted to a 'S8' (use 'unchecked' syntax to override)
                 //         F(S8.Max + 1); // 128 cannot be converted to ...
                 Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S8.Max + 1").WithArguments("128", "S8").WithLocation(32, 11),
@@ -895,7 +898,9 @@ class C
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "U64.Min - 2").WithLocation(89, 11));
         }
 
-        [Fact, WorkItem(528727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528727")]
+        [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(528727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528727")]
         public void TestConstantNumericConversionsNotOverflow()
         {
             var source = @"
@@ -924,8 +929,15 @@ class C
 
             var actual = ParseAndGetConstantFoldingSteps(source);
 
+#if NET472
+            var longValue = "-9.22337203685478E+18";
+#else
+            var longValue = "-9.223372036854776E+18";
+#endif
+
+
             var expected =
-@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
+$@"(sbyte)(sbyte.MaxValue + 0.1) --> 127
 sbyte.MaxValue + 0.1 --> 127.1
 sbyte.MaxValue --> 127
 sbyte.MaxValue --> 127
@@ -974,8 +986,8 @@ uint.MinValue - 0.1 --> -0.1
 uint.MinValue --> 0
 uint.MinValue --> 0
 (long)(long.MinValue - 0.1) --> -9223372036854775808
-long.MinValue - 0.1 --> -9.22337203685478E+18
-long.MinValue --> -9.22337203685478E+18
+long.MinValue - 0.1 --> {longValue}
+long.MinValue --> {longValue}
 long.MinValue --> -9223372036854775808
 (ulong)(ulong.MinValue - 0.1) --> 0
 ulong.MinValue - 0.1 --> -0.1
@@ -1566,7 +1578,7 @@ class C
         return string.Join("""", decimal.GetBits(d).Select(word => string.Format(""{0:x8}"", word)));
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"00000000000000000000000000010000
 00000000000000000000000080010000
@@ -1697,7 +1709,7 @@ class C
         ulong ulongUnderflow = ulong.MinValue - 1;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (7,15): error CS0283: The type 'C.S' cannot be declared const
     //         const S s = new S();
     Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("C.S").WithLocation(7, 15),
@@ -1796,7 +1808,7 @@ class C
     const int d2 = (int)(dynamic)1;
     const int d3 = 1 + (int)(dynamic)1;
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,20): error CS0133: The expression being assigned to 'C.d0' must be constant
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(dynamic)").WithArguments("C.d0"),
                 // (5,20): error CS0133: The expression being assigned to 'C.d1' must be constant
@@ -1825,7 +1837,7 @@ class C
     const long unchecked_long = unchecked(-Int64.MinValue);
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,30): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "-Int32.MinValue"),
                 // (7,32): error CS0220: The operation overflows at compile time in checked mode
@@ -1860,7 +1872,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,34): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MinValue / (-1)"),
                 // (15,36): error CS0220: The operation overflows at compile time in checked mode
@@ -1928,7 +1940,7 @@ cdivl --> BAD";
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,18): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "x * y"));
         }
@@ -1939,7 +1951,7 @@ cdivl --> BAD";
             string text =
 @"enum E : uint { A, B = A - 1 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,24): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "A - 1"));
         }
@@ -1956,7 +1968,7 @@ class C
     const uint H = checked((uint)(E.A + 3)); // CS0220
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,27): error CS0220: The operation overflows at compile time in checked mode
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "E.A + 1"),
                 // (6,35): error CS0220: The operation overflows at compile time in checked mode
@@ -1983,7 +1995,7 @@ public class goo
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,21): error CS0220: The operation overflows at compile time in checked mode
                 //             int k = i * j;
@@ -2009,7 +2021,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2050,7 +2062,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                     // (6,17): error CS0220: The operation overflows at compile time in checked mode
                     //         int r = int.MaxValue + 1;
@@ -2124,7 +2136,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2179,7 +2191,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,17): error CS0220: The operation overflows at compile time in checked mode
                 //             r = int.MaxValue + 1;
@@ -2344,16 +2356,417 @@ b --> False
 
             // Confirm that both branches are evaluated, even if the value is Bad
             // Duplicate "(byte)2" is because there's an implicit conversion to uint.
+            // Duplicate "b ? (uint)1 : (byte)2" is because there's an implicit conversion to int.
             var expected =
 @"true ? 1 + i : (int)4u --> BAD
 1 + i --> BAD
 i --> BAD
 (int)4u --> 4
 b ? (uint)1 : (byte)2 --> BAD
+b ? (uint)1 : (byte)2 --> BAD
 b --> BAD
 (uint)1 --> 1
 (byte)2 --> 2
 (byte)2 --> 2";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestUnspecifiedUncheckedConversions()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        unchecked
+        {
+            _ = (ulong)double.NaN;
+            _ = (uint)double.NaN;
+            _ = (ulong)float.NaN;
+            _ = (uint)float.NaN;
+
+            _ = (ulong)double.NegativeInfinity;
+            _ = (uint)double.NegativeInfinity;
+            _ = (ulong)float.NegativeInfinity;
+            _ = (uint)float.NegativeInfinity;
+
+            _ = (ulong)double.PositiveInfinity;
+            _ = (uint)double.PositiveInfinity;
+            _ = (ulong)float.PositiveInfinity;
+            _ = (uint)float.PositiveInfinity;
+
+            _ = (ulong)1e100;
+            _ = (uint)1e100;
+            _ = (ulong)1e38f;
+            _ = (uint)1e38f;
+
+            _ = (ulong)-1e100;
+            _ = (uint)-1e100;
+            _ = (ulong)-1e38f;
+            _ = (uint)-1e38f;
+
+            _ = (short)65535.17567;
+        }
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+            var expected =
+@"(ulong)double.NaN --> 0
+double.NaN --> NaN
+(uint)double.NaN --> 0
+double.NaN --> NaN
+(ulong)float.NaN --> 0
+float.NaN --> NaN
+(uint)float.NaN --> 0
+float.NaN --> NaN
+(ulong)double.NegativeInfinity --> 0
+double.NegativeInfinity --> -Infinity
+(uint)double.NegativeInfinity --> 0
+double.NegativeInfinity --> -Infinity
+(ulong)float.NegativeInfinity --> 0
+float.NegativeInfinity --> -Infinity
+(uint)float.NegativeInfinity --> 0
+float.NegativeInfinity --> -Infinity
+(ulong)double.PositiveInfinity --> 0
+double.PositiveInfinity --> Infinity
+(uint)double.PositiveInfinity --> 0
+double.PositiveInfinity --> Infinity
+(ulong)float.PositiveInfinity --> 0
+float.PositiveInfinity --> Infinity
+(uint)float.PositiveInfinity --> 0
+float.PositiveInfinity --> Infinity
+(ulong)1e100 --> 0
+(uint)1e100 --> 0
+(ulong)1e38f --> 0
+(uint)1e38f --> 0
+(ulong)-1e100 --> 0
+-1e100 --> -1E+100
+(uint)-1e100 --> 0
+-1e100 --> -1E+100
+(ulong)-1e38f --> 0
+-1e38f --> -1E+38
+(uint)-1e38f --> 0
+-1e38f --> -1E+38
+(short)65535.17567 --> 0";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestUnspecifiedShifts()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        _ = 1487023104 == (-40490869 << 1176494346);
+        _ = 3405660160U == (385007504U << 1176494346);
+        _ = -5519616229445825536L == (2480596744084445603L << 1176494346);
+        _ = 12553477852066636800UL == (1183195158831237785UL << 1176494346);
+        _ = -39542 == (-40490869 >> 1176494346);
+        _ = 375983U == (385007504U >> 1176494346);
+        _ = 2422457757894966L == (2480596744084445603L >> 1176494346);
+        _ = 1155464022296130UL == (1183195158831237785UL >> 1176494346);
+        _ = 1026730496 == (1142856021 << 52258473);
+        _ = 3405730304U == (4167401385U << 52258473);
+        _ = 949749347979886592L == (-99642203025533160L << 52258473);
+        _ = 3870362293631975424UL == (5277240384921721637UL << 52258473);
+        _ = 2232140 == (1142856021 >> 52258473);
+        _ = 8139455U == (4167401385U >> 52258473);
+        _ = -45313L == (-99642203025533160L >> 52258473);
+        _ = 2399811UL == (5277240384921721637UL >> 52258473);
+        _ = 2146190848 == (1765799459 << -847584439);
+        _ = 746002432U == (1956002700U << -847584439);
+        _ = 8330086530681716224L == (-2649861279148095905L << -847584439);
+        _ = 11021680305799133184UL == (4633212737774651836UL << -847584439);
+        _ = 3448827 == (1765799459 >> -847584439);
+        _ = 3820317U == (1956002700U >> -847584439);
+        _ = -5175510310836125L == (-2649861279148095905L >> -847584439);
+        _ = 9049243628466116UL == (4633212737774651836UL >> -847584439);
+        _ = -147839246 == (-73919623 << -261666143);
+        _ = 434667096U == (2364817196U << -261666143);
+        _ = 5379847945883484160L == (8600028236070815642L << -261666143);
+        _ = 18250411927379378176UL == (9754066888939486842UL << -261666143);
+        _ = -36959812 == (-73919623 >> -261666143);
+        _ = 1182408598U == (2364817196U >> -261666143);
+        _ = 1001175054L == (8600028236070815642L >> -261666143);
+        _ = 1135522835UL == (9754066888939486842UL >> -261666143);
+        _ = -642990336 == (-575448706 << 1251164583);
+        _ = 101734912U == (2651594932U << 1251164583);
+        _ = -2477956711135051776L == (4397665286211975439L << 1251164583);
+        _ = 17177975275221155840UL == (3677188853080049883UL << 1251164583);
+        _ = -4495694 == (-575448706 >> 1251164583);
+        _ = 20715585U == (2651594932U >> 1251164583);
+        _ = 7999306L == (4397665286211975439L >> 1251164583);
+        _ = 6688767UL == (3677188853080049883UL >> 1251164583);
+        _ = -2147483648 == (1680903167 << -1931469441);
+        _ = 2147483648U == (1696031835U << -1931469441);
+        _ = 0L == (-5154426740587151092L << -1931469441);
+        _ = 9223372036854775808UL == (11340274989429123451UL << -1931469441);
+        _ = 0 == (1680903167 >> -1931469441);
+        _ = 0U == (1696031835U >> -1931469441);
+        _ = -1L == (-5154426740587151092L >> -1931469441);
+        _ = 1UL == (11340274989429123451UL >> -1931469441);
+        _ = -1073741824 == (466088311 << 664633406);
+        _ = 0U == (3367565272U << 664633406);
+        _ = 0L == (-9002257244105090536L << 664633406);
+        _ = 13835058055282163712UL == (16369162113479203207UL << 664633406);
+        _ = 0 == (466088311 >> 664633406);
+        _ = 3U == (3367565272U >> 664633406);
+        _ = -2L == (-9002257244105090536L >> 664633406);
+        _ = 3UL == (16369162113479203207UL >> 664633406);
+        _ = 1016170002 == (508085001 << 84049121);
+        _ = 3845222538U == (1922611269U << 84049121);
+        _ = -3053627404204376064L == (1789288808291740423L << 84049121);
+        _ = 9069021830043402240UL == (3140594490787352999UL << 84049121);
+        _ = 254042500 == (508085001 >> 84049121);
+        _ = 961305634U == (1922611269U >> 84049121);
+        _ = 208300632L == (1789288808291740423L >> 84049121);
+        _ = 365613318UL == (3140594490787352999UL >> 84049121);
+        _ = 1610612736 == (1704288204 << -639239173);
+        _ = 3758096384U == (2570458748U << -639239173);
+        _ = -1152921504606846976L == (7131876568822188702L << -639239173);
+        _ = 9799832789158199296UL == (5759179746966546129UL << -639239173);
+        _ = 12 == (1704288204 >> -639239173);
+        _ = 19U == (2570458748U >> -639239173);
+        _ = 12L == (7131876568822188702L >> -639239173);
+        _ = 9UL == (5759179746966546129UL >> -639239173);
+        _ = 1493172224 == (-177594791 << 232270776);
+        _ = 671088640U == (3656907048U << 232270776);
+        _ = 144115188075855872L == (5226244767915300354L << 232270776);
+        _ = 17005592192950992896UL == (16201604657234886124UL << 232270776);
+        _ = -11 == (-177594791 >> 232270776);
+        _ = 217U == (3656907048U >> 232270776);
+        _ = 72L == (5226244767915300354L >> 232270776);
+        _ = 224UL == (16201604657234886124UL >> 232270776);
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+            var expected =
+@"1487023104 == (-40490869 << 1176494346) --> True
+-40490869 << 1176494346 --> 1487023104
+-40490869 --> -40490869
+3405660160U == (385007504U << 1176494346) --> True
+385007504U << 1176494346 --> 3405660160
+-5519616229445825536L == (2480596744084445603L << 1176494346) --> True
+-5519616229445825536L --> -5519616229445825536
+2480596744084445603L << 1176494346 --> -5519616229445825536
+12553477852066636800UL == (1183195158831237785UL << 1176494346) --> True
+1183195158831237785UL << 1176494346 --> 12553477852066636800
+-39542 == (-40490869 >> 1176494346) --> True
+-39542 --> -39542
+-40490869 >> 1176494346 --> -39542
+-40490869 --> -40490869
+375983U == (385007504U >> 1176494346) --> True
+385007504U >> 1176494346 --> 375983
+2422457757894966L == (2480596744084445603L >> 1176494346) --> True
+2480596744084445603L >> 1176494346 --> 2422457757894966
+1155464022296130UL == (1183195158831237785UL >> 1176494346) --> True
+1183195158831237785UL >> 1176494346 --> 1155464022296130
+1026730496 == (1142856021 << 52258473) --> True
+1142856021 << 52258473 --> 1026730496
+3405730304U == (4167401385U << 52258473) --> True
+4167401385U << 52258473 --> 3405730304
+949749347979886592L == (-99642203025533160L << 52258473) --> True
+-99642203025533160L << 52258473 --> 949749347979886592
+-99642203025533160L --> -99642203025533160
+3870362293631975424UL == (5277240384921721637UL << 52258473) --> True
+5277240384921721637UL << 52258473 --> 3870362293631975424
+2232140 == (1142856021 >> 52258473) --> True
+1142856021 >> 52258473 --> 2232140
+8139455U == (4167401385U >> 52258473) --> True
+4167401385U >> 52258473 --> 8139455
+-45313L == (-99642203025533160L >> 52258473) --> True
+-45313L --> -45313
+-99642203025533160L >> 52258473 --> -45313
+-99642203025533160L --> -99642203025533160
+2399811UL == (5277240384921721637UL >> 52258473) --> True
+5277240384921721637UL >> 52258473 --> 2399811
+2146190848 == (1765799459 << -847584439) --> True
+1765799459 << -847584439 --> 2146190848
+-847584439 --> -847584439
+746002432U == (1956002700U << -847584439) --> True
+1956002700U << -847584439 --> 746002432
+-847584439 --> -847584439
+8330086530681716224L == (-2649861279148095905L << -847584439) --> True
+-2649861279148095905L << -847584439 --> 8330086530681716224
+-2649861279148095905L --> -2649861279148095905
+-847584439 --> -847584439
+11021680305799133184UL == (4633212737774651836UL << -847584439) --> True
+4633212737774651836UL << -847584439 --> 11021680305799133184
+-847584439 --> -847584439
+3448827 == (1765799459 >> -847584439) --> True
+1765799459 >> -847584439 --> 3448827
+-847584439 --> -847584439
+3820317U == (1956002700U >> -847584439) --> True
+1956002700U >> -847584439 --> 3820317
+-847584439 --> -847584439
+-5175510310836125L == (-2649861279148095905L >> -847584439) --> True
+-5175510310836125L --> -5175510310836125
+-2649861279148095905L >> -847584439 --> -5175510310836125
+-2649861279148095905L --> -2649861279148095905
+-847584439 --> -847584439
+9049243628466116UL == (4633212737774651836UL >> -847584439) --> True
+4633212737774651836UL >> -847584439 --> 9049243628466116
+-847584439 --> -847584439
+-147839246 == (-73919623 << -261666143) --> True
+-147839246 --> -147839246
+-73919623 << -261666143 --> -147839246
+-73919623 --> -73919623
+-261666143 --> -261666143
+434667096U == (2364817196U << -261666143) --> True
+2364817196U << -261666143 --> 434667096
+-261666143 --> -261666143
+5379847945883484160L == (8600028236070815642L << -261666143) --> True
+8600028236070815642L << -261666143 --> 5379847945883484160
+-261666143 --> -261666143
+18250411927379378176UL == (9754066888939486842UL << -261666143) --> True
+9754066888939486842UL << -261666143 --> 18250411927379378176
+-261666143 --> -261666143
+-36959812 == (-73919623 >> -261666143) --> True
+-36959812 --> -36959812
+-73919623 >> -261666143 --> -36959812
+-73919623 --> -73919623
+-261666143 --> -261666143
+1182408598U == (2364817196U >> -261666143) --> True
+2364817196U >> -261666143 --> 1182408598
+-261666143 --> -261666143
+1001175054L == (8600028236070815642L >> -261666143) --> True
+8600028236070815642L >> -261666143 --> 1001175054
+-261666143 --> -261666143
+1135522835UL == (9754066888939486842UL >> -261666143) --> True
+9754066888939486842UL >> -261666143 --> 1135522835
+-261666143 --> -261666143
+-642990336 == (-575448706 << 1251164583) --> True
+-642990336 --> -642990336
+-575448706 << 1251164583 --> -642990336
+-575448706 --> -575448706
+101734912U == (2651594932U << 1251164583) --> True
+2651594932U << 1251164583 --> 101734912
+-2477956711135051776L == (4397665286211975439L << 1251164583) --> True
+-2477956711135051776L --> -2477956711135051776
+4397665286211975439L << 1251164583 --> -2477956711135051776
+17177975275221155840UL == (3677188853080049883UL << 1251164583) --> True
+3677188853080049883UL << 1251164583 --> 17177975275221155840
+-4495694 == (-575448706 >> 1251164583) --> True
+-4495694 --> -4495694
+-575448706 >> 1251164583 --> -4495694
+-575448706 --> -575448706
+20715585U == (2651594932U >> 1251164583) --> True
+2651594932U >> 1251164583 --> 20715585
+7999306L == (4397665286211975439L >> 1251164583) --> True
+4397665286211975439L >> 1251164583 --> 7999306
+6688767UL == (3677188853080049883UL >> 1251164583) --> True
+3677188853080049883UL >> 1251164583 --> 6688767
+-2147483648 == (1680903167 << -1931469441) --> True
+1680903167 << -1931469441 --> -2147483648
+-1931469441 --> -1931469441
+2147483648U == (1696031835U << -1931469441) --> True
+1696031835U << -1931469441 --> 2147483648
+-1931469441 --> -1931469441
+0L == (-5154426740587151092L << -1931469441) --> True
+-5154426740587151092L << -1931469441 --> 0
+-5154426740587151092L --> -5154426740587151092
+-1931469441 --> -1931469441
+9223372036854775808UL == (11340274989429123451UL << -1931469441) --> True
+11340274989429123451UL << -1931469441 --> 9223372036854775808
+-1931469441 --> -1931469441
+0 == (1680903167 >> -1931469441) --> True
+1680903167 >> -1931469441 --> 0
+-1931469441 --> -1931469441
+0U == (1696031835U >> -1931469441) --> True
+1696031835U >> -1931469441 --> 0
+-1931469441 --> -1931469441
+-1L == (-5154426740587151092L >> -1931469441) --> True
+-1L --> -1
+-5154426740587151092L >> -1931469441 --> -1
+-5154426740587151092L --> -5154426740587151092
+-1931469441 --> -1931469441
+1UL == (11340274989429123451UL >> -1931469441) --> True
+11340274989429123451UL >> -1931469441 --> 1
+-1931469441 --> -1931469441
+-1073741824 == (466088311 << 664633406) --> True
+-1073741824 --> -1073741824
+466088311 << 664633406 --> -1073741824
+0U == (3367565272U << 664633406) --> True
+3367565272U << 664633406 --> 0
+0L == (-9002257244105090536L << 664633406) --> True
+-9002257244105090536L << 664633406 --> 0
+-9002257244105090536L --> -9002257244105090536
+13835058055282163712UL == (16369162113479203207UL << 664633406) --> True
+16369162113479203207UL << 664633406 --> 13835058055282163712
+0 == (466088311 >> 664633406) --> True
+466088311 >> 664633406 --> 0
+3U == (3367565272U >> 664633406) --> True
+3367565272U >> 664633406 --> 3
+-2L == (-9002257244105090536L >> 664633406) --> True
+-2L --> -2
+-9002257244105090536L >> 664633406 --> -2
+-9002257244105090536L --> -9002257244105090536
+3UL == (16369162113479203207UL >> 664633406) --> True
+16369162113479203207UL >> 664633406 --> 3
+1016170002 == (508085001 << 84049121) --> True
+508085001 << 84049121 --> 1016170002
+3845222538U == (1922611269U << 84049121) --> True
+1922611269U << 84049121 --> 3845222538
+-3053627404204376064L == (1789288808291740423L << 84049121) --> True
+-3053627404204376064L --> -3053627404204376064
+1789288808291740423L << 84049121 --> -3053627404204376064
+9069021830043402240UL == (3140594490787352999UL << 84049121) --> True
+3140594490787352999UL << 84049121 --> 9069021830043402240
+254042500 == (508085001 >> 84049121) --> True
+508085001 >> 84049121 --> 254042500
+961305634U == (1922611269U >> 84049121) --> True
+1922611269U >> 84049121 --> 961305634
+208300632L == (1789288808291740423L >> 84049121) --> True
+1789288808291740423L >> 84049121 --> 208300632
+365613318UL == (3140594490787352999UL >> 84049121) --> True
+3140594490787352999UL >> 84049121 --> 365613318
+1610612736 == (1704288204 << -639239173) --> True
+1704288204 << -639239173 --> 1610612736
+-639239173 --> -639239173
+3758096384U == (2570458748U << -639239173) --> True
+2570458748U << -639239173 --> 3758096384
+-639239173 --> -639239173
+-1152921504606846976L == (7131876568822188702L << -639239173) --> True
+-1152921504606846976L --> -1152921504606846976
+7131876568822188702L << -639239173 --> -1152921504606846976
+-639239173 --> -639239173
+9799832789158199296UL == (5759179746966546129UL << -639239173) --> True
+5759179746966546129UL << -639239173 --> 9799832789158199296
+-639239173 --> -639239173
+12 == (1704288204 >> -639239173) --> True
+1704288204 >> -639239173 --> 12
+-639239173 --> -639239173
+19U == (2570458748U >> -639239173) --> True
+2570458748U >> -639239173 --> 19
+-639239173 --> -639239173
+12L == (7131876568822188702L >> -639239173) --> True
+7131876568822188702L >> -639239173 --> 12
+-639239173 --> -639239173
+9UL == (5759179746966546129UL >> -639239173) --> True
+5759179746966546129UL >> -639239173 --> 9
+-639239173 --> -639239173
+1493172224 == (-177594791 << 232270776) --> True
+-177594791 << 232270776 --> 1493172224
+-177594791 --> -177594791
+671088640U == (3656907048U << 232270776) --> True
+3656907048U << 232270776 --> 671088640
+144115188075855872L == (5226244767915300354L << 232270776) --> True
+5226244767915300354L << 232270776 --> 144115188075855872
+17005592192950992896UL == (16201604657234886124UL << 232270776) --> True
+16201604657234886124UL << 232270776 --> 17005592192950992896
+-11 == (-177594791 >> 232270776) --> True
+-11 --> -11
+-177594791 >> 232270776 --> -11
+-177594791 --> -177594791
+217U == (3656907048U >> 232270776) --> True
+3656907048U >> 232270776 --> 217
+72L == (5226244767915300354L >> 232270776) --> True
+5226244767915300354L >> 232270776 --> 72
+224UL == (16201604657234886124UL >> 232270776) --> True
+16201604657234886124UL >> 232270776 --> 224";
             Assert.Equal(expected, actual);
         }
 
@@ -2366,7 +2779,7 @@ b --> BAD
 {
     const string F = F;
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.GetDeclarationDiagnostics().Verify(
                 // (3,18): error CS0110: The evaluation of the constant value for 'C.F' involves a circular definition
                 Diagnostic(CSharp.ErrorCode.ERR_CircConstValue, "F").WithArguments("C.F").WithLocation(3, 18));
@@ -2397,8 +2810,8 @@ public class E
 {
     public const string E1 = C.C1;
 }";
-            var compilation1 = CreateStandardCompilation(source1);
-            var compilation2 = CreateStandardCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(compilation1) });
+            var compilation1 = CreateCompilation(source1);
+            var compilation2 = CreateCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(compilation1) });
             compilation2.VerifyDiagnostics();
             compilation1.VerifyDiagnostics();
         }
@@ -2438,13 +2851,13 @@ public class F
 {
     public const string G1 = F.F1 + D.D1;
 }";
-            var compilation1 = CreateStandardCompilation(source1);
+            var compilation1 = CreateCompilation(source1);
             var reference1 = new CSharpCompilationReference(compilation1);
-            var compilation2 = CreateStandardCompilation(source2);
+            var compilation2 = CreateCompilation(source2);
             var reference2 = new CSharpCompilationReference(compilation2);
-            var compilation3 = CreateStandardCompilation(source3, new MetadataReference[] { reference1 });
+            var compilation3 = CreateCompilation(source3, new MetadataReference[] { reference1 });
             var reference3 = new CSharpCompilationReference(compilation3);
-            var compilation4 = CreateStandardCompilation(source4, new MetadataReference[] { reference2, reference3 });
+            var compilation4 = CreateCompilation(source4, new MetadataReference[] { reference2, reference3 });
             compilation4.VerifyDiagnostics();
             compilation3.VerifyDiagnostics();
             compilation2.VerifyDiagnostics(
@@ -2477,10 +2890,10 @@ class c1
     }
 }");
             var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var constantValue = comp.GetSemanticModel(tree).GetConstantValue(expr);
             Assert.True(constantValue.HasValue);
-            Assert.Equal(constantValue.Value, 6);
+            Assert.Equal(6, constantValue.Value);
         }
 
         [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
@@ -2494,7 +2907,7 @@ class c1
     const byte Z2 = (byte)300;
 }");
 
-            var compilation = CreateStandardCompilation(tree);
+            var compilation = CreateCompilation(tree);
             compilation.VerifyDiagnostics(
                 // (4,21): error CS0031: Constant value '300' cannot be converted to a 'byte'
                 //     const byte Z1 = 300;
@@ -2509,6 +2922,30 @@ class c1
 
             symbol = compilation.GlobalNamespace.GetTypeMembers("c1").First().GetMembers("Z2").First();
             Assert.False(((FieldSymbol)symbol).HasConstantValue);
+        }
+
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
+        [Fact]
+        public void NoConstantValueForOverflows_02()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class c1
+{
+    void M()
+    {
+        _ = checked((decimal)1e100);
+        _ = unchecked((decimal)1e100);
+    }
+}");
+
+            var compilation = CreateCompilation(tree);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS0031: Constant value '1E+100' cannot be converted to a 'decimal'
+                //         _ = checked((decimal)1e100);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)1e100").WithArguments("1E+100", "decimal").WithLocation(6, 21),
+                // (7,23): error CS0031: Constant value '1E+100' cannot be converted to a 'decimal'
+                //         _ = unchecked((decimal)1e100);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)1e100").WithArguments("1E+100", "decimal").WithLocation(7, 23));
         }
 
         [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
@@ -2527,7 +2964,7 @@ class C{0}
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numConstants)));
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
@@ -2559,7 +2996,7 @@ class C{0}
                 i == (numConstants - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
@@ -2614,7 +3051,7 @@ enum E{0}
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numConstants)));
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2646,7 +3083,7 @@ enum E{0}
                 i == (numConstants - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2704,7 +3141,7 @@ enum E{0}
             var source = string.Join(Environment.NewLine, range.Select(i =>
                 string.Format(template, i, (i + 1) % numEnums)));
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2739,7 +3176,7 @@ enum E{0}
                 i == (numEnums - 1) ? string.Format(template, i, i - 1, i - 1) :
                 string.Format(template, i, i - 1, i + 1)));
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var global = compilation.GlobalNamespace;
 
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
@@ -2793,36 +3230,7 @@ class MyClass
         return bb ? 1 : 0;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
-        }
-
-        // We used to return constant zero in unchecked conversion from a floating-point type to an integral type
-        // in a constant expression if the value being converted is not within the target type.
-        // The C# spec says that in this case the result of the conversion is an unspecified value of the destination type.
-        // Zero is a perfectly valid unspecified value, so that behavior was formally correct.
-        // But it did not agree with the behavior of the native C# compiler, that apparently returned a value that
-        // would resulted from a runtime conversion with normal CLR overflow behavior.
-        // To avoid breaking programs that might accidentally rely on that unspecified behavior
-        // we now match the native compiler behavior, and we are going to keep this behavior for compatibility.
-        [Fact, WorkItem(1020273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020273")]
-        public void Bug1020273()
-        {
-            string source = @"
-using System;
- 
-class Program
-{
-    static void Main()
-    {
-        double aslocal = 65535.17567;
-        Console.WriteLine(""As local: {0}"", unchecked((short)aslocal));
-        Console.WriteLine(""Inline  : {0}"", unchecked((short)65535.17567));
-    }
-}";
-            string expectedOutput = @"As local: -1
-Inline  : -1";
-
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
@@ -2838,7 +3246,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void f() { if () const int i = 0; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(6, 14),
@@ -2869,7 +3277,7 @@ class C
         const Func<int> a = () => { const int b = a(); return 1; };
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (6,51): error CS0133: The expression being assigned to 'b' must be constant
     //         const Func<int> a = () => { const int b = a(); return 1; };
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
@@ -2887,7 +3295,7 @@ class C
         const int z = 1 + z + 1;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (5,27): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
     //         const int z = 1 + z + 1;
     Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(5, 27)
@@ -2901,7 +3309,10 @@ class C
 @"
 void f() { if () const int i = 0; }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+    // (2,6): warning CS8321: The local function 'f' is declared but never used
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(2, 6),
     // (2,16): error CS1525: Invalid expression term ')'
     // void f() { if () const int i = 0; }
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
@@ -2948,7 +3359,7 @@ void f() { if () const int i = 0; }
         }
     }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,27): error CS0133: The expression being assigned to 'y1' must be constant
                 //         const string y1 = (string)(object)"y";
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"(string)(object)""y""").WithArguments("y1").WithLocation(7, 27),
@@ -2967,18 +3378,110 @@ void f() { if () const int i = 0; }
                 // (21,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)null:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "string").WithLocation(21, 18),
-                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
-                //             case (object)null:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13),
                 // (23,18): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
                 //             case (object)"b":
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"(object)""b""").WithArguments("object", "string").WithLocation(23, 18),
                 // (23,18): error CS0150: A constant value is expected
                 //             case (object)"b":
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"(object)""b""").WithLocation(23, 18),
+                // (21,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (object)null:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (object)null:").WithArguments("null").WithLocation(21, 13));
+        }
+
+        [Fact]
+        [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
+        public void TestSelfReferencingViaLambda()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    static void F(IEnumerable<C> c)
+    {
+        const int F =
+        c.Select(o => new { E = F });
+    }
+}";
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IEnumerable<<anonymous type: int E>>' to 'int'
+                //         c.Select(o => new { E = F });
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.Select(o => new { E = F })").WithArguments("System.Collections.Generic.IEnumerable<<anonymous type: int E>>", "int").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
+        public void TestSelfReferencingViaLambda2()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    static void F(IEnumerable<C> c)
+    {
+        const int F = c.Sum(o => F);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
+            comp.VerifyDiagnostics(
+                // (8,34): error CS0110: The evaluation of the constant value for 'F' involves a circular definition
+                //         const int F = c.Sum(o => F);
+                Diagnostic(ErrorCode.ERR_CircConstValue, "F").WithArguments("F").WithLocation(8, 34)
+                );
+        }
+
+        // Attempting to call `ConstantValue` on every constiuent string component times out the IOperation runner.
+        // Instead, we manually validate just the top level
+        [ConditionalFact(typeof(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019")]
+        public void TestLargeStringConcatenation()
+        {
+            // When the compiler folds string concatenations using an O(n^2) algorithm, this program cannot be
+            // compiled within ordinary memory bounds.  However, when the compiler uses an O(n) algorithm, it can.
+            string source0 = @"
+class C
+{
+    static void Main()
+    {
+        string s =
+""BEGIN "" +
+";
+            string source1 = @"
+""END"";
+        System.Console.WriteLine(System.Linq.Enumerable.Sum(s, c => (int)c));
+    }
+}
+";
+            StringBuilder source = new StringBuilder();
+            source.Append(source0);
+            const int NumIterations = 5000;
+            for (int i = 0; i < NumIterations; i++)
+            {
+                source.Append(@"""Lorem ipsum dolor sit amet"" + "", consectetur adipiscing elit, sed"" + "" do eiusmod tempor incididunt"" + "" ut labore et dolore magna aliqua. "" +" + "\n");
+            }
+            source.Append(source1);
+            var comp = CreateCompilation(source.ToString(), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "58430604");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            var literalOperation = model.GetOperation(initializer);
+
+            var stringTextBuilder = new StringBuilder();
+            stringTextBuilder.Append("BEGIN ");
+            for (int i = 0; i < NumIterations; i++)
+            {
+                stringTextBuilder.Append("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ");
+            }
+            stringTextBuilder.Append("END");
+
+            Assert.Equal(stringTextBuilder.ToString(), literalOperation.ConstantValue);
         }
     }
-
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
     {

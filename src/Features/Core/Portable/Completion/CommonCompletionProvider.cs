@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -18,19 +22,16 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             switch (trigger.Kind)
             {
-                case CompletionTriggerKind.Insertion:
+                case CompletionTriggerKind.Insertion when position > 0:
                     var insertedCharacterPosition = position - 1;
-                    return this.IsInsertionTrigger(text, insertedCharacterPosition, options);
-
+                    return IsInsertionTrigger(text, insertedCharacterPosition, options);
                 default:
                     return false;
             }
         }
 
         internal virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
-        {
-            return false;
-        }
+            => false;
 
         public sealed override async Task<CompletionDescription> GetDescriptionAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -38,14 +39,14 @@ namespace Microsoft.CodeAnalysis.Completion
             // Get the actual description provided by whatever subclass we are.
             // Then, if we would commit text that could be expanded as a snippet, 
             // put that information in the description so that the user knows.
-            var description = await this.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
-            var parts = await TryAddSnippetInvocationPart(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
+            var description = await GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var parts = await TryAddSnippetInvocationPartAsync(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
 
             return description.WithTaggedParts(parts);
         }
 
-        private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPart(
-            Document document, CompletionItem item, 
+        private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPartAsync(
+            Document document, CompletionItem item,
             ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
         {
             var languageServices = document.Project.LanguageServices;
@@ -80,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 : Task.FromResult(CompletionDescription.Empty);
         }
 
-
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var change = (await GetTextChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false))
@@ -89,21 +89,18 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public virtual Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return GetTextChangeAsync(selectedItem, ch, cancellationToken);
-        }
+            => GetTextChangeAsync(selectedItem, ch, cancellationToken);
 
         protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<TextChange?>(null);
-        }
+            => Task.FromResult<TextChange?>(null);
 
-        private static CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
+        private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
+        protected static CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,
+                displayTextSuffix: "",
                 description: description != null ? description.ToSymbolDisplayParts() : default,
                 rules: s_suggestionItemRules);
         }

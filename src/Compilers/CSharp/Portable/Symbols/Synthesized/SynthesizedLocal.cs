@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedLocal : LocalSymbol
     {
         private readonly MethodSymbol _containingMethodOpt;
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
         private readonly SynthesizedLocalKind _kind;
         private readonly SyntaxNode _syntaxOpt;
         private readonly bool _isPinned;
@@ -29,19 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SynthesizedLocal(
             MethodSymbol containingMethodOpt,
-            TypeSymbol type,
+            TypeWithAnnotations type,
             SynthesizedLocalKind kind,
             SyntaxNode syntaxOpt = null,
             bool isPinned = false,
             RefKind refKind = RefKind.None
 #if DEBUG
             ,
-            [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string createdAtFilePath = null
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
 #endif
             )
         {
-            Debug.Assert(type.SpecialType != SpecialType.System_Void);
+            Debug.Assert(!type.IsVoidType());
             Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
             Debug.Assert(refKind != RefKind.Out);
 
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -172,10 +174,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Diagnostic>.Empty;
         }
 
-        private new string GetDebuggerDisplay()
+#if DEBUG
+        private static int _nextSequence = 0;
+        // Produce a token that helps distinguish one variable from another when debugging
+        private int _sequence = System.Threading.Interlocked.Increment(ref _nextSequence);
+
+        internal string DumperString()
         {
             var builder = new StringBuilder();
-            builder.Append((_kind == SynthesizedLocalKind.UserDefined) ? "<temp>" : _kind.ToString());
+            builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
+            builder.Append(' ');
+            builder.Append(_kind.ToString());
+            builder.Append('.');
+            builder.Append(_sequence);
+            return builder.ToString();
+        }
+#endif
+
+        override internal string GetDebuggerDisplay()
+        {
+            var builder = new StringBuilder();
+            builder.Append('<');
+            builder.Append(_kind.ToString());
+            builder.Append('>');
+#if DEBUG
+            builder.Append('.');
+            builder.Append(_sequence);
+#endif
             builder.Append(' ');
             builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
 

@@ -16,10 +16,20 @@
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
-                    <CheckBox x:Name="Enable_full_solution_analysis"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
-                    <CheckBox x:Name="Perform_editor_feature_analysis_in_external_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Perform_editor_feature_analysis_in_external_process}" />
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_analysis_scope}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="Background_analysis_scope"
+                                              x:Name="Background_analysis_scope_active_file"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Active_File}"/>
+                        <RadioButton  GroupName="Background_analysis_scope"
+                                              x:Name="Background_analysis_scope_open_files"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Open_Files_And_Projects}"/>
+                        <RadioButton  GroupName="Background_analysis_scope"
+                                              x:Name="Background_analysis_scope_full_solution"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
+                    </StackPanel>
+                    <CheckBox x:Name="Use_editorconfig_compatibility_mode"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_editorconfig_compatibility_mode}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
@@ -84,6 +94,8 @@
             <GroupBox x:Uid="EditorHelpGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
                 <StackPanel>
+                    <CheckBox x:Name="DisplayInlineParameterNameHints"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}" />
                     <CheckBox x:Name="EnableLineCommit"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableLineCommit}" />
                     <CheckBox x:Name="EnableEndConstruct"
@@ -92,6 +104,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
+                    <CheckBox x:Name="ShowRemarksInQuickInfo"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
@@ -105,14 +119,44 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_NavigateToObjectBrowser}" />
                 </StackPanel>
             </GroupBox>
+
+            <GroupBox x:Uid="RegularExpressionsGroupBox"
+                    Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
+                <StackPanel>
+                    <CheckBox x:Name="Colorize_regular_expressions"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
+                    <CheckBox x:Name="Report_invalid_regular_expressions"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
+                    <CheckBox x:Name="Highlight_related_components_under_cursor"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                    <CheckBox x:Name="Show_completion_list"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+                </StackPanel>
+            </GroupBox>
+            
+            <GroupBox x:Uid="EditorColorSchemeGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
+                <StackPanel>
+                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false">
+                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
+                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
+                    </ComboBox>
+                    <TextBlock x:Name="Customized_Theme_Warning"
+                           TextWrapping="WrapWithOverflow"
+                           Margin="0, 0, 0, 8"
+                           Text="{x:Static local:AdvancedOptionPageStrings.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations}"/>
+                    <TextBlock x:Name="Custom_VS_Theme_Warning"
+                           TextWrapping="WrapWithOverflow"
+                           Margin="0, 0, 0, 8"
+                           Text="{x:Static local:AdvancedOptionPageStrings.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page}"/>
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="ExtractMethodGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
                 <StackPanel>
                     <CheckBox x:Name="DontPutOutOrRefOnStruct"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
-                    <CheckBox x:Name="AllowMovingDeclaration"
-                              Visibility="Collapsed"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
                 </StackPanel>
             </GroupBox>
 
@@ -141,7 +185,7 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
-            
+
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

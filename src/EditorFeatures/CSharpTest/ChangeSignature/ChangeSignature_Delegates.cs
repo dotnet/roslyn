@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,17 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ChangeSignatureCodeRefactoringProvider();
 
-        protected override string GetLanguage()
+        protected internal override string GetLanguage()
             => LanguageNames.CSharp;
-
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ImplicitInvokeCalls()
         {
             var markup = @"
-delegate void $$MyDelegate(int x, string y, bool z);
+delegate void MyDelegate($$int x, string y, bool z);
 
 class C
 {
@@ -49,14 +48,15 @@ class C
         d1(true, ""Two"");
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ExplicitInvokeCalls()
         {
             var markup = @"
-delegate void $$MyDelegate(int x, string y, bool z);
+delegate void MyDelegate(int x, string $$y, bool z);
 
 class C
 {
@@ -78,14 +78,15 @@ class C
         d1.Invoke(true, ""Two"");
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_BeginInvokeCalls()
         {
             var markup = @"
-delegate void $$MyDelegate(int x, string y, bool z);
+delegate void MyDelegate(int x, string y, bool z$$);
 
 class C
 {
@@ -107,7 +108,8 @@ class C
         d1.BeginInvoke(true, ""Two"", null, null);
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
@@ -183,7 +185,7 @@ class C
         MyDelegate d1 = null;
         d1 = (r) => { System.Console.WriteLine(""Test""); };
         d1 = r => { System.Console.WriteLine(""Test""); };
-        d1 =r=>{ System.Console.WriteLine(""Test""); };
+        d1 = r => { System.Console.WriteLine(""Test""); };
     }
 }";
             var updatedSignature = Array.Empty<int>();
@@ -197,7 +199,7 @@ class C
         MyDelegate d1 = null;
         d1 = () => { System.Console.WriteLine(""Test""); };
         d1 = () => { System.Console.WriteLine(""Test""); };
-        d1 =()=>{ System.Console.WriteLine(""Test""); };
+        d1 = () => { System.Console.WriteLine(""Test""); };
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
@@ -535,7 +537,7 @@ class C
 /// <summary>
 /// This is <see cref=""MyDelegate""/>, which has these methods:
 ///     <see cref=""MyDelegate.MyDelegate(object, IntPtr)""/>
-///     <see cref=""MyDelegate.Invoke( bool, string)""/>
+///     <see cref=""MyDelegate.Invoke(bool, string)""/>
 ///     <see cref=""MyDelegate.EndInvoke(IAsyncResult)""/>
 ///     <see cref=""MyDelegate.BeginInvoke(int, string, bool, AsyncCallback, object)""/>
 /// </summary>
@@ -740,7 +742,8 @@ class Test
         var dele = new CD<int>.D(() => { });
     }
 }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature,
+                expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

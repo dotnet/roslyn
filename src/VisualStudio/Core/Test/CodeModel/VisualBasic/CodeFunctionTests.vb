@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
@@ -726,7 +729,7 @@ Public Class C1
    Public Sub $$New()
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionConstructor)
@@ -742,7 +745,7 @@ Public Class C1
       MyBase.Finalize()
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
@@ -757,7 +760,7 @@ Public Class C1
    Private Sub $$M()
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
@@ -772,7 +775,7 @@ Public Class C1
    Private Function $$M() As Integer
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
@@ -786,7 +789,7 @@ Public Class C1
 
    Private Declare Sub $$MethodB Lib "MyDll.dll" ()
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
@@ -800,7 +803,7 @@ Public Class C1
 
    Private Declare Function $$MethodC Lib "MyDll.dll" () As Integer
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
@@ -2652,7 +2655,6 @@ Public Class C1
     Declare Function getUserName Lib "My1.dll" (a As Integer) As Integer
 End Class
 </Code>
-
 
             Await TestSetTypeProp(code, expected, "System.Int32")
         End Function

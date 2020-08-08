@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -61,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+        Public NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return OriginalDefinition.IsSerializable
             End Get
@@ -239,11 +241,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend NotOverridable Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Return DirectCast(OriginalDefinition.GetDeclaredBase(basesBeingResolved).InternalSubstituteTypeParameters(_substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
         End Function
 
-        Friend NotOverridable Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend NotOverridable Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim instanceInterfaces = OriginalDefinition.GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
             If instanceInterfaces.Length = 0 Then
@@ -430,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Given a member from the original type of this type, substitute into it and get the corresponding member in this type.
         Friend Function GetMemberForDefinition(member As Symbol) As Symbol
             Debug.Assert(member.IsDefinition)
-            Debug.Assert(member.ContainingType = Me.OriginalDefinition)
+            Debug.Assert(TypeSymbol.Equals(member.ContainingType, Me.OriginalDefinition, TypeCompareKind.ConsiderEverything))
 
             Return SubstituteTypeParametersInMember(member)
         End Function
@@ -491,6 +493,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function GetHashCode() As Integer
             Dim _hash As Integer = OriginalDefinition.GetHashCode()
+            If Me._substitution.WasConstructedForModifiers() Then
+                Return _hash
+            End If
+
             _hash = Hash.Combine(ContainingType, _hash)
 
             ' There is a circularity problem here with alpha-renamed type parameters.
@@ -529,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
+        Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             Dim fullBase = OriginalDefinition.GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved)
 
             If fullBase IsNot Nothing Then
@@ -978,6 +984,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Public Overrides Function GetHashCode() As Integer
+                If Me._substitution.WasConstructedForModifiers() Then
+                    Return OriginalDefinition.GetHashCode()
+                End If
+
                 Dim _hash As Integer = MyBase.GetHashCode()
 
                 For Each typeArgument In TypeArgumentsNoUseSiteDiagnostics
@@ -1200,7 +1210,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' No effect
                 Return Me
             End Function
-
 
         End Class
 

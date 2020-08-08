@@ -1,12 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Windows.Automation;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
-using Xunit;
-
+using System.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -23,22 +20,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// specify a title.
         /// </summary>
         /// <param name="expectedTitle"></param>
-        public void VerifyOpen(string expectedTitle)
-            => DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: true);
+        public void VerifyOpen(string expectedTitle, TimeSpan? timeout = null)
+        {
+            using (var cancellationTokenSource = timeout != null ? new CancellationTokenSource(timeout.Value) : null)
+            {
+                var cancellationToken = cancellationTokenSource?.Token ?? CancellationToken.None;
+                DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: true, cancellationToken);
+
+                // Wait for application idle to ensure the dialog is fully initialized
+                VisualStudioInstance.WaitForApplicationIdle(cancellationToken);
+            }
+        }
 
         public void VerifyClosed(string expectedTitle)
-            => DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: false);
+            => DialogHelpers.FindDialogByName(GetMainWindowHWnd(), expectedTitle, isOpen: false, CancellationToken.None);
 
         public void ClickApplyAndWaitForFeature(string expectedTitle, string featureName)
         {
             DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), expectedTitle, "Apply");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(featureName);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, featureName);
         }
 
         public void ClickCancel(string expectedTitle)
             => DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), expectedTitle, "Cancel");
 
-        private int GetMainWindowHWnd()
+        private IntPtr GetMainWindowHWnd()
             => VisualStudioInstance.Shell.GetHWnd();
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -7,6 +9,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -32,7 +35,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll)
 
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -71,7 +74,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll)
 
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -147,7 +150,7 @@ End Namespace
                 "<xmlns:F=""http://xml3"">"
             }))
 
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=options)
 
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -259,7 +262,7 @@ Public Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source})
+            Dim comp = CreateCompilationWithMscorlib40({source})
             Dim exeBytes = comp.EmitToArray()
 
             Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
@@ -295,7 +298,7 @@ Public Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source})
+            Dim comp = CreateCompilationWithMscorlib40({source})
             Dim exeBytes = comp.EmitToArray()
 
             Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(
@@ -393,7 +396,7 @@ End Namespace
                 "<xmlns:F=""http://xml3"">"
             }))
 
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=options)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim info = GetMethodDebugInfo(runtime, "root.N.C.M")
@@ -487,7 +490,7 @@ End Namespace
 "
 
             For Each rootNamespaceName In {"", Nothing}
-                Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll.WithRootNamespace(rootNamespaceName))
+                Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll.WithRootNamespace(rootNamespaceName))
                 comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
                 WithRuntimeInstance(comp,
@@ -551,7 +554,7 @@ End Namespace
                 "<xmlns=""http://xml2"">",
                 "<xmlns:C=""http://xml3"">"
             }))
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=options)
             comp.GetDiagnostics().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
 
             Dim rootNamespace As NamespaceSymbol = Nothing
@@ -608,10 +611,10 @@ Public Class C2 : Inherits C1
 End Class
 "
 
-            Dim comp1 = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source1), {MscorlibRef_v20}, TestOptions.DebugDll)
+            Dim comp1 = CreateEmptyCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source1), {MscorlibRef_v20}, TestOptions.DebugDll)
             Dim module1 = comp1.ToModuleInstance()
 
-            Dim comp2 = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source2), {MscorlibRef_v4_0_30316_17626, module1.GetReference()}, TestOptions.DebugDll)
+            Dim comp2 = CreateEmptyCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source2), {MscorlibRef_v4_0_30316_17626, module1.GetReference()}, TestOptions.DebugDll)
             Dim module2 = comp2.ToModuleInstance()
 
             Dim runtime = CreateRuntimeInstance({module1, module2, MscorlibRef_v4_0_30316_17626.ToModuleInstance(), ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance()})

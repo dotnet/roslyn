@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,8 +20,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public class ThrowingDiagnosticAnalyzer<TLanguageKindEnum> : TestDiagnosticAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
+        [Serializable]
         public class DeliberateException : Exception
         {
+            public DeliberateException()
+            {
+            }
+
+            protected DeliberateException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+            {
+                throw new NotImplementedException();
+            }
+
             public override string Message
             {
                 get { return "If this goes unhandled, our diagnostics engine is susceptible to malicious analyzers"; }

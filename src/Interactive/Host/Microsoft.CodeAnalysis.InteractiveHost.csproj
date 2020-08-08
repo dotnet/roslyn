@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Interactive</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") interactive host implementation.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
+      <Aliases>global,Scripting</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="InteractiveHost32" />
+    <InternalsVisibleTo Include="InteractiveHost64" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
+    <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="Utilities\NonCopyableAttribute.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\TestHooks\IExpeditableDelaySource.cs" Link="Utilities\IExpeditableDelaySource.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\ValuesSources\ValueSource.cs" Link="Utilities\ValueSource.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\ValuesSources\ConstantValueSource.cs" Link="Utilities\ConstantValueSource.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="Utilities\ExceptionUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs" Link="Utilities\FailFast.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="Utilities\FatalError.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="Utilities\FileNameUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" Link="Utilities\PlatformInformation.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Utilities\Debug.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="Utilities\RoslynString.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Utilities\Hash.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="Utilities\FileUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="Utilities\PathUtilities.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="InteractiveHostResources.resx" GenerateSource="true" />
+  </ItemGroup>
+</Project>

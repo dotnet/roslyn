@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -9,33 +11,79 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
+        private static bool IsNumeric(TypeSymbol type)
+        {
+            switch (type.PrimitiveTypeCode)
+            {
+                case Cci.PrimitiveTypeCode.Int8:
+                case Cci.PrimitiveTypeCode.UInt8:
+                case Cci.PrimitiveTypeCode.Int16:
+                case Cci.PrimitiveTypeCode.UInt16:
+                case Cci.PrimitiveTypeCode.Int32:
+                case Cci.PrimitiveTypeCode.UInt32:
+                case Cci.PrimitiveTypeCode.Int64:
+                case Cci.PrimitiveTypeCode.UInt64:
+                case Cci.PrimitiveTypeCode.Char:
+                case Cci.PrimitiveTypeCode.Float32:
+                case Cci.PrimitiveTypeCode.Float64:
+                    return true;
+                case Cci.PrimitiveTypeCode.IntPtr:
+                case Cci.PrimitiveTypeCode.UIntPtr:
+                    return type.IsNativeIntegerType;
+                default:
+                    return false;
+            }
+        }
+
         private void EmitConversionExpression(BoundConversion conversion, bool used)
         {
             switch (conversion.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
                     // The null pointer is represented as 0u.
                     _builder.EmitIntConstant(0);
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     EmitPopIfUnused(used);
                     return;
-                case ConversionKind.IdentityValue:
-                    EmitExpressionCore(conversion.Operand, used);
-                    return;
             }
+
+            var operand = conversion.Operand;
 
             if (!used && !conversion.ConversionHasSideEffects())
             {
-                EmitExpression(conversion.Operand, false); // just do expr side effects
+                EmitExpression(operand, false); // just do expr side effects
                 return;
             }
 
-            EmitExpression(conversion.Operand, true);
+            EmitExpression(operand, true);
             EmitConversion(conversion);
 
             EmitPopIfUnused(used);
+        }
+
+        private void EmitReadOnlySpanFromArrayExpression(BoundReadOnlySpanFromArray expression, bool used)
+        {
+            BoundExpression operand = expression.Operand;
+            var typeTo = (NamedTypeSymbol)expression.Type;
+
+            Debug.Assert((operand.Type.IsArray()) &&
+                         this._module.Compilation.IsReadOnlySpanType(typeTo),
+                         "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
+
+            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlace: false))
+            {
+                // there are several reasons that could prevent us from emitting a wrapper
+                // in such case we just emit the operand and then invoke the conversion method 
+                EmitExpression(operand, used);
+                if (used)
+                {
+                    // consumes 1 argument (array) and produces one result (span)
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    EmitSymbolToken(expression.ConversionMethod, expression.Syntax, optArgList: null);
+                }
+            }
         }
 
         private void EmitConversion(BoundConversion conversion)
@@ -80,11 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.ImplicitThrow:
                     // None of these things should reach codegen (yet? maybe?)
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.PointerToPointer:
+                case ConversionKind.ImplicitPointerToVoid:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ImplicitPointer:
                     return; //no-op since they all have the same runtime representation
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitIntegerToPointer:
                     var fromType = conversion.Operand.Type;
                     var fromPredefTypeKind = fromType.PrimitiveTypeCode;
 
@@ -97,14 +146,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
-                            Debug.Assert(toPredefTypeKind.IsNumeric());
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
+                            Debug.Assert(IsNumeric(toType));
                             break;
                         default:
-                            Debug.Assert(fromPredefTypeKind.IsNumeric());
+                            Debug.Assert(IsNumeric(fromType));
                             Debug.Assert(
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer);
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
                             break;
                     }
 #endif
@@ -117,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // but the value will not be reported to subsequent GC operations (and therefore will not be updated by such operations)
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     break;
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind); // Should be handled by caller.
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.ExplicitNullable:
@@ -160,11 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var fromType = conversion.Operand.Type;
             var fromPredefTypeKind = fromType.PrimitiveTypeCode;
-            Debug.Assert(fromPredefTypeKind.IsNumeric());
+            Debug.Assert(IsNumeric(fromType));
 
             var toType = conversion.Type;
             var toPredefTypeKind = toType.PrimitiveTypeCode;
-            Debug.Assert(toPredefTypeKind.IsNumeric());
+            Debug.Assert(IsNumeric(toType));
 
             _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
         }
@@ -241,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var fromPredefTypeKind = fromType.PrimitiveTypeCode;
-            Debug.Assert(fromPredefTypeKind.IsNumeric());
+            Debug.Assert(IsNumeric(fromType));
 
             var toType = conversion.Type;
             if (toType.IsEnumType())
@@ -250,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var toPredefTypeKind = toType.PrimitiveTypeCode;
-            Debug.Assert(toPredefTypeKind.IsNumeric());
+            Debug.Assert(IsNumeric(toType));
 
             _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
         }
@@ -294,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitOpCode(ILOpCode.Ldvirtftn);
 
                 //  substitute the method with original virtual method
-                method = method.GetConstructedLeastOverriddenMethod(_method.ContainingType);
+                method = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
             }
             else
             {

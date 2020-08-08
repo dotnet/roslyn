@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -29,7 +32,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
 
@@ -61,7 +64,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
 
@@ -93,7 +96,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -116,7 +119,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var comp = CreateEmptyCompilation(source, new[] { Net40.mscorlib }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -261,7 +264,7 @@ namespace System
     public struct Void { }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateEmptyCompilation(source);
 
             var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.Equal(TypeKind.Class, wellKnownType.TypeKind);
@@ -343,8 +346,8 @@ namespace System
                 comp.GetDiagnostics();
             };
 
-            validatePresent(CreateCompilation(string.Format(sourceTemplate, "public")));
-            validatePresent(CreateCompilation(string.Format(sourceTemplate, "internal")));
+            validatePresent(CreateEmptyCompilation(string.Format(sourceTemplate, "public")));
+            validatePresent(CreateEmptyCompilation(string.Format(sourceTemplate, "internal")));
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
@@ -466,16 +469,16 @@ namespace System
 }}
 ";
 
-            var corlibRef = CreateCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
+            var corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
             {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var publicLibRef = CreateCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
-            var internalLibRef = CreateCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
+            var publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
+            var internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
 
-            var comp = CreateCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
+            var comp = CreateEmptyCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
 
             var wellKnown = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.NotNull(wellKnown);
@@ -488,7 +491,7 @@ namespace System
 
         private static void ValidateSourceAndMetadata(string source, Action<CSharpCompilation> validate)
         {
-            var comp1 = CreateCompilation(source);
+            var comp1 = CreateEmptyCompilation(source);
             validate(comp1);
 
             var reference = comp1.EmitToImageReference(expectedWarnings: new[]
@@ -497,7 +500,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var comp2 = CreateCompilation("", new[] { reference });
+            var comp2 = CreateEmptyCompilation("", new[] { reference });
             validate(comp2);
         }
 
@@ -505,13 +508,21 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypes()
         {
-            var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             for (var special = SpecialType.None + 1; special <= SpecialType.Count; special++)
             {
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+
+                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+                {
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                }
             }
         }
 
@@ -519,14 +530,22 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
-            var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                Assert.NotNull(symbol);
+                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces ||
+                    special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses)
+                {
+                    Assert.Null(symbol); // Not available
+                }
+                else
+                {
+                    Assert.NotNull(symbol);
+                }
             }
         }
 
@@ -546,7 +565,7 @@ namespace System
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateCompilation("", refs);
+            var comp = CreateEmptyCompilation("", refs);
 
             for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
             {
@@ -558,12 +577,39 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
+                    case WellKnownType.System_Runtime_CompilerServices_NullableAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
-                    // Not yet in the platform.
+                    case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
+                    case WellKnownType.System_Index:
+                    case WellKnownType.System_Range:
+                    case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute:
+                    case WellKnownType.System_IAsyncDisposable:
+                    case WellKnownType.System_Collections_Generic_IAsyncEnumerable_T:
+                    case WellKnownType.System_Collections_Generic_IAsyncEnumerator_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus:
+                    case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags:
+                    case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource:
+                    case WellKnownType.System_Threading_Tasks_ValueTask_T:
+                    case WellKnownType.System_Threading_Tasks_ValueTask:
+                    case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
+                    case WellKnownType.System_Threading_CancellationToken:
+                    case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
+                    case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
+                    case WellKnownType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute:
+                        // Not yet in the platform.
+                        continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                    case WellKnownType.System_Runtime_CompilerServices_ITuple:
+                    case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
+                    case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -573,6 +619,7 @@ namespace System
 
                 switch (wkt)
                 {
+                    case WellKnownType.System_ValueTuple:
                     case WellKnownType.System_ValueTuple_T1:
                     case WellKnownType.System_ValueTuple_T2:
                     case WellKnownType.System_ValueTuple_T3:
@@ -591,7 +638,7 @@ namespace System
 
                 var symbol = comp.GetWellKnownType(wkt);
                 Assert.NotNull(symbol);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                Assert.True(symbol.Kind != SymbolKind.ErrorType, $"{wkt} should not be an error type");
             }
         }
 
@@ -840,13 +887,13 @@ namespace System
                 SystemRef_v4_0_30319_17929,
                 SystemCoreRef_v4_0_30319_17929,
                 MsvbRef_v4_0_30319_17929,
-                DesktopCSharpRef,
+                CSharpDesktopRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateCompilation("", refs);
+            var comp = CreateEmptyCompilation("", refs);
 
             foreach (WellKnownMember wkm in Enum.GetValues(typeof(WellKnownMember)))
             {
@@ -860,24 +907,73 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor:
                     case WellKnownMember.System_Span_T__ctor:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_Index__ctor:
+                    case WellKnownMember.System_Index__GetOffset:
+                    case WellKnownMember.System_Range__ctor:
+                    case WellKnownMember.System_Range__StartAt:
+                    case WellKnownMember.System_Range__EndAt:
+                    case WellKnownMember.System_Range__get_All:
+                    case WellKnownMember.System_Range__get_Start:
+                    case WellKnownMember.System_Range__get_End:
+                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
+                    case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
+                    case WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles:
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
                         // Not always available.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
 
                 var symbol = comp.GetWellKnownTypeMember(wkm);
-                Assert.NotNull(symbol);
+                Assert.True((object)symbol != null, $"Unexpected null for {wkm}");
             }
         }
 
@@ -895,7 +991,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'
@@ -1194,9 +1290,6 @@ class MyClass
             compilation.VerifyEmitDiagnostics(
                 // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         MyClass b = (int?)1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21),
-                // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         MyClass b = (int?)1;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21)
                 );
         }
@@ -1285,39 +1378,6 @@ class Program
                 // (58,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         Test.NullableDecimal();            
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Test.NullableDecimal()").WithArguments("System.Nullable`1", ".ctor").WithLocation(58, 9)
-                );
-        }
-
-        [Fact]
-        public void System_String__ConcatObjectObject()
-        {
-            var source =
-@"
-
-using System;
-
-class Class1
-{
-    static void Main()
-    {
-    }
-}
-
-class MyClass
-{
-    public static implicit operator MyClass(decimal Value)
-    {
-        Console.WriteLine(""Value is: "" + Value);
-        return new MyClass();
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
-            compilation.VerifyEmitDiagnostics(
-                // (16,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine("Value is: " + Value);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Value is: "" + Value").WithArguments("System.String", "Concat").WithLocation(16, 27)
                 );
         }
 
@@ -1439,6 +1499,31 @@ namespace Test
         }
 
         [Fact]
+        public void System_String__ConcatObjectObject()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class Class1
+{
+    static void Main()
+    {
+        Expression<Func<object, string>> e = x => ""X = "" + x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
+            compilation.VerifyEmitDiagnostics(
+                // (9,51): error CS0656: Missing compiler required member 'System.String.Concat'
+                //         Expression<Func<object, string>> e = x => "X = " + x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""X = "" + x").WithArguments("System.String", "Concat").WithLocation(9, 51)
+                );
+        }
+
+        [Fact]
         public void System_String__ConcatStringStringString()
         {
             string source = @"
@@ -1448,7 +1533,7 @@ struct S
     private string str;
     public S(char chr) { this.str = chr.ToString(); }
     public S(string str) { this.str = str; }
-    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
 }
 
 class C
@@ -1461,8 +1546,8 @@ class C
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringString);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
-                //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '+'").WithArguments("System.String", "Concat").WithLocation(8, 58)
+                //     public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.str + '+' + y.str").WithArguments("System.String", "Concat").WithLocation(8, 58)
                 );
         }
 
@@ -1651,9 +1736,6 @@ class C
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
-                // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //     c++;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5),
                 // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //     c++;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5)
@@ -1884,10 +1966,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bt").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 21),
                 // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14),
-                // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true & bnt").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
                 );
         }
 
@@ -2020,7 +2099,10 @@ public class X
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool").WithLocation(16, 38),
                 // (12,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         {if (x is int y) Console.WriteLine("4. {0}", y);}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19),
+                // (15,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         {if (x is int y) Console.WriteLine("6. {0}", y);}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(15, 19)
                 );
         }
 
@@ -2071,64 +2153,12 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
-                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
-        {
-            case ""hmm"":
-                Console.WriteLine(""hmm""); break;
-            case null:
-                Console.WriteLine(""null""); break;
-            case 1:
-                Console.WriteLine(""int 1""); break;
-            case ((byte)1):
-                Console.WriteLine(""byte 1""); break;
-            case ((short)1):
-                Console.WriteLine(""short 1""); break;
-            case ""bar"":
-                Console.WriteLine(""bar""); break;
-            case object t when t != o:
-                Console.WriteLine(""impossible""); break;
-            case 2:
-                Console.WriteLine(""int 2""); break;
-            case ((byte)2):
-                Console.WriteLine(""byte 2""); break;
-            case ((short)2):
-                Console.WriteLine(""short 2""); break;
-            case ""baz"":
-                Console.WriteLine(""baz""); break;
-            default:
-                Console.WriteLine(""other "" + o); break;
-        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9),
-                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
-        {
-            case ""hmm"":
-                Console.WriteLine(""hmm""); break;
-            case null:
-                Console.WriteLine(""null""); break;
-            case 1:
-                Console.WriteLine(""int 1""); break;
-            case ((byte)1):
-                Console.WriteLine(""byte 1""); break;
-            case ((short)1):
-                Console.WriteLine(""short 1""); break;
-            case ""bar"":
-                Console.WriteLine(""bar""); break;
-            case object t when t != o:
-                Console.WriteLine(""impossible""); break;
-            case 2:
-                Console.WriteLine(""int 2""); break;
-            case ((byte)2):
-                Console.WriteLine(""byte 2""); break;
-            case ((short)2):
-                Console.WriteLine(""short 2""); break;
-            case ""baz"":
-                Console.WriteLine(""baz""); break;
-            default:
-                Console.WriteLine(""other "" + o); break;
-        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9)
+                // (13,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //             case "hmm":
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""hmm""").WithArguments("System.String", "op_Equality").WithLocation(13, 18),
+                // (33,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //             case "baz":
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""baz""").WithArguments("System.String", "op_Equality").WithLocation(33, 18)
                 );
         }
 
@@ -2222,45 +2252,35 @@ struct X
                 // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //     switch (x)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13),
-                // (9,5): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //     switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
-    {
-      case null:
-        Console.WriteLine(""null"");
-        break;
-      case 1:
-        Console.WriteLine(1);
-        break;
-    }").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 5)
+                // (14,12): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //       case 1:
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 12)
                 );
         }
 
         [Fact]
         public void System_String__ConcatObject()
         {
+            // It isn't possible to trigger this diagnostic, as we don't use String.Concat(object)
+
             var source = @"
 using System;
-
 public class Test
 {
     private static string S = ""F"";
     private static object O = ""O"";
-
     static void Main()
     {
         Console.WriteLine(O + null);
         Console.WriteLine(S + null);
     }
 }
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
+    ";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObject);
-            compilation.VerifyEmitDiagnostics(
-                // (11,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine(O + null);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "O + null").WithArguments("System.String", "Concat").WithLocation(11, 27)
-                );
+            compilation.VerifyEmitDiagnostics(); // We don't expect any
+            CompileAndVerify(compilation, expectedOutput: @"O
+F");
         }
 
         [Fact]

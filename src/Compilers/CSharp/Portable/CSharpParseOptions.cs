@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -48,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion languageVersion = LanguageVersion.Default,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
-            IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion, 
-                  documentationMode, 
+            IEnumerable<string>? preprocessorSymbols = null)
+            : this(languageVersion,
+                  documentationMode,
                   kind,
                   preprocessorSymbols.ToImmutableArrayOrEmpty(),
                   ImmutableDictionary<string, string>.Empty)
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationMode documentationMode,
             SourceCodeKind kind,
             ImmutableArray<string> preprocessorSymbols,
-            IReadOnlyDictionary<string, string> features)
+            IReadOnlyDictionary<string, string>? features)
             : base(kind, documentationMode)
         {
             this.SpecifiedLanguageVersion = languageVersion;
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             features: other.Features)
         {
         }
-        
+
         public override string Language => LanguageNames.CSharp;
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
@@ -104,14 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpParseOptions(this) { SpecifiedLanguageVersion = version, LanguageVersion = effectiveLanguageVersion };
         }
 
-        public CSharpParseOptions WithPreprocessorSymbols(IEnumerable<string> preprocessorSymbols)
+        public CSharpParseOptions WithPreprocessorSymbols(IEnumerable<string>? preprocessorSymbols)
         {
             return WithPreprocessorSymbols(preprocessorSymbols.AsImmutableOrNull());
         }
 
-        public CSharpParseOptions WithPreprocessorSymbols(params string[] preprocessorSymbols)
+        public CSharpParseOptions WithPreprocessorSymbols(params string[]? preprocessorSymbols)
         {
-            return WithPreprocessorSymbols(ImmutableArray.Create(preprocessorSymbols));
+            return WithPreprocessorSymbols(preprocessorSymbols.AsImmutableOrNull());
         }
 
         public CSharpParseOptions WithPreprocessorSymbols(ImmutableArray<string> symbols)
@@ -149,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithDocumentationMode(documentationMode);
         }
 
-        protected override ParseOptions CommonWithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        protected override ParseOptions CommonWithFeatures(IEnumerable<KeyValuePair<string, string>>? features)
         {
             return WithFeatures(features);
         }
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
-        public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>>? features)
         {
             ImmutableDictionary<string, string> dictionary =
                 features?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadLanguageVersion, LanguageVersion.ToString()));
             }
-            
+
             if (!PreprocessorSymbols.IsDefaultOrEmpty)
             {
                 foreach (var symbol in PreprocessorSymbols)
@@ -202,17 +205,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsFeatureEnabled(MessageID feature)
         {
+            string? featureFlag = feature.RequiredFeature();
+            if (featureFlag != null)
+            {
+                return Features.ContainsKey(featureFlag);
+            }
             LanguageVersion availableVersion = LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             return availableVersion >= requiredVersion;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as CSharpParseOptions);
         }
 
-        public bool Equals(CSharpParseOptions other)
+        public bool Equals(CSharpParseOptions? other)
         {
             if (object.ReferenceEquals(this, other))
             {

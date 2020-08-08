@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -276,7 +279,7 @@ End Class
         ' Call Me.[Me]
         <Fact>
         Public Sub CallMe()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="CallMe">
     <file name="a.vb">
 Imports System
@@ -299,7 +302,7 @@ End Class
 
         <Fact>
         Public Sub AssignMeToVar()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="AssignMeToVar">
     <file name="a.vb">
 Option Infer On        
@@ -321,7 +324,7 @@ End Class
 
         <Fact>
         Public Sub AssignMeToVar_Derived()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="AssignMeToVar">
     <file name="a.vb">
 Option Infer On        
@@ -351,7 +354,7 @@ End Structure
 
         <Fact>
         Public Sub CallFunctionInBaseClassByMe()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="CallFunctionInBaseClassByMe">
     <file name="a.vb">
 Option Infer On        
@@ -381,7 +384,7 @@ End Class
         <WorkItem(529096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529096")>
         <Fact()>
         Public Sub UseMeInLambda()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="UseMeInLambda">
     <file name="a.vb">
 Option Infer On        
@@ -406,7 +409,7 @@ End Module
 
         <Fact>
         Public Sub UseMeInQuery()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="UseMeInQuery">
     <file name="a.vb">
 Option Infer On        
@@ -432,7 +435,7 @@ End Module
 
         <Fact>
         Public Sub InvokeMyBaseAutoProperty()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="InvokeMyBaseAutoProperty">
     <file name="a.vb">
 Option Infer On        
@@ -467,7 +470,7 @@ End Class
 
         <Fact>
         Public Sub InvokeMyBaseImplementMultInterface()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="InvokeMyBaseImplementMultInterface">
     <file name="a.vb">
 Option Infer On        
@@ -494,7 +497,7 @@ End Class
         <Fact>
         Public Sub InvokeExtensionMethodFromMyClass()
 
-            Dim comp = CreateCompilationWithMscorlibAndReferences(
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="InvokeExtensionMethodFromMyClass">
     <file name="a.vb">
 Option Infer On        
@@ -513,7 +516,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, {SystemCoreRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
             Dim symbol = LookUpSymbolTest(comp, "Sum", expectedCount:=1, expectedString:="Function C1.Sum() As System.Int32")
             GetSymbolInfoTest(comp, "MyClass.Sum", symbol)
             GetTypeInfoTest(comp, "MyClass.Sum", "Integer")
@@ -524,7 +527,7 @@ End Module
 
         <Fact>
         Public Sub MyClassUsedInStructure()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="MyClassUsedInStructure">
     <file name="a.vb">
 Option Infer On        

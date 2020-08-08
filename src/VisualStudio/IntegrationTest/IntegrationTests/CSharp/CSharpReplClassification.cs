@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -14,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
+        [WpfFact]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"using System.Console;
@@ -34,7 +38,7 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.PlaceCaret("{");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "punctuation");
             VisualStudio.InteractiveWindow.PlaceCaret("Main");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.InteractiveWindow.PlaceCaret("Hello");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);

@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -43,15 +47,6 @@ class C : CSharpErrors.ClassMethods
                 // (5,21): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override UnavailableClass[] ReturnType2() { return null; }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0115)
-
-                // (4,38): error CS0508: 'C.ReturnType1()': return type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassMethods.ReturnType1()'
-                //     public override UnavailableClass ReturnType1() { return null; }
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "ReturnType1").WithArguments("C.ReturnType1()", "CSharpErrors.ClassMethods.ReturnType1()", "UnavailableClass"),
-                // (5,40): error CS0508: 'C.ReturnType2()': return type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassMethods.ReturnType2()'
-                //     public override UnavailableClass[] ReturnType2() { return null; }
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "ReturnType2").WithArguments("C.ReturnType2()", "CSharpErrors.ClassMethods.ReturnType2()", "UnavailableClass[]"),
 
                 // (4,38): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override UnavailableClass ReturnType1() { return null; }
@@ -96,17 +91,7 @@ class C : CSharpErrors.ClassMethods
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
                 // (5,41): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override void ParameterType2(UnavailableClass[] x) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0115)
-                // NOTE: Cascaded error messages would be the same for non-existent class - not specific to use site errors.
-
-                // (4,26): error CS0115: 'C.ParameterType1(UnavailableClass)': no suitable method found to override
-                //     public override void ParameterType1(UnavailableClass x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "ParameterType1").WithArguments("C.ParameterType1(UnavailableClass)"),
-                // (5,26): error CS0115: 'C.ParameterType2(UnavailableClass[])': no suitable method found to override
-                //     public override void ParameterType2(UnavailableClass[] x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "ParameterType2").WithArguments("C.ParameterType2(UnavailableClass[])"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"));
         }
 
         [Fact]
@@ -309,27 +294,6 @@ class C : CSharpErrors.ClassProperties
                 // (11,21): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override UnavailableClass[] GetSet2 { get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0115)
-
-                // (4,38): error CS1715: 'C.Get1': type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassProperties.Get1'
-                //     public override UnavailableClass Get1 { get { return null; } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Get1").WithArguments("C.Get1", "CSharpErrors.ClassProperties.Get1", "UnavailableClass"),
-                // (5,40): error CS1715: 'C.Get2': type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassProperties.Get2'
-                //     public override UnavailableClass[] Get2 { get { return null; } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Get2").WithArguments("C.Get2", "CSharpErrors.ClassProperties.Get2", "UnavailableClass[]"),
-                // (7,38): error CS1715: 'C.Set1': type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassProperties.Set1'
-                //     public override UnavailableClass Set1 { set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Set1").WithArguments("C.Set1", "CSharpErrors.ClassProperties.Set1", "UnavailableClass"),
-                // (8,40): error CS1715: 'C.Set2': type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassProperties.Set2'
-                //     public override UnavailableClass[] Set2 { set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Set2").WithArguments("C.Set2", "CSharpErrors.ClassProperties.Set2", "UnavailableClass[]"),
-                // (10,38): error CS1715: 'C.GetSet1': type must be 'UnavailableClass' to match overridden member 'CSharpErrors.ClassProperties.GetSet1'
-                //     public override UnavailableClass GetSet1 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "GetSet1").WithArguments("C.GetSet1", "CSharpErrors.ClassProperties.GetSet1", "UnavailableClass"),
-                // (11,40): error CS1715: 'C.GetSet2': type must be 'UnavailableClass[]' to match overridden member 'CSharpErrors.ClassProperties.GetSet2'
-                //     public override UnavailableClass[] GetSet2 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "GetSet2").WithArguments("C.GetSet2", "CSharpErrors.ClassProperties.GetSet2", "UnavailableClass[]"),
 
                 // (4,38): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override UnavailableClass Get1 { get { return null; } }
@@ -672,18 +636,6 @@ class C : CSharpErrors.ClassEvents
                 //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
 
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS1715, CS0012)
-
-                // (4,47): error CS1715: 'C.Event1': type must be 'UnavailableDelegate' to match overridden member 'CSharpErrors.ClassEvents.Event1'
-                //     public override event UnavailableDelegate Event1;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event1").WithArguments("C.Event1", "CSharpErrors.ClassEvents.Event1", "UnavailableDelegate"),
-                // (5,72): error CS1715: 'C.Event2': type must be 'CSharpErrors.EventDelegate<UnavailableClass>' to match overridden member 'CSharpErrors.ClassEvents.Event2'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass> Event2;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event2").WithArguments("C.Event2", "CSharpErrors.ClassEvents.Event2", "CSharpErrors.EventDelegate<UnavailableClass>"),
-                // (6,74): error CS1715: 'C.Event3': type must be 'CSharpErrors.EventDelegate<UnavailableClass[]>' to match overridden member 'CSharpErrors.ClassEvents.Event3'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event3").WithArguments("C.Event3", "CSharpErrors.ClassEvents.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>"),
-
                 // (4,47): error CS0012: The type 'UnavailableDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override event UnavailableDelegate Event1;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Event1").WithArguments("UnavailableDelegate", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -716,18 +668,6 @@ class C : CSharpErrors.ClassEvents
                 // (6,54): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0066, CS1715, CS0012)
-
-                // (4,47): error CS1715: 'C.Event1': type must be 'UnavailableDelegate' to match overridden member 'CSharpErrors.ClassEvents.Event1'
-                //     public override event UnavailableDelegate Event1;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event1").WithArguments("C.Event1", "CSharpErrors.ClassEvents.Event1", "UnavailableDelegate"),
-                // (5,72): error CS1715: 'C.Event2': type must be 'CSharpErrors.EventDelegate<UnavailableClass>' to match overridden member 'CSharpErrors.ClassEvents.Event2'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass> Event2;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event2").WithArguments("C.Event2", "CSharpErrors.ClassEvents.Event2", "CSharpErrors.EventDelegate<UnavailableClass>"),
-                // (6,74): error CS1715: 'C.Event3': type must be 'CSharpErrors.EventDelegate<UnavailableClass[]>' to match overridden member 'CSharpErrors.ClassEvents.Event3'
-                //     public override event CSharpErrors.EventDelegate<UnavailableClass[]> Event3;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Event3").WithArguments("C.Event3", "CSharpErrors.ClassEvents.Event3", "CSharpErrors.EventDelegate<UnavailableClass[]>"),
 
                 // (4,47): error CS0012: The type 'UnavailableDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     public override event UnavailableDelegate Event1;
@@ -991,7 +931,7 @@ class C : ILErrors.InterfaceEvents
 }";
 
             var delegatesWithoutInvokeReference = TestReferences.SymbolsTests.DelegateImplementation.DelegatesWithoutInvoke;
-            CreateStandardCompilation(text, new MetadataReference[] { delegatesWithoutInvokeReference }).VerifyDiagnostics(
+            CreateCompilation(text, new MetadataReference[] { delegatesWithoutInvokeReference }).VerifyDiagnostics(
                 // (7,16): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         return del("goo"); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
                 Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"del(""goo"")").WithArguments("DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>"),
@@ -1050,7 +990,7 @@ class C : ILErrors.InterfaceEvents
 
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
-            CreateStandardCompilation(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
+            CreateCompilation(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
                 // (5,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         return del.Invoke("goo");
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "del.Invoke").WithArguments("UnavailableClass<>", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1088,9 +1028,9 @@ public sealed class A
 }
 ";
 
-            var lib1 = CreateCompilation(
+            var lib1 = CreateEmptyCompilation(
                 new[] { Parse(srcLib1) },
-                new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v3_5_30729.SystemCore },
+                new[] { TestMetadata.Net20.mscorlib, TestMetadata.Net35.SystemCore },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
             string srcLib2 = @"
@@ -1102,7 +1042,7 @@ class Program
     }
 }
 ";
-            var lib2 = CreateCompilation(
+            var lib2 = CreateEmptyCompilation(
                 new[] { Parse(srcLib2) },
                 new[] { MscorlibRef, new CSharpCompilationReference(lib1) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
@@ -1119,7 +1059,7 @@ class Program
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateStandardCompilation(xSource, assemblyName: "Test").EmitToImageReference();
+            var xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
 
 
             var libSource = @"
@@ -1133,12 +1073,12 @@ public class C
     public void Goo(X a) { }
 }
 ";
-            var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Test");
+            var lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Test");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateStandardCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
                 // (2,7): error CS7068: Reference to type 'X' claims it is defined in this assembly, but it is not defined in source or any added modules
@@ -1152,7 +1092,7 @@ class B : C, I { }
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateStandardCompilation(xSource, assemblyName: "X").EmitToImageReference();
+            var xRef = CreateCompilation(xSource, assemblyName: "X").EmitToImageReference();
 
             var libSource = @"
 public interface I
@@ -1165,12 +1105,12 @@ public class C
     public virtual void Goo(X a) { }
 }
 ";
-            var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
+            var lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateStandardCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyEmitDiagnostics();
         }
@@ -1181,7 +1121,7 @@ class B : C, I { }
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateStandardCompilation(xSource, assemblyName: "X").EmitToImageReference();
+            var xRef = CreateCompilation(xSource, assemblyName: "X").EmitToImageReference();
 
             var libSource = @"
 public interface I
@@ -1194,12 +1134,12 @@ public class C
     public int this[X a] { get { return 1; } set { } }
 }
 ";
-            var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
+            var lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateStandardCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
                 // (2,7): error CS0012: The type 'X' is defined in an assembly that is not referenced. You must add a reference to assembly 'X, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1219,7 +1159,7 @@ class B : C, I { }
             var mainSource = @"
 class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
 ";
-            var main = CreateStandardCompilation(mainSource, new[] { ilRef, unavailableRef });
+            var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             CompileAndVerify(main);
         }
@@ -1233,7 +1173,7 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
             var mainSource = @"
 class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
 ";
-            var main = CreateStandardCompilation(mainSource, new[] { ilRef, unavailableRef });
+            var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             CompileAndVerify(main);
         }
@@ -1247,18 +1187,15 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
             var mainSource = @"
 class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
 ";
-            var main = CreateStandardCompilation(mainSource, new[] { ilRef, unavailableRef });
+            var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             main.VerifyDiagnostics(
-    // (2,49): error CS0648: '' is a type not supported by the language
+    // (2,7): error CS0570: 'ModReqInterfaceEvents.Event1.remove' is not supported by the language
     // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BogusType, "ILErrors.ModReqInterfaceEvents").WithArguments("").WithLocation(2, 49),
-    // (2,49): error CS0570: 'ModReqInterfaceEvents.remove_Event1(?)' is not supported by the language
+    Diagnostic(ErrorCode.ERR_BindToBogus, "B").WithArguments("ILErrors.ModReqInterfaceEvents.Event1.remove").WithLocation(2, 7),
+    // (2,7): error CS0570: 'ModReqInterfaceEvents.Event1.add' is not supported by the language
     // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BindToBogus, "ILErrors.ModReqInterfaceEvents").WithArguments("ILErrors.ModReqInterfaceEvents.remove_Event1(?)").WithLocation(2, 49),
-    // (2,49): error CS0570: 'ModReqInterfaceEvents.add_Event1(?)' is not supported by the language
-    // class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
-    Diagnostic(ErrorCode.ERR_BindToBogus, "ILErrors.ModReqInterfaceEvents").WithArguments("ILErrors.ModReqInterfaceEvents.add_Event1(?)").WithLocation(2, 49)
+    Diagnostic(ErrorCode.ERR_BindToBogus, "B").WithArguments("ILErrors.ModReqInterfaceEvents.Event1.add").WithLocation(2, 7)
             );
         }
 
@@ -1271,7 +1208,7 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
    public int AProperty { get; set; }
 }";
 
-            var compilation = CreateCompilation(text).VerifyDiagnostics(
+            var compilation = CreateEmptyCompilation(text).VerifyDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class C 
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Object"),
@@ -1296,10 +1233,10 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
         {
             var baseSource =
 @"public class Base {}";
-            var baseLib = CreateStandardCompilation(baseSource, assemblyName: "BaseAssembly");
+            var baseLib = CreateCompilation(baseSource, assemblyName: "BaseAssembly");
             var derivedSource =
 @"public class Derived : Base {}";
-            var derivedLib = CreateStandardCompilation(derivedSource, assemblyName: "DerivedAssembly", references: new[] { new CSharpCompilationReference(baseLib) });
+            var derivedLib = CreateCompilation(derivedSource, assemblyName: "DerivedAssembly", references: new[] { new CSharpCompilationReference(baseLib) });
             var programSource =
 @"
 class Program
@@ -1313,11 +1250,12 @@ class Program
             case Derived d: break;
         }
     }
-}";
-            CreateStandardCompilation(programSource, references: new[] { new CSharpCompilationReference(derivedLib) }).VerifyDiagnostics(
-                // (10,13): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             case Derived d: break;
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "case Derived d:").WithArguments("Base", "BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 13)
+}
+";
+            CreateCompilation(programSource, references: new[] { new CSharpCompilationReference(derivedLib) }).VerifyDiagnostics(
+                // (9,18): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             case string s: break;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "string s").WithArguments("Base", "BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 18)
                 );
         }
 
@@ -1708,9 +1646,9 @@ class C
     }
 }
 ";
-            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (8,22): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new Constructor1(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Constructor1").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1779,12 +1717,12 @@ class Derived : Base
     public int this[string x] { get { return 0; } }
 }
 ";
-            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
             // NOTE: No errors reported when the Derived member wins.
-            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (9,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         i = d.M(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "d.M").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1834,11 +1772,11 @@ class Test
     }
 }
 ";
-            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
-            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (10,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         c = new C("A"); // Error
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1891,11 +1829,11 @@ class Test
     }
 }
 ";
-            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
-            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (10,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         c = new C("A", null); // Error
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1948,11 +1886,11 @@ class Test
     }
 }
 ";
-            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
-            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (10,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         c = new C(null, "A"); // Error
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1995,12 +1933,12 @@ class Test
     }
 }
 ";
-            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
             var getMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
             var setMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
-            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 getMissingDiagnostic,
                 getMissingDiagnostic,
                 setMissingDiagnostic,
@@ -2117,7 +2055,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
                 // (9,35): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
                 //         var c2 = new Constructors(null);
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int"),
@@ -2212,19 +2150,19 @@ class C
     }
 }
 ";
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
-                // (8,22): error CS0570: 'Constructors.Constructors(?)' is not supported by the language
+            CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
+                // (8,22): error CS0570: 'Constructors.Constructors(string)' is not supported by the language
                 //         var c2 = new Constructors(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(?)"),
-                // (10,9): error CS0570: 'Methods.M(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Constructors").WithArguments("Constructors.Constructors(string)").WithLocation(8, 22),
+                // (10,17): error CS0570: 'Methods.M(string)' is not supported by the language
                 //         Methods.M(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Methods.M(?)"),
-                // (12,29): error CS0570: 'Methods.M(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Methods.M(string)").WithLocation(10, 17),
+                // (12,29): error CS0570: 'Methods.M(string)' is not supported by the language
                 //         Action<string> a2 = Methods.M;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(?)"),
-                // (14,18): error CS1546: Property, indexer, or event 'Indexers.this[?]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(?)'
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Methods.M").WithArguments("Methods.M(string)").WithLocation(12, 29),
+                // (14,18): error CS1546: Property, indexer, or event 'Indexers.this[string]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(string)'
                 //         var i2 = new Indexers()[null];
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)"));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(14, 18));
         }
 
         [WorkItem(939928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939928")]
@@ -2236,13 +2174,13 @@ class C
 using System;
 public class GeneralException : Exception {}";
 
-            CSharpCompilation comp1 = CreateStandardCompilation(source1, assemblyName: "Base");
+            CSharpCompilation comp1 = CreateCompilation(source1, assemblyName: "Base");
 
             var source2 = @"
 public class SpecificException : GeneralException
 {}";
 
-            CSharpCompilation comp2 = CreateStandardCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
+            CSharpCompilation comp2 = CreateCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
 
             var source3 = @"
 class Test
@@ -2260,16 +2198,16 @@ class Test
     }
 }";
 
-            CSharpCompilation comp3 = CreateStandardCompilation(source3, new MetadataReference[] { new CSharpCompilationReference(comp2) });
+            CSharpCompilation comp3 = CreateCompilation(source3, new MetadataReference[] { new CSharpCompilationReference(comp2) });
 
             DiagnosticDescription[] expected =
             {
-                // (9,23): error CS0155: The type caught or thrown must be derived from System.Exception
-                //                 throw e;
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(9, 23),
                 // (9,23): error CS0012: The type 'GeneralException' is defined in an assembly that is not referenced. You must add a reference to assembly 'Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //                 throw e;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "e").WithArguments("GeneralException", "Base, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 23),
+                // (9,23): error CS0029: Cannot implicitly convert type 'SpecificException' to 'System.Exception'
+                //                 throw e;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("SpecificException", "System.Exception").WithLocation(9, 23),
                 // (11,20): error CS0155: The type caught or thrown must be derived from System.Exception
                 //             catch (SpecificException) 
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "SpecificException").WithLocation(11, 20),
@@ -2280,7 +2218,7 @@ class Test
 
             comp3.VerifyDiagnostics(expected);
 
-            comp3 = CreateStandardCompilation(source3, new MetadataReference[] { comp2.EmitToImageReference() });
+            comp3 = CreateCompilation(source3, new MetadataReference[] { comp2.EmitToImageReference() });
 
             comp3.VerifyDiagnostics(expected);
         }
@@ -2313,7 +2251,7 @@ namespace System
                 options = options.WithOutputKind(OutputKind.NetModule);
             }
 
-            var compilation = CreateCompilation(
+            var compilation = CreateEmptyCompilation(
                 new[] { Parse(corLibText) },
                 options: options);
             compilation.VerifyDiagnostics(expectedDiagnostics);
@@ -2331,10 +2269,10 @@ namespace System
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
 
-            var successfulCompilation = CreateStandardCompilation(source, new MetadataReference[] { unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference });
+            var successfulCompilation = CreateCompilation(source, new MetadataReference[] { unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference });
             successfulCompilation.VerifyDiagnostics(); // No diagnostics when reference is present
 
-            var failingCompilation = CreateStandardCompilation(source, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference });
+            var failingCompilation = CreateCompilation(source, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference });
             return failingCompilation;
         }
 
@@ -2352,7 +2290,7 @@ public delegate void D();
 
 public interface I1 {}
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
+            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
             compilation1.VerifyEmitDiagnostics();
 
             Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
@@ -2368,7 +2306,7 @@ interface I2
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
+            var compilation2 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
 
             compilation2.VerifyEmitDiagnostics();
             CompileAndVerify(compilation2);
@@ -2379,7 +2317,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation3 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
+            var compilation3 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
 
             compilation3.VerifyEmitDiagnostics();
             CompileAndVerify(compilation3);
@@ -2390,7 +2328,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation4 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
+            var compilation4 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
 
             compilation4.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2420,7 +2358,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation5 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
+            var compilation5 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
 
             compilation5.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2434,7 +2372,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation6 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
+            var compilation6 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
 
             compilation6.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2464,7 +2402,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation7 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
+            var compilation7 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
 
             compilation7.VerifyEmitDiagnostics();
             CompileAndVerify(compilation7);
@@ -2500,6 +2438,325 @@ class C : CSharpErrors.ClassMethods
 
                     Assert.Equal(actualAssemblyId, expectedAssemblyId);
                 }
+            }
+        }
+
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilation(@"
+public struct S1
+{
+    public int i;
+}", assemblyName: "libS1").ToMetadataReference();
+
+
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
+public struct S2
+{
+    public S1 s1;
+}
+", references: new[] { UnmanagedUseSiteError_Ref1 }, assemblyName: "libS2").ToMetadataReference();
+
+        [Fact]
+        public void Unmanaged_UseSiteError_01()
+        {
+            var source = @"
+class C
+{
+    unsafe void M(S2 s2)
+    {
+        var ptr = &s2;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (6,19): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var ptr = &s2;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 19),
+                // (6,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         var ptr = &s2;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s2").WithArguments("S2").WithLocation(6, 19)
+                );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_02()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        var size = sizeof(S2);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (6,20): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var size = sizeof(S2);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "sizeof(S2)").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 20),
+                // (6,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         var size = sizeof(S2);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(6, 20));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_03()
+        {
+            var source = @"
+class C
+{
+    unsafe void M(S2* ptr)
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (4,23): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     unsafe void M(S2* ptr)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "ptr").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 23),
+                // (4,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //     unsafe void M(S2* ptr)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("S2").WithLocation(4, 23));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_04()
+        {
+            var source = @"
+class C
+{
+    unsafe void M()
+    {
+        S2* span = stackalloc S2[16];
+        S2* span2 = stackalloc [] { default(S2) };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
+                // (6,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(6, 9),
+                // (6,31): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 31),
+                // (6,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* span = stackalloc S2[16];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(6, 31),
+                // (7,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
+                // (7,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 9),
+                // (7,21): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "stackalloc [] { default(S2) }").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 21),
+                // (7,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* span2 = stackalloc [] { default(S2) };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc [] { default(S2) }").WithArguments("S2").WithLocation(7, 21));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_05()
+        {
+            var source = @"
+class C
+{
+    S2 s2;
+    unsafe void M()
+    {
+        fixed (S2* ptr = &s2)
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 16),
+                // (7,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(7, 16),
+                // (7,26): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "&s2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26),
+                // (7,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         fixed (S2* ptr = &s2)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s2").WithArguments("S2").WithLocation(7, 26)
+                );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_06()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t) where T : unmanaged { }
+
+    void M1()
+    {
+        M(default(S2)); // 1, 2
+        M(default(S2)); // 3, 4
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (8,9): error CS8377: The type 'S2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S2)); // 1, 2
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S2").WithLocation(8, 9),
+                // (8,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S2)); // 1, 2
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 9),
+                // (9,9): error CS8377: The type 'S2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S2)); // 3, 4
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S2").WithLocation(9, 9),
+                // (9,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S2)); // 3, 4
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 9));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_07()
+        {
+            var source = @"
+public struct S3
+{
+    public S2 s2;
+}
+
+class C
+{
+    void M<T>(T t) where T : unmanaged { }
+
+    void M1()
+    {
+        M(default(S3)); // 1, 2
+        M(default(S3)); // 3, 4
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS8377: The type 'S3' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S3)); // 1, 2
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S3").WithLocation(13, 9),
+                // (13,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S3)); // 1, 2
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 9),
+                // (14,9): error CS8377: The type 'S3' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>(T)'
+                //         M(default(S3)); // 3, 4
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("C.M<T>(T)", "T", "S3").WithLocation(14, 9),
+                // (14,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(default(S3)); // 3, 4
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(14, 9));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_08()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+class C
+{
+    async Task M1()
+    {
+        S2 s2 = M2();
+        await M1();
+        Console.Write(s2);
+    }
+
+    S2 M2() => default;
+}
+";
+            var comp = CreateCompilation(source, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics(
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Unmanaged_UseSiteError_09()
+        {
+            var source = @"
+public struct S3
+{
+    public S2 s2;
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+            var s3 = comp.GetMember<NamedTypeSymbol>("S3");
+
+            verifyIsManagedType();
+            verifyIsManagedType();
+
+            void verifyIsManagedType()
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Assert.True(s3.IsManagedType(ref useSiteDiagnostics));
+                useSiteDiagnostics.Verify(
+                    // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                    Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+                    );
+            }
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp.VerifyEmitDiagnostics();
+            s3 = comp.GetMember<NamedTypeSymbol>("S3");
+
+            verifyIsUnmanagedType();
+            verifyIsUnmanagedType();
+
+            void verifyIsUnmanagedType()
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Assert.False(s3.IsManagedType(ref useSiteDiagnostics));
+                Assert.Null(useSiteDiagnostics);
             }
         }
     }

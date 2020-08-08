@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -18,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int ContextImplementAbstractClass = 0x1903;        // cmdidContextImplementAbstractClass
 
             public const int ContextOrganizeRemoveAndSort = 0x1913;         // cmdidContextOrganizeRemoveAndSort
+            public const int OrganizeSortUsings = 0x1922;                   // cmdidCSharpOrganizeSortUsings
             public const int OrganizeRemoveAndSort = 0x1923;                // cmdidCSharpOrganizeRemoveAndSort
 
             public const int SmartTagRename = 0x2000;                       // cmdidSmartTagRename

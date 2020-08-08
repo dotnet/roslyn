@@ -1,73 +1,70 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup;
-using Microsoft.CodeAnalysis.Editor.Implementation.Commands;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Primitives;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
     internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
     {
-        private readonly EventHookupCommandHandler _commandHandler;
-        private Mutex _testSessionHookupMutex;
+        // TODO: It seems that we can move EventHookupSessionManager to EditorFeatures (https://github.com/dotnet/roslyn/issues/46280)
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+            typeof(EventHookupCommandHandler),
+            typeof(EventHookupSessionManager));
 
-        public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
-            : base(workspaceElement, GetExtraParts(), false)
+        private readonly EventHookupCommandHandler _commandHandler;
+        private readonly Mutex _testSessionHookupMutex;
+
+        public EventHookupTestState(XElement workspaceElement, OptionsCollection options)
+            : base(workspaceElement, s_composition)
         {
-            CommandHandlerService t = (CommandHandlerService)Workspace.GetService<ICommandHandlerServiceFactory>().GetService(Workspace.Documents.Single().TextBuffer);
-            var field = t.GetType().GetField("_commandHandlers", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Instance);
-            var handlers = (IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>>)field.GetValue(t);
-            _commandHandler = handlers.Single(h => h.Value is EventHookupCommandHandler).Value as EventHookupCommandHandler;
+            _commandHandler = new EventHookupCommandHandler(
+                Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                Workspace.GetService<IInlineRenameService>(),
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                Workspace.ExportProvider.GetExportedValue<EventHookupSessionManager>());
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
             Workspace.ApplyOptions(options);
         }
 
-        private static ComposableCatalog GetExtraParts()
-        {
-            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupWaiter), typeof(EventHookupCommandHandler), typeof(EventHookupQuickInfoSourceProvider) });
-        }
+        public static EventHookupTestState CreateTestState(string markup, OptionsCollection options = null)
+            => new EventHookupTestState(GetWorkspaceXml(markup), options);
 
-        public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)
-        {
-            var workspaceXml = string.Format(@"
+        public static XElement GetWorkspaceXml(string markup)
+            => XElement.Parse(string.Format(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document>{0}</Document>
     </Project>
-</Workspace>", markup);
-
-            return new EventHookupTestState(XElement.Parse(workspaceXml), options);
-        }
+</Workspace>", markup));
 
         internal void AssertShowing(string expectedText)
         {
-            Assert.NotNull(_commandHandler.EventHookupSessionManager.QuickInfoSession);
-            Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
+            Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
+            Assert.Single(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
 
-            var inlines = (_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent as System.Windows.Controls.TextBlock).Inlines;
-            Assert.Equal(2, inlines.Count);
-            Assert.Equal(expectedText, (inlines.First() as System.Windows.Documents.Run).Text);
+            var textElement = _commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent.First();
+            Assert.Equal(3, textElement.Runs.Count());
+            Assert.Equal(expectedText, textElement.Runs.First().Text);
         }
 
         internal void AssertNotShowing()
         {
-            Assert.True(_commandHandler.EventHookupSessionManager.QuickInfoSession == null || _commandHandler.EventHookupSessionManager.QuickInfoSession.IsDismissed);
-            Assert.Null(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
+            Assert.Null(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
         }
 
         internal void SetEventHookupCheckMutex()

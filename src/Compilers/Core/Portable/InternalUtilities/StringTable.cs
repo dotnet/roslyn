@@ -1,11 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
-using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Roslyn.Utilities
 {
@@ -76,18 +83,17 @@ namespace Roslyn.Utilities
         // implement Poolable object pattern
         #region "Poolable"
 
-        private StringTable(ObjectPool<StringTable> pool)
+        private StringTable(ObjectPool<StringTable>? pool)
         {
             _pool = pool;
         }
 
-        private readonly ObjectPool<StringTable> _pool;
+        private readonly ObjectPool<StringTable>? _pool;
         private static readonly ObjectPool<StringTable> s_staticPool = CreatePool();
 
         private static ObjectPool<StringTable> CreatePool()
         {
-            ObjectPool<StringTable> pool = null;
-            pool = new ObjectPool<StringTable>(() => new StringTable(pool), Environment.ProcessorCount * 2);
+            var pool = new ObjectPool<StringTable>(pool => new StringTable(pool), Environment.ProcessorCount * 2);
             return pool;
         }
 
@@ -102,13 +108,14 @@ namespace Roslyn.Utilities
             // Array.Clear(this.localTable, 0, this.localTable.Length);
             // Array.Clear(sharedTable, 0, sharedTable.Length);
 
-            _pool.Free(this);
+            _pool?.Free(this);
         }
 
         #endregion // Poolable
 
         internal string Add(char[] chars, int start, int len)
         {
+            var span = chars.AsSpan(start, len);
             var hashCode = Hash.GetFNVHashCode(chars, start, len);
 
             // capture array to avoid extra range checks
@@ -120,13 +127,13 @@ namespace Roslyn.Utilities
             if (text != null && arr[idx].HashCode == hashCode)
             {
                 var result = arr[idx].Text;
-                if (StringTable.TextEquals(result, chars, start, len))
+                if (StringTable.TextEquals(result, span))
                 {
                     return result;
                 }
             }
 
-            string shared = FindSharedEntry(chars, start, len, hashCode);
+            string? shared = FindSharedEntry(chars, start, len, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -160,7 +167,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, start, len, hashCode);
+            string? shared = FindSharedEntry(chars, start, len, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -194,7 +201,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -228,7 +235,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -262,7 +269,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -279,12 +286,47 @@ namespace Roslyn.Utilities
         }
 
 
-        private static string FindSharedEntry(char[] chars, int start, int len, int hashCode)
+        private static string? FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
+            // we use quadratic probing here
+            // bucket positions are (n^2 + n)/2 relative to the masked hashcode
+            for (int i = 1; i < SharedBucketSize + 1; i++)
+            {
+                e = arr[idx].Text;
+                int hash = arr[idx].HashCode;
+
+                if (e != null)
+                {
+                    if (hash == hashCode && TextEquals(e, chars.AsSpan(start, len)))
+                    {
+                        break;
+                    }
+
+                    // this is not e we are looking for
+                    e = null;
+                }
+                else
+                {
+                    // once we see unfilled entry, the rest of the bucket will be empty
+                    break;
+                }
+
+                idx = (idx + i) & SharedSizeMask;
+            }
+
+            return e;
+        }
+
+        private static string? FindSharedEntry(string chars, int start, int len, int hashCode)
+        {
+            var arr = s_sharedTable;
+            int idx = SharedIdxFromHash(hashCode);
+
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -314,12 +356,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntry(string chars, int start, int len, int hashCode)
+        private static string? FindSharedEntryASCII(int hashCode, ReadOnlySpan<byte> asciiChars)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -329,7 +371,7 @@ namespace Roslyn.Utilities
 
                 if (e != null)
                 {
-                    if (hash == hashCode && TextEquals(e, chars, start, len))
+                    if (hash == hashCode && TextEqualsASCII(e, asciiChars))
                     {
                         break;
                     }
@@ -349,47 +391,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static unsafe string FindSharedEntryASCII(int hashCode, byte* asciiChars, int length)
+        private static string? FindSharedEntry(char chars, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
-            // we use quadratic probing here
-            // bucket positions are (n^2 + n)/2 relative to the masked hashcode
-            for (int i = 1; i < SharedBucketSize + 1; i++)
-            {
-                e = arr[idx].Text;
-                int hash = arr[idx].HashCode;
-
-                if (e != null)
-                {
-                    if (hash == hashCode && TextEqualsASCII(e, asciiChars, length))
-                    {
-                        break;
-                    }
-
-                    // this is not e we are looking for
-                    e = null;
-                }
-                else
-                {
-                    // once we see unfilled entry, the rest of the bucket will be empty
-                    break;
-                }
-
-                idx = (idx + i) & SharedSizeMask;
-            }
-
-            return e;
-        }
-
-        private static string FindSharedEntry(char chars, int hashCode)
-        {
-            var arr = s_sharedTable;
-            int idx = SharedIdxFromHash(hashCode);
-
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -418,12 +425,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntry(StringBuilder chars, int hashCode)
+        private static string? FindSharedEntry(StringBuilder chars, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -453,12 +460,12 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static string FindSharedEntry(string chars, int hashCode)
+        private static string? FindSharedEntry(string chars, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
-            string e = null;
+            string? e = null;
             // we use quadratic probing here
             // bucket positions are (n^2 + n)/2 relative to the masked hashcode
             for (int i = 1; i < SharedBucketSize + 1; i++)
@@ -555,7 +562,7 @@ namespace Roslyn.Utilities
             var i1 = LocalNextRandom() & SharedBucketSizeMask;
             idx = (idx + ((i1 * i1 + i1) / 2)) & SharedSizeMask;
 
-        foundIdx:
+foundIdx:
             arr[idx].HashCode = hashCode;
             Volatile.Write(ref arr[idx].Text, text);
         }
@@ -564,7 +571,7 @@ namespace Roslyn.Utilities
         {
             var hashCode = Hash.GetFNVHashCode(chars);
 
-            string shared = FindSharedEntry(chars, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 return shared;
@@ -580,29 +587,33 @@ namespace Roslyn.Utilities
             return text;
         }
 
-        internal static unsafe string AddSharedUTF8(byte* bytes, int byteCount)
+        internal static string AddSharedUTF8(ReadOnlySpan<byte> bytes)
         {
-            bool isAscii;
-            int hashCode = Hash.GetFNVHashCode(bytes, byteCount, out isAscii);
+            int hashCode = Hash.GetFNVHashCode(bytes, out bool isAscii);
 
             if (isAscii)
             {
-                string shared = FindSharedEntryASCII(hashCode, bytes, byteCount);
+                string? shared = FindSharedEntryASCII(hashCode, bytes);
                 if (shared != null)
                 {
                     return shared;
                 }
             }
 
-            return AddSharedSlow(hashCode, bytes, byteCount, isAscii);
+            return AddSharedSlow(hashCode, bytes, isAscii);
         }
 
-        private static unsafe string AddSharedSlow(int hashCode, byte* utf8Bytes, int byteCount, bool isAscii)
+        private static string AddSharedSlow(int hashCode, ReadOnlySpan<byte> utf8Bytes, bool isAscii)
         {
-            // TODO: This should be Encoding.UTF8.GetString (for better layering) but the unsafe variant isn't portable. 
-            //       The MetadataReader has code to light it up and even fall back to internal String.CreateStringFromEncoding
-            //       on .NET < 4.5.3. Use that instead of copying the light-up code here.
-            string text = System.Reflection.Metadata.MetadataStringDecoder.DefaultUTF8.GetString(utf8Bytes, byteCount);
+            string text;
+
+            unsafe
+            {
+                fixed (byte* bytes = &utf8Bytes.GetPinnableReference())
+                {
+                    text = Encoding.UTF8.GetString(bytes, utf8Bytes.Length);
+                }
+            }
 
             // Don't add non-ascii strings to table. The hashCode we have here is not correct and we won't find them again.
             // Non-ascii in UTF8-encoded parts of metadata (the only use of this at the moment) is assumed to be rare in 
@@ -640,7 +651,7 @@ namespace Roslyn.Utilities
             var i1 = SharedNextRandom() & SharedBucketSizeMask;
             idx = (idx + ((i1 * i1 + i1) / 2)) & SharedSizeMask;
 
-        foundIdx:
+foundIdx:
             arr[idx].HashCode = hashCode;
             Volatile.Write(ref arr[idx].Text, text);
         }
@@ -705,21 +716,21 @@ namespace Roslyn.Utilities
             return true;
         }
 
-        internal static unsafe bool TextEqualsASCII(string text, byte* ascii, int length)
+        internal static bool TextEqualsASCII(string text, ReadOnlySpan<byte> ascii)
         {
 #if DEBUG
-            for (var i = 0; i < length; i++)
+            for (var i = 0; i < ascii.Length; i++)
             {
-                Debug.Assert((ascii[i] & 0x80) == 0, "The byte* input to this method must be valid ASCII.");
+                Debug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
             }
 #endif
 
-            if (length != text.Length)
+            if (ascii.Length != text.Length)
             {
                 return false;
             }
 
-            for (var i = 0; i < length; i++)
+            for (var i = 0; i < ascii.Length; i++)
             {
                 if (ascii[i] != text[i])
                 {
@@ -730,25 +741,7 @@ namespace Roslyn.Utilities
             return true;
         }
 
-        internal static bool TextEquals(string array, char[] text, int start, int length)
-        {
-            return array.Length == length && TextEqualsCore(array, text, start);
-        }
-
-        private static bool TextEqualsCore(string array, char[] text, int start)
-        {
-            // use array.Length to eliminate the range check
-            int s = start;
-            for (var i = 0; i < array.Length; i++)
-            {
-                if (array[i] != text[s])
-                {
-                    return false;
-                }
-                s++;
-            }
-
-            return true;
-        }
+        internal static bool TextEquals(string array, ReadOnlySpan<char> text)
+            => text.Equals(array.AsSpan(), StringComparison.Ordinal);
     }
 }

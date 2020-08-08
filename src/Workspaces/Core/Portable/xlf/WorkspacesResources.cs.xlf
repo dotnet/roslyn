@@ -2,9 +2,109 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
+        <source>Adding analyzer config documents is not supported.</source>
+        <target state="translated">Přidávání dokumentů konfigurace analyzátoru se nepodporuje.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Došlo k chybě při čtení zadaného konfiguračního souboru: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_files">
+        <source>C# files</source>
+        <target state="translated">Soubory C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="translated">Akce, která se nenachází v {0}, se nedá použít.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
+        <source>Changing analyzer config documents is not supported.</source>
+        <target state="translated">Změna dokumentů konfigurace analyzátoru se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_document_0_is_not_supported">
+        <source>Changing document '{0}' is not supported.</source>
+        <target state="translated">Změna dokumentu {0} není podporovaná.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Core_EditorConfig_Options">
+        <source>Core EditorConfig Options</source>
+        <target state="translated">Základní možnosti pro EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="translated">DateTimeKind musí být Utc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="translated">Cílový typ musí být {0}, {1}, {2} nebo {3}, ale zadaný typ je {4}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">Dokument nepodporuje stromy syntaxe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="translated">Při čtení obsahu zdrojového souboru {0} došlo k chybě -- {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Odsazení a mezery</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Předvolby nových řádků</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_submission_project_can_reference_submission_projects">
+        <source>Only submission project can reference submission projects.</source>
+        <target state="translated">Na projekty odeslání se může odkazovat jen projekt odeslání.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="translated">Možnosti nepocházely ze zadaného řešení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="translated">Projekt neobsahuje zadaný odkaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Pouze refaktoring</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="translated">Pokud chcete nastavení souboru .editorconfig zdědit z vyšších adresářů, odeberte řádek níže.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
+        <source>Removing analyzer config documents is not supported.</source>
+        <target state="translated">Odebírání dokumentů konfigurace analyzátoru se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">Přejmenovat {0} na {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Solution_does_not_contain_specified_reference">
+        <source>Solution does not contain specified reference</source>
+        <target state="translated">Řešení neobsahuje zadaný odkaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -82,9 +182,54 @@
         <target state="translated">Přidávání projektů se nepodporuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="translated">V zadaném řešení se nepovedlo najít projekt symbolu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="translated">Synchronizovat obor názvů se strukturou složek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="translated">Projekt už zadaný odkaz obsahuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_already_contains_the_specified_reference">
+        <source>The solution already contains the specified reference.</source>
+        <target state="translated">Řešení už zadaný odkaz obsahuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="translated">Neznámý</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="translated">Soubory jazyka Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
+        <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
+        <target state="translated">Přidáním importů se do oboru zavede rozšiřující metoda se stejným názvem jako {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="translated">Chyba pracovního prostoru</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Pracovní prostor není platný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="translated">{0} se nachází v jiném projektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -165,11 +310,6 @@
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">Řešení už obsahuje zadaný dokument.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">Řešení neobsahuje zadaný dokument.</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -267,11 +407,6 @@
         <target state="translated">{0} je pořád otevřený.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Element se stejným klíčem, ale odlišnou hodnotou už existuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">Pole s víc než jedním rozměrem nejsou serializované.</target>
@@ -285,11 +420,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">Zadaná cesta musí být absolutní.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">Přetypování je redundantní.</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
@@ -315,11 +445,6 @@
       <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
         <source>Invalid number of parameters for unary operator.</source>
         <target state="translated">Neplatný počet parametrů pro unární operátor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">Očekávala se absolutní cesta.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -360,21 +485,6 @@
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Přidáno:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">Opravit vše ({0})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Opravit vše ({0}) v: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Opravit vše ({0}) v řešení</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -467,11 +577,6 @@
         <target state="translated">Ke splnění úkolu se vyžaduje služba typu {0}, není ale z pracovního prostoru dostupná.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">Zadaná diagnostika nemůže být null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
         <source>At least one diagnostic must be supplied.</source>
         <target state="translated">Musí se zadat aspoň jedna diagnostika.</target>
@@ -552,11 +657,6 @@
         <target state="translated">Tento pracovní prostor nepodporuje otevírání a zavírání dokumentů.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Použití:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Výjimky:</target>
@@ -574,27 +674,7 @@
       </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
-        <target state="translated">Varování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Naplnit přepínač</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">Přístup členů by měl být kvalifikovaný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Přidat složené závorky do příkazu {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Možnosti nepocházely z pracovního prostoru.</target>
+        <target state="translated">Upozornění</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
@@ -627,110 +707,10 @@
         <target state="translated">Čtečka deserializace pro {0} přečetla nesprávný počet hodnot.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">PascalCase</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Abstract_Method">
-        <source>Abstract Method</source>
-        <target state="translated">Abstraktní metoda</target>
-        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
       <trans-unit id="Async_Method">
         <source>Async Method</source>
         <target state="translated">Asynchronní metoda</target>
         <note>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Begins_with_I">
-        <source>Begins with I</source>
-        <target state="translated">Začíná na I</target>
-        <note>{locked:I}</note>
-      </trans-unit>
-      <trans-unit id="Class">
-        <source>Class</source>
-        <target state="translated">Třída</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Delegate">
-        <source>Delegate</source>
-        <target state="translated">Delegát</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Enum">
-        <source>Enum</source>
-        <target state="translated">Výčet</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Event">
-        <source>Event</source>
-        <target state="translated">Událost</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Interface">
-        <source>Interface</source>
-        <target state="translated">Rozhraní</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Non_Field_Members">
-        <source>Non-Field Members</source>
-        <target state="translated">Členové bez pole</target>
-        <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_Method">
-        <source>Private Method</source>
-        <target state="translated">Privátní metoda</target>
-        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Field">
-        <source>Private or Internal Field</source>
-        <target state="translated">Privátní nebo interní pole</target>
-        <note>{locked: private}{locked: internal}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Static_Field">
-        <source>Private or Internal Static Field</source>
-        <target state="translated">Privátní nebo interní statické pole</target>
-        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Property">
-        <source>Property</source>
-        <target state="translated">Vlastnost</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Public_or_Protected_Field">
-        <source>Public or Protected Field</source>
-        <target state="translated">Veřejné nebo chráněné pole</target>
-        <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Static_Field">
-        <source>Static Field</source>
-        <target state="translated">Statické pole</target>
-        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Static_Method">
-        <source>Static Method</source>
-        <target state="translated">Statická metoda</target>
-        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Struct">
-        <source>Struct</source>
-        <target state="translated">Struktura</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Types">
-        <source>Types</source>
-        <target state="translated">Typy</target>
-        <note>{locked:types} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Method">
-        <source>Method</source>
-        <target state="translated">Metoda</target>
-        <note>{locked:method} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Missing_prefix_colon_0">
-        <source>Missing prefix: '{0}'</source>
-        <target state="translated">Chybějící předpona: {0}</target>
-        <note />
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
@@ -739,52 +719,12 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">Žádná</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Missing_suffix_colon_0">
-        <source>Missing suffix: '{0}'</source>
-        <target state="translated">Chybějící přípona: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
-        <source>These non-leading words must begin with an upper case letter: {0}</source>
-        <target state="translated">Tato neúvodní slova musí začínat velkým písmenem: {0}.</target>
+        <target state="translated">žádné</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Návrh</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
-        <source>These non-leading words must begin with a lowercase letter: {0}</source>
-        <target state="translated">Tato neúvodní slova musí začínat malým písmenem: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
-        <source>These words cannot contain lower case characters: {0}</source>
-        <target state="translated">Tato slova nemohou obsahovat malá písmena: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
-        <source>These words cannot contain upper case characters: {0}</source>
-        <target state="translated">Tato slova nemohou obsahovat velká písmena: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
-        <source>These words must begin with upper case characters: {0}</source>
-        <target state="translated">Tato slova musí začínat velkými písmeny: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
-        <source>The first word, '{0}', must begin with an upper case character</source>
-        <target state="translated">První slovo ({0}) musí začínat velkým písmenem.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
-        <source>The first word, '{0}', must begin with a lower case character</source>
-        <target state="translated">První slovo ({0}) musí začínat malým písmenem.</target>
         <note />
       </trans-unit>
       <trans-unit id="File_0_size_of_1_exceeds_maximum_allowed_size_of_2">
@@ -795,6 +735,16 @@
       <trans-unit id="Changing_document_property_is_not_supported">
         <source>Changing document properties is not supported</source>
         <target state="translated">Změna vlastností dokumentu není podporovaná.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="dot_NET_Coding_Conventions">
+        <source>.NET Coding Conventions</source>
+        <target state="translated">Konvence kódování v .NET</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="translated">Zachycené proměnné:</target>
         <note />
       </trans-unit>
     </body>

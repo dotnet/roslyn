@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        internal sealed override LexicalSortKey GetLexicalSortKey()
+        internal override LexicalSortKey GetLexicalSortKey()
         {
             //For the sake of matching the metadata output of the native compiler, make synthesized constructors appear last in the metadata.
             //This is not critical, but it makes it easier on tools that are comparing metadata.
@@ -145,24 +148,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_Void); }
+            get { return TypeWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
 
-        public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public sealed override Symbol AssociatedSymbol
@@ -268,8 +270,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            return ReturnType.GetUseSiteDiagnostic();
+            return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
         }
         #endregion
+
+        protected void GenerateMethodBodyCore(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            factory.CurrentFunction = this;
+            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
+            {
+                // System_Attribute was not found or was inaccessible
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            if (baseConstructorCall == null)
+            {
+                // Attribute..ctor was not found or was inaccessible
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var statements = ArrayBuilder<BoundStatement>.GetInstance();
+            statements.Add(factory.ExpressionStatement(baseConstructorCall));
+            GenerateMethodBodyStatements(factory, statements, diagnostics);
+            statements.Add(factory.Return());
+
+            var block = factory.Block(statements.ToImmutableAndFree());
+
+            factory.CloseMethod(block);
+        }
+
+        internal virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
+        {
+            // overridden in a derived class to add extra statements to the body of the generated constructor
+        }
+
     }
 }

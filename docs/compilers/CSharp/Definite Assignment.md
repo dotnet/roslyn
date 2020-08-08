@@ -39,3 +39,29 @@ For a constant expression with value true:
 ### Control transfers and intervening finally blocks
 
 The specification for definite assignment and reachability in the C# language specification do not properly take into account the possibility of "intervening" finally blocks between the origin of the control transfer and the destination. These finally blocks can assign to variables, this changing the definite assignment status, or change the control transfer behavior (e.g. by throwing an exception). Both the native compiler and the Roslyn C# compilers account for them in computing definite assignment and reachability of statements.
+
+### Definite assignment of structs across assemblies
+
+The compiler previously had a bug where it did not consider private fields of reference type inside structs as participating in
+piecewise definite assignment of variables of that struct type. For example,
+
+```C#
+public struct S
+{
+    private object _f;
+}
+
+---
+
+public class C
+{
+   void M()
+   {
+      S s; // s is now considered definitely assigned
+   }
+}
+```
+
+In the previous example, `s` will be considered not definitely assigned if `S` and `C` are in the same assembly, but will
+be considered definitely assigned if they are in different assemblies. This behavior is preserved in newer compilers for
+backwards compatibility, but it does not conform to any version of the C# language specification.

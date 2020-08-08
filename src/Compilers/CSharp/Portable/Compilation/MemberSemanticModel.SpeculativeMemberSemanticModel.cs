@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Collections.Generic;
-using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -20,12 +21,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Creates a speculative SemanticModel for a TypeSyntax node at a position within an existing MemberSemanticModel.
             /// </summary>
-            public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, int position)
-                : base(parentSemanticModel.Compilation, root, owner, rootBinder, parentSemanticModel, position)
+            public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
+                : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt, parentRemappedSymbolsOpt, speculatedPosition: position)
             {
             }
 
+            protected override NullableWalker.SnapshotManager GetSnapshotManager()
+            {
+                // In this override, current nullability state cannot influence anything of speculatively bound expressions.
+                return _parentSnapshotManagerOpt;
+            }
+
+            protected override BoundNode RewriteNullableBoundNodesWithSnapshots(
+                BoundNode boundRoot,
+                Binder binder,
+                DiagnosticBag diagnostics,
+                bool createSnapshots,
+                out NullableWalker.SnapshotManager snapshotManager,
+                ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
+            {
+                Debug.Assert(boundRoot.Syntax is TypeSyntax);
+                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
+            }
+
+#if DEBUG
+            protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
+            {
+                NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots);
+            }
+#endif
+
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
             {
                 throw ExceptionUtilities.Unreachable;
             }

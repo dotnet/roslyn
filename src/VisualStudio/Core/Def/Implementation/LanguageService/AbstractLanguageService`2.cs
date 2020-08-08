@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -15,7 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -95,11 +98,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // First, acquire any services we need throughout our lifetime.
             this.GetServices();
 
-            var componentModel = this.Package.ComponentModel;
+            // TODO: Is the below access to component model required or can be removed?
+            _ = this.Package.ComponentModel;
 
             // Start off a background task to prime some components we'll need for editing
             VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.BackgroundThread,
-                () => PrimeLanguageServiceComponentsOnBackground(componentModel));
+                () => PrimeLanguageServiceComponentsOnBackground());
 
             // Next, make any connections to these services.
             this.ConnectToServices();
@@ -114,9 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private object CreateComAggregate()
-        {
-            return Interop.ComAggregate.CreateAggregatedObject(this);
-        }
+            => Interop.ComAggregate.CreateAggregatedObject(this);
 
         internal void TearDown()
         {
@@ -174,9 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected virtual void DisconnectFromServices()
-        {
-            Marshal.ThrowExceptionForHR(this.Debugger.UnadviseDebuggerEvents(_debuggerEventsCookie));
-        }
+            => Marshal.ThrowExceptionForHR(this.Debugger.UnadviseDebuggerEvents(_debuggerEventsCookie));
 
         /// <summary>
         /// Called right after we instantiate the language service.  Used to set up any internal
@@ -197,11 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             UninitializeLanguageDebugInfo();
         }
 
-        private void PrimeLanguageServiceComponentsOnBackground(IComponentModel componentModel)
+        private void PrimeLanguageServiceComponentsOnBackground()
         {
-            var commandHandlerServiceFactory = componentModel.GetService<ICommandHandlerServiceFactory>();
-            commandHandlerServiceFactory.Initialize(this.ContentTypeName);
-
             var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
             if (formatter != null)
             {
@@ -230,20 +227,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var wpfTextView = EditorAdaptersFactoryService.GetWpfTextView(textView);
             Contract.ThrowIfNull(wpfTextView, "Could not get IWpfTextView for IVsTextView");
 
-            Contract.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter<TPackage, TLanguageService>)));
+            Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter)));
 
-            var commandHandlerFactory = Package.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
 
             // The lifetime of CommandFilter is married to the view
             wpfTextView.GetOrCreateAutoClosingProperty(v =>
-                new StandaloneCommandFilter<TPackage, TLanguageService>(
-                    (TLanguageService)this, v, commandHandlerFactory, EditorAdaptersFactoryService).AttachToVsTextView());
+                new StandaloneCommandFilter(
+                    v, Package.ComponentModel).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, workspace, isOpenMetadataAsSource);
+
             // If this is a metadata-to-source view, we want to consider the file read-only
             if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
             {
@@ -323,7 +320,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private bool StartsWithRegionTag(ITextSnapshotLine line)
         {
-            var snapshot = line.Snapshot;
             var start = line.GetFirstNonWhitespacePosition();
             if (start != null)
             {
@@ -342,16 +338,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var subjectBuffer = wpfTextView.TextBuffer;
             var snapshot = subjectBuffer.CurrentSnapshot;
             var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
-            using (var disposable = tagger as IDisposable)
-            {
-                tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
-            }
+
+            using var disposable = tagger as IDisposable;
+            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
         }
 
         private void InitializeLanguageDebugInfo()
-        {
-            this.LanguageDebugInfo = this.CreateLanguageDebugInfo();
-        }
+            => this.LanguageDebugInfo = this.CreateLanguageDebugInfo();
 
         protected abstract Guid DebuggerLanguageId { get; }
 
@@ -368,9 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void UninitializeLanguageDebugInfo()
-        {
-            this.LanguageDebugInfo = null;
-        }
+            => this.LanguageDebugInfo = null;
 
         private void InitializeDebugMode()
         {
@@ -387,12 +378,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected virtual IVsContainedLanguage CreateContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator, AbstractProject project,
+            IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
-            return new ContainedLanguage<TPackage, TLanguageService>(
-                bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid,
-                (TLanguageService)this, SourceCodeKind.Regular);
+            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
+
+            return new ContainedLanguage(
+                bufferCoordinator,
+                this.Package.ComponentModel,
+                this.Package.Workspace,
+                project.Id,
+                project,
+                filePath,
+                this.LanguageServiceId);
         }
     }
 }

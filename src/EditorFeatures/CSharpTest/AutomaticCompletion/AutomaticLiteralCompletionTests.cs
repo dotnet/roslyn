@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -14,60 +16,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
-            using (var session = CreateSessionSingleQuote("$$"))
-            {
-                Assert.NotNull(session);
-            }
+            using var session = CreateSessionSingleQuote("$$");
+            Assert.NotNull(session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel()
         {
-            using (var session = CreateSessionDoubleQuote("$$"))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSessionDoubleQuote("$$");
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel()
         {
-            using (var session = CreateSessionDoubleQuote("@$$"))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSessionDoubleQuote("@$$");
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void Char_TopLevel()
         {
-            using (var session = CreateSessionSingleQuote("$$"))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSessionSingleQuote("$$");
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel2()
         {
-            using (var session = CreateSessionDoubleQuote("using System;$$"))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSessionDoubleQuote("using System;$$");
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel2()
         {
-            using (var session = CreateSessionDoubleQuote("using System;@$$"))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSessionDoubleQuote("using System;@$$");
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -80,11 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = """"$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -97,11 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = """"@$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -114,11 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @""""$$
     }
 }";
-            using (var session = CreateSessionSingleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSessionSingleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -131,11 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -148,12 +135,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -166,12 +151,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -184,12 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -202,11 +183,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -219,12 +198,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -237,12 +214,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -255,12 +230,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -273,11 +246,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -290,12 +261,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -308,12 +277,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -326,12 +293,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $[||]$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -344,11 +309,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -361,12 +324,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -379,12 +340,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -397,12 +356,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = $@$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -415,12 +372,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 #line $$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckTab(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckTab(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -433,12 +388,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 #line $$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckOverType(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckOverType(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -451,12 +404,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 #line $$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session);
-                CheckBackspace(session.Session);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckBackspace(session.Session);
         }
 
         [WorkItem(546047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546047")]
@@ -470,21 +421,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         var s = @""""$$
     }
 }";
-            using (var session = CreateSessionDoubleQuote(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
-        internal Holder CreateSessionSingleQuote(string code)
+        internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.SingleQuote.OpenCharacter, BraceCompletionSessionProvider.SingleQuote.CloseCharacter);
         }
 
-        internal Holder CreateSessionDoubleQuote(string code)
+        internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

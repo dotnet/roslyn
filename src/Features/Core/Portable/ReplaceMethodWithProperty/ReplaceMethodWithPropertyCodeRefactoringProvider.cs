@@ -1,9 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +17,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
@@ -22,27 +30,22 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
     {
         private const string GetPrefix = "Get";
 
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public ReplaceMethodWithPropertyCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
+            var (document, _, cancellationToken) = context;
             var service = document.GetLanguageService<IReplaceMethodWithPropertyService>();
             if (service == null)
             {
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = context.Span.Start;
-            var token = root.FindToken(position);
-
-            if (!token.Span.Contains(context.Span))
-            {
-                return;
-            }
-
-            var methodDeclaration = service.GetMethodDeclaration(token);
+            var methodDeclaration = await service.GetMethodDeclarationAsync(context).ConfigureAwait(false);
             if (methodDeclaration == null)
             {
                 return;
@@ -53,24 +56,27 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var generator = SyntaxGenerator.GetGenerator(document);
             var methodName = generator.GetName(methodDeclaration);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration) as IMethodSymbol;
-            if (!IsValidGetMethod(methodSymbol))
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (!(semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol) ||
+                !IsValidGetMethod(methodSymbol))
             {
                 return;
             }
 
             var hasGetPrefix = HasGetPrefix(methodName);
             var propertyName = hasGetPrefix
-                ? methodName.Substring(GetPrefix.Length)
+                ? NameGenerator.GenerateUniqueName(
+                    methodName.Substring(GetPrefix.Length),
+                    n => !methodSymbol.ContainingType.GetMembers(n).Any())
                 : methodName;
             var nameChanged = hasGetPrefix;
 
             // Looks good!
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
-                c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
-                methodName));
+                c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
+                methodName),
+                methodDeclaration.Span);
 
             // If this method starts with 'Get' see if there's an associated 'Set' method we could 
             // replace as well.
@@ -81,27 +87,22 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 {
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
-                        c => ReplaceMethodsWithProperty(context.Document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
-                        methodName + "-get/set"));
+                        c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
+                        methodName + "-get/set"),
+                        methodDeclaration.Span);
                 }
             }
         }
 
         private static bool HasGetPrefix(SyntaxToken identifier)
-        {
-            return HasGetPrefix(identifier.ValueText);
-        }
+            => HasGetPrefix(identifier.ValueText);
 
         private static bool HasGetPrefix(string text)
-        {
-            return HasPrefix(text, GetPrefix);
-        }
+            => HasPrefix(text, GetPrefix);
         private static bool HasPrefix(string text, string prefix)
-        {
-            return text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
-        }
+            => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
-        private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
+        private static IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
             var setMethodName = "Set" + getMethod.Name.Substring(GetPrefix.Length);
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return IsValidSetMethod(setMethod) &&
                 setMethod.Parameters.Length == 1 &&
                 setMethod.Parameters[0].RefKind == RefKind.None &&
-                Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
+                SymbolEqualityComparer.IncludeNullability.Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 
@@ -157,21 +158,24 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
 
-        private async Task<Solution> ReplaceMethodsWithProperty(
+        private static async Task<Solution> ReplaceMethodsWithPropertyAsync(
             Document document,
             string propertyName,
             bool nameChanged,
             IMethodSymbol getMethod,
-            IMethodSymbol setMethod,
+            IMethodSymbol? setMethod,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var originalSolution = document.Project.Solution;
-            var getMethodReferences = await SymbolFinder.FindReferencesAsync(getMethod, originalSolution, cancellationToken).ConfigureAwait(false);
+            var project = document.Project;
+            var originalSolution = project.Solution;
+            var getMethodReferences = await SymbolFinder.FindReferencesAsync(
+                getMethod, originalSolution, cancellationToken).ConfigureAwait(false);
             var setMethodReferences = setMethod == null
                 ? SpecializedCollections.EmptyEnumerable<ReferencedSymbol>()
-                : await SymbolFinder.FindReferencesAsync(setMethod, originalSolution, cancellationToken).ConfigureAwait(false);
+                : await SymbolFinder.FindReferencesAsync(
+                    setMethod, originalSolution, cancellationToken).ConfigureAwait(false);
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(getMethodReferences);
@@ -191,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
+        private static async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
         {
             var allReferenceDocuments = getReferencesByDocument.Concat(setReferencesByDocument).Select(g => g.Key).Distinct();
             foreach (var referenceDocument in allReferenceDocuments)
@@ -208,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> UpdateReferencesInDocumentAsync(
+        private static async Task<Solution> UpdateReferencesInDocumentAsync(
             string propertyName,
             bool nameChanged,
             Solution updatedSolution,
@@ -217,10 +221,10 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             IEnumerable<ReferenceLocation> setReferences,
             CancellationToken cancellationToken)
         {
-            var root = await originalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await originalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
-            var service = originalDocument.GetLanguageService<IReplaceMethodWithPropertyService>();
+            var service = originalDocument.GetRequiredLanguageService<IReplaceMethodWithPropertyService>();
 
             ReplaceGetReferences(propertyName, nameChanged, getReferences, root, editor, service, cancellationToken);
             ReplaceSetReferences(propertyName, nameChanged, setReferences, root, editor, service, cancellationToken);
@@ -245,6 +249,11 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
                     var location = referenceLocation.Location;
                     var nameToken = root.FindToken(location.SourceSpan.Start);
+                    if (nameToken.Parent == null)
+                    {
+                        Debug.Fail($"Parent node of {nameToken} is null.");
+                        continue;
+                    }
 
                     if (referenceLocation.IsImplicit)
                     {
@@ -275,6 +284,11 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
                     var location = referenceLocation.Location;
                     var nameToken = root.FindToken(location.SourceSpan.Start);
+                    if (nameToken.Parent == null)
+                    {
+                        Debug.Fail($"Parent node of {nameToken} is null.");
+                        continue;
+                    }
 
                     if (referenceLocation.IsImplicit)
                     {
@@ -290,7 +304,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             }
         }
 
-        private async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
+        private static async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
             Solution originalSolution,
             Solution updatedSolution,
             string propertyName,
@@ -318,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
+        private static async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
             string propertyName,
             bool nameChanged,
             Solution updatedSolution,
@@ -328,19 +342,19 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             bool updateSetMethod,
             CancellationToken cancellationToken)
         {
-            var updatedDocument = updatedSolution.GetDocument(documentId);
-            var compilation = await updatedDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var updatedDocument = updatedSolution.GetRequiredDocument(documentId);
+            var compilation = await updatedDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // We've already gone and updated all references.  So now re-resolve all the definitions
             // in the current compilation to find their updated location.
             var getSetPairs = await GetGetSetPairsAsync(
                 updatedSolution, compilation, documentId, originalGetDefinitions, updateSetMethod, cancellationToken).ConfigureAwait(false);
 
-            var service = updatedDocument.GetLanguageService<IReplaceMethodWithPropertyService>();
+            var service = updatedDocument.GetRequiredLanguageService<IReplaceMethodWithPropertyService>();
 
-            var semanticModel = await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxTree = await updatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await updatedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await updatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, updatedSolution.Workspace);
 
@@ -375,7 +389,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
         }
 
-        private async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
+        private static async Task<ImmutableArray<GetAndSetMethods>> GetGetSetPairsAsync(
             Solution updatedSolution,
             Compilation compilation,
             DocumentId documentId,
@@ -383,13 +397,13 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             bool updateSetMethod,
             CancellationToken cancellationToken)
         {
-            var result = new List<GetAndSetMethods>();
+            using var _ = ArrayBuilder<GetAndSetMethods>.GetInstance(out var result);
             foreach (var originalDefinition in originalDefinitions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var getMethod = GetSymbolInCurrentCompilation(compilation, originalDefinition, cancellationToken);
-                if (IsValidGetMethod(getMethod))
+                if (getMethod != null && IsValidGetMethod(getMethod))
                 {
                     var setMethod = updateSetMethod ? FindSetMethod(getMethod) : null;
                     var getMethodDeclaration = await GetMethodDeclarationAsync(getMethod, cancellationToken).ConfigureAwait(false);
@@ -402,16 +416,16 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 }
             }
 
-            return result;
+            return result.ToImmutable();
         }
 
-        private static TSymbol GetSymbolInCurrentCompilation<TSymbol>(Compilation compilation, TSymbol originalDefinition, CancellationToken cancellationToken)
+        private static TSymbol? GetSymbolInCurrentCompilation<TSymbol>(Compilation compilation, TSymbol originalDefinition, CancellationToken cancellationToken)
             where TSymbol : class, ISymbol
         {
-            return originalDefinition.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
+            return originalDefinition.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
         }
 
-        private async Task<SyntaxNode> GetMethodDeclarationAsync(IMethodSymbol method, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode?> GetMethodDeclarationAsync(IMethodSymbol? method, CancellationToken cancellationToken)
         {
             if (method == null)
             {
@@ -423,7 +437,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
+        private static async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
             Solution originalSolution,
             IEnumerable<ReferencedSymbol> referencedSymbols,
             CancellationToken cancellationToken)
@@ -451,7 +465,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return result;
         }
 
-        private string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+#pragma warning disable IDE0060 // Remove unused parameter - Method not completely implemented.
+        private static string? GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // TODO: add things to be concerned about here.  For example:
             // 1. If any of the referenced symbols are from metadata.

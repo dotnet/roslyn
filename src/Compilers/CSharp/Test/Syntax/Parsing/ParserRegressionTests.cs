@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void PartialLocationInModifierList()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     partial abstract class A {}
@@ -29,10 +31,10 @@ class Program
     partial abstract struct S {}
 }");
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
                 // (7,13): error CS1525: Invalid expression term 'partial'
@@ -47,10 +49,10 @@ class Program
                 // (8,13): error CS1002: ; expected
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(8, 13),
-                // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(10, 5),
-                // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5),
                 // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
@@ -176,7 +178,7 @@ class A
     public int
 }";
             ParseAndValidate(test,
-                // (6,1): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // (6,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 1),
                 // (4,16): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
@@ -199,8 +201,8 @@ class A
             var parsedTree = ParseWithRoundTripCheck(source.ToString());
             IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
             Assert.Equal("202", actualErrors.Count().ToString());
-            Assert.Equal("(1,1201): error CS1056: Unexpected character '\\u003C'", actualErrors.ElementAt(200).ToString());
-            Assert.Equal("(1,1207): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString());
+            Assert.Equal("(1,1201): error CS1056: Unexpected character '\\u003C'", actualErrors.ElementAt(200).ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal("(1,1207): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [Fact]
@@ -217,8 +219,8 @@ class A
             var parsedTree = ParseWithRoundTripCheck(source.ToString());
             IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
             Assert.Equal("202", actualErrors.Count().ToString());
-            Assert.Equal("(1,2001): error CS1056: Unexpected character '\\U0000003C'", actualErrors.ElementAt(200).ToString());
-            Assert.Equal("(1,2011): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString());
+            Assert.Equal("(1,2001): error CS1056: Unexpected character '\\U0000003C'", actualErrors.ElementAt(200).ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal("(1,2011): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         #region "Helpers"

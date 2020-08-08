@@ -1,0 +1,377 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <Import Project="VisualStudio.targets"/>
+  <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
+
+  <!--
+    Work around .editorconfig evaluation bugs in command line builds.
+    https://github.com/dotnet/roslyn/issues/43371
+  -->
+  <Target Name="MapToAbsoluteFilePaths" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_AbsoluteCompile Include="@(Compile->'%(FullPath)')" />
+      <Compile Remove="@(Compile)" />
+      <Compile Include="@(_AbsoluteCompile)" />
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup>
+    <FileAlignment>512</FileAlignment>
+
+    <!-- 
+      Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
+      but gets included in lots of output items like VSIX.
+    -->
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">false</GenerateRuntimeConfigurationFiles>
+
+    <!--
+      When building a .NET Core exe make sure to include the template runtimeconfig.json file 
+      which has all of our global settings 
+    -->
+    <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
+
+    <!--
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
+      This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
+      to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+    -->
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
+
+    <!--
+      Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
+      impact the correctness of the output, so we avoid the performance overhead where it's easy to do so.
+    -->
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+  </PropertyGroup>
+
+  <!--
+    PERF: Set default value for 'UseRoslynAnalyzers' to determine if analyzers should be executed.
+          Default to 'false' in all non-CI builds to improve local build time (i.e. csc/vbc invocations both inside Visual Studio and from command line prompt), except if:
+            1. We are enforcing code style, i.e. '$(RoslynEnforceCodeStyle)' == 'true' OR
+            2. We are explicitly running code analysis via "Run Code Analysis" command, i.e. '$(RunCodeAnalysis)' == 'true'.
+          Otherwise, default to 'true'.
+  -->
+  <PropertyGroup Condition="'$(UseRoslynAnalyzers)' == ''">
+    <UseRoslynAnalyzers Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</UseRoslynAnalyzers>
+    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
+    <NoWarn>$(NoWarn);Nullable</NoWarn>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
+    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
+  </ItemGroup>
+
+  <!--
+    If the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFramework.ReferenceAssemblies nuget package.
+    Use the latest Framework toolset to build, but set msbuild properties below
+    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
+  -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <NoStdLib>true</NoStdLib>
+    <ResGenExecuteAsTool>false</ResGenExecuteAsTool>
+    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
+
+    <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
+    <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
+  </PropertyGroup>
+
+  <!-- 
+    Do not copy dependencies to the output directory of a library project, unless it's a unit test project.
+  -->
+  <ItemDefinitionGroup Condition="'$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true'">
+    <Reference>
+      <Private>False</Private>
+    </Reference>
+
+    <ProjectReference>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+
+  <PropertyGroup Condition="'$(ProduceReferenceAssembly)' == '' and (('$(OutputType)' == 'Library' and '$(IsVsixProject)' != 'true' and '$(IsTestProject)' != 'true') or '$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <!-- Rulesets -->
+  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)' == ''">
+    <CodeAnalysisRuleSet Condition="'$(IsShipping)' == 'true'">$(RepositoryEngineeringDir)config\rulesets\Shipping.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(IsShipping)' != 'true'">$(RepositoryEngineeringDir)config\rulesets\NonShipping.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <!--
+    Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
+    UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower
+    dependencies so they are not used unintentionally within the Roslyn code base.
+  -->
+  <Target Name="HideSlowAutomationAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences" >
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'UIAutomationClient' OR
+                                '%(FileName)' == 'UIAutomationTypes'">
+        <Aliases>slowautomation</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Chain before the .NET Core SDK GetAssemblyAttributes target to add the additional attribute.
+  -->
+  <Target Name="_AddCommitHashAttribute"
+          DependsOnTargets="InitializeSourceControlInformation"
+          BeforeTargets="GetAssemblyAttributes"
+          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
+    <ItemGroup>
+      <AssemblyAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+        <_Parameter1 Condition="'$(OfficialBuild)' == 'true'">$(SourceRevisionId)</_Parameter1>
+        <_Parameter1 Condition="'$(OfficialBuild)' != 'true'">&lt;developer build&gt;</_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup>
+    <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
+  </PropertyGroup>
+
+  <Import Project="Bootstrap.targets" Condition="'$(BootstrapBuildPath)' != ''" />
+
+  <!--
+    When running our determinism tests we need to copy the diagnostic file from the intermediate directory
+    to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
+    by our test scripts
+  -->
+  <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
+    <Copy Condition="'$(IsWpfTempProject)' != 'true' and Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
+          SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
+          DestinationFolder="$(OutDir)" />
+  </Target>
+
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
+
+  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild">
+    <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
+      <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
+    </CompareVersions>
+  
+    <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
+                 Condition="$(_VersionComparisonResult) &lt; 0"/>
+  </Target> 
+
+  <Target Name="DisableAnalyzers"
+          BeforeTargets="CoreCompile"
+          Condition="'$(UseRoslynAnalyzers)' == 'false'">
+    <!--
+      Disable analyzers via an MSBuild property settable on the command line.
+    -->
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+    This target is used to copy referenced projects to a sub-directory vs. the direct output 
+    directory of the build. Useful when the referenced project is an EXE and the referencing 
+    project uses an incompatible TargetFramework (e.g. CommandLineTest -> csc/vbc)
+  -->
+  <Target Name="CopyReferencedProjectsToDependenciesDirectory" Condition="'@(RoslynReferenceToDependencyDirectory)' != ''" AfterTargets="ResolveProjectReferences">
+    <PropertyGroup>
+      <_RoslynReferenceOutputPath>@(RoslynReferenceToDependencyDirectory->'%(RootDir)%(Directory)')</_RoslynReferenceOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_RoslynReferenceContent Include="$(_RoslynReferenceOutputPath)*.*" />
+      <Content Include="@(_RoslynReferenceContent)" Link="dependency\%(_RoslynReferenceContent.Filename)%(_RoslynReferenceContent.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+    Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
+    https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
+    isn't fully supported yet in the new project system. Removal of this hack is tracked
+    by https://github.com/dotnet/roslyn/issues/19545. 
+  -->
+  <ItemGroup>
+    <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include BannedSymbols covering all projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Show launchSettings.json in the project if it exists. -->
+    <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
+  </ItemGroup>
+
+  <!-- 
+    Add ThirdPartyNotices.rtf to all shipping NuGet packages.
+  -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
+    <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="ThirdPartyNotices.rtf" Visible="false" Pack="true"/>
+  </ItemGroup>
+
+  <!--
+    Append common text to package specific PackageDescription.
+  -->
+  <Target Name="_AppendCommonPackageDescription" 
+          BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
+          DependsOnTargets="InitializeSourceControlInformation"
+          Condition="'$(IsPackable)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
+    <PropertyGroup>
+      <PackageDescription>
+      $(PackageDescription)
+      More details at https://aka.ms/roslyn-packages
+      This package was built from the source at $(PrivateRepositoryUrl)/commit/$(SourceRevisionId).
+      </PackageDescription>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Make sure additional files show up in Solution Explorer -->
+  <ItemGroup>
+    <!--
+      The SDK should automatically add this available item name, but currently does not.
+      https://github.com/dotnet/project-system/issues/2160
+    -->
+    <AvailableItemName Include="AdditionalFiles" />
+  </ItemGroup>
+
+  <!--
+    Default settings for analyzer packages.    
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
+    <!-- Analyzer packages should not have any dependencies. -->
+    <PackageReference Update="@(PackageReference)" PrivateAssets="all"/>
+    <ProjectReference Update="@(ProjectReference)" PrivateAssets="all"/>
+
+    <!-- Analyzer packages should contain install scripts. -->
+    <None Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\PowerShell\install.ps1" PackagePath="tools\install.ps1" Visible="false" Pack="true"/>
+    <None Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\PowerShell\uninstall.ps1" PackagePath="tools\uninstall.ps1" Visible="false" Pack="true"/>
+  </ItemGroup>
+
+  <!-- RestrictedInternalsVisibleTo -->
+  <ItemDefinitionGroup>
+    <RestrictedInternalsVisibleTo>
+      <Visible>false</Visible>
+    </RestrictedInternalsVisibleTo>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="@(RestrictedInternalsVisibleTo)" Key="%(Key)" />
+  </ItemGroup>
+
+  <Target Name="PrepareGenerateRestrictedInternalsVisibleTo"
+          BeforeTargets="PrepareGenerateInternalsVisibleToFile"
+          Condition="'@(RestrictedInternalsVisibleTo)' != ''">
+    <ItemGroup>
+      <_InternalsVisibleToAttribute Include="System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute">
+        <_Parameter1>%(RestrictedInternalsVisibleTo.Identity)</_Parameter1>
+        <_Parameter2 Condition="'%(RestrictedInternalsVisibleTo.Partner)' != ''">Microsoft.CodeAnalysis.ExternalAccess.%(RestrictedInternalsVisibleTo.Partner).Api</_Parameter2>
+      </_InternalsVisibleToAttribute>
+    </ItemGroup>
+
+    <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' attribute. Target assembly: %(Identity)" />
+  </Target>
+
+  <!-- Make sure expected compile items are included -->
+  <ItemGroup>
+    <UnexpectedCompileExcludes Include="@(ExpectedCompile)" Exclude="@(Compile)" />
+  </ItemGroup>
+
+  <Target Name="_CheckUnexpectedCompileExcludes"
+          BeforeTargets="Build">
+    <Warning Text="Expected source file to be included as a Compile item: %(Identity)"
+             Condition="'@(UnexpectedCompileExcludes)' != ''" />
+  </Target>
+
+  <!--
+    Ensure TargetFrameworkMonikerAssemblyAttributeText is treated as auto-generated
+  -->
+  <Target Name="TreatTargetFrameworkMonikerAssemblyAttributeTextAsGenerated"
+          AfterTargets="_SetTargetFrameworkMonikerAttribute"
+          Condition="'$(Language)' == 'VB'">
+    <PropertyGroup>
+      <TargetFrameworkMonikerAssemblyAttributeText>
+        ' &lt;autogenerated/&gt;
+        $(TargetFrameworkMonikerAssemblyAttributeText)
+      </TargetFrameworkMonikerAssemblyAttributeText>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs">
+    <PropertyGroup>
+      <_OriginalApplicationManifestPath>$(RepositoryEngineeringDir)config\app.manifest</_OriginalApplicationManifestPath>
+      <_UpdatedApplicationManifestPath>$(IntermediateOutputPath)$(AssemblyName).exe.manifest</_UpdatedApplicationManifestPath>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Sets the values of "version" and "name" attributes in assemblyIdentity element in the application manifest file
+    with values $(AssemblyVersion) and $(AssemblyName) to avoid hardcoding those in the manifest file.
+  -->
+  <Target Name="_SubstituteVariablesInApplicationManifest"
+          BeforeTargets="_SetExternalWin32ManifestProperties;_SetEmbeddedWin32ManifestProperties"
+          DependsOnTargets="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs;GetAssemblyVersion"
+          Inputs="$(_OriginalApplicationManifestPath)"
+          Outputs="$(_UpdatedApplicationManifestPath)"
+          Condition="'$(OutputType)' == 'Exe' And '$(TargetFramework)' == 'net472'">
+
+    <Copy SourceFiles="$(_OriginalApplicationManifestPath)" DestinationFiles="$(_UpdatedApplicationManifestPath)" />
+
+    <PropertyGroup>
+      <_Namespace>
+        <Namespace Prefix="asm" Uri="urn:schemas-microsoft-com:asm.v1" />
+      </_Namespace>
+    </PropertyGroup>
+
+    <!-- Update version attribute -->
+    <XmlPoke XmlInputPath="$(_UpdatedApplicationManifestPath)"
+             Value="$(AssemblyVersion)"
+             Query="/asm:assembly/asm:assemblyIdentity/@version"
+             Namespaces="$(_Namespace)"/>
+
+    <!-- Update name attribute -->
+    <XmlPoke XmlInputPath="$(_UpdatedApplicationManifestPath)"
+             Value="$(AssemblyName)"
+             Query="/asm:assembly/asm:assemblyIdentity/@name"
+             Namespaces="$(_Namespace)"/>
+
+    <PropertyGroup>
+      <ApplicationManifest>$(_UpdatedApplicationManifestPath)</ApplicationManifest>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <FileWrites Include="$(_UpdatedApplicationManifestPath)"/>
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+    Checks assumptions made by TestUsingOptimizedRunner function in build.ps1.
+  -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <Error Text="Unit test project TargetFileName must end with '.UnitTests.dll': '$(TargetFileName)'"
+           Condition="$(IsUnitTestProject) != $(TargetFileName.EndsWith('.UnitTests.dll'))" />
+
+    <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
+           Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
+  </Target>
+
+  <!-- Work around for https://github.com/dotnet/sdk/issues/10591 -->
+  <Target Name="WorkAroundDotnetSdk10591"
+          AfterTargets="ResolveTargetingPackAssets"
+          Condition="'$(Language)' == 'VB' AND '$(VBRuntime)' == 'Embed'">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
+    </ItemGroup>
+  </Target>
+
+</Project>

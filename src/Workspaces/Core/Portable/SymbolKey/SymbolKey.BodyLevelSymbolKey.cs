@@ -1,9 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -12,106 +18,219 @@ namespace Microsoft.CodeAnalysis
     {
         private static class BodyLevelSymbolKey
         {
-            public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
+            public static bool IsBodyLevelSymbol(ISymbol symbol)
+                => symbol switch
+                {
+                    ILabelSymbol _ => true,
+                    IRangeVariableSymbol _ => true,
+                    ILocalSymbol _ => true,
+                    IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
+                    _ => false,
+                };
+
+            public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
             {
-                var containingSymbol = symbol.ContainingSymbol;
+                Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));
+                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
 
-                while (!containingSymbol.DeclaringSyntaxReferences.Any())
+                using var _ = ArrayBuilder<Location>.GetInstance(out var result);
+
+                foreach (var location in symbol.Locations)
                 {
-                    containingSymbol = containingSymbol.ContainingSymbol;
+                    if (location.IsInSource)
+                        result.Add(location);
                 }
 
-                var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
-                var kind = symbol.Kind;
-                var localName = symbol.Name;
-                var ordinal = 0;
-                foreach (var possibleSymbol in EnumerateSymbols(compilation, containingSymbol, kind, localName, visitor.CancellationToken))
-                {
-                    if (possibleSymbol.symbol.Equals(symbol))
-                    {
-                        ordinal = possibleSymbol.ordinal;
-                        break;
-                    }
-                }
+                foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                    result.Add(syntaxRef.GetSyntax(cancellationToken).GetLocation());
 
-                visitor.WriteString(localName);
-                visitor.WriteSymbolKey(containingSymbol);
-                visitor.WriteInteger(ordinal);
-                visitor.WriteInteger((int)kind);
+                return result.ToImmutable();
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
             {
-                var localName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
-                var ordinal = reader.ReadInteger();
-                var kind = (SymbolKind)reader.ReadInteger();
+                // Store the body level symbol in two forms.  The first, a highly precise form that should find explicit
+                // symbols for the case of resolving a symbol key back in the *same* solution snapshot it was created
+                // from. The second, in a more query-oriented form that can allow the symbol to be found in some cases
+                // even if the solution changed (which is a supported use case for SymbolKey).
+                //
+                // The first way just stores the location of the symbol, which we can then validate during resolution
+                // maps back to the same symbol kind/name.  
+                //
+                // The second determines the sequence of symbols of the same kind and same name in the file and keeps
+                // track of our index in that sequence.  That way, if trivial edits happen, or symbols with different
+                // names/types are added/removed, we can still find what is likely to be this symbol after the edit.
 
-                var containingSymbol = containingSymbolResolution.Symbol;
-                if (containingSymbol != null)
+                var kind = symbol.Kind;
+                var localName = symbol.Name;
+
+                visitor.WriteString(localName);
+                visitor.WriteInteger((int)kind);
+
+                // write out the locations for precision
+                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
+
+                var locations = GetBodyLevelSourceLocations(symbol, visitor.CancellationToken);
+
+                Contract.ThrowIfFalse(locations.All(loc => loc.IsInSource));
+                visitor.WriteLocationArray(locations.Distinct());
+
+                // and the ordinal for resilience
+                visitor.WriteInteger(GetOrdinal());
+
+                return;
+
+                int GetOrdinal()
                 {
-                    foreach (var symbol in EnumerateSymbols(
-                        reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken))
+                    var syntaxTree = locations[0].SourceTree;
+                    var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
+
+                    // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                    // compilation in the case of work done with a speculative model.
+                    if (TryGetSemanticModel(compilation, syntaxTree, out var semanticModel))
+                    {
+                        foreach (var possibleSymbol in EnumerateSymbols(semanticModel, kind, localName, visitor.CancellationToken))
+                        {
+                            if (possibleSymbol.symbol.Equals(symbol))
+                                return possibleSymbol.ordinal;
+                        }
+                    }
+
+                    return int.MaxValue;
+                }
+            }
+
+            private static bool TryGetSemanticModel(
+                Compilation compilation, SyntaxTree? syntaxTree,
+                [NotNullWhen(true)] out SemanticModel? semanticModel)
+            {
+                // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                // compilation in the case of work done with a speculative model.
+                if (syntaxTree != null && Contains(compilation.SyntaxTrees, syntaxTree))
+                {
+                    semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    return true;
+                }
+
+                semanticModel = null;
+                return false;
+            }
+
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            {
+                var cancellationToken = reader.CancellationToken;
+
+                var name = reader.ReadString();
+                var kind = (SymbolKind)reader.ReadInteger();
+                var locations = reader.ReadLocationArray(out var locationsFailureReason);
+                var ordinal = reader.ReadInteger();
+
+                if (locationsFailureReason != null)
+                {
+                    failureReason = $"({nameof(BodyLevelSymbolKey)} {nameof(locations)} failed -> {locationsFailureReason})";
+                    return default;
+                }
+
+                // First check if we can recover the symbol just through the original location.
+
+                string? totalFailureReason = null;
+                for (var i = 0; i < locations.Count; i++)
+                {
+                    var loc = locations[i];
+
+                    if (!TryResolveLocation(loc, i, out var resolution, out var reason))
+                    {
+                        totalFailureReason = totalFailureReason == null
+                            ? $"({reason})"
+                            : $"({totalFailureReason} -> {reason})";
+                        continue;
+                    }
+
+                    failureReason = null;
+                    return resolution;
+                }
+
+                // Couldn't recover.  See if we can still find a match across the textual drift.
+                if (ordinal != int.MaxValue &&
+                    TryGetSemanticModel(reader.Compilation, locations[0].SourceTree, out var semanticModel))
+                {
+                    foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
                     {
                         if (symbol.ordinal == ordinal)
                         {
+                            failureReason = null;
                             return new SymbolKeyResolution(symbol.symbol);
                         }
                     }
                 }
 
-                return new SymbolKeyResolution();
+                failureReason = $"({nameof(BodyLevelSymbolKey)} '{name}' not found -> {totalFailureReason})";
+                return default;
+
+                bool TryResolveLocation(Location loc, int index, out SymbolKeyResolution resolution, out string? reason)
+                {
+                    var resolutionOpt = reader.ResolveLocation(loc);
+                    if (resolutionOpt == null)
+                    {
+                        reason = $"location {index} failed to resolve";
+                        resolution = default;
+                        return false;
+                    }
+
+                    resolution = resolutionOpt.Value;
+                    var symbol = resolution.GetAnySymbol();
+                    if (symbol == null)
+                    {
+                        reason = $"location {index} did not produce any symbol";
+                        return false;
+                    }
+
+                    if (symbol.Kind != kind)
+                    {
+                        reason = $"location {index} did not match kind: {symbol.Kind} != {kind}";
+                        return false;
+                    }
+
+                    if (!SymbolKey.Equals(reader.Compilation, name, symbol.Name))
+                    {
+                        reason = $"location {index} did not match name: {symbol.Name} != {name}";
+                        return false;
+                    }
+
+                    reason = null;
+                    return true;
+                }
             }
 
             private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
-                Compilation compilation, ISymbol containingSymbol,
-                SymbolKind kind, string localName,
-                CancellationToken cancellationToken)
+                SemanticModel semanticModel, SymbolKind kind, string localName, CancellationToken cancellationToken)
             {
-                int ordinal = 0;
+                var ordinal = 0;
+                var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-                foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
+                foreach (var node in root.DescendantNodes())
                 {
-                    // This operation can potentially fail. If containingSymbol came from 
-                    // a SpeculativeSemanticModel, containingSymbol.ContainingAssembly.Compilation
-                    // may not have been rebuilt to reflect the trees used by the 
-                    // SpeculativeSemanticModel to produce containingSymbol. In that case,
-                    // asking the ContainingAssembly's compilation for a SemanticModel based
-                    // on trees for containingSymbol with throw an ArgumentException.
-                    // Unfortunately, the best way to avoid this (currently) is to see if
-                    // we're asking for a model for a tree that's part of the compilation.
-                    // (There's no way to get back to a SemanticModel from a symbol).
+                    var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
-                    // TODO (rchande): It might be better to call compilation.GetSemanticModel
-                    // and catch the ArgumentException. The compilation internally has a 
-                    // Dictionary<SyntaxTree, ...> that it uses to check if the SyntaxTree
-                    // is applicable wheras the public interface requires us to enumerate
-                    // the entire IEnumerable of trees in the Compilation.
-                    if (!compilation.SyntaxTrees.Contains(declaringLocation.SyntaxTree))
+                    if (symbol?.Kind == kind &&
+                        SymbolKey.Equals(semanticModel.Compilation, symbol.Name, localName))
                     {
-                        continue;
-                    }
-
-                    var node = declaringLocation.GetSyntax(cancellationToken);
-                    if (node.Language == LanguageNames.VisualBasic)
-                    {
-                        node = node.Parent;
-                    }
-
-                    var semanticModel = compilation.GetSemanticModel(node.SyntaxTree);
-
-                    foreach (var token in node.DescendantNodes())
-                    {
-                        var symbol = semanticModel.GetDeclaredSymbol(token, cancellationToken);
-
-                        if (symbol != null &&
-                            symbol.Kind == kind &&
-                            SymbolKey.Equals(compilation, symbol.Name, localName))
-                        {
-                            yield return (symbol, ordinal++);
-                        }
+                        yield return (symbol, ordinal++);
                     }
                 }
+            }
+
+            private static bool Contains(IEnumerable<SyntaxTree> trees, SyntaxTree tree)
+            {
+                foreach (var current in trees)
+                {
+                    if (current == tree)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
     }

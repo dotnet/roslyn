@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             NamedTypeSymbol elementType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
 
-            ArrayTypeSymbol ats1 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 1);
+            ArrayTypeSymbol ats1 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 1);
             Assert.Equal(1, ats1.Rank);
             Assert.True(ats1.IsSZArray);
             Assert.Same(elementType, ats1.ElementType);
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ats1.IsValueType);
             Assert.Equal("TestClass[]", ats1.ToTestDisplayString());
 
-            ArrayTypeSymbol ats2 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 2);
+            ArrayTypeSymbol ats2 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 2);
             Assert.Equal(2, ats2.Rank);
             Assert.Same(elementType, ats2.ElementType);
             Assert.Equal(SymbolKind.ArrayType, ats2.Kind);
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ats2.IsValueType);
             Assert.Equal("TestClass[,]", ats2.ToTestDisplayString());
 
-            ArrayTypeSymbol ats3 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 3);
+            ArrayTypeSymbol ats3 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 3);
             Assert.Equal(3, ats3.Rank);
             Assert.Equal("TestClass[,,]", ats3.ToTestDisplayString());
         }
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             NamedTypeSymbol pointedAtType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
 
-            PointerTypeSymbol pts1 = new PointerTypeSymbol(pointedAtType);
+            PointerTypeSymbol pts1 = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
             Assert.Same(pointedAtType, pts1.PointedAtType);
             Assert.Equal(SymbolKind.PointerType, pts1.Kind);
             Assert.False(pts1.IsReferenceType);
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssemblySymbol assem1 = new MockAssemblySymbol("goo");
 
             NamespaceExtent ne1 = new NamespaceExtent(assem1);
-            Assert.Equal(ne1.Kind, NamespaceKind.Assembly);
+            Assert.Equal(NamespaceKind.Assembly, ne1.Kind);
             Assert.Same(ne1.Assembly, assem1);
 
             CSharpCompilation compilation = CSharpCompilation.Create("Test");
@@ -140,10 +142,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new InvalidOperationException("Unexpected symbol kind");
             }
 
-            if (sym is NamespaceOrTypeSymbol && ((NamespaceOrTypeSymbol)sym).GetMembers().Any())
+            if (sym is NamespaceOrTypeSymbol namespaceOrType && namespaceOrType.GetMembers().Any())
             {
                 builder.AppendLine(" { ");
-                var q = from c in ((NamespaceOrTypeSymbol)sym).GetMembers()
+                var q = from c in namespaceOrType.GetMembers()
                         orderby c.Name
                         select c;
 

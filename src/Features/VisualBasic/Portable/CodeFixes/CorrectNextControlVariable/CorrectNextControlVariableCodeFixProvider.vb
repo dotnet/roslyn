@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,11 +16,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
         Friend Const BC30070 As String = "BC30070" ' Next control variable does not match For loop control variable 'x'.
         Friend Const BC30451 As String = "BC30451" 'BC30451: 'y' is not declared. It may be inaccessible due to its protection level.
 
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30070, BC30451)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported by this code fix
+            ' https://github.com/dotnet/roslyn/issues/34470
+            Return Nothing
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
@@ -52,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
             context.RegisterCodeFix(New CorrectNextControlVariableCodeAction(context.Document, nodeToReplace, newNode), context.Diagnostics)
         End Function
 
-        Private Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
+        Private Shared Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
             Debug.Assert(nestingLevel >= 0)
 
             ' If we have code like this:
@@ -73,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
 
             ' A ForBlockSyntax can either be a ForBlock or a ForEachBlock. Get the control variable
             ' from that.
-            Dim controlVariable As SyntaxNode = Nothing
+            Dim controlVariable As SyntaxNode
             Select Case forBlock.Kind()
                 Case SyntaxKind.ForBlock
                     Dim forStatement = DirectCast(forBlock.ForOrForEachStatement, ForStatementSyntax)

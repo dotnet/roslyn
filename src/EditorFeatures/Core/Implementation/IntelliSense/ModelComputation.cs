@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -11,6 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal class ModelComputation<TModel> : ForegroundThreadAffinitizedObject
+        where TModel : class
     {
         #region Fields that can be accessed from either thread
 
@@ -19,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         /// <summary>
         /// Set when the first compute task completes
         /// </summary>
-        private TModel _initialUnfilteredModel = default;
+        private TModel _initialUnfilteredModel = null;
 
         #endregion
 
@@ -49,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         #endregion
 
-        public ModelComputation(IController<TModel> controller, TaskScheduler computationTaskScheduler)
+        public ModelComputation(IThreadingContext threadingContext, IController<TModel> controller, TaskScheduler computationTaskScheduler)
+            : base(threadingContext)
         {
             _controller = controller;
             __taskScheduler = computationTaskScheduler;
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _stopCancellationToken = _stopTokenSource.Token;
 
             // Dummy up a new task so we don't need to check for null.
-            _notifyControllerTask = _lastTask = SpecializedTasks.Default<TModel>();
+            _notifyControllerTask = _lastTask = SpecializedTasks.Null<TModel>();
         }
 
         public TModel InitialUnfilteredModel
@@ -106,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _stopTokenSource.Cancel();
 
             // reset task so that it doesn't hold onto things like WpfTextView
-            _notifyControllerTask = _lastTask = SpecializedTasks.Default<TModel>();
+            _notifyControllerTask = _lastTask = SpecializedTasks.Null<TModel>();
         }
 
         public void ChainTaskAndNotifyControllerWhenFinished(
@@ -121,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             bool updateController = true)
         {
             AssertIsForeground();
+
             Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested, "should not chain tasks after we've been cancelled");
 
             // Mark that an async operation has begun.  This way tests know to wait until the
@@ -142,22 +148,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // then we don't need to notify as a later task will do so.
             _notifyControllerTask = Task.Factory.ContinueWhenAll(
                 new[] { _notifyControllerTask, nextTask },
-                tasks =>
-                    {
-                        this.AssertIsForeground();
-                        if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
-                        {
-                            _stopCancellationToken.ThrowIfCancellationRequested();
+                async tasks =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);
 
-                            // Check if we're still the last task.  If so then we should update the
-                            // controller. Otherwise there's a pending task that should run.  We
-                            // don't need to update the controller (and the presenters) until our
-                            // chain is finished.
-                            updateController &= nextTask == _lastTask;
-                            OnModelUpdated(nextTask.Result, updateController);
-                        }
-                    },
-                _stopCancellationToken, TaskContinuationOptions.None, ForegroundTaskScheduler);
+                    if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
+                    {
+                        _stopCancellationToken.ThrowIfCancellationRequested();
+
+                        // Check if we're still the last task.  If so then we should update the
+                        // controller. Otherwise there's a pending task that should run.  We
+                        // don't need to update the controller (and the presenters) until our
+                        // chain is finished.
+                        updateController &= nextTask == _lastTask;
+                        OnModelUpdated(nextTask.Result, updateController);
+                    }
+                },
+                _stopCancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
 
             // When we've notified the controller of our result, we consider the async operation
             // to be completed.

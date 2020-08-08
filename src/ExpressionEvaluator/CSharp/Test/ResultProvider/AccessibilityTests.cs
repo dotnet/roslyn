@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -80,11 +82,11 @@ class C
 }";
             // Derived class in assembly with PDB,
             // base class in assembly without PDB.
-            var compilationA = CSharpTestBase.CreateStandardCompilation(sourceA, options: TestOptions.ReleaseDll);
+            var compilationA = CSharpTestBase.CreateCompilation(sourceA, options: TestOptions.ReleaseDll);
             var bytesA = compilationA.EmitToArray();
             var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            var compilationB = CSharpTestBase.CreateStandardCompilation(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
+            var compilationB = CSharpTestBase.CreateCompilation(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);
@@ -241,11 +243,11 @@ class C
 }";
             // Base class in assembly with PDB,
             // derived class in assembly without PDB.
-            var compilationA = CSharpTestBase.CreateStandardCompilation(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CSharpTestBase.CreateCompilation(sourceA, options: TestOptions.DebugDll);
             var bytesA = compilationA.EmitToArray();
             var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            var compilationB = CSharpTestBase.CreateStandardCompilation(sourceB, options: TestOptions.ReleaseDll, references: new MetadataReference[] { referenceA });
+            var compilationB = CSharpTestBase.CreateCompilation(sourceB, options: TestOptions.ReleaseDll, references: new MetadataReference[] { referenceA });
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);

@@ -1,31 +1,31 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
         ICommandHandler<MoveSelectedLinesUpCommandArgs>, ICommandHandler<MoveSelectedLinesDownCommandArgs>
     {
-        public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args)
+            => CommandState.Unspecified;
+
+        public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
         {
-            return nextHandler();
+            CommitIfActive(args);
+            return false;
         }
 
-        public void ExecuteCommand(MoveSelectedLinesUpCommandArgs args, Action nextHandler)
-        {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
-        }
+        public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
+            => CommandState.Unspecified;
 
-        public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args, Func<CommandState> nextHandler)
+        public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
         {
-            return nextHandler();
-        }
-
-        public void ExecuteCommand(MoveSelectedLinesDownCommandArgs args, Action nextHandler)
-        {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
+            CommitIfActive(args);
+            return false;
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,9 +45,7 @@ namespace BuildBoss
         internal static readonly Guid VsixProjectType = new Guid("82B43B9B-A64C-4715-B499-D71E9CA2BD60");
         internal static readonly Guid SharedProject = new Guid("D954291E-2A0B-460D-934E-DC6B0785DB48");
 
-        internal static readonly Guid LegacyProjectSystemCSharp = new Guid("FAE04EC0-301F-11D3-BF4B-00C04F79EFBC");
         internal static readonly Guid ManagedProjectSystemCSharp = new Guid("9A19103F-16F7-4668-BE54-9A1E7A4F7556");
-        internal static readonly Guid LegacyProjectSystemVisualBasic = new Guid("F184B08F-C81C-45F6-A57F-5ABD9991F28F");
         internal static readonly Guid ManagedProjectSystemVisualBasic = new Guid("778DAE3C-4631-46EA-AA77-85C1314464D9");
 
         internal static ProjectFileType GetProjectFileType(string path)
@@ -53,10 +55,10 @@ namespace BuildBoss
                 case ".csproj": return ProjectFileType.CSharp;
                 case ".vbproj": return ProjectFileType.Basic;
                 case ".shproj": return ProjectFileType.Shared;
+                case ".proj": return ProjectFileType.Tool;
                 default:
                     return ProjectFileType.Unknown;
             }
         }
-
     }
 }

@@ -1,14 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
+    [UseExportProvider]
     public class ReduceTokenTests
     {
         [Fact]
@@ -2043,7 +2041,7 @@ End Module
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker, 
+            MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
@@ -2060,7 +2058,7 @@ End Module
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

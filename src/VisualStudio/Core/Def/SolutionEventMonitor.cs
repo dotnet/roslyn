@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const string SolutionOpening = "Solution Opening";
 
         private IGlobalOperationNotificationService _notificationService;
-        private Dictionary<string, GlobalOperationRegistration> _operations = new Dictionary<string, GlobalOperationRegistration>();
+        private readonly Dictionary<string, GlobalOperationRegistration> _operations = new Dictionary<string, GlobalOperationRegistration>();
 
         public SolutionEventMonitor(VisualStudioWorkspace workspace)
         {
@@ -62,14 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         private void SolutionBuildingContextChanged(object sender, UIContextChangedEventArgs e)
-        {
-            ContextChanged(e.Activated, SolutionBuilding);
-        }
+            => ContextChanged(e.Activated, SolutionBuilding);
 
         private void SolutionOpeningContextChanged(object sender, UIContextChangedEventArgs e)
-        {
-            ContextChanged(e.Activated, SolutionOpening);
-        }
+            => ContextChanged(e.Activated, SolutionOpening);
 
         private void ContextChanged(bool active, string operation)
         {

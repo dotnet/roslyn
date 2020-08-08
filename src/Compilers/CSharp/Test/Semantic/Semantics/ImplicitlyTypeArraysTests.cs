@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitlyTypedArrayLocal()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class M {}
 
 class C 
@@ -35,7 +38,7 @@ class C
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
 
             var locDecl = (BoundLocalDeclaration)block.Statements.Single();
-            var localA = (ArrayTypeSymbol)locDecl.DeclaredType.Display;
+            var localA = (ArrayTypeSymbol)locDecl.DeclaredTypeOpt.Display;
 
             var typeM = compilation.GlobalNamespace.GetMember<TypeSymbol>("M");
 
@@ -57,7 +60,7 @@ class C
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -83,7 +86,7 @@ class C
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));

@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -23,6 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
         Friend ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC30311, BC37055, BC42358)
 
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return Ids
@@ -39,10 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return New DescriptionAndNode(VBFeaturesResources.Insert_Await, newRoot)
         End Function
 
-        Private Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Private Shared Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim expression = TryCast(oldNode, ExpressionSyntax)
             If expression Is Nothing Then
-                Return SpecializedTasks.Default(Of SyntaxNode)()
+                Return SpecializedTasks.Null(Of SyntaxNode)()
             End If
 
             Select Case diagnostic.Id
@@ -50,20 +58,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
                     If Not DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC37055
                     If Not DoesExpressionReturnTask(expression, semanticModel) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC42358
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case Else
-                    Return SpecializedTasks.Default(Of SyntaxNode)()
+                    Return SpecializedTasks.Null(Of SyntaxNode)()
             End Select
         End Function
 
-        Private Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
             If Not IsInAsyncBlock(expression) Then
                 Return False
             End If
@@ -90,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return typeArguments.Any(Function(ta) inferredTypes.Any(Function(it) compilation.ClassifyConversion(it, ta).Exists))
         End Function
 
-        Private Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
+        Private Shared Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
 
             For Each ancestor In expression.Ancestors
                 Select Case ancestor.Kind
@@ -111,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return False
         End Function
 
-        Private Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim taskType As INamedTypeSymbol = Nothing
             Dim returnType As INamedTypeSymbol = Nothing
             Return TryGetTaskType(semanticModel, taskType) AndAlso
@@ -119,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
                 semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists
         End Function
 
-        Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+        Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax) As ExpressionSyntax
             Return SyntaxFactory.AwaitExpression(expression.WithoutTrivia().Parenthesize()) _
                                 .WithTriviaFrom(expression) _
                                 .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)

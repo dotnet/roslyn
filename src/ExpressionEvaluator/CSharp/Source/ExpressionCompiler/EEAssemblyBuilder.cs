@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.Cci;
+#nullable enable
+
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -8,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -23,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public EEAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
-            ModulePropertiesForSerialization serializationProperties,
+            Cci.ModulePropertiesForSerialization serializationProperties,
             ImmutableArray<NamedTypeSymbol> additionalTypes,
             Func<NamedTypeSymbol, NamedTypeSymbol> getDynamicOperationContextType,
-            CompilationTestData testData) :
+            CompilationTestData? testData) :
             base(
                   sourceAssembly,
                   emitOptions,
@@ -44,10 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        protected override IModuleReference TranslateModule(ModuleSymbol symbol, DiagnosticBag diagnostics)
+        protected override Cci.IModuleReference TranslateModule(ModuleSymbol symbol, DiagnosticBag diagnostics)
         {
-            var moduleSymbol = symbol as PEModuleSymbol;
-            if ((object)moduleSymbol != null)
+            if (symbol is PEModuleSymbol moduleSymbol)
             {
                 var module = moduleSymbol.Module;
                 // Expose the individual runtime Windows.*.winmd modules as assemblies.
@@ -72,16 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override int CurrentGenerationOrdinal => 0;
 
-        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
-        {
-            var method = symbol as EEMethodSymbol;
-            if ((object)method != null)
-            {
-                var defs = GetLocalDefinitions(method.Locals);
-                return new SlotAllocator(defs);
-            }
-            return null;
-        }
+        internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
+            => (symbol is EEMethodSymbol method) ? new SlotAllocator(GetLocalDefinitions(method.Locals)) : null;
 
         private static ImmutableArray<LocalDefinition> GetLocalDefinitions(ImmutableArray<LocalSymbol> locals)
         {
@@ -142,10 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 builder.AddRange(_locals);
             }
 
-            public override LocalDefinition GetPreviousLocal(
+            public override LocalDefinition? GetPreviousLocal(
                 Cci.ITypeReference type,
                 ILocalSymbolInternal symbol,
-                string nameOpt,
+                string? name,
                 SynthesizedLocalKind synthesizedKind,
                 LocalDebugId id,
                 LocalVariableAttributes pdbAttributes,
@@ -153,29 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 ImmutableArray<bool> dynamicTransformFlags,
                 ImmutableArray<string> tupleElementNames)
             {
-                var local = symbol as EELocalSymbol;
-                if ((object)local == null)
-                {
-                    return null;
-                }
-
-                return _locals[local.Ordinal];
-            }
-
-            public override string PreviousStateMachineTypeName
-            {
-                get { return null; }
+                return (symbol is EELocalSymbol local) ? _locals[local.Ordinal] : null;
             }
 
             public override bool TryGetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId, DiagnosticBag diagnostics, out int slotIndex)
             {
                 slotIndex = -1;
                 return false;
-            }
-
-            public override int PreviousHoistedLocalSlotCount
-            {
-                get { return 0; }
             }
 
             public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, DiagnosticBag diagnostics, out int slotIndex)
@@ -186,28 +165,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             public override bool TryGetPreviousClosure(SyntaxNode closureSyntax, out DebugId closureId)
             {
-                closureId = default(DebugId);
+                closureId = default;
                 return false;
             }
 
             public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId)
             {
-                lambdaId = default(DebugId);
+                lambdaId = default;
                 return false;
             }
 
-            public override int PreviousAwaiterSlotCount
-            {
-                get { return 0; }
-            }
-
-            public override DebugId? MethodId
-            {
-                get
-                {
-                    return null;
-                }
-            }
+            public override string? PreviousStateMachineTypeName => null;
+            public override int PreviousHoistedLocalSlotCount => 0;
+            public override int PreviousAwaiterSlotCount => 0;
+            public override DebugId? MethodId => null;
         }
     }
 }

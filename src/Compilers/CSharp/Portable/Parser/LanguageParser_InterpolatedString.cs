@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -56,8 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var originalToken = this.EatToken();
             var originalText = originalToken.ValueText; // this is actually the source text
-            Debug.Assert(originalText[0] == '$');
-            var isVerbatim = originalText.Length > 2 && originalText[1] == '@';
+            Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
+
+            var isAltInterpolatedVerbatim = originalText.Length > 2 && originalText[0] == '@'; // @$
+            var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 && originalText[1] == '@');
+
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
             SyntaxDiagnosticInfo error = null;
@@ -70,11 +75,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, ref error, out closeQuoteMissing);
             }
 
-            // Make a token for the open quote $" or $@"
+            // Make a token for the open quote $" or $@" or @$"
             var openQuoteIndex = isVerbatim ? 2 : 1;
             Debug.Assert(originalText[openQuoteIndex] == '"');
-            var openQuote = SyntaxFactory.Token(
-                originalToken.GetLeadingTrivia(), isVerbatim ? SyntaxKind.InterpolatedVerbatimStringStartToken : SyntaxKind.InterpolatedStringStartToken, null);
+
+            var openQuoteKind = isVerbatim
+                    ? SyntaxKind.InterpolatedVerbatimStringStartToken // $@ or @$
+                    : SyntaxKind.InterpolatedStringStartToken; // $
+
+            var openQuoteText = isAltInterpolatedVerbatim
+                ? "@$\""
+                : isVerbatim
+                    ? "$@\""
+                    : "$\"";
+            var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
+
+            if (isAltInterpolatedVerbatim)
+            {
+                openQuote = CheckFeatureAvailability(openQuote, MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
+            }
 
             // Make a token for the close quote " (even if it was missing)
             var closeQuoteIndex = closeQuoteMissing ? originalText.Length : originalText.Length - 1;
@@ -230,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                commaToken = default(SyntaxToken);
+                commaToken = null;
                 alignmentExpression = null;
                 expr = ConsumeUnexpectedTokens(expr);
             }

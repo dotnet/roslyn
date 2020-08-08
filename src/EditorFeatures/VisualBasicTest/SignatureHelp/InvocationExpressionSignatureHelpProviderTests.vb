@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -31,6 +33,60 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo()", String.Empty, Nothing, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickString() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        [|M(i:="Hello"$$|])
+    End Sub
+
+    Public Sub M(i As String)
+    End Sub
+    Public Sub M(i As Integer)
+    End Sub
+    Public Sub M(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = {
+                New SignatureHelpTestItem("C.M(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0),
+                New SignatureHelpTestItem("C.M(i As String)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True)
+            }
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickInteger() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        [|M(i:=1$$|])
+    End Sub
+
+    Public Sub M(i As String)
+    End Sub
+    Public Sub M(i As Integer)
+    End Sub
+    Public Sub M(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = {
+                New SignatureHelpTestItem("C.M(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True),
+                New SignatureHelpTestItem("C.M(i As String)", String.Empty, Nothing, currentParameterIndex:=0)
+            }
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -749,10 +805,8 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Await Goo()")
-
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem("C.Goo() As Task", currentParameterIndex:=0, methodDocumentation:=documentation)
+                New SignatureHelpTestItem("C.Goo() As Task", currentParameterIndex:=0, methodDocumentation:=String.Empty)
             }
 
             Await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, LanguageNames.VisualBasic)
@@ -773,10 +827,8 @@ Class C
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Dim r as Integer = Await Goo()")
-
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem("C.Goo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=documentation)
+                New SignatureHelpTestItem("C.Goo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=String.Empty)
             }
 
             Await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, LanguageNames.VisualBasic)
@@ -1733,7 +1785,6 @@ End Class
                                                 hideAdvancedMembers:=False)
         End Function
 
-
 #End Region
 
         <WorkItem(543038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>
@@ -1919,6 +1970,26 @@ End Class
             expectedOrderedItems.Add(New SignatureHelpTestItem("A.New(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <WorkItem(40451, "https://github.com/dotnet/roslyn/issues/40451")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpIsVisibleWithDuplicateMethodNames() As Task
+            Dim markup = "
+Class C
+    Shared Sub Test()
+        M(1, 2$$)
+    End Sub
+
+    Sub M(y As Integer)
+    End Sub
+
+    Shared Sub M(x As Integer, y As Integer)
+    End Sub
+End Class
+"
+
+            Await TestAsync(markup, {New SignatureHelpTestItem("C.M(x As Integer, y As Integer)")})
         End Function
     End Class
 End Namespace

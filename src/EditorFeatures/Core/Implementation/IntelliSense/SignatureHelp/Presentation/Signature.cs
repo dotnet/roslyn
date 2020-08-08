@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private string _content;
         public string Content => InitializedThis._content;
 
-        private int _parameterIndex = -1;
+        private readonly int _parameterIndex = -1;
         public IParameter CurrentParameter
         {
             get
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             var paramColumnCount = 0;
 
-            for (int i = 0; i < _signatureHelpItem.Parameters.Length; i++)
+            for (var i = 0; i < _signatureHelpItem.Parameters.Length; i++)
             {
                 var sigHelpParameter = _signatureHelpItem.Parameters[i];
 
@@ -196,19 +198,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             _parameters = parameters.ToReadOnlyCollection();
         }
 
-        private void AddRange(IList<TaggedText> values, List<TaggedText> parts, List<TaggedText> prettyPrintedParts)
+        private static void AddRange(IList<TaggedText> values, List<TaggedText> parts, List<TaggedText> prettyPrintedParts)
         {
             parts.AddRange(values);
             prettyPrintedParts.AddRange(values);
         }
 
-        private void Append(string text, StringBuilder content, StringBuilder prettyPrintedContent)
+        private static void Append(string text, StringBuilder content, StringBuilder prettyPrintedContent)
         {
             content.Append(text);
             prettyPrintedContent.Append(text);
         }
 
-        private IList<TaggedText> AddOptionalBrackets(bool isOptional, IList<TaggedText> list)
+        private static IList<TaggedText> AddOptionalBrackets(bool isOptional, IList<TaggedText> list)
         {
             if (isOptional)
             {

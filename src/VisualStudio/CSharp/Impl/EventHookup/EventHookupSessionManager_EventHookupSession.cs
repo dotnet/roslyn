@@ -1,13 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,6 +24,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -90,9 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
                 Mutex testSessionHookupMutex)
+                : base(eventHookupSessionManager.ThreadingContext)
             {
                 AssertIsForeground();
                 _cancellationTokenSource = new CancellationTokenSource();
+                var cancellationToken = _cancellationTokenSource.Token;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
                 this.TESTSessionHookupMutex = testSessionHookupMutex;
@@ -107,21 +117,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     var asyncToken = asyncListener.BeginAsyncOperation(GetType().Name + ".Start");
 
                     this.GetEventNameTask = Task.Factory.SafeStartNewFromAsync(
-                        () => DetermineIfEventHookupAndGetHandlerNameAsync(document, position, _cancellationTokenSource.Token),
-                        _cancellationTokenSource.Token,
+                        () => DetermineIfEventHookupAndGetHandlerNameAsync(document, position, cancellationToken),
+                        cancellationToken,
                         TaskScheduler.Default);
 
-                    var continuedTask = this.GetEventNameTask.SafeContinueWith(t =>
+                    var continuedTask = this.GetEventNameTask.SafeContinueWithFromAsync(
+                        async t =>
                         {
-                            AssertIsForeground();
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
                             if (t.Result != null)
                             {
                                 commandHandler.EventHookupSessionManager.EventHookupFoundInSession(this);
                             }
                         },
-                        _cancellationTokenSource.Token,
-                        TaskContinuationOptions.OnlyOnRanToCompletion,
-                        ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
+                        cancellationToken,
+                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
 
                     continuedTask.CompletesAsyncOperation(asyncToken);
                 }
@@ -129,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 {
                     _trackingPoint = textView.TextSnapshot.CreateTrackingPoint(0, PointTrackingMode.Negative);
                     _trackingSpan = textView.TextSnapshot.CreateTrackingSpan(new Span(), SpanTrackingMode.EdgeInclusive);
-                    this.GetEventNameTask = SpecializedTasks.Default<string>();
+                    this.GetEventNameTask = SpecializedTasks.Null<string>();
                     eventHookupSessionManager.CancelAndDismissExistingSessions();
                 }
             }
@@ -161,7 +173,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         return null;
                     }
 
-                    return GetEventHandlerName(eventSymbol, plusEqualsToken.Value, semanticModel, document.GetLanguageService<ISyntaxFactsService>());
+                    var namingRule = await document.GetApplicableNamingRuleAsync(
+                        new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                        new DeclarationModifiers(isStatic: plusEqualsToken.Value.Parent.IsInStaticContext()),
+                        Accessibility.Private, cancellationToken).ConfigureAwait(false);
+
+                    return GetEventHandlerName(
+                        eventSymbol, plusEqualsToken.Value, semanticModel,
+                        document.GetLanguageService<ISyntaxFactsService>(), namingRule);
                 }
             }
 
@@ -187,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
-                if (parentToken == null)
+                if (!(plusEqualsToken.Parent is AssignmentExpressionSyntax parentToken))
                 {
                     return null;
                 }
@@ -202,11 +220,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return symbol as IEventSymbol;
             }
 
-            private string GetEventHandlerName(IEventSymbol eventSymbol, SyntaxToken plusEqualsToken, SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService)
+            private string GetEventHandlerName(
+                IEventSymbol eventSymbol, SyntaxToken plusEqualsToken, SemanticModel semanticModel,
+                ISyntaxFactsService syntaxFactsService, NamingRule namingRule)
             {
                 AssertIsBackground();
-                var basename = string.Format("{0}_{1}", GetNameObjectPart(eventSymbol, plusEqualsToken, semanticModel, syntaxFactsService), eventSymbol.Name);
-                basename = basename.ToPascalCase(trimLeadingTypePrefix: false);
+                var objectPart = GetNameObjectPart(eventSymbol, plusEqualsToken, semanticModel, syntaxFactsService);
+                var basename = namingRule.NamingStyle.CreateName(ImmutableArray.Create(
+                    string.Format("{0}_{1}", objectPart, eventSymbol.Name)));
 
                 var reservedNames = semanticModel.LookupSymbols(plusEqualsToken.SpanStart).Select(m => m.Name);
 

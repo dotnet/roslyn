@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -40,7 +42,7 @@ class C
         (new C()).M();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -81,10 +83,10 @@ public interface I
         var o = (I)null;
     }
 }";
-            var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
+            var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
 
-            var compilation0 = CreateStandardCompilation(source, new[] { referencePIA }, TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, new[] { referencePIA }, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -136,16 +138,16 @@ public interface I
         A.M(y);
     }
 }";
-            var modulePIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll).ToModuleInstance();
+            var modulePIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll).ToModuleInstance();
 
             // csc /t:library /l:PIA.dll A.cs
-            var moduleA = CreateStandardCompilation(
+            var moduleA = CreateCompilation(
                 sourceA,
                 options: TestOptions.DebugDll,
                 references: new[] { modulePIA.GetReference().WithEmbedInteropTypes(true) }).ToModuleInstance();
 
             // csc /r:A.dll /r:PIA.dll B.cs
-            var moduleB = CreateStandardCompilation(
+            var moduleB = CreateCompilation(
                 sourceB,
                 options: TestOptions.DebugExe,
                 references: new[] { moduleA.GetReference(), modulePIA.GetReference() }).ToModuleInstance();
@@ -181,7 +183,7 @@ public interface I
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData: null);
             AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
-            Assert.Equal(error, "error CS1061: 'I' does not contain a definition for 'F' and no extension method 'F' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)");
+            Assert.Equal("error CS1061: 'I' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)", error);
 
             // Binding to method on original PIA should succeed
             // in assembly referencing PIA.dll.

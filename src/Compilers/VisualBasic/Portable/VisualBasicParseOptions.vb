@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -76,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
                 If s_defaultPreprocessorSymbols.IsDefaultOrEmpty Then
-                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
+                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePairUtil.Create("_MYTYPE", CObj("Empty")))
                 End If
 
                 Return s_defaultPreprocessorSymbols
@@ -252,7 +254,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not PreprocessorSymbols.IsDefaultOrEmpty Then
                 For Each symbol In PreprocessorSymbols
                     If Not IsValidIdentifier(symbol.Key) OrElse SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
-                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_ConditionalCompilationConstantNotValid, VBResources.ERR_ExpectedIdentifier, symbol.Key))
+                        builder.Add(Diagnostic.Create(ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
+                                                                             ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
+                                                                             symbol.Key)))
                     Else
                         Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
                     End If

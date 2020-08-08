@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (ContainingSymbol.Kind == SymbolKind.NamedType && ContainingSymbol.IsImplicitlyDeclared)
+            if (ContainingSymbol.Kind == SymbolKind.NamedType && (ContainingSymbol.IsImplicitlyDeclared || ContainingSymbol is SimpleProgramNamedTypeSymbol))
             {
                 return;
             }
@@ -94,6 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Note: Can be default if this SynthesizedContainer was constructed with <see cref="SynthesizedContainer(string, int, bool)"/>
@@ -116,14 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAbstract => (object)Constructor == null && this.TypeKind != TypeKind.Struct;
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics => StaticCast<TypeSymbol>.From(TypeParameters);
-
-        internal override bool HasTypeArgumentsCustomModifiers => false;
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
+        {
+            get { return GetTypeParametersAsTypeArguments(); }
+        }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal) => GetEmptyTypeArgumentCustomModifiers(ordinal);
- 
         public override ImmutableArray<Symbol> GetMembers()
         {
             Symbol constructor = this.Constructor;
@@ -163,20 +167,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        internal sealed override bool IsByRefLikeType => false;
+        public sealed override bool IsRefLikeType => false;
 
-        internal sealed override bool IsReadOnly => false;
+        public sealed override bool IsReadOnly => false;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => CalculateInterfacesToEmit();
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            => ContainingAssembly.GetSpecialType(this.TypeKind == TypeKind.Struct ? SpecialType.System_ValueType : SpecialType.System_Object);
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => ContainingAssembly.GetSpecialType(this.TypeKind == TypeKind.Struct ? SpecialType.System_ValueType : SpecialType.System_Object);
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved) => BaseTypeNoUseSiteDiagnostics;
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => BaseTypeNoUseSiteDiagnostics;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved) => InterfacesNoUseSiteDiagnostics(basesBeingResolved);
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => InterfacesNoUseSiteDiagnostics(basesBeingResolved);
 
         public override bool MightContainExtensionMethods => false;
 
@@ -200,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;
 
-        internal override bool IsSerializable => false;
+        public override bool IsSerializable => false;
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
@@ -212,5 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeLayout Layout => default(TypeLayout);
 
         internal override bool HasSpecialName => false;
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
     }
 }

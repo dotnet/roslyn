@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -43,7 +48,7 @@ public class Vec
     public Vec(int x) {}
 }
 ";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i1 = 0b001010; // binary literals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7.0").WithLocation(7, 18),
@@ -68,7 +73,7 @@ public class Vec
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
@@ -107,7 +112,7 @@ public class X
 4. 12
 5. 
 7. True";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // warning CS0184: The given expression is never of the provided ('bool') type
                 //         Console.WriteLine("7. {0}", (x is bool is bool));
@@ -136,11 +141,11 @@ public class X
         if (x is Nullable<int> y) Console.WriteLine($""expression {x} is Nullable<int> y"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (11,18): error CS8105: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-    //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
-    Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int?", "int").WithLocation(11, 18)
+                // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int").WithLocation(11, 18)
                 );
         }
 
@@ -170,7 +175,7 @@ public class X
             Console.WriteLine($""expression {x} is not {typeof(T).Name}"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             using (new EnsureInvariantCulture())
@@ -201,24 +206,21 @@ public class X
         var s = nameof(Main);
         byte b = 1;
         if (s is string t) { } else Console.WriteLine(t); 
-        if (null is dynamic t) { } // null not allowed
+        if (null is dynamic t2) { } // null not allowed
         if (s is NullableInt x) { } // error: cannot use nullable type
         if (s is long l) { } // error: cannot convert string to long
         if (b is 1000) { } // error: cannot convert 1000 to byte
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
-                //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
-                // (10,29): error CS0128: A local variable named 't' is already defined in this scope
-                //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "t").WithArguments("t").WithLocation(10, 29),
+                //         if (null is dynamic t2) { } // null not allowed
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
-                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
-                // (12,18): error CS8121: An expression of type string cannot be handled by a pattern of type long.
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int").WithLocation(11, 18),
+                // (12,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'long'.
                 //         if (s is long l) { } // error: cannot convert string to long
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("string", "long").WithLocation(12, 18),
                 // (13,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
@@ -251,7 +253,6 @@ class D
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-#if ALLOW_IN_CONSTRUCTOR_INITIALIZER
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput =
@@ -259,13 +260,6 @@ class D
 True
 False";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-#else
-            compilation.VerifyDiagnostics(
-                // (13,36): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     public D(object o) : this(o is int x && x >= 5) {}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(13, 36)
-                );
-#endif
         }
 
         [Fact]
@@ -298,7 +292,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -310,7 +304,7 @@ No for 1.2";
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void PatternInFieldInitializer()
         {
             var source =
@@ -333,8 +327,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-#if ALLOW_IN_FIELD_INITIALIZER
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -344,19 +337,6 @@ True for 10
 False for 1.2";
                 var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
-#else
-            compilation.VerifyDiagnostics(
-                // (7,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     static bool b1 = M(o1, (o1 is int x && x >= 5)),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(7, 35),
-                // (8,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                 b2 = M(o2, (o2 is int x && x >= 5)),
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(8, 35),
-                // (9,35): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //                 b3 = M(o3, (o3 is int x && x >= 5));
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(9, 35)
-                );
-#endif
         }
 
         [Fact]
@@ -383,7 +363,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -419,7 +399,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -457,7 +437,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -485,7 +465,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
     // (2,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
     // [Obsolete("" is string s ? s : "")]
@@ -531,7 +511,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -584,7 +564,7 @@ public struct X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             using (new EnsureInvariantCulture())
             {
@@ -626,7 +606,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,45): error CS0165: Use of unassigned local variable 'x2'
                 //         if (!(o is X x2)) Console.WriteLine(x2);
@@ -660,7 +640,7 @@ public class X
     public static void M2(out int x) { x = 1; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -701,7 +681,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 true
@@ -719,7 +699,7 @@ false
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(4, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -751,7 +731,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -763,8 +743,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -792,7 +772,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
@@ -801,10 +781,10 @@ True");
 
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").Single();
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -844,58 +824,23 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics(
-                // (14,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   from x2 in new[] { 2 is var y2 && Print(y2) ? 1 : 0}
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(14, 47),
-                // (16,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                        on 4 is var y4 && Print(y4) ? 1 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(16, 36),
-                // (17,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           equals 5 is var y5 && Print(y5) ? 1 : 0
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(17, 43),
-                // (18,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   where 6 is var y6 && Print(y6)
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(18, 34),
-                // (19,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   orderby 7 is var y7 && Print(y7), 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(19, 36),
-                // (20,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                           8 is var y8 && Print(y8) 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(20, 36),
-                // (22,32): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   by 10 is var y10 && Print(y10)
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(22, 32),
-                // (21,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   group 9 is var y9 && Print(y9) 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(21, 34),
-                // (24,39): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   let x11 = 11 is var y11 && Print(y11)
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(24, 39),
-                // (25,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
-                //                   select 12 is var y12 && Print(y12);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(25, 36)
-                );
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
 
-            // Because expression variables are not permitted in query clauses (https://github.com/dotnet/roslyn/issues/15910)
-            // this program cannot be run. However, once we allow that (https://github.com/dotnet/roslyn/issues/15619)
-            // the program wil be capable of being run. In that case the following (commented code) would test for the expected output.
-
-//            CompileAndVerify(compilation, expectedOutput:
-//@"1
-//3
-//5
-//2
-//4
-//6
-//7
-//8
-//10
-//9
-//11
-//12
-//");
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+3
+5
+2
+4
+6
+7
+8
+10
+9
+11
+12
+");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -905,7 +850,7 @@ public class X
                 var id = "y" + i;
                 var yDecl = GetPatternDeclarations(tree, id).Single();
                 var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
-                VerifyModelForDeclarationPattern(model, yDecl, yRef);
+                VerifyModelForDeclarationOrVarSimplePattern(model, yDecl, yRef);
             }
         }
 
@@ -938,7 +883,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput:
 @"1
@@ -949,7 +894,7 @@ public class X
 
             var yDecl = GetPatternDeclaration(tree, "y1");
             var yRef = GetReferences(tree, "y1").Single();
-            VerifyModelForDeclarationPattern(model, yDecl, yRef);
+            VerifyModelForDeclarationOrVarSimplePattern(model, yDecl, yRef);
         }
 
         [Fact]
@@ -973,7 +918,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1002,7 +947,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 True
 1
@@ -1031,16 +976,14 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-#if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-#else
-            compilation.VerifyDiagnostics(
-                // (9,30): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (9,34): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 = 1 is int x1 && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 34)
                 );
-#endif
         }
 
         [Fact, WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
@@ -1071,21 +1014,10 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-#if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True
 2
 True");
-#else
-            compilation.VerifyDiagnostics(
-                // (14,30): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     static bool Test1 = 1 is int x1 && Dummy(() => x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(14, 30),
-                // (15,23): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     bool Test2 = 2 is int x1 && Dummy(() => x1);
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(15, 23)
-                );
-#endif
         }
 
         [Fact]
@@ -1110,7 +1042,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1137,16 +1069,14 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-#if ALLOW_IN_FIELD_INITIALIZER
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-#else
-            compilation.VerifyDiagnostics(
-                // (9,37): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (9,41): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 {get;} = 1 is int x1 && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 41)
                 );
-#endif
         }
 
         [Fact]
@@ -1171,7 +1101,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
         }
@@ -1191,7 +1121,7 @@ public class X
 
 class D : C
 {
-    public D(object o) : base(2 is int x1 && Dummy(x1)) 
+    public D(object o) : base(2 is var x1 && Dummy(x1)) 
     {
         System.Console.WriteLine(o);
     }
@@ -1216,22 +1146,31 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-#if ALLOW_IN_CONSTRUCTOR_INITIALIZER
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
 True
 True");
-#else
-            compilation.VerifyDiagnostics(
-                // (12,36): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
-                //     public D(object o) : base(2 is int x1 && Dummy(x1)) 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(12, 36),
-                // (17,28): error CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
+
+            Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).Type.ToTestDisplayString());
+
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (12,40): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //     public D(object o) : base(2 is var x1 && Dummy(x1)) 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 40),
+                // (17,32): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public D() : this(1 is int x1 && Dummy(x1)) 
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(17, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 32)
                 );
-#endif
         }
 
         [Fact]
@@ -1274,12 +1213,22 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"2
 True
 1
 True");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1314,7 +1263,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1 case 0
 Test1 {0}
@@ -1328,7 +1277,7 @@ Test1 {0}");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1360,7 +1309,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -1372,8 +1321,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1423,7 +1372,7 @@ class C : System.IDisposable
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"a
 b
@@ -1473,7 +1422,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1487,7 +1436,7 @@ b");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1527,7 +1476,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
             var tree = compilation.SyntaxTrees.Single();
@@ -1537,7 +1486,7 @@ class C
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1579,8 +1528,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1595,7 +1543,7 @@ b");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1636,8 +1584,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b");
 
@@ -1648,7 +1595,7 @@ class C
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1694,8 +1641,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1714,19 +1660,19 @@ f");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -1772,8 +1718,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                              options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"b
 d
@@ -1792,19 +1737,19 @@ f");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
 
             var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
         [Fact]
@@ -1832,7 +1777,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
@@ -1845,7 +1790,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1877,7 +1822,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -1889,8 +1834,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -1926,7 +1871,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1943,7 +1888,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -1979,7 +1924,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1997,7 +1942,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2034,7 +1979,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -2054,7 +1999,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2082,7 +2027,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"2");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2092,7 +2037,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2126,7 +2071,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -2138,8 +2083,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2176,7 +2121,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 2
 3
@@ -2192,7 +2137,7 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2223,7 +2168,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2239,17 +2184,17 @@ public class X
             var x0Decl = GetPatternDeclarations(tree, "x0").Single();
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl, x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -2279,7 +2224,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 1
@@ -2295,17 +2240,17 @@ public class X
             var x0Decl = GetPatternDeclarations(tree, "x0").Single();
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(2, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl, x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -2339,7 +2284,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2356,13 +2301,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2396,7 +2341,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2414,13 +2359,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(4, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2455,7 +2400,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput:
 @"10
 20
@@ -2475,13 +2420,13 @@ public class X
             var x0Ref = GetReferences(tree, "x0").ToArray();
             Assert.Equal(1, x0Decl.Length);
             Assert.Equal(5, x0Ref.Length);
-            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x0Decl[0], x0Ref);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2508,7 +2453,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
@@ -2519,7 +2464,7 @@ public class X
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2546,7 +2491,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"lock
 lock
@@ -2559,7 +2504,7 @@ lock");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2591,7 +2536,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 3");
@@ -2603,8 +2548,8 @@ public class X
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2629,8 +2574,8 @@ public unsafe class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput:
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -2662,7 +2607,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2
@@ -2675,7 +2620,7 @@ yield1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2711,7 +2656,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"yield1
 yield2");
@@ -2723,8 +2668,8 @@ yield2");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2751,8 +2696,8 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput:@"return");
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"return");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -2761,7 +2706,7 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2795,7 +2740,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
@@ -2806,8 +2751,8 @@ public class Cls
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2840,7 +2785,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"throw");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2850,7 +2795,7 @@ public class X
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2890,7 +2835,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"throw 1
 throw 2");
@@ -2902,8 +2847,8 @@ throw 2");
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[1], x1Ref[1]);
         }
 
         [Fact]
@@ -2932,7 +2877,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
@@ -2943,7 +2888,7 @@ System.InvalidOperationException");
             var x1Decl = GetPatternDeclaration(tree, "x1");
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2978,7 +2923,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3019,7 +2964,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3060,7 +3005,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException
@@ -3084,7 +3029,7 @@ a:      Test1(2 is var x1);
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (6,1): warning CS0164: This label has not been referenced
@@ -3099,7 +3044,7 @@ a:      Test1(2 is var x1);
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -3131,7 +3076,7 @@ a:          Test2(2 is var x1, x1);
         return x;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -3146,7 +3091,7 @@ a:          Test2(2 is var x1, x1);
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact, WorkItem(10465, "https://github.com/dotnet/roslyn/issues/10465")]
@@ -3167,7 +3112,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,27): warning CS0184: The given expression is never of the provided ('string') type
                 //         Console.WriteLine(1L is string); // warning: type mismatch
@@ -3175,10 +3120,10 @@ public class X
                 // (8,27): warning CS0184: The given expression is never of the provided ('int[]') type
                 //         Console.WriteLine(1 is int[]); // warning: expression is never of the provided type
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is int[]").WithArguments("int[]").WithLocation(8, 27),
-                // (10,33): error CS8121: An expression of type long cannot be handled by a pattern of type string.
+                // (10,33): error CS8121: An expression of type 'long' cannot be handled by a pattern of type 'string'.
                 //         Console.WriteLine(1L is string s); // error: type mismatch
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("long", "string").WithLocation(10, 33),
-                // (11,32): error CS8121: An expression of type int cannot be handled by a pattern of type int[].
+                // (11,32): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'int[]'.
                 //         Console.WriteLine(1 is int[] a); // error: expression is never of the provided type
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int[]").WithArguments("int", "int[]").WithLocation(11, 32)
                 );
@@ -3217,11 +3162,26 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+                // (7,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(1 is 1); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "1 is 1").WithLocation(7, 27),
+                // (8,27): warning CS8416: The given expression never matches the provided pattern.
+                //         Console.WriteLine(1L is int.MaxValue); // OK, but false
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1L is int.MaxValue").WithLocation(8, 27),
+                // (9,27): warning CS8416: The given expression never matches the provided pattern.
+                //         Console.WriteLine(1 is int.MaxValue); // false
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is int.MaxValue").WithLocation(9, 27),
+                // (10,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(int.MaxValue is int.MaxValue); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "int.MaxValue is int.MaxValue").WithLocation(10, 27),
                 // (11,27): warning CS0183: The given expression is always of the provided ('string') type
                 //         Console.WriteLine("goo" is System.String); // true
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27)
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27),
+                // (12,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "Int32.MaxValue is Int32.MaxValue").WithLocation(12, 27)
                 );
             CompileAndVerify(compilation, expectedOutput:
 @"True
@@ -3262,20 +3222,14 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case typeof(string):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case typeof(string[]):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18),
-                // (10,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine("string");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(10, 17),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine("string[]");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
                 );
             // If we support switching on System.Type as proposed, the expectation would be
             // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
@@ -3300,7 +3254,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,22): error CS1001: Identifier expected
                 //             if (obj. is var o) { }
@@ -3375,7 +3329,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"null
@@ -3406,7 +3360,7 @@ other 6");
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case 1 when true:
@@ -3434,7 +3388,7 @@ public static class StaticType
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0723: Cannot declare a variable of static type 'StaticType'
                 //             case StaticType t:
@@ -3459,7 +3413,7 @@ public static class StaticType
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
@@ -3485,7 +3439,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var tree = compilation.SyntaxTrees[0];
@@ -3521,21 +3475,21 @@ unsafe struct S
     fixed int F2[3 is var x2 ? 3 : 3, x2];
 }
 ";
-            var compilation = CreateStandardCompilation(text,
-                                                            options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
-                                                            parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text,
+                                                options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
+                                                parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").Single();
-            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
+            Assert.True(((ITypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x1Ref).Type).IsErrorType());
             VerifyModelNotSupported(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelNotSupported(model, x2Decl, x2Ref);
-            Assert.True(((TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
+            Assert.True(((ITypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(x2Ref).Type).IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (5,17): error CS7092: A fixed buffer may only have one dimension.
@@ -3567,7 +3521,7 @@ unsafe struct S
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (8,17): error CS0119: 'T1' is a type, which is not valid in the given context
                 //             if (T1 is object i)
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T1").WithArguments("CS7.T1", "type").WithLocation(8, 17)
@@ -3591,7 +3545,7 @@ unsafe struct S
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (M is T)
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "M is T").WithLocation(8, 17)
@@ -3614,13 +3568,7 @@ unsafe struct S
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,29): error CS1525: Invalid expression term ')'
-                //             if (o.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 29),
-                // (8,34): error CS1525: Invalid expression term ')'
-                //             if (object.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 34),
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (7,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "o.Equals is()").WithLocation(7, 17),
@@ -3634,21 +3582,18 @@ unsafe struct S
 
             Assert.Equal("o.Equals is()", node.ToString());
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
-@"
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
-  Expression: 
-    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
-      Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
-            Children(1):
-                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-  Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '()')
-      Value: 
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-          Children(0)
-");
+            // https://github.com/dotnet/roslyn/issues/27749 : This syntax corresponds to a deconstruction pattern with zero elements, which is not yet supported in IOperation.
+            //            compilation.VerifyOperationTree(node, expectedOperationTree:
+            //@"
+            //IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
+            //  Expression: 
+            //    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
+            //      Children(1):
+            //          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
+            //            Children(1):
+            //                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+            //  Pattern: 
+            //");
         }
 
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]
@@ -3666,19 +3611,10 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,25): error CS1525: Invalid expression term ')'
-                //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 25),
-                // (8,39): error CS1525: Invalid expression term ')'
-                //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 39),
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
-                // (8,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
                 // (8,17): error CS0023: Operator 'is' cannot be applied to operand of type '(int, method group)'
                 //             if ((1, object.Equals) is()) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, object.Equals) is()").WithArguments("is", "(int, method group)").WithLocation(8, 17)
@@ -3706,34 +3642,28 @@ public class Vec
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is 1) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
                 // (7,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (Main is 2) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is 2").WithLocation(7, 13),
                 // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is 3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
-                // (9,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is 4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(9, 13),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is var x1) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
                 // (11,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (Main is var x2) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "Main is var x2").WithLocation(11, 13),
                 // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is var x3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
-                // (13,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is var x4) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(13, 13),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)
@@ -3754,10 +3684,7 @@ public class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (6,13): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         if ((1, null) is Program) {}
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 13),
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is Program) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
@@ -3782,7 +3709,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3804,7 +3731,7 @@ public class TestClass
 }");
 
             // RELEASE
-            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3841,7 +3768,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3862,9 +3789,9 @@ public class TestClass
     IL_0011:  ret
 }");
 
-            
+
             // RELEASE
-            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3881,7 +3808,7 @@ public class TestClass
     IL_000f:  pop
     IL_0010:  ret
 }");
-    
+
         }
 
         [Fact]
@@ -3913,7 +3840,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -3946,7 +3873,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -3979,7 +3906,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4027,7 +3954,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.DebugExe,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             compilation.VerifyDiagnostics(
                 );
@@ -4058,7 +3985,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4095,7 +4022,7 @@ class MyException : Exception
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
@@ -4133,14 +4060,20 @@ class B
     public static int operator +(bool left, B right) => 8;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7.0").WithLocation(15, 27),
                 // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27),
+                // (15,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "3 is One + 2").WithLocation(15, 27),
+                // (16,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
                 );
             var expectedOutput =
 @"5
@@ -4148,8 +4081,15 @@ class B
 7
 True
 True";
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (15,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "3 is One + 2").WithLocation(15, 27),
+                // (16,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -4195,7 +4135,7 @@ class D {}
 no
 True
 yes";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4226,7 +4166,7 @@ class D {}
             var expectedOutput =
 @"True
 B";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
@@ -4277,7 +4217,7 @@ False
 False
 False
 True";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -4302,14 +4242,14 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
-            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl, x2Ref);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
         }
 
@@ -4341,8 +4281,9 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
             CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4351,31 +4292,27 @@ public class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationPatternSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            Assert.Null(model.GetTypeInfo(declaration1).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1.Type).Type.ToTestDisplayString());
 
             var discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
-            var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
+            var declaration2 = (VarPatternSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            Assert.Null(model.GetTypeInfo(declaration2).Type);
-            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardDesignations(tree).Skip(2).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));
             var declaration3 = (DeclarationPatternSyntax)discard3.Parent;
             Assert.Equal("int _", declaration3.ToString());
-            Assert.Null(model.GetTypeInfo(declaration3).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration3).Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration3.Type).Type.ToTestDisplayString());
 
             var discard4 = GetDiscardDesignations(tree).Skip(3).First();
             Assert.Null(model.GetDeclaredSymbol(discard4));
-            var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
+            var declaration4 = (VarPatternSyntax)discard4.Parent;
             Assert.Equal("var _", declaration4.ToString());
-            Assert.Null(model.GetTypeInfo(declaration4).Type);
-            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4.Type).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -4399,17 +4336,21 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            compilation.VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
                 // (11,18): error CS0103: The name '_' does not exist in the current context
                 //             case _:
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 Write("case _");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
+                );
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
                 );
         }
 
@@ -4435,17 +4376,14 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (9,29): error CS0150: A constant value is expected
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
-                // (12,18): error CS0150: A constant value is expected
-                //             case _:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Write("case _");
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                    // (9,29): error CS0118: '_' is a variable but is used like a type
+                    //         Write($"is _: {i is _}, ");
+                    Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
+                    // (12,18): error CS0150: A constant value is expected
+                    //             case _:
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
                 );
         }
 
@@ -4477,7 +4415,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (8,33): error CS0103: The name '_' does not exist in the current context
                 //         if (i is int _) { Write(_); }
@@ -4521,7 +4459,7 @@ unsafe public class Typ
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
@@ -4529,12 +4467,12 @@ unsafe public class Typ
                 // (13,31): error CS1525: Invalid expression term 'int'
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
-                // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                // (5,42): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
-                // (5,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("var").WithLocation(5, 42),
+                // (5,50): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
                 //     public static void Main(int* a, var* c, Typ* e)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Typ*").WithArguments("Typ").WithLocation(5, 45),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "e").WithArguments("Typ").WithLocation(5, 50),
                 // (8,27): error CS0103: The name 'b' does not exist in the current context
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
@@ -4564,16 +4502,7 @@ unsafe public class Typ
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(15, 31),
                 // (15,36): error CS0103: The name 'f' does not exist in the current context
                 //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36),
-                // (13,39): warning CS0162: Unreachable code detected
-                //             switch (a) { case int* b: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 39),
-                // (14,39): warning CS0162: Unreachable code detected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 39),
-                // (15,39): warning CS0162: Unreachable code detected
-                //             switch (e) { case Typ* f: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 39)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36)
                 );
         }
 
@@ -4604,7 +4533,7 @@ class C
     override public int GetHashCode() => 0;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: @"False
 False
@@ -4631,7 +4560,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
@@ -4661,7 +4590,7 @@ public class Color
     public const string Constant = ""abc"";
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
@@ -4686,11 +4615,11 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
                 // (6,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(null is Missing x);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 38),
@@ -4705,10 +4634,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
                 // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //             case Missing y:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
                 );
         }
 
@@ -4733,19 +4659,16 @@ public class Program46
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (10,18): error CS0150: A constant value is expected
                 //             case M:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
-                // (11,18): error CS0150: A constant value is expected
+                // (11,19): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int)M()").WithLocation(11, 19)
                 );
         }
 
@@ -4766,16 +4689,13 @@ public class Program46
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+            CreateCompilation(program).VerifyDiagnostics(
+                // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (8,18): error CS0150: A constant value is expected
                 //             case M:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(8, 18)
                 );
         }
 
@@ -4792,10 +4712,10 @@ public class Program401
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is M) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(6, 13),
                 // (6,21): error CS0150: A constant value is expected
                 //         if (null is M) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(6, 21)
@@ -4825,16 +4745,13 @@ public class Program1717
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 // (10,18): error CS0266: Cannot implicitly convert type 'double' to 'int?'. An explicit conversion exists (are you missing a cast?)
                 //             case double.NaN:
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "double.NaN").WithArguments("double", "int?").WithLocation(10, 18),
                 // (13,18): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'string'.
                 //             case string _:
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int?", "string").WithLocation(13, 18)
                 );
         }
 
@@ -4855,7 +4772,7 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (9,32): error CS1525: Invalid expression term 'break'
                 //             case Color? Color2:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
@@ -4877,7 +4794,7 @@ public class Program5815
             Assert.Equal(1, colorDecl.Length);
             Assert.Equal(2, colorRef.Length);
             Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
-            VerifyModelForDeclarationPattern(model, colorDecl[0], colorRef[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, colorDecl[0], colorRef[1]);
         }
 
         [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
@@ -4897,10 +4814,13 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case true ? x3 : 4:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18),
+                // (9,25): error CS0165: Use of unassigned local variable 'x3'
+                //             case true ? x3 : 4:
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(9, 25)
                 );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -4909,18 +4829,103 @@ public class Program5815
             var x3Ref = GetReferences(tree, "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(1, x3Ref.Length);
-            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
+        }
+
+        [Fact]
+        public void Fuzz_Conjunction_01()
+        {
+            var program = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        if (((int?)1) is {} and 1) { }
+    }
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Fuzz_738490379()
+        {
+            var program = @"
+public class Program738490379
+{
+    public static void Main(string[] args)
+    {
+        if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+    }
+    private static object M() => null;
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (6,13): error CS0841: Cannot use local variable 'NotFound' before it is declared
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "NotFound").WithArguments("NotFound").WithLocation(6, 13),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int _ ").WithLocation(6, 37),
+                    // (6,41): warning CS0168: The variable '_' is declared but never used
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(6, 41),
+                    // (6,43): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "or").WithLocation(6, 43),
+                    // (6,43): error CS0246: The type or namespace name 'or' could not be found (are you missing a using directive or an assembly reference?)
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "or").WithArguments("or").WithLocation(6, 43),
+                    // (6,55): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "_").WithLocation(6, 55),
+                    // (6,55): error CS0103: The name '_' does not exist in the current context
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(6, 55),
+                    // (6,56): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 56),
+                    // (6,56): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 56),
+                    // (6,62): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 62)
+                );
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void Fuzz()
         {
-            const int numTests = 1000000;
+            const int numTests = 1200000;
             int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
             for (int i = 1; i < numTests; i++)
             {
                 PatternMatchingFuzz(i + dt);
             }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
+        public void MultiFuzz()
+        {
+            // Just like Fuzz(), but take advantage of concurrency on the test host.
+            const int numTasks = 300;
+            const int numTestsPerTask = 4000;
+            int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
+            var tasks = Enumerable.Range(0, numTasks).Select(t => Task.Run(() =>
+            {
+                int k = dt + t * numTestsPerTask;
+                for (int i = 1; i < numTestsPerTask; i++)
+                {
+                    PatternMatchingFuzz(i + k);
+                }
+            }));
+            Task.WaitAll(tasks.ToArray());
         }
 
         private static void PatternMatchingFuzz(int dt)
@@ -4958,18 +4963,48 @@ public class Program5815
                 "NotFound"
             };
             string Type() => types[r.Next(types.Length)];
-            string Pattern()
+            string Pattern(int d = 5)
             {
-                switch (r.Next(3))
+                switch (r.Next(d <= 1 ? 9 : 12))
                 {
-                    case 0:
-                        return Expression(); // a "constant" pattern
-                    case 1:
-                        return Type() + " x" + r.Next(10);
-                    case 2:
-                        return Type() + " _";
                     default:
-                        throw null;
+                        return Expression(); // a "constant" pattern
+                    case 3:
+                    case 4:
+                        return Type();
+                    case 5:
+                        return Type() + " _";
+                    case 6:
+                        return Type() + " x" + r.Next(10);
+                    case 7:
+                        return "not " + Pattern(d - 1);
+                    case 8:
+                        return "(" + Pattern(d - 1) + ")";
+                    case 9:
+                        return makeRecursivePattern(d);
+                    case 10:
+                        return Pattern(d - 1) + " and " + Pattern(d - 1);
+                    case 11:
+                        return Pattern(d - 1) + " or " + Pattern(d - 1);
+                }
+
+                string makeRecursivePattern(int d)
+                {
+                    while (true)
+                    {
+                        bool haveParens = r.Next(2) == 0;
+                        bool haveCurlies = r.Next(2) == 0;
+                        if (!haveParens && !haveCurlies)
+                            continue;
+                        bool haveType = r.Next(2) == 0;
+                        bool haveIdentifier = r.Next(2) == 0;
+                        return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
+                    }
+                }
+
+                string makePatternList(int d, bool propNames)
+                {
+                    return string.Join(", ", Enumerable.Range(0, r.Next(3)).Select(i => $"{(propNames ? $"P{r.Next(10)}: " : null)}{Pattern(d)}"));
                 }
             }
             string body = @"
@@ -5007,7 +5042,7 @@ public class Program{0}
                     throw null;
             }
             var program = string.Format(body, dt, statement);
-            CreateCompilationWithMscorlib45(program).GetDiagnostics();
+            CreateCompilation(program).GetDiagnostics();
         }
 
         [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
@@ -5052,7 +5087,7 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
 TDerived
@@ -5095,13 +5130,10 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case TDerived td:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
-                // (13,17): warning CS0162: Unreachable code detected
-                //                 Console.WriteLine(nameof(TDerived));
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
                 );
         }
 
@@ -5124,13 +5156,10 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+            var compilation = CreateCompilation(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case IEnumerable<object> s:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<object> s").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
                 );
         }
 
@@ -5179,7 +5208,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"1
@@ -5208,24 +5237,18 @@ public class Program
     }
 }
 ";
-            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (8,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'U' in C# 7.0. Please use language version 7.1 or greater.
                 //             case U uu:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "U").WithArguments("string", "U", "7.0", "7.1").WithLocation(8, 18),
                 // (10,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7.0", "7.1").WithLocation(10, 18)
                 );
-            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+            CreateCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case T tt: // Produces a diagnostic about subsumption/unreachability
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "T tt").WithLocation(10, 18),
-                // (11,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "T tt").WithLocation(10, 18)
                 );
         }
 
@@ -5261,7 +5284,7 @@ True
 False
 True
 False";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5281,11 +5304,11 @@ public class Program
         Console.WriteLine(1 is null);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         Console.WriteLine(b is 12L);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte").WithLocation(7, 32),
                 // (8,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         Console.WriteLine(1 is null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 32)
@@ -5560,7 +5583,7 @@ M13b
 M14a
 M15a
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -5578,7 +5601,7 @@ M15a
     {
         switch (o)
         {
-            case 1.1F: break;
+            case 0f/0f: break;
         }
     }
 }
@@ -5598,19 +5621,17 @@ namespace System
     {
         private Single m_value;
         public /*note bad return type*/ void Equals(Single other) { m_value = m_value + 1; }
+        public /*note bad return type*/ void IsNaN(Single other) { }
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
-                // (5,9): error CS0407: 'void float.Equals(float)' has the wrong return type
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_BadRetType, @"switch (o)
-        {
-            case 1.1F: break;
-        }").WithArguments("float.Equals(float)", "void").WithLocation(5, 9)
+                // (7,18): error CS0656: Missing compiler required member 'System.Single.IsNaN'
+                //             case 0f/0f: break;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "0f/0f").WithArguments("System.Single", "IsNaN").WithLocation(7, 18)
                 );
         }
 
@@ -5634,7 +5655,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:
@@ -5656,7 +5677,7 @@ namespace System
         {
             case 1:
             case int _:
-            case 2:
+            case 2:     // subsumed
                 break;
         }
     }
@@ -5666,20 +5687,20 @@ namespace System
         {
             case 1:
             case int _:
-            case int _:
+            case int _:  // subsumed
                 break;
         }
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case 2:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(9, 13),
-                // (19,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case int _:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case 2:     // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "2").WithLocation(9, 18),
+                // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case int _:  // subsumed
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int _").WithLocation(19, 18)
                 );
         }
 
@@ -5734,7 +5755,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, references: new MetadataReference[] { CSharpRef }, options: TestOptions.ReleaseExe);
             var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
 
@@ -5767,16 +5788,16 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(16, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5810,16 +5831,16 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is T b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1")
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5853,16 +5874,16 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived<T> b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived<T> b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(16, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5899,16 +5920,16 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(16, 28),
-                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(19, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5945,16 +5966,16 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,28): error CS8413: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived[] b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(16, 28),
-                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived[] b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(19, 18)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
@@ -5982,14 +6003,14 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) { }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(8, 13),
-                // (9,13): warning CS0184: The given expression is never of the provided ('string') type
+                // (9,13): warning CS8416: The given expression never matches the provided pattern.
                 //         if (s is string s2) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string s2").WithArguments("string").WithLocation(9, 13),
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string s2").WithLocation(9, 13),
                 // (14,13): warning CS0184: The given expression is never of the provided ('long') type
                 //         if (i is long) { }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(14, 13),
@@ -5998,10 +6019,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(15, 18),
                 // (16,17): error CS0103: The name 'b' does not exist in the current context
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17),
-                // (16,35): warning CS0162: Unreachable code detected
-                //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 35)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(16, 17)
                 );
         }
 
@@ -6032,7 +6050,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
@@ -6065,7 +6083,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
@@ -6088,12 +6106,12 @@ public class C {
     }
     static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
 }";
-            CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (12,52): error CS8314: An expression of type 'T' cannot be handled by a pattern of type 'Packet<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //     static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Packet<T>").WithArguments("T", "Packet<T>", "7.0", "7.1").WithLocation(12, 52)
                 );
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
@@ -6102,7 +6120,7 @@ public class C {
         [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
         public void MatchRestrictedTypes_Fail()
         {
-            
+
             var program =
 @"using System;
 unsafe public class C {
@@ -6119,32 +6137,38 @@ unsafe public class C {
         return b1 && b2 && b3;
     }
 }";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 // (6,23): error CS1525: Invalid expression term 'int'
                 //         var p1 = p is int* p0;           // syntax error 1
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
                 // (7,23): error CS1525: Invalid expression term 'ref'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(7, 23),
-                // (7,23): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref int").WithArguments("ref").WithLocation(7, 23),
+                // (7,27): error CS1525: Invalid expression term 'int'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 27),
+                // (7,31): error CS1002: ; expected
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "z0").WithLocation(7, 31),
                 // (6,28): error CS0103: The name 'p0' does not exist in the current context
                 //         var p1 = p is int* p0;           // syntax error 1
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p0").WithArguments("p0").WithLocation(6, 28),
-                // (7,31): error CS8174: A declaration of a by-reference variable must have an initializer
+                // (7,23): error CS1073: Unexpected token 'ref'
                 //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "z0").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 23),
+                // (7,31): error CS0103: The name 'z0' does not exist in the current context
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z0").WithArguments("z0").WithLocation(7, 31),
+                // (7,31): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "z0").WithLocation(7, 31),
                 // (9,23): error CS8121: An expression of type 'TypedReference' cannot be handled by a pattern of type 'object'.
                 //         var b1 = x is object o1;         // not allowed 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.TypedReference", "object").WithLocation(9, 23),
-                // (10,23): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                // (10,23): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         var b2 = p is object o2;         // not allowed 2
-                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "object o2").WithLocation(10, 23),
-                // (7,31): warning CS0168: The variable 'z0' is declared but never used
-                //         var r1 = z is ref int z0;        // syntax error 2
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "z0").WithArguments("z0").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "object").WithLocation(10, 23)
                 );
         }
 
@@ -6178,7 +6202,7 @@ unsafe public class C {
         return z0;
     }
 }";
-            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "ok");
@@ -6231,9 +6255,9 @@ public class X
 1
 Func called
 2";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
-            compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6252,7 +6276,7 @@ class Program
 }
 ";
             var expectedOutput = @"Hello";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): warning CS0184: The given expression is never of the provided ('object') type
                 //         if (Console.Write("Hello") is object) {}
@@ -6275,7 +6299,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0039: Cannot convert type 'void' to 'object' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         var o = Console.WriteLine("world!") as object;
@@ -6301,7 +6325,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (10,17): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         var o = Console.WriteLine("Hello") as T;
@@ -6322,11 +6346,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var x) { }
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
                 );
         }
 
@@ -6343,11 +6367,11 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
                 //         if (Console.WriteLine("Hello") is var _) {}
-                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
                 );
         }
 
@@ -6368,7 +6392,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (6,17): error CS8119: The switch expression must be a value; found 'void'.
                 //         switch (Console.WriteLine("Hello"))
@@ -6392,14 +6416,14 @@ class Program
 }
 ";
             var expectedOutput = @"Hello World";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (7,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) {} else { Console.Write("Hello "); }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(7, 13),
-                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                // (8,13): warning CS8416: The given expression never matches the provided pattern.
                 //         if (s is string t) {} else { Console.WriteLine("World"); }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string t").WithLocation(8, 13)
                 );
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -6431,8 +6455,9 @@ internal class Program
 }
 ";
             var expectedOutput = @"Exception";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6474,9 +6499,9 @@ True
 False
 False
 False";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -6497,30 +6522,790 @@ False";
         switch (i) { case (default) when true: break; } // error 7
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(6, 18),
-                // (7,19): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
+                // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(7, 19),
-                // (8,21): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
+                // (8,21): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (((default)))) {} // error 3
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(8, 21),
-                // (9,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 21),
+                // (9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default: break; } // error 4
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(9, 27),
-                // (10,28): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
+                // (10,28): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case (default): break; } // error 5
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(10, 28),
-                // (11,27): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 28),
+                // (11,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 6
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(11, 27),
-                // (12,28): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(11, 27),
+                // (12,28): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case (default) when true: break; } // error 7
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 28)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var caseDefault = tree.GetRoot().DescendantNodes().OfType<CasePatternSwitchLabelSyntax>().First();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal("System.Int32", model.GetTypeInfo(caseDefault.Pattern).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(caseDefault.Pattern).ConvertedType.ToTestDisplayString());
+            Assert.False(model.GetConstantValue(caseDefault.Pattern).HasValue);
+        }
+
+        [Fact]
+        public void EventInitializers_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static event System.Func<bool> Test1 = GetDelegate(1 is int x1 && Dummy(x1)); 
+
+    static System.Func<bool> GetDelegate(bool value) => () => value;
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (9,65): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //     static event System.Func<bool> Test1 = GetDelegate(1 is int x1 && Dummy(x1)); 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 65)
+                );
+        }
+
+        [Fact]
+        public void ExhaustiveBoolSwitch00()
+        {
+            // Note that the switches in this code are exhaustive. The idea of a switch
+            // being exhaustive is new with the addition of pattern-matching; this code
+            // used to give errors that are no longer applicable due to the spec change.
+            var source =
+@"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        M(true);
+        M(false);
+        Console.WriteLine(M2(true));
+        Console.WriteLine(M2(false));
+    }
+    public static void M(bool e)
+    {
+        bool b;
+        switch (e)
+        {
+            case true:
+                b = true;
+                break;
+            case false:
+                b = false;
+                break;
+        }
+
+        Console.WriteLine(b); // no more error CS0165: Use of unassigned local variable 'b'
+    }
+
+    public static bool M2(bool e) // no more error CS0161: not all code paths return a value
+    {
+        switch (e)
+        {
+            case true: return true;
+            case false: return false;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"True
+False
+True
+False");
+        }
+
+        [Fact, WorkItem(24865, "https://github.com/dotnet/roslyn/issues/24865")]
+        public void ExhaustiveBoolSwitch01()
+        {
+            var source =
+@"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        M(true);
+        M(false);
+        Console.WriteLine(M2(true));
+        Console.WriteLine(M2(false));
+    }
+    public static void M(bool e)
+    {
+        bool b;
+        switch (e)
+        {
+            case true when true:
+                b = true;
+                break;
+            case false:
+                b = false;
+                break;
+        }
+
+        Console.WriteLine(b);
+    }
+
+    public static bool M2(bool e)
+    {
+        switch (e)
+        {
+            case true when true: return true;
+            case false: return false;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"True
+False
+True
+False");
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_01()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        if (outer is Span<int> inner)
+        {
+            return ref inner[5];
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24));
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_03()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators,
+                text: @"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        if (outer is ({} and var x) and Span<int> inner)
+        {
+            return ref inner[5];
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (8,13): warning CS8794: An expression of type 'Span<int>' always matches the provided pattern.
+                //         if (outer is ({} and var x) and Span<int> inner)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is ({} and var x) and Span<int> inner").WithArguments("System.Span<int>").WithLocation(8, 13),
+                // (10,24): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_01()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        switch (outer)
+        {
+            case Span<int> inner:
+            {
+                return ref inner[5];
+            }
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //                 return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+        }
+
+        [Fact]
+        [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_03()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public class C
+{
+    public ref int M()
+    {
+        Span<int> outer = stackalloc int[100];
+        switch (outer)
+        {
+            case {} and Span<int> inner:
+            {
+                return ref inner[5];
+            }
+        }
+
+        throw null;
+    }
+}").VerifyDiagnostics(
+                // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //                 return ref inner[5];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (var x, var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (R x, R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (_, _) x: return x; // error 7
+        }
+    }
+}
+").VerifyDiagnostics(
+                // (16,42): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 42),
+                // (24,40): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 40),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (var x, var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (40,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (R x, R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 37),
+                // (48,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 37),
+                // (56,32): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 32),
+                // (64,35): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (_, _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_04()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
+        }
+    }
+}
+").VerifyDiagnostics(
+                // (16,76): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { Prop: var _ and {} and var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 76),
+                // (24,74): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { Prop: var _ and {} and R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 74),
+                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and var x, var _ and {} and var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (40,88): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and R x, var _ and {} and R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 88),
+                // (48,54): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 54),
+                // (56,49): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 49),
+                // (64,86): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var _ and {} and (var _ and {} and _, var _ and {} and _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 86)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: var x }) return x; // error 1
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: R x }) return x; // error 2
+        throw null;
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (var x, var y)) return x; // error 3
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (R x, R y)) return x; // error 4
+        throw null;
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var (x, y)) return x; // error 5
+        throw null;
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { } x) return x; // error 6
+        throw null;
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (_, _) x) return x; // error 7
+        throw null;
+    }
+}
+").VerifyDiagnostics(
+                // (14,46): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: var x }) return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 46),
+                // (20,44): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: R x }) return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 44),
+                // (26,45): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (var x, var y)) return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 45),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (R x, R y)) return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (38,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 41),
+                // (44,36): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { } x) return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 36),
+                // (50,39): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 39)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_04()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+        throw null;
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+        throw null;
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and var (x, y)) return x; // error 5
+        throw null;
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and { } x) return x; // error 6
+        throw null;
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var _ and {} and (_, _) x) return x; // error 7
+        throw null;
+    }
+}
+").VerifyDiagnostics(
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and var x }").WithArguments("R").WithLocation(14, 13),
+                // (14,80): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { Prop: var _ and {} and var x }) return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 80),
+                // (20,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { Prop: var _ and {} and R x }").WithArguments("R").WithLocation(20, 13),
+                // (20,78): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { Prop: var _ and {} and R x }) return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 78),
+                // (26,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)").WithArguments("R").WithLocation(26, 13),
+                // (26,96): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (var _ and {} and var x, var _ and {} and var y)) return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 96),
+                // (32,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)").WithArguments("R").WithLocation(32, 13),
+                // (32,92): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (var _ and {} and R x, var _ and {} and R y)) return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 92),
+                // (38,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and var (x, y)").WithArguments("R").WithLocation(38, 13),
+                // (38,58): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 58),
+                // (44,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and { } x").WithArguments("R").WithLocation(44, 13),
+                // (44,53): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and { } x) return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 53),
+                // (50,13): warning CS8794: An expression of type 'R' always matches the provided pattern.
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "outer is var _ and {} and (_, _) x").WithArguments("R").WithLocation(50, 13),
+                // (50,56): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var _ and {} and (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 56)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void EscapeScopeInSubpatternOfNonRefType()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R RProp => this;
+    public S SProp => new S();
+    public void Deconstruct(out S X, out S Y) => X = Y = new S();
+    public static implicit operator R(Span<int> span) => new R();
+}
+public struct S
+{
+    public R RProp => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { SProp: { RProp: var x }}) return x; // OK
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { SProp: { RProp: var x }}: return x; // OK
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is ({ RProp: var x }, _)) return x; // OK
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case ({ RProp: var x }, _): return x; // OK
+        }
+    }
+}
+").VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(39960, "https://github.com/dotnet/roslyn/issues/39960")]
+        public void MissingExceptionType()
+        {
+            var source = @"
+class C
+{
+    void M(bool b, dynamic d)
+    {
+        _ = b
+            ? throw new System.NullReferenceException()
+            : throw null;
+        L();
+        throw null;
+        void L() => throw d;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new System.NullReferenceException()").WithArguments("System.Exception").WithLocation(7, 21),
+                // (8,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             : throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(8, 21),
+                // (10,15): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(10, 15),
+                // (11,27): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Exception").WithLocation(11, 27)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0155: The type caught or thrown must be derived from System.Exception
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "new System.NullReferenceException()").WithLocation(7, 21),
+                // (11,27): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "d").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void MissingExceptionType_In7()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            Test();
+        }
+        catch
+        {
+            System.Console.WriteLine(""in catch"");
+        }
+    }
+
+    static void Test()
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp, expectedOutput: "in catch");
         }
     }
 }

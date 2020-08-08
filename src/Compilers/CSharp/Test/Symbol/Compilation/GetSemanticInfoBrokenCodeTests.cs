@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public abstract object this[object x] = { get; }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -41,7 +43,7 @@ class/*</bind>*/ B
 {
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
@@ -64,7 +66,7 @@ class/*</bind>*/ B
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
@@ -87,7 +89,7 @@ class C
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
@@ -100,7 +102,7 @@ class C
             var text =
 @"#if e==true";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             foreach (var expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
             {
@@ -125,7 +127,7 @@ class C
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -152,7 +154,7 @@ static class C
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             foreach (var stmt in GetAllStatements(tree.GetCompilationUnitRoot()))
             {
@@ -169,15 +171,15 @@ static class C
 abstract object P { get; set; }
 abstract void M();";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var diagnostics = model.GetDiagnostics().ToArray();
             Assert.NotEmpty(diagnostics);
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>(TypeSymbol.ImplicitTypeName);
             Assert.True(type.IsImplicitlyDeclared);
             Symbol member;
-            member = type.GetMember<FieldSymbol>("F");
-            Assert.False(member.IsImplicitlyDeclared);
+            member = type.GetMember<Symbol>("F");
+            Assert.Null(member);
             member = type.GetMember<PropertySymbol>("P");
             Assert.False(member.IsImplicitlyDeclared);
             member = type.GetMember<MethodSymbol>("M");
@@ -189,15 +191,16 @@ abstract void M();";
         public void Repro611177()
         {
             var source = @"[_<_[delegate using'";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
-            model.GetSymbolInfo(usingSyntax);
+            Assert.Empty(tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>());
 
-            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
-            model.GetSymbolInfo(identifierSyntax);
+            foreach (var identifierSyntax in tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
+            {
+                model.GetSymbolInfo(identifierSyntax);
+            }
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
@@ -212,7 +215,7 @@ class C
         int[delegate { using (Q); }] array;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -233,7 +236,7 @@ class C
         int[delegate { typeof(int) }] array;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -255,7 +258,7 @@ class C
         var x = typeof(int[delegate { 1 }]);
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -288,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
     }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -307,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     object F = typeof(int?);
 }";
             var tree = Parse(text);
-            var comp = CreateCompilation(new[] { tree });
+            var comp = CreateEmptyCompilation(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -322,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     object F = typeof(int*);
 }";
             var tree = Parse(text);
-            var comp = CreateCompilation(new[] { tree });
+            var comp = CreateEmptyCompilation(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -337,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     object F = typeof(int[]);
 }";
             var tree = Parse(text);
-            var comp = CreateCompilation(new[] { tree });
+            var comp = CreateEmptyCompilation(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -352,12 +355,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     static object F = new C<,>();
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             foreach (var expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
             {
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.NotNull(symbolInfo);
+                // https://github.com/dotnet/roslyn/issues/38509
+                // Assert.NotEqual(default, symbolInfo);
                 model.AnalyzeDataFlow(expr);
             }
         }
@@ -367,7 +371,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             foreach (var expr in GetAllExpressions(node))
             {
                 var symbolInfo = model.GetSymbolInfo(expr);
-                Assert.NotNull(symbolInfo);
+
+                // https://github.com/dotnet/roslyn/issues/38509
+                // Assert.NotEqual(default, symbolInfo);
             }
         }
 

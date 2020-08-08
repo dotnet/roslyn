@@ -1,18 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -45,10 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // lazily created, does not need to be unique
         private ConcurrentCache<string, ImmutableArray<Symbol>> _lazyMembersByNameCache;
 
-        protected SubstitutedNamedTypeSymbol(Symbol newContainer, TypeMap map, NamedTypeSymbol originalDefinition, NamedTypeSymbol constructedFrom = null, bool unbound = false)
-            : base(originalDefinition)
+        protected SubstitutedNamedTypeSymbol(Symbol newContainer, TypeMap map, NamedTypeSymbol originalDefinition, NamedTypeSymbol constructedFrom = null, bool unbound = false, TupleExtraData tupleData = null)
+            : base(originalDefinition, tupleData)
         {
             Debug.Assert(originalDefinition.IsDefinition);
+            Debug.Assert(!originalDefinition.IsErrorType());
             _newContainer = newContainer;
             _inputMap = map;
             _unbound = unbound;
@@ -136,25 +134,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingType; }
         }
 
-        internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.GetDeclaredBaseType(basesBeingResolved));
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.GetDeclaredInterfaces(basesBeingResolved));
         }
 
         internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        {
-            get
-            {
-                return _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
-            }
-        }
+            => _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved));
         }
@@ -168,7 +161,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _unbound ? new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct()) : OriginalDefinition.MemberNames;
+                if (_unbound)
+                {
+                    return new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct());
+                }
+
+                if (IsTupleType)
+                {
+                    return GetMembers().Select(s => s.Name).Distinct();
+                }
+
+                return OriginalDefinition.MemberNames;
             }
         }
 
@@ -220,6 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsTupleType)
+            {
+                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                Debug.Assert(builder is object);
+            }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -245,6 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsTupleType)
+            {
+                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                Debug.Assert(builder is object);
+            }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -264,6 +279,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<Symbol> GetMembersWorker(string name)
         {
+            if (IsTupleType)
+            {
+                var result = GetMembers().WhereAsArray((m, name) => m.Name == name, name);
+                cacheResult(result);
+                return result;
+            }
+
             var originalMembers = OriginalDefinition.GetMembers(name);
             if (originalMembers.IsDefaultOrEmpty)
             {
@@ -277,15 +299,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var substitutedMembers = builder.ToImmutableAndFree();
-
-            // cache of size 8 seems reasonable here.
-            // considering that substituted methods have about 10 reference fields,
-            // reusing just one may make the cache profitable.
-            var cache = _lazyMembersByNameCache ??
-                        (_lazyMembersByNameCache = new ConcurrentCache<string, ImmutableArray<Symbol>>(8));
-
-            cache.TryAdd(name, substitutedMembers);
+            cacheResult(substitutedMembers);
             return substitutedMembers;
+
+            void cacheResult(ImmutableArray<Symbol> result)
+            {
+                // cache of size 8 seems reasonable here.
+                // considering that substituted methods have about 10 reference fields,
+                // reusing just one may make the cache profitable.
+                var cache = _lazyMembersByNameCache ??
+                            (_lazyMembersByNameCache = new ConcurrentCache<string, ImmutableArray<Symbol>>(8));
+
+                cache.TryAdd(name, result);
+            }
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -365,5 +391,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
     }
 }

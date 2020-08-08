@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,22 +18,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
             }
 
-            internal override Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            public override Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
                 => Task.FromResult(RenameFileToMatchTypeName());
+
+            public override Task<Solution> GetModifiedSolutionAsync()
+            {
+                var modifiedSolution = SemanticDocument.Project.Solution
+                    .WithDocumentName(SemanticDocument.Document.Id, FileName);
+
+                return Task.FromResult(modifiedSolution);
+            }
 
             /// <summary>
             /// Renames the file to match the type contained in it.
             /// </summary>
             private ImmutableArray<CodeActionOperation> RenameFileToMatchTypeName()
             {
-                var oldDocument = SemanticDocument.Document;
-                var newDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id, FileName);
+                var documentId = SemanticDocument.Document.Id;
+                var oldSolution = SemanticDocument.Document.Project.Solution;
+                var newSolution = oldSolution.WithDocumentName(documentId, FileName);
 
                 return ImmutableArray.Create<CodeActionOperation>(
-                    new RenameDocumentOperation(
-                        oldDocument.Id, newDocumentId, 
-                        FileName, SemanticDocument.Text),
-                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
+                    new ApplyChangesOperation(newSolution));
             }
         }
     }

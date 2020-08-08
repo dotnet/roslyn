@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -14,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyPreviousAndNextHistory()
         {
             VisualStudio.InteractiveWindow.SubmitText("1 + 2");
@@ -36,7 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyMaybeExecuteInput()
         {
             VisualStudio.InteractiveWindow.InsertCode("2 + 3");
@@ -44,7 +48,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("5");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyNewLineAndIndent()
         {
             VisualStudio.InteractiveWindow.InsertCode("3 + ");
@@ -54,14 +58,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("7");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyExecuteInput()
         {
             VisualStudio.InteractiveWindow.SubmitText("1 + ");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS1733");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyForceNewLineAndIndent()
         {
             VisualStudio.InteractiveWindow.InsertCode("1 + 2");
@@ -71,7 +75,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.Verify.ReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyCancelInput()
         {
             VisualStudio.InteractiveWindow.InsertCode("1 + 4");
@@ -80,7 +84,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.Verify.LastReplInput(string.Empty);
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyUndoAndRedo()
         {
             VisualStudio.InteractiveWindow.ClearReplText();
@@ -93,7 +97,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("6");
         }
 
-        [Fact]
+        [WpfFact]
         public void CutDeletePasteSelectAll()
         {
             ClearInteractiveWindow();
@@ -130,7 +134,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         //     of these tests and convert them to unit-tests.
         //     -->
         //<!-- TODO(https://github.com/dotnet/roslyn/issues/4235)
-        [Fact]
+        [WpfFact]
         public void VerifyReturnIndentCurrentLine()
         {
             VisualStudio.InteractiveWindow.ClearScreen();

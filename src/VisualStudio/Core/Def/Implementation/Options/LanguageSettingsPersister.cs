@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -11,10 +13,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
@@ -31,7 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IVsTextManager4 _textManager;
         private readonly IGlobalOptionService _optionService;
 
-        private readonly IComEventSink _textManagerEvents2Sink;
+#pragma warning disable IDE0052 // Remove unread private members - https://github.com/dotnet/roslyn/issues/46167
+        private readonly ComEventSink _textManagerEvents2Sink;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// The mapping between language names and Visual Studio language service GUIDs.
@@ -46,10 +49,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.
         /// </remarks>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageSettingsPersister(
+            IThreadingContext threadingContext,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IGlobalOptionService optionService)
-            : base(assertIsForeground: true)
+            : base(threadingContext, assertIsForeground: true)
         {
             _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
             _optionService = optionService;
@@ -110,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 foreach (var option in _supportedOptions)
                 {
                     var keyWithLanguage = new OptionKey(option, languageName);
-                    object newValue = GetValueForOption(option, langPrefs[0]);
+                    var newValue = GetValueForOption(option, langPrefs[0]);
 
                     _optionService.RefreshOption(keyWithLanguage, newValue);
                 }
@@ -239,13 +244,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (!_supportedOptions.Contains(optionKey.Option))
             {
-                value = null;
                 return false;
             }
 
             if (!_languageMap.TryGetValue(optionKey.Language, out var languageServiceGuid))
             {
-                value = null;
                 return false;
             }
 
@@ -254,22 +257,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Marshal.ThrowExceptionForHR(_textManager.GetUserPreferences4(null, languagePreferences, null));
 
             SetValueForOption(optionKey.Option, ref languagePreferences[0], value);
-            SetUserPreferencesMaybeAsync(languagePreferences);
+            _ = SetUserPreferencesMaybeAsync(languagePreferences);
 
             // Even if we didn't call back, say we completed the persist
             return true;
         }
 
-        private void SetUserPreferencesMaybeAsync(LANGPREFERENCES3[] languagePreferences)
+        private async Task SetUserPreferencesMaybeAsync(LANGPREFERENCES3[] languagePreferences)
         {
-            if (IsForeground())
-            {
-                Marshal.ThrowExceptionForHR(_textManager.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
-            }
-            else
-            {
-                Task.Factory.StartNew(() => this.SetUserPreferencesMaybeAsync(languagePreferences), CancellationToken.None, TaskCreationOptions.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
-            }
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            Marshal.ThrowExceptionForHR(_textManager.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
         }
     }
 }

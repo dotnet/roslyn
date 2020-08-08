@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -138,8 +140,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(0, 0, 0, 0), id.Version);
             Assert.Equal(AssemblyNameFlags.None, id.Flags);
             Assert.Equal("", id.CultureName);
-            Assert.Equal(false, id.HasPublicKey);
-            Assert.Equal(false, id.IsRetargetable);
+            Assert.False(id.HasPublicKey);
+            Assert.False(id.IsRetargetable);
             Assert.Equal(0, id.PublicKey.Length);
             Assert.Equal(0, id.PublicKeyToken.Length);
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
@@ -149,8 +151,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(0, 0, 0, 0), id.Version);
             Assert.Equal(AssemblyNameFlags.PublicKey, id.Flags);
             Assert.Equal("", id.CultureName);
-            Assert.Equal(true, id.HasPublicKey);
-            Assert.Equal(false, id.IsRetargetable);
+            Assert.True(id.HasPublicKey);
+            Assert.False(id.IsRetargetable);
             AssertEx.Equal(PublicKey1, id.PublicKey);
             AssertEx.Equal(PublicKeyToken1, id.PublicKeyToken);
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
@@ -160,8 +162,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(0, 0, 0, 0), id.Version);
             Assert.Equal(AssemblyNameFlags.Retargetable, id.Flags);
             Assert.Equal("", id.CultureName);
-            Assert.Equal(false, id.HasPublicKey);
-            Assert.Equal(true, id.IsRetargetable);
+            Assert.False(id.HasPublicKey);
+            Assert.True(id.IsRetargetable);
             Assert.Equal(0, id.PublicKey.Length);
             AssertEx.Equal(PublicKeyToken1, id.PublicKeyToken);
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
@@ -171,8 +173,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(0, 0, 0, 0), id.Version);
             Assert.Equal(AssemblyNameFlags.PublicKey | AssemblyNameFlags.Retargetable, id.Flags);
             Assert.Equal("", id.CultureName);
-            Assert.Equal(true, id.HasPublicKey);
-            Assert.Equal(true, id.IsRetargetable);
+            Assert.True(id.HasPublicKey);
+            Assert.True(id.IsRetargetable);
             AssertEx.Equal(PublicKey1, id.PublicKey);
             AssertEx.Equal(PublicKeyToken1, id.PublicKeyToken);
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
@@ -182,8 +184,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(0, 0, 0, 0), id.Version);
             Assert.Equal(AssemblyNameFlags.PublicKey, id.Flags);
             Assert.Equal("", id.CultureName);
-            Assert.Equal(true, id.HasPublicKey);
-            Assert.Equal(false, id.IsRetargetable);
+            Assert.True(id.HasPublicKey);
+            Assert.False(id.IsRetargetable);
             AssertEx.Equal(PublicKey1, id.PublicKey);
             AssertEx.Equal(PublicKeyToken1, id.PublicKeyToken);
             Assert.Equal(AssemblyContentType.WindowsRuntime, id.ContentType);
@@ -247,51 +249,51 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void MetadataConstructor()
         {
-            var id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1, 
+            var id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1,
                 hasPublicKey: true, isRetargetable: true, contentType: AssemblyContentType.Default);
             Assert.Equal("Goo", id.Name);
             Assert.Equal(new Version(1, 2, 3, 4), id.Version);
             Assert.Equal(AssemblyNameFlags.PublicKey | AssemblyNameFlags.Retargetable, id.Flags);
             Assert.Equal("en-US", id.CultureName);
-            Assert.Equal(true, id.HasPublicKey);
-            Assert.Equal(true, id.IsRetargetable);
+            Assert.True(id.HasPublicKey);
+            Assert.True(id.IsRetargetable);
             AssertEx.Equal(PublicKey1, id.PublicKey);
             AssertEx.Equal(PublicKeyToken1, id.PublicKeyToken);
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
 
             // invalid content type:
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: (AssemblyContentType)2);
             Assert.Equal(AssemblyNameFlags.None, id.Flags);
             Assert.Equal("", id.CultureName);
-            Assert.Equal(false, id.HasPublicKey);
+            Assert.False(id.HasPublicKey);
             Assert.Equal(0, id.PublicKey.Length);
             Assert.Equal(0, id.PublicKeyToken.Length);
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
 
             // default Retargetable=No if content type is WinRT
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: true, contentType: AssemblyContentType.WindowsRuntime);
             Assert.Equal("Goo", id.Name);
             Assert.Equal(new Version(1, 2, 3, 4), id.Version);
             Assert.Equal(AssemblyNameFlags.None, id.Flags);
             Assert.Equal("", id.CultureName);
-            Assert.Equal(false, id.HasPublicKey);
-            Assert.Equal(false, id.IsRetargetable);
+            Assert.False(id.HasPublicKey);
+            Assert.False(id.IsRetargetable);
             Assert.Equal(AssemblyContentType.WindowsRuntime, id.ContentType);
 
             // invalid culture:
             // The native compiler doesn't enforce that the culture be anything in particular. 
             // AssemblyIdentity should preserve user input even if it is of dubious utility.
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "blah,", ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "blah,", ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default);
             Assert.Equal("blah,", id.CultureName);
 
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "*", ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "*", ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default);
             Assert.Equal("*", id.CultureName);
 
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "neutral", ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "neutral", ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default);
             Assert.Equal("", id.CultureName);
         }
@@ -307,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(new byte[0], an.GetPublicKeyToken());
             AssertEx.Equal(null, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.None, an.Flags);
-            Assert.Equal(null, an.CodeBase);
+            Assert.Null(an.CodeBase);
 
             ai = new AssemblyIdentity("goo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1,
                 hasPublicKey: true,
@@ -320,7 +322,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(PublicKeyToken1, an.GetPublicKeyToken());
             AssertEx.Equal(PublicKey1, an.GetPublicKey());
             Assert.Equal(AssemblyNameFlags.PublicKey | AssemblyNameFlags.Retargetable, an.Flags);
-            Assert.Equal(null, an.CodeBase);
+            Assert.Null(an.CodeBase);
 
             // invalid characters are ok in the name, the FullName can't be built though:
             foreach (char c in ClrInvalidCharacters)
@@ -338,7 +340,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ToAssemblyName_Errors()
         {
             var ai = new AssemblyIdentity("goo", cultureName: "*");
@@ -358,7 +360,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(PublicKeyToken1, aiPkt);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FullKeyAndToken()
         {
             string displayPkt = "Goo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1;
@@ -380,3 +382,4 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 }
+

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -41,32 +43,37 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
 
         #endregion
 
-        public AsynchronousSerialWorkQueue(IAsynchronousOperationListener asyncListener)
-            : base(assertIsForeground: false)
+        public AsynchronousSerialWorkQueue(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, assertIsForeground: false)
         {
             Contract.ThrowIfNull(asyncListener);
             _asyncListener = asyncListener;
 
             // Initialize so we don't have to check for null below. Force the background task to run
             // on the threadpool. 
-            _currentBackgroundTask = SpecializedTasks.EmptyTask;
+            _currentBackgroundTask = Task.CompletedTask;
         }
 
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public void CancelCurrentWork()
+            => CancelCurrentWork(remainCancelled: false);
+
+        public void CancelCurrentWork(bool remainCancelled)
         {
             lock (_gate)
             {
+                remainCancelled |= _cancellationTokenSource.IsCancellationRequested;
                 _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
+                if (!remainCancelled)
+                {
+                    _cancellationTokenSource = new CancellationTokenSource();
+                }
             }
         }
 
         public void EnqueueBackgroundWork(Action action, string name, CancellationToken cancellationToken)
-        {
-            EnqueueBackgroundWork(action, name, afterDelay: 0, cancellationToken: cancellationToken);
-        }
+            => EnqueueBackgroundWork(action, name, afterDelay: 0, cancellationToken: cancellationToken);
 
         public void EnqueueBackgroundWork(Action action, string name, int afterDelay, CancellationToken cancellationToken)
         {
@@ -152,20 +159,35 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
             _currentBackgroundTask.Wait();
         }
 
-        /// <summary>
-        /// Wait until all tasks have been completed.  NOTE that this will do a pumping wait if
-        /// called on the UI thread. Also, it isn't guaranteed to be stable in the case of tasks
-        /// enqueuing other tasks in arbitrary orders, though it does support our common pattern of
-        /// "timer task->background task->foreground task with results"
-        /// 
-        /// Use this method very judiciously.  Most of the time, we should be able to just use 
-        /// IAsynchronousOperationListener for tests.
-        /// </summary>
-        public void WaitUntilCompletion_ForTestingPurposesOnly()
+        internal TestAccessor GetTestAccessor()
         {
-            AssertIsForeground();
+            return new TestAccessor(this);
+        }
 
-            WaitForPendingBackgroundWork();
+        internal readonly struct TestAccessor
+        {
+            private readonly AsynchronousSerialWorkQueue _asynchronousSerialWorkQueue;
+
+            internal TestAccessor(AsynchronousSerialWorkQueue asynchronousSerialWorkQueue)
+            {
+                _asynchronousSerialWorkQueue = asynchronousSerialWorkQueue;
+            }
+
+            /// <summary>
+            /// Wait until all tasks have been completed.  NOTE that this will do a pumping wait if
+            /// called on the UI thread. Also, it isn't guaranteed to be stable in the case of tasks
+            /// enqueuing other tasks in arbitrary orders, though it does support our common pattern of
+            /// "timer task->background task->foreground task with results"
+            /// 
+            /// Use this method very judiciously.  Most of the time, we should be able to just use 
+            /// IAsynchronousOperationListener for tests.
+            /// </summary>
+            public void WaitUntilCompletion()
+            {
+                _asynchronousSerialWorkQueue.AssertIsForeground();
+
+                _asynchronousSerialWorkQueue.WaitForPendingBackgroundWork();
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 
@@ -35,23 +37,21 @@ namespace Microsoft.CodeAnalysis.GenerateType
             string defaultNamespace,
             bool isCancelled = false)
         {
-            this.Accessibility = accessibility;
-            this.TypeKind = typeKind;
-            this.TypeName = typeName;
-            this.Project = project;
-            this.IsNewFile = isNewFile;
-            this.NewFileName = newFileName;
-            this.Folders = folders;
-            this.FullFilePath = fullFilePath;
-            this.ExistingDocument = existingDocument;
-            this.AreFoldersValidIdentifiers = areFoldersValidIdentifiers;
-            this.DefaultNamespace = defaultNamespace;
-            this.IsCancelled = isCancelled;
+            Accessibility = accessibility;
+            TypeKind = typeKind;
+            TypeName = typeName;
+            Project = project;
+            IsNewFile = isNewFile;
+            NewFileName = newFileName;
+            Folders = folders;
+            FullFilePath = fullFilePath;
+            ExistingDocument = existingDocument;
+            AreFoldersValidIdentifiers = areFoldersValidIdentifiers;
+            DefaultNamespace = defaultNamespace;
+            IsCancelled = isCancelled;
         }
 
         private GenerateTypeOptionsResult(bool isCancelled)
-        {
-            this.IsCancelled = isCancelled;
-        }
+            => IsCancelled = isCancelled;
     }
 }

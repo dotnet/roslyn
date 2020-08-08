@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -17,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         private readonly string _fieldName;
         private readonly string _fullyQualifiedName;
 
-        public AbstractSnippetFunctionSimpleTypeName(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionSimpleTypeName(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             _fieldName = fieldName;
             _fullyQualifiedName = fullyQualifiedName;
@@ -70,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             updatedTextSpan = new TextSpan(subjectBufferFieldSpan.Start, _fullyQualifiedName.Length);
 
             var textChange = new TextChange(originalTextSpan, _fullyQualifiedName);
-            var newText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).WithChanges(textChange);
+            var newText = document.GetTextSynchronously(CancellationToken.None).WithChanges(textChange);
 
             documentWithFullyQualifiedTypeName = document.WithText(newText);
             return true;

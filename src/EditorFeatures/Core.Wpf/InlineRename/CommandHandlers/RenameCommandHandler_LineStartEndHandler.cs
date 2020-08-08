@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -12,65 +15,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         ICommandHandler<LineStartCommandArgs>, ICommandHandler<LineEndCommandArgs>,
         ICommandHandler<LineStartExtendCommandArgs>, ICommandHandler<LineEndExtendCommandArgs>
     {
-        public CommandState GetCommandState(LineStartCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+        public CommandState GetCommandState(LineStartCommandArgs args)
+            => GetCommandState();
 
-        public CommandState GetCommandState(LineEndCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+        public CommandState GetCommandState(LineEndCommandArgs args)
+            => GetCommandState();
 
-        public CommandState GetCommandState(LineStartExtendCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+        public CommandState GetCommandState(LineStartExtendCommandArgs args)
+            => GetCommandState();
 
-        public CommandState GetCommandState(LineEndExtendCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+        public CommandState GetCommandState(LineEndExtendCommandArgs args)
+            => GetCommandState();
 
-        public void ExecuteCommand(LineStartCommandArgs args, Action nextHandler)
-        {
-            if (HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: true, extendSelection: false))
-            {
-                return;
-            }
+        public bool ExecuteCommand(LineStartCommandArgs args, CommandExecutionContext context)
+            => HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: true, extendSelection: false);
 
-            nextHandler();
-        }
+        public bool ExecuteCommand(LineEndCommandArgs args, CommandExecutionContext context)
+            => HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: false, extendSelection: false);
 
-        public void ExecuteCommand(LineEndCommandArgs args, Action nextHandler)
-        {
-            if (HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: false, extendSelection: false))
-            {
-                return;
-            }
+        public bool ExecuteCommand(LineStartExtendCommandArgs args, CommandExecutionContext context)
+            => HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: true, extendSelection: true);
 
-            nextHandler();
-        }
-
-        public void ExecuteCommand(LineStartExtendCommandArgs args, Action nextHandler)
-        {
-            if (HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: true, extendSelection: true))
-            {
-                return;
-            }
-
-            nextHandler();
-        }
-
-        public void ExecuteCommand(LineEndExtendCommandArgs args, Action nextHandler)
-        {
-            if (HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: false, extendSelection: true))
-            {
-                return;
-            }
-
-            nextHandler();
-        }
+        public bool ExecuteCommand(LineEndExtendCommandArgs args, CommandExecutionContext context)
+            => HandleLineStartOrLineEndCommand(args.SubjectBuffer, args.TextView, lineStart: false, extendSelection: true);
 
         private bool HandleLineStartOrLineEndCommand(ITextBuffer subjectBuffer, ITextView view, bool lineStart, bool extendSelection)
         {

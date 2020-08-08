@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -217,7 +220,7 @@ End Class
         <WorkItem(545364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545364")>
         <Fact()>
         Public Sub SyncLockLambda()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockLambda">
     <file name="a.vb">
 Option Infer On
@@ -253,7 +256,7 @@ End Class
         <Fact()>
         Public Sub SyncLockQuery()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockQuery">
     <file name="a.vb">
 Option Strict On
@@ -290,7 +293,7 @@ End Class
 
         <Fact()>
         Public Sub SyncLockGenericType()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockGenericType">
     <file name="a.vb">
 Option Infer ON
@@ -325,7 +328,7 @@ End Class
         <Fact()>
         Public Sub SyncLockAnonymous()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockAnonymous">
     <file name="a.vb">
 Module M1
@@ -354,7 +357,7 @@ End Module
         <Fact()>
         Public Sub SyncLockCreateObject()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockCreateObject">
     <file name="a.vb">
 Module M1
@@ -384,7 +387,7 @@ End Module
 
         <Fact()>
         Public Sub SimpleSyncLockNothing()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockNothing">
     <file name="a.vb">
 Option Strict ON
@@ -413,7 +416,7 @@ End Class
 
         <Fact()>
         Public Sub SimpleSyncLockDelegate()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockDelegate">
     <file name="a.vb">
 Delegate Sub D(p1 As Integer)
@@ -446,7 +449,7 @@ End Class
 
         <Fact()>
         Public Sub SyncLockMe()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockMe">
     <file name="a.vb">
 Class Program
@@ -471,7 +474,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticSummary.Type.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("[Me] As Program", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Me As Program", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticSummary.Symbol.Kind)
 
         End Sub

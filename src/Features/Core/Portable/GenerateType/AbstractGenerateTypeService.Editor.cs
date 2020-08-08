@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,7 +13,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private TargetProjectChangeInLanguage _targetProjectChangeInLanguage = TargetProjectChangeInLanguage.NoChange;
             private IGenerateTypeService _targetLanguageService;
 
-            private readonly SemanticDocument _document;
+            private readonly SemanticDocument _semanticDocument;
             private readonly State _state;
             private readonly bool _intoNamespace;
             private readonly bool _inNewFile;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 CancellationToken cancellationToken)
             {
                 _service = service;
-                _document = document;
+                _semanticDocument = document;
                 _state = state;
                 _intoNamespace = intoNamespace;
                 _inNewFile = inNewFile;
@@ -60,8 +62,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 GenerateTypeOptionsResult generateTypeOptionsResult,
                 CancellationToken cancellationToken)
             {
+                // the document comes from the same snapshot as the project
+                Contract.ThrowIfFalse(document.Project.Solution == generateTypeOptionsResult.Project.Solution);
+
                 _service = service;
-                _document = document;
+                _semanticDocument = document;
                 _state = state;
                 _fromDialog = fromDialog;
                 _generateTypeOptionsResult = generateTypeOptionsResult;
@@ -96,8 +101,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                                 null,
                                 true,
                                 null,
-                                _document.Project,
-                                _document.Project,
+                                _semanticDocument.Project,
+                                _semanticDocument.Project,
                                 isDialog: false).ConfigureAwait(false);
                         }
                         else
@@ -117,7 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // Honor the options from the dialog
                     // Check to see if the type is requested to be generated in cross language Project
                     // e.g.: C# -> VB or VB -> C#
-                    if (_document.Project.Language != _generateTypeOptionsResult.Project.Language)
+                    if (_semanticDocument.Project.Language != _generateTypeOptionsResult.Project.Language)
                     {
                         _targetProjectChangeInLanguage =
                             _generateTypeOptionsResult.Project.Language == LanguageNames.CSharp
@@ -137,14 +142,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             _generateTypeOptionsResult.AreFoldersValidIdentifiers,
                             _generateTypeOptionsResult.FullFilePath,
                             _generateTypeOptionsResult.Project,
-                            _document.Project,
+                            _semanticDocument.Project,
                             isDialog: true).ConfigureAwait(false);
                     }
                     else
                     {
                         return await GetGenerateIntoExistingDocumentAsync(
                             namedType,
-                            _document.Project,
+                            _semanticDocument.Project,
                             _generateTypeOptionsResult,
                             isDialog: true).ConfigureAwait(false);
                     }
@@ -154,7 +159,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private string GetNamespaceToGenerateInto()
             {
                 var namespaceToGenerateInto = _state.NamespaceToGenerateInOpt.Trim();
-                var rootNamespace = _service.GetRootNamespace(_document.SemanticModel.Compilation.Options).Trim();
+                var rootNamespace = _service.GetRootNamespace(_semanticDocument.SemanticModel.Compilation.Options).Trim();
                 if (!string.IsNullOrWhiteSpace(rootNamespace))
                 {
                     if (namespaceToGenerateInto == rootNamespace ||
@@ -183,9 +188,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // If the target Project is VB then we have to check if the RootNamespace of the VB project is the parent most namespace of the type being generated
                 // True, Remove the RootNamespace
                 // False, Add Global to the Namespace
-                Contract.Assert(targetProject.Language == LanguageNames.VisualBasic);
-                IGenerateTypeService targetLanguageService = null;
-                if (_document.Project.Language == LanguageNames.VisualBasic)
+                Debug.Assert(targetProject.Language == LanguageNames.VisualBasic);
+                IGenerateTypeService targetLanguageService;
+                if (_semanticDocument.Project.Language == LanguageNames.VisualBasic)
                 {
                     targetLanguageService = _service;
                 }
@@ -219,13 +224,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return namespaceToGenerateInto;
             }
 
-            private string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
-            {
-                return "Global." + namespaceToBeGenerated;
-            }
+            private static string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
+                => "Global." + namespaceToBeGenerated;
 
             // Returns the length of the meaningful rootNamespace substring part of namespaceToGenerateInto
-            private int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
+            private static int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
             {
                 if (namespaceToGenerateInto == rootNamespace)
                 {
@@ -240,7 +243,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return -1;
             }
 
-            private void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
+            private static void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
             {
                 // Add the folder as part of the namespace if there are not empty
                 if (folders != null && folders.Count != 0)
@@ -295,20 +298,20 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // 1: folders -> if triggered from Dialog
                 // 2: containers -> if triggered not from a Dialog but from QualifiedName
                 // 3: triggering document folder structure -> if triggered not from a Dialog and a SimpleName
-                var adjustedContainer = isDialog 
-                    ? folders 
+                var adjustedContainer = isDialog
+                    ? folders
                     : _state.SimpleName != _state.NameOrMemberAccessExpression
                         ? containers.ToList()
-                        : _document.Document.Folders.ToList();
+                        : _semanticDocument.Document.Folders.ToList();
 
                 // Now, take the code that would be generated and actually create an edit that would
                 // produce a document with that code in it.
                 var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
 
-                if (newDocument.Project.Language == _document.Document.Project.Language)
+                if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
                 {
-                    var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
-                    var fileBanner = syntaxFacts.GetFileBanner(_document.Root);
+                    var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                    var fileBanner = syntaxFacts.GetFileBanner(_semanticDocument.Root);
                     newRoot = newRoot.WithPrependedLeadingTrivia(fileBanner);
                 }
 
@@ -317,7 +320,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     triggeringProject,
                     documentName,
                     newRoot,
-                    _document.Document,
                     includeUsingsOrImports,
                     adjustedContainer,
                     SourceCodeKind.Regular,
@@ -329,7 +331,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 Project triggeringProject,
                 string documentName,
                 SyntaxNode root,
-                Document generatingDocument,
                 string includeUsingsOrImports,
                 IList<string> containers,
                 SourceCodeKind sourceCodeKind,
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Update the Generating Document with a using if required
                 if (includeUsingsOrImports != null)
                 {
-                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(updatedSolution, null, _document.Document, _state.SimpleName, includeUsingsOrImports, cancellationToken).ConfigureAwait(false);
+                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(updatedSolution, null, _semanticDocument.Document, _state.SimpleName, includeUsingsOrImports, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Add reference of the updated project to the triggering Project if they are 2 different projects
@@ -373,17 +374,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoContainingNamespaceOperationsAsync(INamedTypeSymbol namedType)
             {
-                var enclosingNamespace = _document.SemanticModel.GetEnclosingNamespace(
+                var enclosingNamespace = _semanticDocument.SemanticModel.GetEnclosingNamespace(
                     _state.SimpleName.SpanStart, _cancellationToken);
 
-                var solution = _document.Project.Solution;
+                var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                     solution,
                     enclosingNamespace,
                     namedType,
-                    new CodeGenerationOptions(afterThisLocation: _document.SyntaxTree.GetLocation(_state.SimpleName.Span)),
-                    _cancellationToken)
-                    .ConfigureAwait(false);
+                    new CodeGenerationOptions(
+                        afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span),
+                        options: await _semanticDocument.Document.GetOptionsAsync(_cancellationToken).ConfigureAwait(false)),
+                    _cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
             }
@@ -402,27 +404,27 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var containers = namespaceContainersAndUsings.containers;
                 var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;
 
-                Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation = null;
+                (INamespaceSymbol, INamespaceOrTypeSymbol, Location) enclosingNamespaceGeneratedTypeToAddAndLocation;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)
                 {
                     enclosingNamespaceGeneratedTypeToAddAndLocation = await _service.GetOrGenerateEnclosingNamespaceSymbolAsync(
-                     namedType,
-                     containers,
-                     generateTypeOptionsResult.ExistingDocument,
-                     root,
-                     _cancellationToken).ConfigureAwait(false);
+                        namedType,
+                        containers,
+                        generateTypeOptionsResult.ExistingDocument,
+                        root,
+                        _cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     enclosingNamespaceGeneratedTypeToAddAndLocation = await _targetLanguageService.GetOrGenerateEnclosingNamespaceSymbolAsync(
-                     namedType,
-                     containers,
-                     generateTypeOptionsResult.ExistingDocument,
-                     root,
-                     _cancellationToken).ConfigureAwait(false);
+                        namedType,
+                        containers,
+                        generateTypeOptionsResult.ExistingDocument,
+                        root,
+                        _cancellationToken).ConfigureAwait(false);
                 }
 
-                var solution = _document.Project.Solution;
+                var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                     solution,
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item1,
@@ -438,8 +440,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(
                                         updatedSolution,
-                                        generateTypeOptionsResult.ExistingDocument.Id == _document.Document.Id ? newRoot : null,
-                                        _document.Document,
+                                        generateTypeOptionsResult.ExistingDocument.Id == _semanticDocument.Document.Id ? newRoot : null,
+                                        _semanticDocument.Document,
                                         _state.SimpleName,
                                         includeUsingsOrImports,
                                         _cancellationToken).ConfigureAwait(false);
@@ -482,19 +484,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // Generated from the Dialog
                     var containerList = new List<string>();
 
-                    var rootNamespaceOfTheProjectGeneratedInto = 
+                    var rootNamespaceOfTheProjectGeneratedInto =
                         _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange
                             ? _service.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim()
                             : _targetLanguageService.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim();
 
-                    var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
                     var defaultNamespace = _generateTypeOptionsResult.DefaultNamespace;
 
                     // Case 1 : If the type is generated into the same C# project or
                     // Case 2 : If the type is generated from a C# project to a C# Project
                     // Case 3 : If the Type is generated from a VB Project to a C# Project
                     // Using and Namespace will be the DefaultNamespace + Folder Structure
-                    if ((_document.Project == _generateTypeOptionsResult.Project && _document.Project.Language == LanguageNames.CSharp) ||
+                    if ((_semanticDocument.Project == _generateTypeOptionsResult.Project && _semanticDocument.Project.Language == LanguageNames.CSharp) ||
                         (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange && _generateTypeOptionsResult.Project.Language == LanguageNames.CSharp) ||
                         _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.VisualBasicToCSharp)
                     {
@@ -514,8 +515,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // Case 5 : If Type is generated from a VB Project to VB Project
                     // Case 6 : If Type is generated from a C# Project to VB Project 
                     // Namespace will be Folder Structure and Import will have the RootNamespace of the project generated into as part of the Imports
-                    if ((_document.Project == _generateTypeOptionsResult.Project && _document.Project.Language == LanguageNames.VisualBasic) ||
-                        (_document.Project != _generateTypeOptionsResult.Project && _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange && _generateTypeOptionsResult.Project.Language == LanguageNames.VisualBasic) ||
+                    if ((_semanticDocument.Project == _generateTypeOptionsResult.Project && _semanticDocument.Project.Language == LanguageNames.VisualBasic) ||
+                        (_semanticDocument.Project != _generateTypeOptionsResult.Project && _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange && _generateTypeOptionsResult.Project.Language == LanguageNames.VisualBasic) ||
                         _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.CSharpToVisualBasic)
                     {
                         // Populate the ContainerList
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         }
                     }
 
-                    Contract.Assert(includeUsingsOrImports != null);
+                    Debug.Assert(includeUsingsOrImports != null);
                 }
 
                 return (containers, includeUsingsOrImports);
@@ -538,8 +539,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
             {
-                var codeGenService = GetCodeGenerationService();
-                var solution = _document.Project.Solution;
+                var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                     solution,
                     _state.TypeToGenerateInOpt,
@@ -553,50 +553,45 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private IList<ITypeSymbol> GetArgumentTypes(IList<TArgumentSyntax> argumentList)
             {
-                var types = argumentList.Select(a => _service.DetermineArgumentType(_document.SemanticModel, a, _cancellationToken));
+                var types = argumentList.Select(a => _service.DetermineArgumentType(_semanticDocument.SemanticModel, a, _cancellationToken));
                 return types.Select(FixType).ToList();
             }
 
             private ITypeSymbol FixType(
                 ITypeSymbol typeSymbol)
             {
-                var compilation = _document.SemanticModel.Compilation;
+                var compilation = _semanticDocument.SemanticModel.Compilation;
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
             }
 
-            private ICodeGenerationService GetCodeGenerationService()
-            {
-                var language = _state.TypeToGenerateInOpt == null
-                    ? _state.SimpleName.Language
-                    : _state.TypeToGenerateInOpt.Language;
-                return _document.Project.Solution.Workspace.Services.GetLanguageServices(language).GetService<ICodeGenerationService>();
-            }
-
-            private bool TryFindMatchingField(
+            private bool FindExistingOrCreateNewMember(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,
-                Dictionary<string, ISymbol> parameterToFieldMap,
-                bool caseSensitive)
+                ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap,
+                ImmutableDictionary<string, string>.Builder parameterToNewFieldMap)
             {
                 // If the base types have an accessible field or property with the same name and
                 // an acceptable type, then we should just defer to that.
                 if (_state.BaseTypeOrInterfaceOpt != null)
                 {
-                    var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-                    var query =
-                        _state.BaseTypeOrInterfaceOpt
-                            .GetBaseTypesAndThis()
-                            .SelectMany(t => t.GetMembers())
-                            .Where(s => s.Name.Equals(parameterName.NameBasedOnArgument, comparison));
-                    var symbol = query.FirstOrDefault(IsSymbolAccessible);
+                    var expectedFieldName = parameterName.NameBasedOnArgument;
+                    var members = from t in _state.BaseTypeOrInterfaceOpt.GetBaseTypesAndThis()
+                                  from m in t.GetMembers()
+                                  where m.Name.Equals(expectedFieldName, StringComparison.OrdinalIgnoreCase)
+                                  where IsSymbolAccessible(m)
+                                  where IsViableFieldOrProperty(parameterType, m)
+                                  select m;
 
-                    if (IsViableFieldOrProperty(parameterType, symbol))
+                    var membersArray = members.ToImmutableArray();
+                    var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(expectedFieldName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
+                    if (symbol != null)
                     {
                         parameterToFieldMap[parameterName.BestNameForParameter] = symbol;
                         return true;
                     }
                 }
 
+                parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
                 return false;
             }
 
@@ -610,7 +605,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     {
                         return
                             !field.IsReadOnly &&
-                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
+                            _service.IsConversionImplicit(_semanticDocument.SemanticModel.Compilation, parameterType, field.Type);
                     }
                     else if (symbol is IPropertySymbol property)
                     {
@@ -618,7 +613,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             property.Parameters.Length == 0 &&
                             property.SetMethod != null &&
                             IsSymbolAccessible(property.SetMethod) &&
-                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, property.Type);
+                            _service.IsConversionImplicit(_semanticDocument.SemanticModel.Compilation, parameterType, property.Type);
                     }
                 }
 
@@ -640,7 +635,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     case Accessibility.ProtectedAndInternal:
                     case Accessibility.Internal:
                         // TODO: Code coverage
-                        return _document.SemanticModel.Compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(
+                        return _semanticDocument.SemanticModel.Compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(
                             symbol.ContainingAssembly);
 
                     default:

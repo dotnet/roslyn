@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -22,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub BC30297ERR_SubNewCycle2()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Partial Class C1
@@ -56,7 +58,7 @@ BC30298: Constructor 'Public Sub New()' cannot call itself:
 
         <Fact()>
         Public Sub BC31522ERR_DllImportOnNonEmptySubOrFunction()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation>
         <file name="a.vb">
 Module MyModule
@@ -75,7 +77,7 @@ End Module
 
         <Fact()>
         Public Sub BC32304ERR_ConflictDefaultPropertyAttribute()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Reflection
@@ -203,7 +205,7 @@ End Module
         <WorkItem(540577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540577")>
         <Fact>
         Public Sub AddErrorCompRef()
-            Dim comp1 = CreateCompilationWithMscorlib(
+            Dim comp1 = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Public Class 
@@ -211,7 +213,7 @@ End Class
         </file>
     </compilation>)
 
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module M1
@@ -227,7 +229,7 @@ End Module
         <WorkItem(540643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
         <Fact>
         Public Sub PEVerifyOverrides()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -252,7 +254,7 @@ End Class
         <WorkItem(6983, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub ConstCharWithChrw()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -284,7 +286,7 @@ End Module
         <WorkItem(540536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540536")>
         <Fact>
         Public Sub SkipCodeGenIfErrorExist()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Option Explicit
@@ -307,7 +309,7 @@ End Module
         <WorkItem(6999, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub LambdaForMultiLine()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -332,7 +334,7 @@ True
         <WorkItem(540659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540659")>
         <Fact>
         Public Sub LambdaForSub()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -356,7 +358,7 @@ Hello Bug 7002
         <WorkItem(540658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540658")>
         <Fact>
         Public Sub LambdaTest1()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -399,7 +401,7 @@ BC31143: Method 'Public Sub Goo(Of T)(x As T, y As T)' does not have a signature
         <WorkItem(528232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528232")>
         <Fact()>
         Public Sub LambdaTest3()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -419,7 +421,7 @@ End Module
         <WorkItem(540660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540660")>
         <Fact>
         Public Sub LambdaTest4()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -445,7 +447,7 @@ BC36673: Multiline lambda expression is missing 'End Sub'.
         <WorkItem(528233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528233")>
         <Fact()>
         Public Sub LambdaTest5()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -467,7 +469,7 @@ End Module
         <WorkItem(541360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541360")>
         <Fact>
         Public Sub ERR_30500_CircularEvaluation1()
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
         <compilation>
             <file name="a.vb">
         Imports System
@@ -493,7 +495,7 @@ End Module
 
         <Fact(), WorkItem(543653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543653")>
         Public Sub CompareToOnDecimalTypeChar()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module M1
@@ -515,13 +517,13 @@ End Module
 
         <Fact, WorkItem(530211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530211")>
         Public Sub ModuleNameMismatch()
-            Dim netModule = CreateCompilationWithMscorlib(
+            Dim netModule = CreateCompilationWithMscorlib40(
     <compilation name="ModuleNameMismatch">
         <file name="a.vb">
 Class Test
 End Class
         </file>
-    </compilation>, TestOptions.ReleaseModule)
+    </compilation>, options:=TestOptions.ReleaseModule)
 
             Dim netModuleMetadata = ModuleMetadata.CreateFromImage(netModule.EmitToArray())
 
@@ -536,10 +538,10 @@ End Module
     </compilation>
 
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {netModuleMetadata.GetReference(filePath:="R:\A\B\ModuleNameMismatch.netmodule")})
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {netModuleMetadata.GetReference(filePath:="R:\A\B\ModuleNameMismatch.netmodule")})
             CompileAndVerify(compilation1)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {netModuleMetadata.GetReference(filePath:="R:\A\B\ModuleNameMismatch.mod")})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {netModuleMetadata.GetReference(filePath:="R:\A\B\ModuleNameMismatch.mod")})
 
             AssertTheseDiagnostics(compilation2,
 <expected>
@@ -549,7 +551,7 @@ BC37205: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatc
 
         <Fact, WorkItem(2774, "https://github.com/dotnet/roslyn/issues/2774")>
         Public Sub DoNotCrashOrAssertBecauseOfAMissingHelper()
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System.Linq
@@ -595,7 +597,7 @@ Module C
     End Sub
 End Module")
 
-            Dim compilation = CreateCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source.ToString()), {MscorlibRef, SystemRef, MsvbRef})
+            Dim compilation = CreateEmptyCompilationWithReferences(VisualBasicSyntaxTree.ParseText(source.ToString()), {MscorlibRef, SystemRef, MsvbRef})
 
             AssertTheseEmitDiagnostics(compilation,
 <expected>

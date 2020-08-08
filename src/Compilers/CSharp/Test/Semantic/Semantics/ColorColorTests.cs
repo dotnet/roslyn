@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -157,7 +160,7 @@ class Color
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
                     // Dev10 does not give a warning about unused variable. Should we?
@@ -581,7 +584,7 @@ class F
             // Can't use CheckExpressionAndParent because we're using alias.
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -592,7 +595,7 @@ class F
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Equal(SymbolKind.Method, parentInfo.Symbol.Kind);
             Assert.Equal("void E.M(params System.Int32[] a)", parentInfo.Symbol.ToTestDisplayString());
         }
@@ -621,7 +624,7 @@ class C
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (13,44): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         System.Console.WriteLine(/*<bind>*/Color/*</bind>*/.M is object);
@@ -632,14 +635,14 @@ class C
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Local, info.Symbol.Kind);
             Assert.Equal("Color Color", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol); // the lexically first matching method
             Assert.Equal(2, parentInfo.CandidateSymbols.Length);
             Assert.Equal("void Color.M()", parentInfo.CandidateSymbols[0].ToTestDisplayString());
@@ -717,11 +720,11 @@ class Program
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
         }
 
         [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
@@ -968,7 +971,7 @@ class Program
         var xs = var<int>.field;
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,13): warning CS0219: The variable 'var' is assigned but its value is never used
                 //         var var = "A";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "var").WithArguments("var"),
@@ -998,7 +1001,7 @@ class C
         }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(531386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531386")]
@@ -1024,7 +1027,7 @@ public class Program
         }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         #region Error cases
@@ -1051,7 +1054,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1061,14 +1064,15 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1096,7 +1100,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1106,14 +1110,15 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1141,7 +1146,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,34): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""Hello""").WithArguments("1", "string", "int"));
@@ -1151,14 +1156,14 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, parentInfo.CandidateReason);
             Assert.Equal(2, parentInfo.CandidateSymbols.Length);
@@ -1186,7 +1191,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,58): error CS0123: No overload for 'M' matches delegate 'System.Action<string>'
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action<string>"));
@@ -1196,14 +1201,14 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, parentInfo.CandidateReason);
             Assert.Equal(2, parentInfo.CandidateSymbols.Length);
@@ -1227,7 +1232,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (10,19): error CS0079: The event 'F.E' can only appear on the left hand side of += or -=
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("F.E"));
@@ -1237,7 +1242,7 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.NotAValue, info.CandidateReason);
             var candidate = info.CandidateSymbols.Single();
@@ -1247,7 +1252,7 @@ class F
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Equal(WellKnownMemberNames.DelegateInvokeName, parentInfo.Symbol.Name); // Succeeded even though the receiver has an error.
         }
 
@@ -1264,7 +1269,7 @@ enum Color
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (6,18): error CS1061: 'int' does not contain a definition for 'Blue' and no extension method 'Blue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Blue").WithArguments("int", "Blue"));
@@ -1274,14 +1279,15 @@ enum Color
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Field, info.Symbol.Kind);
             Assert.Equal("Color.Color", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1453,7 +1459,7 @@ class F
         static void Bar(D x) { }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
@@ -1477,7 +1483,7 @@ class F
         static void Bar(int x) { }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         #endregion Error cases
@@ -1510,7 +1516,7 @@ static class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
@@ -1569,7 +1575,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1610,7 +1616,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1648,7 +1654,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1689,7 +1695,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1727,7 +1733,7 @@ class X
     public bool Instance() { return true; }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
@@ -1749,7 +1755,7 @@ public class Example
     //                          ^^^^^^^^
 }";
             var analyzer = new ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer();
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll)
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll)
                 .VerifyAnalyzerOccurrenceCount(new[] { analyzer }, 0);
 
             Assert.True(analyzer.ActionFired);
@@ -1798,7 +1804,7 @@ public class Example
     public Lifetime Lifetime => Lifetime.Persistent;
     //                          ^^^^^^^^
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -1829,7 +1835,7 @@ public class Example
         {
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestMetadata.Net40.SystemCore });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var model = comp.GetSemanticModel(tree);
@@ -1837,14 +1843,14 @@ public class Example
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(exprSymbolKind, info.Symbol.Kind);
             Assert.Equal(exprDisplayString, info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Equal(parentSymbolKind, parentInfo.Symbol.Kind);
             Assert.Equal(parentDisplayString, parentInfo.Symbol.ToTestDisplayString());
         }
@@ -1868,7 +1874,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -1925,7 +1931,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -1982,7 +1988,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -2032,7 +2038,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -2072,10 +2078,10 @@ class C
 public enum Color { Red }
 ";
 
-            var refLib = CreateCompilation(
+            var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
-                references: new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+                references: new[] { TestMetadata.Net20.mscorlib });
 
             refLib.VerifyEmitDiagnostics();
 
@@ -2090,13 +2096,13 @@ class M
 }
 ";
 
-            var main = CreateCompilation(
+            var main = CreateEmptyCompilation(
                 sourceMain,
                 assemblyName: "Main",
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(refLib),
-                    TestReferences.NetFx.v4_0_30319.mscorlib
+                    TestMetadata.Net451.mscorlib
                 });
 
             var unifyReferenceWarning =
@@ -2130,13 +2136,50 @@ class M
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, assemblyName: "Main");
+            var compilation = CreateCompilation(source, assemblyName: "Main");
 
             DiagnosticDescription obsoleteWarning =
                 // warning CS0612: 'Color.Red' is obsolete
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
 
             compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
+        }
+
+        [WorkItem(718761, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/718761")]
+        [WorkItem(41457, "https://github.com/dotnet/roslyn/issues/41457")]
+        [Fact]
+        public void WorkItem718761()
+        {
+            string source = @"
+class C1
+{
+#pragma warning disable CS0169 // The field 'C1.C2' is never used
+    C2 C2;
+
+    void Test()
+    {
+        _ = new System.Action(C2.ReferenceEquals);
+    }
+}
+
+class C2
+{
+}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS0123: No overload for 'ReferenceEquals' matches delegate 'Action'
+                //         _ = new System.Action(C2.ReferenceEquals);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
+                );
+
+            compilation.VerifyEmitDiagnostics(
+                // (9,13): error CS0123: No overload for 'ReferenceEquals' matches delegate 'Action'
+                //         _ = new System.Action(C2.ReferenceEquals);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
+                );
         }
     }
 }

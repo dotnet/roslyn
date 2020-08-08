@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -35,16 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var p = noMsCorLibRef.GlobalNamespace.GetTypeMembers("I1").Single().
                 GetMembers("M1").OfType<MethodSymbol>().Single().
-                Parameters[0].Type;
+                Parameters[0].TypeWithAnnotations;
 
-            Assert.Equal(TypeKind.Error, p.TypeKind);
+            Assert.Equal(TypeKind.Error, p.Type.TypeKind);
             Assert.Equal(SpecialType.System_Int32, p.SpecialType);
         }
 
         [Fact]
         public void PresentCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestMetadata.NetCoreApp31.SystemRuntime });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib.AsImmutableOrNull()) });
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp31.SystemRuntime.AsImmutableOrNull()) });
 
             msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
@@ -197,13 +199,13 @@ namespace System
 ";
 
             // Fine in corlib.
-            CreateCompilation(source1 + source2).VerifyDiagnostics();
+            CreateEmptyCompilation(source1 + source2).VerifyDiagnostics();
 
             // Error elsewhere.
-            CreateStandardCompilation(source2).VerifyDiagnostics(
-                // (4,20): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
+            CreateCompilation(source2).VerifyDiagnostics(
+                // (4,36): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
                 //     internal class ArrayContract : Array
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ArrayContract").WithArguments("System.ArrayContract", "System.Array"));
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("System.ArrayContract", "System.Array"));
         }
     }
 }

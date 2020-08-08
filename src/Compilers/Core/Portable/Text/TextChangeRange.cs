@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Represents the change to a span of text.
     /// </summary>
-    public struct TextChangeRange : IEquatable<TextChangeRange>
+    public readonly struct TextChangeRange : IEquatable<TextChangeRange>
     {
         /// <summary>
         /// The span of text before the edit which is being changed
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Compares current instance of <see cref="TextChangeRange"/> to another.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TextChangeRange && Equals((TextChangeRange)obj);
         }

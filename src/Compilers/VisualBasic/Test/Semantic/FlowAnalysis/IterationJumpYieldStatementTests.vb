@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Linq
@@ -1351,7 +1353,7 @@ End Module
         <WorkItem(543462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543462")>
         <Fact()>
         Public Sub NextStatementSyntaxInForEach()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program

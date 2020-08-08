@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -12,19 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void Local()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static void F()
     {
         (int A, int B, (int C, int), int, int, int G, int H, int I) t = (1, 2, (3, 4), 5, 6, 7, 8, 9);
     }
-}";
-            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+}");
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void Constant()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C<T>
 {
     static (int, int) F;
@@ -66,12 +68,12 @@ class C
     {
         const C<(int A, int B)> c = null;
     }
-}";
-            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+}");
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -98,7 +100,7 @@ class C
         [Fact]
         public void TuplesAndDynamic()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C<T>
 {
 }
@@ -118,12 +120,12 @@ class C
             const C<(object, dynamic B)> y = null;
         }
     }
-}";
-            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+}");
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -178,19 +180,19 @@ class C
         [Fact]
         public void MultiByteCharacters()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static void F()
     {
         (int \u1234, int, int \u005f\u1200\u005f) \u1200 = (1, 2, 3);
     }
-}";
-            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+}");
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">
@@ -224,7 +226,7 @@ string.Format(@"<symbols>
         [Fact]
         public void DeconstructionForeach()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static void F(System.Collections.Generic.IEnumerable<(int a, int b)> ie)
@@ -236,12 +238,12 @@ string.Format(@"<symbols>
         { //9,9
         } //10,9
     } //11,5
-}";
-            var comp = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+}");
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"" parameterNames=""ie"">
@@ -279,10 +281,11 @@ string.Format(@"<symbols>
 </symbols>"));
         }
 
-        [Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        [WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        [Fact]
         public void VariablesAndConstantsInUnreachableCode()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     void F()
@@ -301,16 +304,16 @@ class C
         }
     }
 }
-";
-            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+");
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {
   // Code size        5 (0x5)
   .maxstack  1
-  .locals init ((int a, int b)[] V_0, //v1
-                (int a, int b)[] V_1, //v2
-                (int a, int b)[] V_2) //v3
+  .locals init (System.ValueTuple<int, int>[] V_0, //v1
+                System.ValueTuple<int, int>[] V_1, //v2
+                System.ValueTuple<int, int>[] V_2) //v3
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.0
@@ -322,7 +325,7 @@ class C
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""F"">

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.VisualStudio.Text;
@@ -23,13 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         AbstractStructureTaggerProvider<IBlockTag>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudio15StructureTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-                : base(notificationService, textEditorFactoryService, editorOptionsFactoryService, projectionBufferFactoryService, asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+                : base(threadingContext, notificationService, textEditorFactoryService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
         {
         }
 
@@ -37,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             IBlockTag parentTag, ITextSnapshot snapshot, BlockSpan region)
         {
             return new RoslynBlockTag(
+                ThreadingContext,
                 this.TextEditorFactoryService,
                 this.ProjectionBufferFactoryService,
                 this.EditorOptionsFactoryService,

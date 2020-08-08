@@ -1,14 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-Imports System.Threading.Tasks
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class VisualBasicCompletionCommandHandlerTests_InternalsVisibleTo
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsOtherAssembliesOfSolution() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -21,14 +22,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3"}))
+                Await state.AssertCompletionItemsContainAll("ClassLibrary1", "ClassLibrary2", "ClassLibrary3")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsOtherAssemblyIfAttributeSuffixIsPresent() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -39,14 +39,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsContainAll("ClassLibrary1")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionIsTriggeredWhenDoubleQuoteIsEntered() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -58,14 +57,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(""""c)
-                Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsContainAll("ClassLibrary1")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionIsEmptyUntilDoubleQuotesAreEntered() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -77,22 +75,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1")
                 state.SendTypeChars("("c)
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1")
                 state.SendTypeChars(""""c)
-                Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsContainAll("ClassLibrary1")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionIsTriggeredWhenCharacterIsEnteredAfterOpeningDoubleQuote() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -104,14 +98,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("a"c)
-                Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsContainAll("ClassLibrary1")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionIsNotTriggeredWhenCharacterIsEnteredThatIsNotRightBesideTheOpeniningDoubleQuote() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -129,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionIsNotTriggeredWhenDoubleQuoteIsEnteredAtStartOfFile() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -139,14 +132,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("a"c)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionIsNotTriggeredByArrayElementAccess() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -167,22 +159,18 @@ End Namespace
                     Async Function()
                         Await state.AssertNoCompletionSession()
                         state.SendInvokeCompletionList()
-                        Await state.WaitForAsynchronousOperationsAsync()
-                        Assert.True(
-                            state.CurrentCompletionPresenterSession Is Nothing OrElse
-                            Not state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                        Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
                 state.SendTypeChars("("c)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1")
                 state.SendTypeChars(""""c)
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
             End Using
         End Function
 
-        Private Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+        Private Shared Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -194,14 +182,10 @@ Imports System.Reflection
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
                 If hasItems Then
-                    Await state.AssertCompletionSession()
-                    Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                    Await state.AssertCompletionItemsContainAll("ClassLibrary1")
                 Else
-                    If Not state.CurrentCompletionPresenterSession Is Nothing Then
-                        Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
-                    End If
+                    Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                 End If
             End Using
         End Function
@@ -283,7 +267,7 @@ Imports System.Reflection
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionHasItemsIfInteralVisibleToIsReferencedByTypeAlias() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -295,14 +279,13 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsContainAll("ClassLibrary1")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionDoesNotContainCurrentAssembly() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -313,14 +296,13 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"TestAssembly"}))
+                Await state.AssertCompletionItemsDoNotContainAny("TestAssembly")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionInsertsAssemblyNameOnCommit() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                     </Project>
@@ -334,19 +316,18 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1"")>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionInsertsPublicKeyOnCommit() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
                     </Project>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
                         <Document><![CDATA[
@@ -358,18 +339,17 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsPublicKeyIfKeyIsSpecifiedByAttribute() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
                         <Document>
                             &lt;Assembly: System.Reflection.AssemblyKeyFile("<%= SigningTestHelpers.PublicKeyFile %>")&gt;
                         </Document>
@@ -384,19 +364,18 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsPublicKeyIfDelayedSigningIsEnabled() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>
                             DelaySign="True"
                         />
                     </Project>
@@ -410,14 +389,13 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("ClassLibrary1")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync()
                 state.AssertMatchesTextStartingAtLine(1, "<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionListIsEmptyIfAttributeIsNotTheBCLAttribute() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -443,7 +421,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVT() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -458,15 +436,14 @@ End Namespace
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1", "ClassLibrary2"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary3"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1", "ClassLibrary2")
+                Await state.AssertCompletionItemsContainAll("ClassLibrary3")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTIfAssemblyNameIsAConstant() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -492,15 +469,14 @@ End Namespace
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1", "ClassLibrary2"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary3"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1", "ClassLibrary2")
+                Await state.AssertCompletionItemsContainAll("ClassLibrary3")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTForDifferentSyntax() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -534,15 +510,14 @@ End Class
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3", "ClassLibrary4", "ClassLibrary5", "ClassLibrary6", "ClassLibrary7"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary8"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1", "ClassLibrary2", "ClassLibrary3", "ClassLibrary4", "ClassLibrary5", "ClassLibrary6", "ClassLibrary7")
+                Await state.AssertCompletionItemsContainAll("ClassLibrary8")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithSyntaxError() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
@@ -557,15 +532,14 @@ Imports System.Reflection
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
                 ' ClassLibrary1 must be listed because the existing attribute argument can't be resolved to a constant.
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                Await state.AssertCompletionItemsContainAll("ClassLibrary1")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVTWithMoreThanOneDocument() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary2"/>
@@ -586,9 +560,8 @@ Imports System.Reflection
                     </Project>
                 </Workspace>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary2"}))
+                Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1")
+                Await state.AssertCompletionItemsContainAll("ClassLibrary2")
             End Using
         End Function
     End Class

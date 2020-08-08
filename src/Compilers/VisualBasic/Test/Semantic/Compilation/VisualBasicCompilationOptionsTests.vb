@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                        validNonDefaultValue As T)
             TestPropertyGeneric(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), factory, getter, validNonDefaultValue)
         End Sub
-        
+
         <Fact>
         Public Sub ShadowInvariants()
             TestHiddenProperty(Function(old, value) old.WithOutputKind(value), Function(opt) opt.OutputKind, OutputKind.DynamicallyLinkedLibrary)
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         Private Shared Sub TestPropertyGeneric(Of TOptions As CompilationOptions, T)(oldOptions As TOptions,
-                                                     factory As Func(Of TOptions, T, TOptions), 
+                                                     factory As Func(Of TOptions, T, TOptions),
                                                      getter As Func(Of TOptions, T), validNonDefaultValue As T)
             Dim validDefaultValue = getter(oldOptions)
 
@@ -416,7 +418,7 @@ End Module
 
             ' Baseline
             Dim commonoption = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, commonoption)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, commonoption)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -426,7 +428,7 @@ End Module
             ' Suppress All
             ' vbc a.vb /nowarn
             Dim options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics()
 
             ' Suppress 42024
@@ -434,7 +436,7 @@ End Module
             Dim warnings As IDictionary(Of String, ReportDiagnostic) = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z"),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
@@ -445,13 +447,13 @@ End Module
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo"))
 
             ' Treat All as Errors
             ' vbc a.vb /warnaserror
             options = commonoption.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y").WithWarningAsError(True),
@@ -463,7 +465,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -476,7 +478,7 @@ End Module
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42105), ReportDiagnostic.Error)
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42099), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings))
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocal, "x").WithArguments("x"),
                 Diagnostic(ERRID.WRN_UnusedLocal, "y").WithArguments("y"),
@@ -488,7 +490,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Suppress)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("goo").WithWarningAsError(True))
@@ -499,7 +501,7 @@ End Module
             warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42024), ReportDiagnostic.Error)
             options = commonoption.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)).WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+            comp = CreateCompilationWithMscorlib40AndVBRuntime(source, options)
             comp.VerifyDiagnostics()
 
         End Sub
@@ -510,7 +512,7 @@ End Module
 
             Assert.Equal(2042, options.Errors.Single().Code)
 
-            AssertTheseDiagnostics(CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, options),
+            AssertTheseDiagnostics(CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, options),
                                    <expected>
 BC2042: The options /vbruntime* and /target:module cannot be combined.
                                    </expected>)
@@ -536,6 +538,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
                 "SuppressEmbeddedDeclarations",
+                "NullableContextOptions",
                 "ParseOptions",
                 "IgnoreCorLibraryDuplicatedTypes")
         End Sub

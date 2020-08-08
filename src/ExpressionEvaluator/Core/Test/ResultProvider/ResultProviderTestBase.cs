@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -118,6 +120,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal string FormatValue(object value, Type type, bool useHexadecimal = false)
         {
             var clrValue = CreateDkmClrValue(value, type);
+            return FormatValue(clrValue, useHexadecimal);
+        }
+
+        internal string FormatValue(DkmClrValue clrValue, bool useHexadecimal = false)
+        {
             var inspectionContext = CreateDkmInspectionContext(_inspectionSession, DkmEvaluationFlags.None, radix: useHexadecimal ? 16u : 10u);
             return clrValue.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
         }
@@ -270,6 +277,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private const DkmEvaluationResultCategory UnspecifiedCategory = (DkmEvaluationResultCategory)(-1);
         private const DkmEvaluationResultAccessType UnspecifiedAccessType = (DkmEvaluationResultAccessType)(-1);
+        public const string UnspecifiedValue = "<<unspecified value>>";
 
         internal static DkmEvaluationResult EvalResult(
             string name,
@@ -359,9 +367,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static string ToString(DkmEvaluationResult result)
         {
-            if (result is DkmSuccessEvaluationResult success) return ToString(success);
+            if (result is DkmSuccessEvaluationResult success)
+                return ToString(success);
 
-            if (result is DkmIntermediateEvaluationResult intermediate) return ToString(intermediate);
+            if (result is DkmIntermediateEvaluationResult intermediate)
+                return ToString(intermediate);
 
             return ToString((DkmFailedEvaluationResult)result);
         }
@@ -482,7 +492,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (expectedSuccess != null)
             {
                 var actualSuccess = (DkmSuccessEvaluationResult)actual;
-                Assert.Equal(expectedSuccess.Value, actualSuccess.Value);
+
+                Assert.NotEqual(UnspecifiedValue, actualSuccess.Value);
+                if (expectedSuccess.Value != UnspecifiedValue)
+                {
+                    Assert.Equal(expectedSuccess.Value, actualSuccess.Value);
+                }
+
                 Assert.Equal(expectedSuccess.Type, actualSuccess.Type);
                 Assert.Equal(expectedSuccess.Flags, actualSuccess.Flags);
                 if (expectedSuccess.Category != UnspecifiedCategory)
@@ -493,6 +509,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     Assert.Equal(expectedSuccess.Access, actualSuccess.Access);
                 }
+
                 Assert.Equal(expectedSuccess.EditableValue, actualSuccess.EditableValue);
                 Assert.True(
                     (expectedSuccess.CustomUIVisualizers == actualSuccess.CustomUIVisualizers) ||

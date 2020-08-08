@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -131,8 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         End If
 
                         Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
-                        Dim isVolatile As Boolean
-                        Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, isVolatile, customModifiers)
+                        Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, customModifiers)
                         Return FindFieldBySignature(targetTypeSymbol, memberName, customModifiers, type)
 
                     Case Else
@@ -148,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim field = TryCast(member, FieldSymbol)
                 If field IsNot Nothing AndAlso
-                   field.Type = type AndAlso
+                   TypeSymbol.Equals(field.Type, type, TypeCompareKind.ConsiderEverything) AndAlso
                    CustomModifiersMatch(field.CustomModifiers, customModifiers) Then
 
                     ' Behavior in the face of multiple matching signatures is
@@ -214,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             'CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            If candidateParam.Type <> targetParam.Type Then
+            If Not TypeSymbol.Equals(candidateParam.Type, targetParam.Type, TypeCompareKind.ConsiderEverything) Then
                 Return False
             End If
 
@@ -231,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim targetReturnType As TypeSymbol = targetReturnParam.Type
 
             ' No special handling for error types.  Right now, we expect they'll just fail to match.
-            If candidateReturnType <> targetReturnType OrElse candidateMethod.ReturnsByRef <> targetReturnParam.IsByRef Then
+            If Not TypeSymbol.Equals(candidateReturnType, targetReturnType, TypeCompareKind.ConsiderEverything) OrElse candidateMethod.ReturnsByRef <> targetReturnParam.IsByRef Then
                 Return False
             End If
 
@@ -251,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Dim n = candidateReturnTypeCustomModifiers.Length
-            If targetReturnTypeCustomModifiers.Count <> n Then
+            If targetReturnTypeCustomModifiers.Length <> n Then
                 Return False
             End If
 

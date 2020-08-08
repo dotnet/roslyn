@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -24,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public override CancellationToken CancellationToken { get; }
 
         public SimpleFindUsagesContext(CancellationToken cancellationToken)
-        {
-            CancellationToken = cancellationToken;
-        }
+            => CancellationToken = cancellationToken;
 
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public override Task ReportMessageAsync(string message)
         {
             Message = message;
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public override Task SetSearchTitleAsync(string title)
         {
             SearchTitle = title;
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public ImmutableArray<DefinitionItem> GetDefinitions()
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 _definitionItems.Add(definition);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 _referenceItems.Add(reference);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
     }
 }

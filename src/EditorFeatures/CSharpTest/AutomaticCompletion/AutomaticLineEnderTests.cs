@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -837,20 +839,17 @@ $$
 }");
         }
 
-        protected override TestWorkspace CreateWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override string Language => LanguageNames.CSharp;
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
-        {
-            return () => { };
-        }
+            => () => { };
 
-        internal override ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
-            Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
-            ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations)
+        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace)
         {
-            return new AutomaticLineEnderCommandHandler(waitIndicator, undoRegistry, editorOperations);
+            return Assert.IsType<AutomaticLineEnderCommandHandler>(
+                workspace.GetService<ICommandHandler>(
+                    ContentTypeNames.CSharpContentType,
+                    PredefinedCommandHandlerNames.AutomaticLineEnder));
         }
     }
 }

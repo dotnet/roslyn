@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     /// Expands and Reduces subtrees.
     /// 
     /// Expansion:
-    ///      1) Makes inferred names explicit (on anoymous types and tuples).
+    ///      1) Makes inferred names explicit (on anonymous types and tuples).
     ///      2) Replaces names with fully qualified dotted names.
     ///      3) Adds parentheses around expressions
     ///      4) Adds explicit casts/conversions where implicit conversions exist
@@ -45,6 +48,12 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// them from over simplification
         /// </summary>
         public static SyntaxAnnotation SpecialTypeAnnotation { get; } = new SyntaxAnnotation();
+
+        /// <summary>
+        /// The annotation <see cref="CodeAction.CleanupDocumentAsync"/> used to identify sub trees to look for symbol annotations on.
+        /// It will then add import directives for these symbol annotations.
+        /// </summary>
+        public static SyntaxAnnotation AddImportsAnnotation { get; } = new SyntaxAnnotation();
 
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
@@ -196,8 +205,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             Document document, ImmutableArray<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return await document.Project.LanguageServices.GetService<ISimplificationService>()
-                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet, 
+            return await document.GetLanguageService<ISimplificationService>()
+                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet,
                              reducers, cancellationToken).ConfigureAwait(false);
         }
     }

@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +22,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class SyntaxTree
     {
+        /// <summary>
+        /// Cached value for empty <see cref="DiagnosticOptions"/>.
+        /// </summary>
+        internal protected static readonly ImmutableDictionary<string, ReportDiagnostic> EmptyDiagnosticOptions =
+            ImmutableDictionary.Create<string, ReportDiagnostic>(CaseInsensitiveComparison.Comparer);
+
         private ImmutableArray<byte> _lazyChecksum;
         private SourceHashAlgorithm _lazyHashAlgorithm;
 
@@ -65,6 +75,16 @@ namespace Microsoft.CodeAnalysis
         protected abstract ParseOptions OptionsCore { get; }
 
         /// <summary>
+        /// Option to specify custom behavior for each warning in this tree.
+        /// </summary>
+        /// <returns>
+        /// A map from diagnostic ID to diagnostic reporting level. The diagnostic
+        /// ID string may be case insensitive depending on the language.
+        /// </returns>
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public virtual ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => EmptyDiagnosticOptions;
+
+        /// <summary>
         /// The length of the text of the syntax tree.
         /// </summary>
         public abstract int Length { get; }
@@ -72,17 +92,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the syntax tree's text if it is available.
         /// </summary>
-        public abstract bool TryGetText(out SourceText text);
+        public abstract bool TryGetText([NotNullWhen(true)] out SourceText? text);
 
         /// <summary>
         /// Gets the text of the source document.
         /// </summary>
-        public abstract SourceText GetText(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract SourceText GetText(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// The text encoding of the source document.
         /// </summary>
-        public abstract Encoding Encoding { get; }
+        public abstract Encoding? Encoding { get; }
 
         /// <summary>
         /// Gets the text of the source document asynchronously.
@@ -91,16 +111,15 @@ namespace Microsoft.CodeAnalysis
         /// By default, the work associated with this method will be executed immediately on the current thread.
         /// Implementations that wish to schedule this work differently should override <see cref="GetTextAsync(CancellationToken)"/>.
         /// </remarks>
-        public virtual Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default)
         {
-            SourceText text;
-            return Task.FromResult(this.TryGetText(out text) ? text : this.GetText(cancellationToken));
+            return Task.FromResult(this.TryGetText(out SourceText? text) ? text : this.GetText(cancellationToken));
         }
 
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
-        public bool TryGetRoot(out SyntaxNode root)
+        public bool TryGetRoot([NotNullWhen(true)] out SyntaxNode? root)
         {
             return TryGetRootCore(out root);
         }
@@ -108,12 +127,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
-        protected abstract bool TryGetRootCore(out SyntaxNode root);
+        protected abstract bool TryGetRootCore([NotNullWhen(true)] out SyntaxNode? root);
 
         /// <summary>
         /// Gets the root node of the syntax tree, causing computation if necessary.
         /// </summary>
-        public SyntaxNode GetRoot(CancellationToken cancellationToken = default(CancellationToken))
+        public SyntaxNode GetRoot(CancellationToken cancellationToken = default)
         {
             return GetRootCore(cancellationToken);
         }
@@ -126,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
-        public Task<SyntaxNode> GetRootAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<SyntaxNode> GetRootAsync(CancellationToken cancellationToken = default)
         {
             return GetRootAsyncCore(cancellationToken);
         }
@@ -134,6 +153,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Public API.")]
         protected abstract Task<SyntaxNode> GetRootAsyncCore(CancellationToken cancellationToken);
 
         /// <summary>
@@ -150,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         /// This method does not filter diagnostics based on #pragmas and compiler options
         /// like nowarn, warnaserror etc.
         /// </summary>
-        public abstract IEnumerable<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract IEnumerable<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a list of all the diagnostics in the sub tree that has the specified node as its root.
@@ -188,33 +208,33 @@ namespace Microsoft.CodeAnalysis
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
-        /// The values are not affected by line mapping directives (<code>#line</code>).
+        /// The values are not affected by line mapping directives (<c>#line</c>).
         /// </returns>
-        public abstract FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives 
-        /// (<code>#line</code> in C# or <code>#ExternalSource</code> in VB). 
+        /// (<c>#line</c> in C# or <c>#ExternalSource</c> in VB). 
         /// </summary>
         /// <param name="span">Span within the tree.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
-        /// If the location path is mapped the resulting path is the path specified in the corresponding <code>#line</code>,
+        /// If the location path is mapped the resulting path is the path specified in the corresponding <c>#line</c>,
         /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <code>#line</code> directive that precedes it and that 
-        /// either specifies an explicit file path or is <code>#line default</code> exists and specifies an explicit path.
+        /// A location path is considered mapped if the first <c>#line</c> directive that precedes it and that 
+        /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
         /// </returns>
-        public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the visibility for the line at the given position.
         /// </summary>
         /// <param name="position">The position to check.</param>
         /// <param name="cancellationToken">The cancellation token.</param> 
-        public virtual LineVisibility GetLineVisibility(int position, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual LineVisibility GetLineVisibility(int position, CancellationToken cancellationToken = default)
         {
             return LineVisibility.Visible;
         }
@@ -244,7 +264,7 @@ namespace Microsoft.CodeAnalysis
         /// Unlike Dev12 we do account for #line and #ExternalSource directives when determining value for 
         /// <see cref="System.Runtime.CompilerServices.CallerFilePathAttribute"/>.
         /// </remarks>
-        internal string GetDisplayPath(TextSpan span, SourceReferenceResolver resolver)
+        internal string GetDisplayPath(TextSpan span, SourceReferenceResolver? resolver)
         {
             var mappedSpan = GetMappedLineSpan(span);
             if (resolver == null || mappedSpan.Path.IsEmpty())
@@ -342,6 +362,20 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new tree whose <see cref="FilePath"/> is the specified node and other properties are copied from the current tree.
         /// </summary>
         public abstract SyntaxTree WithFilePath(string path);
+
+        /// <summary>
+        /// Returns a new tree whose <see cref="DiagnosticOptions" /> are the specified value and other properties are copied
+        /// from the current tree.
+        /// </summary>
+        /// <param name="options">
+        /// A mapping from diagnostic id to diagnostic reporting level. The diagnostic ID may be case-sensitive depending
+        /// on the language.
+        /// </param>
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public virtual SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Returns a <see cref="String" /> that represents the entire source text of this <see cref="SyntaxTree"/>.

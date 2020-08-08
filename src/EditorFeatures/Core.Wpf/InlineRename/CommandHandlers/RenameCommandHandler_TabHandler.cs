@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -10,18 +13,16 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<BackTabKeyCommandArgs>
+        IChainedCommandHandler<TabKeyCommandArgs>,
+        IChainedCommandHandler<BackTabKeyCommandArgs>
     {
         public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+            => GetCommandState(nextHandler);
 
-        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // If the Dashboard is focused, just navigate through its UI.
-            Dashboard dashboard = GetDashboard(args.TextView);
+            var dashboard = GetDashboard(args.TextView);
             if (dashboard != null && dashboard.ShouldReceiveKeyboardNavigation)
             {
                 dashboard.FocusNextElement();
@@ -34,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     _renameService.ActiveSession.GetBufferManager(args.SubjectBuffer)
                     .GetEditableSpansForSnapshot(args.SubjectBuffer.CurrentSnapshot));
 
-                for (int i = 0; i < spans.Count; i++)
+                for (var i = 0; i < spans.Count; i++)
                 {
                     if (span == spans[i])
                     {
-                        int selectNext = i < spans.Count - 1 ? i + 1 : 0;
+                        var selectNext = i < spans.Count - 1 ? i + 1 : 0;
                         var newSelection = spans[selectNext];
                         args.TextView.TryMoveCaretToAndEnsureVisible(newSelection.Start);
                         args.TextView.SetSelection(newSelection);
@@ -49,11 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+            => GetCommandState(nextHandler);
 
-        public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // If the Dashboard is focused, just navigate through its UI.
             var dashboard = GetDashboard(args.TextView);

@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -23,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -66,7 +70,7 @@ Module Program
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -115,7 +119,7 @@ Module Program
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -154,7 +158,7 @@ Module Program
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -188,6 +192,177 @@ Public MustInherit Class A
     Implements I
     Public MustOverride Sub y(y As Integer) Implements I.y
     Public MustOverride Sub y(y As String) Implements I.y
+End Class");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public void VerifyAttributeRename()
+        {
+            var markup = @"
+Import System;
+
+Public Class [|$$ustom|]Attribute 
+        Inherits Attribute
+End Class";
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
+
+            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            AssertEx.SetEqual(renameSpans, tags);
+
+            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
+Import System;
+
+Public Class CustomAttribute
+    Inherits Attribute
+End Class");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public void VerifyAttributeRenameWhileRenameClasss()
+        {
+            var markup = @"
+Import System;
+
+Public Class [|$$ustom|]Attribute 
+        Inherits Attribute
+End Class";
+
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
+
+            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            AssertEx.SetEqual(renameSpans, tags);
+
+            VisualStudio.Editor.SendKeys("Custom");
+            VisualStudio.Editor.Verify.TextContains(@"
+Import System;
+
+Public Class Custom$$Attribute 
+        Inherits Attribute
+End Class", true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public void VerifyAttributeRenameWhileRenameAttribute()
+        {
+            var markup = @"
+Import System;
+
+<[|$$ustom|]>
+Class Bar
+End Class
+
+Public Class ustomAttribute 
+        Inherits Attribute
+End Class";
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
+
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+
+            VisualStudio.Editor.SendKeys("Custom");
+            VisualStudio.Editor.Verify.TextContains(@"
+Import System;
+
+<Custom$$>
+Class Bar
+End Class
+
+Public Class CustomAttribute 
+        Inherits Attribute
+End Class", true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public void VerifyAttributeRenameWhileRenameAttributeClass()
+        {
+            var markup = @"
+Import System;
+
+<ustom>
+Class Bar
+End Class
+
+Public Class [|$$ustom|]Attribute 
+        Inherits Attribute
+End Class";
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
+
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+
+            VisualStudio.Editor.SendKeys("Custom");
+            VisualStudio.Editor.Verify.TextContains(@"
+Import System;
+
+<Custom>
+Class Bar
+End Class
+
+Public Class Custom$$Attribute 
+        Inherits Attribute
+End Class", true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public void VerifyAttributeCapitalizedRename()
+        {
+            var markup = @"
+Import System;
+
+Public Class [|$$ustom|]ATTRIBUTE
+        Inherits Attribute
+End Class";
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
+
+            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            AssertEx.SetEqual(renameSpans, tags);
+
+            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
+Import System;
+
+Public Class CustomAttribute
+    Inherits Attribute
+End Class");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
+        public void VerifyAttributeNotCapitalizedRename()
+        {
+            var markup = @"
+Import System;
+
+Public Class [|$$ustom|]attribute
+        Inherits Attribute
+End Class";
+            SetUpEditor(markup);
+            InlineRenameDialog.Invoke();
+
+            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            AssertEx.SetEqual(renameSpans, tags);
+
+            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
+Import System;
+
+Public Class CustomAttribute
+    Inherits Attribute
 End Class");
         }
     }

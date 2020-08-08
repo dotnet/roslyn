@@ -1,20 +1,32 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.ComponentModel.Composition
+Imports System.ComponentModel.Composition.Hosting
 Imports System.IO
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
+Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Text
 Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -26,72 +38,107 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
-        Private ReadOnly _monitorSelectionMock As MockShellMonitorSelection
-        Private ReadOnly _projectTracker As VisualStudioProjectTracker
-        Private ReadOnly _serviceProvider As MockServiceProvider
-        Private ReadOnly _workspace As TestWorkspace
+        ' TODO:
+        ' Use VisualStudioTestComposition.LanguageServices instead, With mocked services replaced With test mocks.
+        '   
+        '    WithoutParts(
+        '        GetType(VisualStudioWorkspaceImpl),
+        '        GetType(IServiceProvider),
+        '        GetType(IDiagnosticUpdateSourceRegistrationService)).
+        '    WithAdditionalParts(
+        '        GetType(MockVisualStudioWorkspace),
+        '        GetType(MockServiceProvider),
+        '        GetType(MockDiagnosticUpdateSourceRegistrationService),
+        '        GetType(MockWorkspaceEventListenerProvider))
+
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+            GetType(FileChangeWatcherProvider),
+            GetType(MockVisualStudioWorkspace),
+            GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
+            GetType(VisualStudioProjectFactory),
+            GetType(MockServiceProvider),
+            GetType(SolutionEventsBatchScopeCreator),
+            GetType(ProjectCodeModelFactory),
+            GetType(CPSProjectFactory),
+            GetType(VisualStudioRuleSetManagerFactory),
+            GetType(VsMetadataServiceFactory),
+            GetType(VisualStudioMetadataReferenceManagerFactory),
+            GetType(MockWorkspaceEventListenerProvider),
+            GetType(MockDiagnosticUpdateSourceRegistrationService),
+            GetType(HostDiagnosticUpdateSource))
+
+        Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
-        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
-            ' As a policy, if anything goes wrong don't use exception filters, just throw exceptions for the
-            ' test harness to catch normally. Otherwise debugging things can be annoying when your test process
-            ' goes away
-            AbstractProject.CrashOnException = False
+        Public Sub New(ParamArray extraParts As Type())
+            Dim composition = s_composition.AddParts(extraParts)
 
-            _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
-            _serviceProvider = New MockServiceProvider(_monitorSelectionMock)
-            _workspace = New TestWorkspace()
-            _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace.Services)
+            ExportProvider = composition.ExportProviderFactory.CreateExportProvider()
+            _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
+            ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
+            Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
-            Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
-            Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
-                DirectCast(_serviceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx),
-                New TestForegroundNotificationService(),
-                AggregateAsynchronousOperationListener.CreateEmptyListener())
-
-            Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
-            Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
-
-            _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
-
-            Dim workspaceHost = New WorkspaceHost(_workspace)
-            _projectTracker.RegisterWorkspaceHost(workspaceHost)
-            _projectTracker.StartSendingEventsToWorkspaceHost(workspaceHost)
+            Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
+            mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(True)
+            ServiceProvider = mockServiceProvider
         End Sub
 
-        Public Sub NotifySolutionAsFullyLoaded()
-            _monitorSelectionMock.SolutionIsFullyLoaded = True
-            _projectTracker.OnAfterBackgroundSolutionLoadComplete()
-        End Sub
-
-        Public ReadOnly Property ProjectTracker As VisualStudioProjectTracker
+        Public ReadOnly Property ProjectFactory As VisualStudioProjectFactory
             Get
-                Return _projectTracker
+                Return ExportProvider.GetExportedValue(Of VisualStudioProjectFactory)
             End Get
         End Property
 
-        Public ReadOnly Property ServiceProvider As MockServiceProvider
-            Get
-                Return _serviceProvider
-            End Get
-        End Property
+        <PartNotDiscoverable>
+        <Export(GetType(VisualStudioWorkspace))>
+        <Export(GetType(VisualStudioWorkspaceImpl))>
+        Private Class MockVisualStudioWorkspace
+            Inherits VisualStudioWorkspaceImpl
 
-        Public ReadOnly Property Workspace As Microsoft.CodeAnalysis.Workspace
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New(exportProvider As Composition.ExportProvider)
+                MyBase.New(exportProvider,
+                           exportProvider.GetExportedValue(Of MockServiceProvider))
+            End Sub
+
+            Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+                Throw New NotImplementedException()
+            End Function
+
+            Public Overrides Function TryFindAllReferences(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
+                Throw New NotImplementedException()
+            End Function
+
+            Friend Overrides Function OpenInvisibleEditor(documentId As DocumentId) As IInvisibleEditor
+                Throw New NotImplementedException()
+            End Function
+
+            Friend Overrides Function GetBrowseObject(symbolListItem As SymbolListItem) As Object
+                Throw New NotImplementedException()
+            End Function
+        End Class
+
+        Public ReadOnly Property ThreadingContext As IThreadingContext
+        Public ReadOnly Property ServiceProvider As IServiceProvider
+        Public ReadOnly Property ExportProvider As Composition.ExportProvider
+
+        Public ReadOnly Property Workspace As VisualStudioWorkspaceImpl
             Get
                 Return _workspace
             End Get
         End Property
 
         Public Sub Dispose() Implements IDisposable.Dispose
-            For Each project In _projectTracker.ImmutableProjects.ToArray()
-                project.Disconnect()
-            Next
-
-            _projectTracker.OnAfterCloseSolution()
             _workspace.Dispose()
 
             For Each filePath In _projectFilePaths
                 File.Delete(filePath)
+                Directory.Delete(Path.GetDirectoryName(filePath))
             Next
         End Sub
 
@@ -104,21 +151,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Return result
         End Function
 
-        Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectCapabilities As String) As IVsHierarchy
-            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectCapabilities)
+        Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectRefPath As String, projectCapabilities As String) As IVsHierarchy
+            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectRefPath, projectCapabilities)
         End Function
 
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions
             Return Workspace.CurrentSolution.Projects.Single().CompilationOptions
         End Function
 
+        <PartNotDiscoverable>
+        <Export>
+        <Export(GetType(SVsServiceProvider))>
         Friend Class MockServiceProvider
             Implements System.IServiceProvider
+            Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
+            Implements Shell.IAsyncServiceProvider
 
-            Private ReadOnly _mockMonitorSelection As IVsMonitorSelection
+            Private ReadOnly _exportProvider As Composition.ExportProvider
+            Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
 
-            Public Sub New(mockMonitorSelection As IVsMonitorSelection)
-                _mockMonitorSelection = mockMonitorSelection
+            Public MockMonitorSelection As IVsMonitorSelection
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New(exportProvider As Composition.ExportProvider)
+                _exportProvider = exportProvider
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
@@ -132,7 +189,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                         Return GetComponentModelMock()
 
                     Case GetType(SVsShellMonitorSelection)
-                        Return _mockMonitorSelection
+                        Return MockMonitorSelection
 
                     Case GetType(SVsXMLMemberIndexService)
                         Return New MockXmlMemberIndexService
@@ -141,17 +198,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                         Return New MockVsSmartOpenScope
 
                     Case GetType(SVsFileChangeEx)
-                        Return New MockVsFileChangeEx
+                        Return _fileChangeEx
 
                     Case Else
-                        Return Nothing
+                        Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
                 End Select
             End Function
 
+            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements Shell.IAsyncServiceProvider.GetServiceAsync
+                Return System.Threading.Tasks.Task.FromResult(GetService(serviceType))
+            End Function
+
             Friend Function GetComponentModelMock() As IComponentModel
-                Dim componentModel As New Mock(Of IComponentModel)(MockBehavior.Loose)
-                componentModel.SetupGet(Function(cm) cm.DefaultExportProvider).Returns(ExportProvider.AsExportProvider())
-                Return componentModel.Object
+                Return New MockComponentModel(_exportProvider)
             End Function
         End Class
 
@@ -195,121 +254,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Function
         End Class
 
-        Private Class WorkspaceHost
-            Implements IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2
-
-            Private _workspace As TestWorkspace
-
-            Public Sub New(workspace As TestWorkspace)
-                _workspace = workspace
-            End Sub
-
-            Public Sub ClearSolution() Implements IVisualStudioWorkspaceHost.ClearSolution
-                _workspace.ClearSolution()
-            End Sub
-
-            Public Sub OnAdditionalDocumentAdded(additionalDocument As DocumentInfo) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentAdded
-                _workspace.OnAdditionalDocumentAdded(additionalDocument)
-            End Sub
-
-            Public Sub OnAdditionalDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentClosed
-                _workspace.OnAdditionalDocumentClosed(documentId, loader)
-            End Sub
-
-            Public Sub OnAdditionalDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer, isCurrentContext As Boolean) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened
-                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext)
-            End Sub
-
-            Public Sub OnAdditionalDocumentRemoved(additionalDocument As DocumentId) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentRemoved
-                _workspace.OnAdditionalDocumentRemoved(additionalDocument)
-            End Sub
-
-            Public Sub OnAdditionalDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentTextUpdatedOnDisk
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnAnalyzerReferenceAdded(projectId As ProjectId, analyzerReference As AnalyzerReference) Implements IVisualStudioWorkspaceHost.OnAnalyzerReferenceAdded
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnAnalyzerReferenceRemoved(projectId As ProjectId, analyzerReference As AnalyzerReference) Implements IVisualStudioWorkspaceHost.OnAnalyzerReferenceRemoved
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnAssemblyNameChanged(id As ProjectId, assemblyName As String) Implements IVisualStudioWorkspaceHost.OnAssemblyNameChanged
-                _workspace.OnAssemblyNameChanged(id, assemblyName)
-            End Sub
-
-            Public Sub OnDocumentAdded(documentInfo As DocumentInfo) Implements IVisualStudioWorkspaceHost.OnDocumentAdded
-                _workspace.OnDocumentAdded(documentInfo)
-            End Sub
-
-            Public Sub OnDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader, updateActiveContext As Boolean) Implements IVisualStudioWorkspaceHost.OnDocumentClosed
-                _workspace.OnDocumentClosed(documentId, loader, updateActiveContext)
-            End Sub
-
-            Public Sub OnDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer, isCurrentContext As Boolean) Implements IVisualStudioWorkspaceHost.OnDocumentOpened
-                _workspace.OnDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext)
-            End Sub
-
-            Public Sub OnDocumentRemoved(documentId As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentRemoved
-                _workspace.OnDocumentRemoved(documentId)
-            End Sub
-
-            Public Sub OnDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentTextUpdatedOnDisk
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnHasAllInformation(projectId As ProjectId, hasAllInformation As Boolean) Implements IVisualStudioWorkspaceHost2.OnHasAllInformation
-                _workspace.OnHasAllInformationChanged(projectId, hasAllInformation)
-            End Sub
-
-            Public Sub OnMetadataReferenceAdded(projectId As ProjectId, metadataReference As PortableExecutableReference) Implements IVisualStudioWorkspaceHost.OnMetadataReferenceAdded
-                _workspace.OnMetadataReferenceAdded(projectId, metadataReference)
-            End Sub
-
-            Public Sub OnMetadataReferenceRemoved(projectId As ProjectId, metadataReference As PortableExecutableReference) Implements IVisualStudioWorkspaceHost.OnMetadataReferenceRemoved
-                _workspace.OnMetadataReferenceRemoved(projectId, metadataReference)
-            End Sub
-
-            Public Sub OnOptionsChanged(projectId As ProjectId, compilationOptions As CompilationOptions, parseOptions As ParseOptions) Implements IVisualStudioWorkspaceHost.OnOptionsChanged
-                _workspace.OnCompilationOptionsChanged(projectId, compilationOptions)
-                _workspace.OnParseOptionsChanged(projectId, parseOptions)
-            End Sub
-
-            Public Sub OnOutputFilePathChanged(id As ProjectId, outputFilePath As String) Implements IVisualStudioWorkspaceHost.OnOutputFilePathChanged
-                _workspace.OnOutputFilePathChanged(id, outputFilePath)
-            End Sub
-
-            Public Sub OnProjectAdded(projectInfo As ProjectInfo) Implements IVisualStudioWorkspaceHost.OnProjectAdded
-                _workspace.OnProjectAdded(projectInfo)
-            End Sub
-
-            Public Sub OnProjectNameChanged(projectId As ProjectId, name As String, filePath As String) Implements IVisualStudioWorkspaceHost.OnProjectNameChanged
-                _workspace.OnProjectNameChanged(projectId, name, filePath)
-            End Sub
-
-            Public Sub OnProjectReferenceAdded(projectId As ProjectId, projectReference As ProjectReference) Implements IVisualStudioWorkspaceHost.OnProjectReferenceAdded
-                _workspace.OnProjectReferenceAdded(projectId, projectReference)
-            End Sub
-
-            Public Sub OnProjectReferenceRemoved(projectId As ProjectId, projectReference As ProjectReference) Implements IVisualStudioWorkspaceHost.OnProjectReferenceRemoved
-                _workspace.OnProjectReferenceRemoved(projectId, projectReference)
-            End Sub
-
-            Public Sub OnProjectRemoved(projectId As ProjectId) Implements IVisualStudioWorkspaceHost.OnProjectRemoved
-                _workspace.OnProjectRemoved(projectId)
-            End Sub
-
-            Public Sub OnSolutionAdded(solutionInfo As SolutionInfo) Implements IVisualStudioWorkspaceHost.OnSolutionAdded
-                _workspace.OnSolutionAdded(solutionInfo)
-            End Sub
-
-            Public Sub OnSolutionRemoved() Implements IVisualStudioWorkspaceHost.OnSolutionRemoved
-                _workspace.OnSolutionRemoved()
-            End Sub
-        End Class
-
         Private Class MockXmlMemberIndexService
             Implements IVsXMLMemberIndexService
 
@@ -321,6 +265,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
         End Class
+
+        Friend Sub RaiseFileChange(path As String)
+            ' Ensure we've pushed everything to the file change watcher
+            Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
+            Dim mockFileChangeService = DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), MockVsFileChangeEx)
+            fileChangeProvider.TrySetFileChangeService_TestOnly(mockFileChangeService)
+            fileChangeProvider.Watcher.WaitForQueue_TestOnly()
+            mockFileChangeService.FireUpdate(path)
+        End Sub
 
         Private Class MockVsSmartOpenScope
             Implements IVsSmartOpenScope

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -39,15 +41,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var newRoot = await GetNewRoot(cancellationToken).ConfigureAwait(false);
+                var newRoot = await GetNewRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(newRoot);
 
                 return newDocument;
             }
 
-            private async Task<SyntaxNode> GetNewRoot(CancellationToken cancellationToken)
+            private async Task<SyntaxNode> GetNewRootAsync(CancellationToken cancellationToken)
             {
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

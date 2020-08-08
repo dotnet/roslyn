@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -20,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void VerifyFormattingIndent()
         {
             var testCode = new StringBuilder()
@@ -42,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void VerifyCaseCorrection()
         {
             SetUpEditor(@"
@@ -54,7 +58,7 @@ Module A
 End Module");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18065"), 
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
          Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ShiftEnterWithIntelliSenseAndBraceMatching()
         {
@@ -64,7 +68,7 @@ Module Program
         Return Main$$
     End Function
 End Module");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Editor.SendKeys("(o", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "'comment");
             VisualStudio.Editor.Verify.TextContains(@"
 Module Program

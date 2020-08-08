@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Convert_switch_statement_to_expression" xml:space="preserve">
+    <value>Convert switch statement to expression</value>
+  </data>
+  <data name="Use_switch_expression" xml:space="preserve">
+    <value>Use 'switch' expression</value>
+  </data>
+  <data name="Use_explicit_type_instead_of_var" xml:space="preserve">
+    <value>Use explicit type instead of 'var'</value>
+  </data>
+  <data name="Use_explicit_type" xml:space="preserve">
+    <value>Use explicit type</value>
+  </data>
+  <data name="use_var_instead_of_explicit_type" xml:space="preserve">
+    <value>use 'var' instead of explicit type</value>
+  </data>
+  <data name="Use_implicit_type" xml:space="preserve">
+    <value>Use implicit type</value>
+  </data>
+  <data name="Using_directive_is_unnecessary" xml:space="preserve">
+    <value>Using directive is unnecessary.</value>
+  </data>
+  <data name="Add_braces" xml:space="preserve">
+    <value>Add braces</value>
+  </data>
+  <data name="Add_braces_to_0_statement" xml:space="preserve">
+    <value>Add braces to '{0}' statement.</value>
+  </data>
+  <data name="Misplaced_using_directive" xml:space="preserve">
+    <value>Misplaced using directive</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Move_misplaced_using_directives" xml:space="preserve">
+    <value>Move misplaced using directives</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Using_directives_must_be_placed_inside_of_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be placed inside of a namespace declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Using_directives_must_be_placed_outside_of_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be placed outside of a namespace declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Warning_colon_Moving_using_directives_may_change_code_meaning" xml:space="preserve">
+    <value>Warning: Moving using directives may change code meaning.</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
+  </data>
+  <data name="Use_block_body_for_methods" xml:space="preserve">
+    <value>Use block body for methods</value>
+  </data>
+  <data name="Use_block_body_for_accessors" xml:space="preserve">
+    <value>Use block body for accessors</value>
+  </data>
+  <data name="Use_block_body_for_constructors" xml:space="preserve">
+    <value>Use block body for constructors</value>
+  </data>
+  <data name="Use_block_body_for_indexers" xml:space="preserve">
+    <value>Use block body for indexers</value>
+  </data>
+  <data name="Use_block_body_for_operators" xml:space="preserve">
+    <value>Use block body for operators</value>
+  </data>
+  <data name="Use_block_body_for_properties" xml:space="preserve">
+    <value>Use block body for properties</value>
+  </data>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
+  </data>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
+  </data>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
+  </data>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
+  </data>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
+  </data>
+  <data name="Use_block_body_for_local_functions" xml:space="preserve">
+    <value>Use block body for local functions</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
+  <data name="Unreachable_code_detected" xml:space="preserve">
+    <value>Unreachable code detected</value>
+  </data>
+  <data name="Use_pattern_matching" xml:space="preserve">
+    <value>Use pattern matching</value>
+  </data>
+  <data name="Use_is_null_check" xml:space="preserve">
+    <value>Use 'is null' check</value>
+  </data>
+  <data name="Use_simple_using_statement" xml:space="preserve">
+    <value>Use simple 'using' statement</value>
+  </data>
+  <data name="using_statement_can_be_simplified" xml:space="preserve">
+    <value>'using' statement can be simplified</value>
+  </data>
+  <data name="if_statement_can_be_simplified" xml:space="preserve">
+    <value>'if' statement can be simplified</value>
+  </data>
+  <data name="Simplify_default_expression" xml:space="preserve">
+    <value>Simplify 'default' expression</value>
+  </data>
+  <data name="default_expression_can_be_simplified" xml:space="preserve">
+    <value>'default' expression can be simplified</value>
+  </data>
+  <data name="Make_readonly_fields_writable" xml:space="preserve">
+    <value>Make readonly fields writable</value>
+    <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
+    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
+    <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
+  </data>
+  <data name="Deconstruct_variable_declaration" xml:space="preserve">
+    <value>Deconstruct variable declaration</value>
+  </data>
+  <data name="Variable_declaration_can_be_deconstructed" xml:space="preserve">
+    <value>Variable declaration can be deconstructed</value>
+  </data>
+  <data name="Local_function_can_be_made_static" xml:space="preserve">
+    <value>Local function can be made static</value>
+  </data>
+  <data name="Make_local_function_static" xml:space="preserve">
+    <value>Make local function 'static'</value>
+  </data>
+  <data name="_0_can_be_simplified" xml:space="preserve">
+    <value>{0} can be simplified</value>
+  </data>
+  <data name="Indexing_can_be_simplified" xml:space="preserve">
+    <value>Indexing can be simplified</value>
+  </data>
+  <data name="Use_local_function" xml:space="preserve">
+    <value>Use local function</value>
+  </data>
+  <data name="Use_index_operator" xml:space="preserve">
+    <value>Use index operator</value>
+  </data>
+  <data name="Use_range_operator" xml:space="preserve">
+    <value>Use range operator</value>
+  </data>
+  <data name="Delegate_invocation_can_be_simplified" xml:space="preserve">
+    <value>Delegate invocation can be simplified.</value>
+  </data>
+  <data name="Inline_variable_declaration" xml:space="preserve">
+    <value>Inline variable declaration</value>
+  </data>
+  <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
+    <value>Variable declaration can be inlined</value>
+  </data>
+  <data name="Negate_expression_changes_semantics" xml:space="preserve">
+    <value>Negate expression (changes semantics)</value>
+  </data>
+  <data name="Remove_operator_preserves_semantics" xml:space="preserve">
+    <value>Remove operator (preserves semantics)</value>
+  </data>
+  <data name="Remove_suppression_operators" xml:space="preserve">
+    <value>Remove suppression operators</value>
+  </data>
+  <data name="Remove_unnecessary_suppression_operator" xml:space="preserve">
+    <value>Remove unnecessary suppression operator</value>
+  </data>
+  <data name="Suppression_operator_has_no_effect_and_can_be_misinterpreted" xml:space="preserve">
+    <value>Suppression operator has no effect and can be misinterpreted</value>
+  </data>
+  <data name="typeof_can_be_converted_ to_nameof" xml:space="preserve">
+    <value>'typeof' can be converted  to 'nameof'</value>
+  </data>
+</root>

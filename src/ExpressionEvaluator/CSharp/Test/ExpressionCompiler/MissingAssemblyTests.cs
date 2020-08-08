@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         [Fact]
         public void ErrorsWithAssemblySymbolArguments()
         {
-            var assembly = CreateCompilation("").Assembly;
+            var assembly = CreateEmptyCompilation("").Assembly;
             var identity = assembly.Identity;
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_GlobalSingleTypeNameNotFoundFwd, assembly));
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, assembly));
@@ -82,8 +84,8 @@ public class C
     }
 }
 ";
-            var libRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
-            var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.DebugDll);
+            var libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            var comp = CreateCompilation(source, new[] { libRef }, TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -122,13 +124,13 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
+                var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?";
                 var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
                 ResultProperties resultProperties;
@@ -164,12 +166,12 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no accessible extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
                 var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
                 ResultProperties resultProperties;
@@ -230,12 +232,12 @@ namespace System.Linq
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no accessible extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
                 var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
                 ResultProperties resultProperties;
@@ -310,7 +312,7 @@ class C
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateStandardCompilation(csharp, new[] { ilRef });
+            var comp = CreateCompilation(csharp, new[] { ilRef });
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -371,7 +373,7 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Success()
         {
-            var comp = CreateStandardCompilation("public class C { }");
+            var comp = CreateCompilation("public class C { }");
             using (var pinned = new PinnedMetadata(GetMetadataBytes(comp)))
             {
                 IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
@@ -394,8 +396,8 @@ class C
         [Fact]
         public unsafe void ShouldTryAgain_Mixed()
         {
-            var comp1 = CreateStandardCompilation("public class C { }", assemblyName: GetUniqueName());
-            var comp2 = CreateStandardCompilation("public class D { }", assemblyName: GetUniqueName());
+            var comp1 = CreateCompilation("public class C { }", assemblyName: GetUniqueName());
+            var comp2 = CreateCompilation("public class D { }", assemblyName: GetUniqueName());
             using (PinnedMetadata pinned1 = new PinnedMetadata(GetMetadataBytes(comp1)),
                 pinned2 = new PinnedMetadata(GetMetadataBytes(comp2)))
             {
@@ -517,7 +519,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { CSharpRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -554,7 +556,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
 
@@ -597,7 +599,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
 
@@ -637,7 +639,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -665,7 +667,7 @@ class C
                     out errorMessage);
 
                 Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-                Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage);
+                Assert.Equal($"error CS0012: { string.Format(CSharpResources.ERR_NoTypeDef, "MissingType", missingIdentity)}", errorMessage);
             });
         }
 
@@ -680,7 +682,7 @@ class C
     { 
     } 
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -735,7 +737,7 @@ class UseLinq
     bool b = Enumerable.Any<int>(null);
 }";
 
-            var compilation = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef });
+            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef });
             WithRuntimeInstance(compilation, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -800,8 +802,8 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }");
@@ -828,8 +830,8 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }",
@@ -858,8 +860,8 @@ LanguageVersion.CSharp7_1);
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -886,8 +888,8 @@ LanguageVersion.CSharp7_1);
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }",
@@ -897,7 +899,7 @@ LanguageVersion.CSharp7_1);
         private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,
             LanguageVersion languageVersion = LanguageVersion.CSharp7)
         {
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {
@@ -916,7 +918,14 @@ LanguageVersion.CSharp7_1);
                         runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                         expression,
                         ImmutableArray<Alias>.Empty,
-                        (b, u) => EvaluationContext.CreateMethodContext(b.ToCompilation(), symReader, moduleVersionId, methodToken, methodVersion: 1, ilOffset: 0, localSignatureToken: localSignatureToken),
+                        (b, u) => EvaluationContext.CreateMethodContext(
+                            b.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies),
+                            symReader,
+                            moduleVersionId,
+                            methodToken,
+                            methodVersion: 1,
+                            ilOffset: 0,
+                            localSignatureToken: localSignatureToken),
                         (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                         {
                             retryCount++;

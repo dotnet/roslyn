@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -30,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// editor doesn't know about all the regions in the file, then it wouldn't be able to
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
-    internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> : 
+    internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> :
         AsynchronousTaggerProvider<TRegionTag>
         where TRegionTag : class, ITag
     {
-        private static IComparer<BlockSpan> s_blockSpanComparer =
+        private static readonly IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
         protected readonly ITextEditorFactoryService TextEditorFactoryService;
@@ -42,12 +45,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Outlining), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
         {
             TextEditorFactoryService = textEditorFactoryService;
             EditorOptionsFactoryService = editorOptionsFactoryService;
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
         }
 
-        private BlockStructureService TryGetService(
+        private static BlockStructureService TryGetService(
             TaggerContext<TRegionTag> context,
             DocumentSnapshotSpan documentSnapshotSpan)
         {
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (TypeLoadException)
             {
-                // We're targetting a version of the BlockTagging infrastructure in 
+                // We're targeting a version of the BlockTagging infrastructure in 
                 // VS that may not match the version that the user is currently
                 // developing against.  Be resilient to this until everything moves
                 // forward to the right VS version.
@@ -189,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 {
                     var spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan());
 
-                    while (tagSpanStack.Count > 0 && 
+                    while (tagSpanStack.Count > 0 &&
                            tagSpanStack.Peek().Span.End <= spanToCollapse.Span.Start)
                     {
                         tagSpanStack.Pop();
@@ -213,8 +217,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         private static bool s_exceptionReported = false;
 
-        private ImmutableArray<BlockSpan> GetMultiLineRegions(
-            BlockStructureService service, 
+        private static ImmutableArray<BlockSpan> GetMultiLineRegions(
+            BlockStructureService service,
             ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.Text;
 
@@ -7,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Specifies what symbols to import from metadata.
     /// </summary>
-    internal enum MetadataImportOptions : byte
+    public enum MetadataImportOptions : byte
     {
         /// <summary>
         /// Only import public and protected symbols.
@@ -23,5 +27,13 @@ namespace Microsoft.CodeAnalysis
         /// Import all symbols.
         /// </summary>
         All = 2,
+    }
+
+    internal static partial class EnumBounds
+    {
+        internal static bool IsValid(this MetadataImportOptions value)
+        {
+            return value >= MetadataImportOptions.Public && value <= MetadataImportOptions.All;
+        }
     }
 }

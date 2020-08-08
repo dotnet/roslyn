@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -19,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ConcurrentDictionary<string, Cci.DebugSourceDocument> _debugDocuments;
         private readonly ConcurrentCache<(string, string), string> _normalizedPathsCache;
         private readonly SourceReferenceResolver _resolverOpt;
-        private ImmutableArray<Cci.DebugSourceDocument> _embeddedDocuments;
 
         public DebugDocumentsBuilder(SourceReferenceResolver resolverOpt, bool isDocumentNameCaseSensitive)
         {
@@ -31,13 +31,6 @@ namespace Microsoft.CodeAnalysis.Emit
                     StringComparer.OrdinalIgnoreCase);
 
             _normalizedPathsCache = new ConcurrentCache<(string, string), string>(16);
-            _embeddedDocuments = ImmutableArray<Cci.DebugSourceDocument>.Empty;
-        }
-
-        internal ImmutableArray<Cci.DebugSourceDocument> EmbeddedDocuments
-        {
-            get { return _embeddedDocuments; }
-            set { Debug.Assert(value != null); _embeddedDocuments = value; }
         }
 
         internal int DebugDocumentCount => _debugDocuments.Count;
@@ -46,6 +39,9 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             _debugDocuments.Add(document.Location, document);
         }
+
+        internal IReadOnlyDictionary<string, Cci.DebugSourceDocument> DebugDocuments
+            => _debugDocuments;
 
         internal Cci.DebugSourceDocument TryGetDebugDocument(string path, string basePath)
         {

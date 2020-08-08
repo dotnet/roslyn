@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Linq;
@@ -14,10 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        [Fact]
-        public void StandalonePdb()
+        [Theory]
+        [InlineData(DebugInformationFormat.PortablePdb)]
+        [InlineData(DebugInformationFormat.Pdb)]
+        [WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")]
+        public void StandalonePdb(DebugInformationFormat format)
         {
-            string source1 = @"
+            string source1 = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -27,15 +32,15 @@ class C
         Console.WriteLine();
     }
 }
-";
-            string source2 = @"
+");
+            string source2 = WithWindowsLineBreaks(@"
 // no code
-";
+");
 
             var tree1 = Parse(source1, "f:/build/goo.cs");
             var tree2 = Parse(source2, "f:/build/nocode.cs");
-            var c = CreateStandardCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
-            var embeddedTexts = new[] 
+            var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
+            var embeddedTexts = new[]
             {
                 EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
                 EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
@@ -44,7 +49,7 @@ class C
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""f:/build/goo.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""5D, 7D, CF, 1B, 79, 12,  E,  A, 80, 13, E0, 98, 7E, 5C, AA, 3B, 63, D8, 7E, 4F, "" embeddedSourceLength=""98""><![CDATA[﻿
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F""><![CDATA[﻿
 using System;
 class C
 {
@@ -54,7 +59,7 @@ class C
     }
 }
 ]]></file>
-    <file id=""2"" name=""f:/build/nocode.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""8B, 1D, 3F, 75, E0, A8, 8F, 90, B2, D3, 52, CF, 71, 9B, 17, 29, 3C, 70, 7A, 42, "" embeddedSourceLength=""21""><![CDATA[﻿
+    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42""><![CDATA[﻿
 // no code
 ]]></file>
   </files>
@@ -76,7 +81,7 @@ class C
     </method>
   </methods>
 </symbols>
-", embeddedTexts);
+", embeddedTexts, format: format);
         }
 
         [Fact]
@@ -94,7 +99,7 @@ class C
 }
 ";
             var tree = Parse(source, "f:/build/goo.cs");
-            var c = CreateStandardCompilation(tree, options: TestOptions.DebugDll);
+            var c = CreateCompilation(tree, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             var peBlob = c.EmitToArray(
@@ -119,7 +124,7 @@ class C
                              Text = pdbReader.GetEmbeddedSource(documentHandle)
                          }).Single();
 
-                    Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs");
+                    Assert.Equal("f:/build/goo.cs", embeddedSource.FilePath);
                     Assert.Equal(source, embeddedSource.Text.ToString());
                 }
             }

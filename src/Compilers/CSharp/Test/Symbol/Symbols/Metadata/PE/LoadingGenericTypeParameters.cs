@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(TestMetadata.Net40.mscorlib);
             var module0 = assembly.Modules[0];
 
             var objectType = module0.GlobalNamespace.GetMembers("System").
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(varC1_T, varC1_T.OriginalDefinition);
             Assert.Equal(TypeKind.TypeParameter, varC1_T.TypeKind);
             Assert.Equal(VarianceKind.None, varC1_T.Variance);
-            Assert.Same(module0, varC1_T.Locations.Single().MetadataModule);
+            Assert.Same(module0, varC1_T.Locations.Single().MetadataModuleInternal);
             Assert.Equal(0, varC1_T.ConstraintTypes().Length);
 
             var varC2 = varC1.GetTypeMembers("C2").Single();
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // .class nested public D<S1>
             var mdRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidGenericType.AsImmutableOrNull());
             string source = "class X : C<int, int>.D { }";
-            CreateStandardCompilation(source, new[] { mdRef }).VerifyDiagnostics(
+            CreateCompilation(source, new[] { mdRef }).VerifyDiagnostics(
                 // (2,11): error CS0648: 'C<T1, T2>.D' is a type not supported by the language
                 // class X : C<int, int>.D { }
                 Diagnostic(ErrorCode.ERR_BogusType, "C<int, int>.D").WithArguments("C<T1, T2>.D")
@@ -235,7 +237,7 @@ class CT_0_T : IT<object>.I0.IT { }
 class CT_T_0 : IT<object>.IT.I0 { }
 class CT_TU_T : IT<object>.ITU<int>.IT { }
 ";
-            var compilation1 = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation1 = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation1.VerifyDiagnostics(
                 // (2,7): error CS0648: 'I0.IT<T>.I0' is a type not supported by the language
                 // class C0_T_0 : I0.IT<object>.I0 { }

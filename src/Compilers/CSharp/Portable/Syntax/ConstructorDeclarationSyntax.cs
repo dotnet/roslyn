@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,20 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public ConstructorDeclarationSyntax Update(
             SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers, 
+            SyntaxTokenList modifiers,
             SyntaxToken identifier,
-            ParameterListSyntax parameterList, 
-            ConstructorInitializerSyntax initializer, 
-            BlockSyntax body, 
+            ParameterListSyntax parameterList,
+            ConstructorInitializerSyntax initializer,
+            BlockSyntax body,
             SyntaxToken semicolonToken)
             => Update(
-                attributeLists, 
-                modifiers, 
-                identifier, 
-                parameterList, 
-                initializer, 
-                body, 
-                default(ArrowExpressionClauseSyntax), 
+                attributeLists,
+                modifiers,
+                identifier,
+                parameterList,
+                initializer,
+                body,
+                expressionBody: null,
                 semicolonToken);
     }
 }
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 initializer,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 default(SyntaxToken));
 
         public static ConstructorDeclarationSyntax ConstructorDeclaration(
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 initializer,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 semicolonToken);
 
         public static ConstructorDeclarationSyntax ConstructorDeclaration(
@@ -80,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 initializer,
-                default(BlockSyntax),
+                body: null,
                 expressionBody,
                 default(SyntaxToken));
 
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 initializer,
-                default(BlockSyntax),
+                body: null,
                 expressionBody,
                 semicolonToken);
 

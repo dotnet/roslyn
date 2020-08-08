@@ -138,6 +138,9 @@
   <data name="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3" xml:space="preserve">
     <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
   </data>
+  <data name="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4" xml:space="preserve">
+    <value>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</value>
+  </data>
   <data name="Could_not_find_location_to_generation_symbol_into" xml:space="preserve">
     <value>Could not find location to generation symbol into.</value>
   </data>
@@ -164,6 +167,12 @@
   </data>
   <data name="Adding_projects_is_not_supported" xml:space="preserve">
     <value>Adding projects is not supported.</value>
+  </data>
+  <data name="Workspace_error" xml:space="preserve">
+    <value>Workspace error</value>
+  </data>
+  <data name="Error_reading_content_of_source_file_0_1" xml:space="preserve">
+    <value>Error reading content of source file '{0}' -- '{1}'.</value>
   </data>
   <data name="Workspace_is_not_empty" xml:space="preserve">
     <value>Workspace is not empty.</value>
@@ -210,14 +219,17 @@
   <data name="The_project_already_references_the_target_project" xml:space="preserve">
     <value>The project already references the target project.</value>
   </data>
+  <data name="The_project_already_contains_the_specified_reference" xml:space="preserve">
+    <value>The project already contains the specified reference.</value>
+  </data>
   <data name="The_project_already_transitively_references_the_target_project" xml:space="preserve">
     <value>The project already transitively references the target project.</value>
   </data>
   <data name="The_solution_already_contains_the_specified_document" xml:space="preserve">
     <value>The solution already contains the specified document.</value>
   </data>
-  <data name="The_solution_does_not_contain_the_specified_document" xml:space="preserve">
-    <value>The solution does not contain the specified document.</value>
+  <data name="The_solution_already_contains_the_specified_reference" xml:space="preserve">
+    <value>The solution already contains the specified reference.</value>
   </data>
   <data name="Temporary_storage_cannot_be_written_more_than_once" xml:space="preserve">
     <value>Temporary storage cannot be written more than once.</value>
@@ -270,14 +282,14 @@
   <data name="This_submission_already_references_another_submission_project" xml:space="preserve">
     <value>This submission already references another submission project.</value>
   </data>
+  <data name="Only_submission_project_can_reference_submission_projects" xml:space="preserve">
+    <value>Only submission project can reference submission projects.</value>
+  </data>
   <data name="_0_still_contains_open_documents" xml:space="preserve">
     <value>{0} still contains open documents.</value>
   </data>
   <data name="_0_is_still_open" xml:space="preserve">
     <value>{0} is still open.</value>
-  </data>
-  <data name="An_element_with_the_same_key_but_a_different_value_already_exists" xml:space="preserve">
-    <value>An element with the same key but a different value already exists.</value>
   </data>
   <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
     <value>Arrays with more than one dimension cannot be serialized.</value>
@@ -287,9 +299,6 @@
   </data>
   <data name="Specified_path_must_be_absolute" xml:space="preserve">
     <value>Specified path must be absolute.</value>
-  </data>
-  <data name="Cast_is_redundant" xml:space="preserve">
-    <value>Cast is redundant.</value>
   </data>
   <data name="Name_can_be_simplified" xml:space="preserve">
     <value>Name can be simplified.</value>
@@ -305,9 +314,6 @@
   </data>
   <data name="Invalid_number_of_parameters_for_unary_operator" xml:space="preserve">
     <value>Invalid number of parameters for unary operator.</value>
-  </data>
-  <data name="Absolute_path_expected" xml:space="preserve">
-    <value>Absolute path expected.</value>
   </data>
   <data name="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language" xml:space="preserve">
     <value>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</value>
@@ -333,15 +339,6 @@
   <data name="Added_colon" xml:space="preserve">
     <value>Added:</value>
   </data>
-  <data name="Fix_all_0" xml:space="preserve">
-    <value>Fix all '{0}'</value>
-  </data>
-  <data name="Fix_all_0_in_1" xml:space="preserve">
-    <value>Fix all '{0}' in '{1}'</value>
-  </data>
-  <data name="Fix_all_0_in_Solution" xml:space="preserve">
-    <value>Fix all '{0}' in Solution</value>
-  </data>
   <data name="After_colon" xml:space="preserve">
     <value>After:</value>
   </data>
@@ -356,6 +353,9 @@
   </data>
   <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>
+  </data>
+  <data name="Adding_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Adding analyzer config documents is not supported.</value>
   </data>
   <data name="Adding_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Adding analyzer references is not supported.</value>
@@ -372,6 +372,9 @@
   <data name="Changing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Changing additional documents is not supported.</value>
   </data>
+  <data name="Changing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Changing analyzer config documents is not supported.</value>
+  </data>
   <data name="Changing_documents_is_not_supported" xml:space="preserve">
     <value>Changing documents is not supported.</value>
   </data>
@@ -380,6 +383,9 @@
   </data>
   <data name="Removing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Removing additional documents is not supported.</value>
+  </data>
+  <data name="Removing_analyzer_config_documents_is_not_supported" xml:space="preserve">
+    <value>Removing analyzer config documents is not supported.</value>
   </data>
   <data name="Removing_analyzer_references_is_not_supported" xml:space="preserve">
     <value>Removing analyzer references is not supported.</value>
@@ -395,9 +401,6 @@
   </data>
   <data name="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace" xml:space="preserve">
     <value>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</value>
-  </data>
-  <data name="Supplied_diagnostic_cannot_be_null" xml:space="preserve">
-    <value>Supplied diagnostic cannot be null.</value>
   </data>
   <data name="At_least_one_diagnostic_must_be_supplied" xml:space="preserve">
     <value>At least one diagnostic must be supplied.</value>
@@ -447,9 +450,6 @@
   <data name="This_workspace_does_not_support_opening_and_closing_documents" xml:space="preserve">
     <value>This workspace does not support opening and closing documents.</value>
   </data>
-  <data name="Usage_colon" xml:space="preserve">
-    <value>Usage:</value>
-  </data>
   <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>
   </data>
@@ -462,17 +462,8 @@
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="Populate_switch" xml:space="preserve">
-    <value>Populate switch</value>
-  </data>
-  <data name="Member_access_should_be_qualified" xml:space="preserve">
-    <value>Member access should be qualified.</value>
-  </data>
-  <data name="Add_braces_to_0_statement" xml:space="preserve">
-    <value>Add braces to '{0}' statement.</value>
-  </data>
-  <data name="Options_did_not_come_from_Workspace" xml:space="preserve">
-    <value>Options did not come from Workspace</value>
+  <data name="Options_did_not_come_from_specified_Solution" xml:space="preserve">
+    <value>Options did not come from specified Solution</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Enable</value>
@@ -492,87 +483,9 @@
   <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
     <value>Deserialization reader for '{0}' read incorrect number of values.</value>
   </data>
-  <data name="Pascal_Case" xml:space="preserve">
-    <value>Pascal Case</value>
-  </data>
-  <data name="Abstract_Method" xml:space="preserve">
-    <value>Abstract Method</value>
-    <comment>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
-  </data>
   <data name="Async_Method" xml:space="preserve">
     <value>Async Method</value>
     <comment>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
-  </data>
-  <data name="Begins_with_I" xml:space="preserve">
-    <value>Begins with I</value>
-    <comment>{locked:I}</comment>
-  </data>
-  <data name="Class" xml:space="preserve">
-    <value>Class</value>
-    <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Delegate" xml:space="preserve">
-    <value>Delegate</value>
-    <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Enum" xml:space="preserve">
-    <value>Enum</value>
-    <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Event" xml:space="preserve">
-    <value>Event</value>
-    <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Interface" xml:space="preserve">
-    <value>Interface</value>
-    <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Non_Field_Members" xml:space="preserve">
-    <value>Non-Field Members</value>
-    <comment>{locked:field}</comment>
-  </data>
-  <data name="Private_Method" xml:space="preserve">
-    <value>Private Method</value>
-    <comment>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
-  </data>
-  <data name="Private_or_Internal_Field" xml:space="preserve">
-    <value>Private or Internal Field</value>
-    <comment>{locked: private}{locked: internal}{locked:field}</comment>
-  </data>
-  <data name="Private_or_Internal_Static_Field" xml:space="preserve">
-    <value>Private or Internal Static Field</value>
-    <comment>{locked: private}{locked: internal}{locked:static}{locked:field}</comment>
-  </data>
-  <data name="Property" xml:space="preserve">
-    <value>Property</value>
-    <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Public_or_Protected_Field" xml:space="preserve">
-    <value>Public or Protected Field</value>
-    <comment>{locked: public}{locked: protected}{locked:field}</comment>
-  </data>
-  <data name="Static_Field" xml:space="preserve">
-    <value>Static Field</value>
-    <comment>{locked:static}{locked:field} (unless the capitalization should be handled differently)</comment>
-  </data>
-  <data name="Static_Method" xml:space="preserve">
-    <value>Static Method</value>
-    <comment>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
-  </data>
-  <data name="Struct" xml:space="preserve">
-    <value>Struct</value>
-    <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Types" xml:space="preserve">
-    <value>Types</value>
-    <comment>{locked:types} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Method" xml:space="preserve">
-    <value>Method</value>
-    <comment>{locked:method} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Missing_prefix_colon_0" xml:space="preserve">
-    <value>Missing prefix: '{0}'</value>
   </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>
@@ -580,37 +493,76 @@
   <data name="None" xml:space="preserve">
     <value>None</value>
   </data>
-  <data name="Missing_suffix_colon_0" xml:space="preserve">
-    <value>Missing suffix: '{0}'</value>
-  </data>
-  <data name="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0" xml:space="preserve">
-    <value>These non-leading words must begin with an upper case letter: {0}</value>
-  </data>
   <data name="Suggestion" xml:space="preserve">
     <value>Suggestion</value>
-  </data>
-  <data name="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0" xml:space="preserve">
-    <value>These non-leading words must begin with a lowercase letter: {0}</value>
-  </data>
-  <data name="These_words_cannot_contain_lower_case_characters_colon_0" xml:space="preserve">
-    <value>These words cannot contain lower case characters: {0}</value>
-  </data>
-  <data name="These_words_cannot_contain_upper_case_characters_colon_0" xml:space="preserve">
-    <value>These words cannot contain upper case characters: {0}</value>
-  </data>
-  <data name="These_words_must_begin_with_upper_case_characters_colon_0" xml:space="preserve">
-    <value>These words must begin with upper case characters: {0}</value>
-  </data>
-  <data name="The_first_word_0_must_begin_with_an_upper_case_character" xml:space="preserve">
-    <value>The first word, '{0}', must begin with an upper case character</value>
-  </data>
-  <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
-    <value>The first word, '{0}', must begin with a lower case character</value>
   </data>
   <data name="File_0_size_of_1_exceeds_maximum_allowed_size_of_2" xml:space="preserve">
     <value>File '{0}' size of {1} exceeds maximum allowed size of {2}</value>
   </data>
   <data name="Changing_document_property_is_not_supported" xml:space="preserve">
     <value>Changing document properties is not supported</value>
+  </data>
+  <data name="Variables_captured_colon" xml:space="preserve">
+    <value>Variables captured:</value>
+  </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
+  <data name="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories" xml:space="preserve">
+    <value>Remove the line below if you want to inherit .editorconfig settings from higher directories</value>
+  </data>
+  <data name="Core_EditorConfig_Options" xml:space="preserve">
+    <value>Core EditorConfig Options</value>
+  </data>
+  <data name="CSharp_files" xml:space="preserve">
+    <value>C# files</value>
+  </data>
+  <data name="dot_NET_Coding_Conventions" xml:space="preserve">
+    <value>.NET Coding Conventions</value>
+  </data>
+  <data name="Indentation_and_spacing" xml:space="preserve">
+    <value>Indentation and spacing</value>
+  </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value>New line preferences</value>
+  </data>
+  <data name="Visual_Basic_files" xml:space="preserve">
+    <value>Visual Basic files</value>
+  </data>
+  <data name="Changing_document_0_is_not_supported" xml:space="preserve">
+    <value>Changing document '{0}' is not supported.</value>
+  </data>
+  <data name="DateTimeKind_must_be_Utc" xml:space="preserve">
+    <value>DateTimeKind must be Utc</value>
+  </data>
+  <data name="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access" xml:space="preserve">
+    <value>Adding imports will bring an extension method into scope with the same name as '{0}'</value>
+  </data>
+  <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
+    <value>Document does not support syntax trees</value>
+  </data>
+  <data name="_0_is_in_a_different_project" xml:space="preserve">
+    <value>{0} is in a different project.</value>
+  </data>
+  <data name="Project_does_not_contain_specified_reference" xml:space="preserve">
+    <value>Project does not contain specified reference</value>
+  </data>
+  <data name="Solution_does_not_contain_specified_reference" xml:space="preserve">
+    <value>Solution does not contain specified reference</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Cannot_apply_action_that_is_not_in_0" xml:space="preserve">
+    <value>Cannot apply action that is not in '{0}'</value>
+  </data>
+  <data name="Symbols_project_could_not_be_found_in_the_provided_solution" xml:space="preserve">
+    <value>Symbol's project could not be found in the provided solution</value>
+  </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename '{0}' to '{1}'</value>
+  </data>
+  <data name="Sync_namespace_to_folder_structure" xml:space="preserve">
+    <value>Sync namespace to folder structure</value>
   </data>
 </root>

@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -565,7 +568,7 @@ end namespace
                 SymbolDisplayPartKind.TypeParameterName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.ExtensionMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Space,
@@ -825,7 +828,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.ExtensionMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -884,7 +887,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.ExtensionMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2139,7 +2142,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2191,7 +2194,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2201,7 +2204,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.EnumMemberName)
         End Sub
 
         <Fact>
@@ -2247,7 +2250,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2257,7 +2260,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.EnumMemberName)
         End Sub
 
         <Fact>
@@ -2294,7 +2297,7 @@ End Enum
                 "E.B = 1",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -2337,25 +2340,25 @@ End Enum
                 "E.D = E.A Or E.B Or E.C",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.EnumMemberName)
         End Sub
 
         <Fact>
@@ -2393,7 +2396,7 @@ End Enum
                 "E.D = 7",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -2932,7 +2935,7 @@ End Class
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~"
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ","
 
-                Dim Compilation = CreateCompilationWithMscorlib(text)
+                Dim Compilation = CreateCompilationWithMscorlib40(text)
                 Compilation.VerifyDiagnostics()
 
                 Dim methodSymbol = Compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("M")
@@ -2974,7 +2977,7 @@ End Class
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~"
                 Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ","
 
-                Dim Compilation = CreateCompilationWithMscorlib(text)
+                Dim Compilation = CreateCompilationWithMscorlib40(text)
                 Compilation.VerifyDiagnostics()
 
                 Dim methodSymbol = Compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("M")
@@ -3806,7 +3809,7 @@ End Namespace
     </file>
         </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Assert.Equal("[Global]", comp.SourceModule.GlobalNamespace.GetMembers().Single().ToDisplayString())
 
             Dim format = New SymbolDisplayFormat(
@@ -3829,7 +3832,7 @@ End Namespace
     </file>
         </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Dim m_DelegateSignatureFormat As New SymbolDisplayFormat(
                                                             globalNamespaceStyle:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.GlobalNamespaceStyle,
                                                             typeQualificationStyle:=SymbolDisplayFormat.VisualBasicErrorMessageFormat.TypeQualificationStyle,
@@ -4389,14 +4392,14 @@ End Class
           </file>
       </compilation>
 
-            Dim complib = CreateCompilationWithMscorlib(src1)
+            Dim complib = CreateCompilationWithMscorlib40(src1)
             Dim compref = New VisualBasicCompilationReference(complib)
 
-            Dim comp1 = CreateCompilationWithMscorlibAndReferences(src2, references:={compref})
+            Dim comp1 = CreateCompilationWithMscorlib40AndReferences(src2, references:={compref})
 
             Dim mtdata = comp1.EmitToArray()
             Dim mtref = MetadataReference.CreateFromImage(mtdata)
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(dummy, references:={mtref})
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(dummy, references:={mtref})
 
             Dim tsym1 = comp1.SourceModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Gen")
             Assert.NotNull(tsym1)
@@ -4653,6 +4656,30 @@ class Outer
             Assert.Equal(Nothing, SymbolDisplay.FormatPrimitive(New Object(), quoteStrings:=False, useHexadecimalNumbers:=False))
         End Sub
 
+        <Fact>
+        Public Sub AllowDefaultLiteral()
+            Dim text =
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Sub Method(Optional cancellationToken as CancellationToken = Nothing)
+    End Sub
+End Class
+                    </file>
+                </compilation>
+
+            Dim formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat
+            Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+            Dim formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral)
+            Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+
+            ' Visual Basic doesn't have default expressions, so AllowDefaultLiteral does not change behavior
+            Const ExpectedText As String = "Sub C.Method(cancellationToken As CancellationToken = Nothing)"
+
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithoutAllowDefaultLiteral, ExpectedText)
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithAllowDefaultLiteral, ExpectedText)
+        End Sub
+
         <Fact()>
         Public Sub Tuple()
             TestSymbolDescription(
@@ -4728,14 +4755,14 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation)
@@ -4808,14 +4835,14 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)
@@ -4848,7 +4875,7 @@ End Class"
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source, references:={SystemRuntimeFacadeRef, ValueTupleRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(source, references:={SystemRuntimeFacadeRef, ValueTupleRef})
             comp.VerifyDiagnostics()
             Dim symbol = comp.GetMember("C.f")
 
@@ -4899,14 +4926,14 @@ End Class"
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)
@@ -4923,6 +4950,52 @@ End Class"
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)
+        End Sub
+
+        <Fact>
+        <WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")>
+        Public Sub MeDisplayParts()
+            Dim Text =
+<compilation>
+    <file name="b.vb">
+Class A
+    Sub M([Me] As Integer)
+        Me.M([Me])
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(Text)
+            comp.VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim invocation = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
+            Assert.Equal("Me.M([Me])", invocation.ToString())
+
+            Dim actualThis = DirectCast(invocation.Expression, MemberAccessExpressionSyntax).Expression
+            Assert.Equal("Me", actualThis.ToString())
+
+            Verify(
+                ToDisplayParts(model.GetSymbolInfo(actualThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "Me As A",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName)
+
+            Dim escapedThis = invocation.ArgumentList.Arguments(0).GetExpression()
+            Assert.Equal("[Me]", escapedThis.ToString())
+
+            Verify(
+                ToDisplayParts(model.GetSymbolInfo(escapedThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "[Me] As Integer",
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
         End Sub
 
         ' SymbolDisplayMemberOptions.IncludeRef is ignored in VB.
@@ -4949,7 +5022,7 @@ public class C
             <file name="b.vb">
             </file>
         </compilation>
-            Dim compB = CompilationUtils.CreateCompilationWithMscorlib(sourceB, references:={refA})
+            Dim compB = CompilationUtils.CreateCompilationWithMscorlib40(sourceB, references:={refA})
             compB.VerifyDiagnostics()
             ' From VB symbols.
             RefReturnInternal(compB)
@@ -5088,7 +5161,7 @@ Class C
 End Class
                 </file>
         </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
             Dim tree = comp.SyntaxTrees.First()
             Dim model = comp.GetSemanticModel(tree)
             Dim methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().First()
@@ -5120,7 +5193,7 @@ End Class")
             Optional useSpeculativeSemanticModel As Boolean = False,
             Optional references As IEnumerable(Of MetadataReference) = Nothing)
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(text)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(text)
 
             If references IsNot Nothing Then
                 comp = comp.AddReferences(references.ToArray())
@@ -5160,7 +5233,7 @@ End Class")
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(text, additionalRefs:={SystemCoreRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={TestMetadata.Net40.SystemCore})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

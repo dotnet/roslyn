@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,8 +14,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class ModuleMetadataTests : TestBase
     {
-        private readonly char _systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
-
         [Fact]
         public unsafe void CreateFromMetadata_Errors()
         {
@@ -61,8 +61,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentOutOfRangeException>(() => { fixed (byte* ptr = new byte[] { 1, 2, 3 }) ModuleMetadata.CreateFromImage((IntPtr)ptr, -1); });
 
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(ImmutableArray<byte>)));
-            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(IEnumerable<byte>)));
-            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(default(byte[])));
+
+            IEnumerable<byte> enumerableImage = null;
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(enumerableImage));
+
+            byte[] arrayImage = null;
+            Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromImage(arrayImage));
 
             // It's not particularly important that this not throw. The parsing of the metadata is now lazy, and the result is that an exception
             // will be thrown when something tugs on the metadata later.
@@ -77,25 +81,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromStream(new TestStream(canRead: true, canSeek: false)));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void CreateFromFile()
         {
             Assert.Throws<ArgumentNullException>(() => ModuleMetadata.CreateFromFile((string)null));
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(""));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"http://goo.bar"));
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"c:\*"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"\\.\COM1"));
 
-            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(_systemDrive + @":\file_that_does_not_exists.dll"));
-            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(_systemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
-            Assert.Throws<PathTooLongException>(() => ModuleMetadata.CreateFromFile(_systemDrive + @":\" + new string('x', 1000)));
+            char systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
+            Assert.Throws<IOException>(() => ModuleMetadata.CreateFromFile(@"http://goo.bar"));
+            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(systemDrive + @":\file_that_does_not_exists.dll"));
+            Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(systemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
+            Assert.Throws<PathTooLongException>(() => ModuleMetadata.CreateFromFile(systemDrive + @":\" + new string('x', 1000)));
             Assert.Throws<IOException>(() => ModuleMetadata.CreateFromFile(Environment.GetFolderPath(Environment.SpecialFolder.Windows)));
         }
 
         [Fact]
         public void Disposal()
         {
-            var md = ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
+            var md = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
             md.Dispose();
             Assert.Throws<ObjectDisposedException>(() => md.Module);
             md.Dispose();
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ImageOwnership()
         {
-            var m = ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
+            var m = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
             var copy1 = m.Copy();
             var copy2 = copy1.Copy();
 

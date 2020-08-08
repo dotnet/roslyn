@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Expression capabilities and requirements.
         /// </summary>
         [Flags]
-        internal enum BindValueKind : byte
+        internal enum BindValueKind : ushort
         {
             ///////////////////
             // All expressions can be classified according to the following 4 capabilities:
@@ -69,6 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ///  local variable, parameter, field
             /// </summary>
             RefersToLocation = 4 << ValueKindInsignificantBits,
+
+            /// <summary>
+            /// Expression can be the LHS of a ref-assign operation.
+            /// Example:
+            ///  ref local, ref parameter, out parameter
+            /// </summary>
+            RefAssignable = 8 << ValueKindInsignificantBits,
 
             ///////////////////
             // The rest are just combinations of the above.
@@ -147,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (kind & BindValueKind.Assignable) != 0;
         }
 
+        private static bool RequiresRefAssignableVariable(BindValueKind kind)
+        {
+            return (kind & BindValueKind.RefAssignable) != 0;
+        }
+
         private static bool RequiresRefOrOut(BindValueKind kind)
         {
             return (kind & BindValueKind.RefOrOut) == BindValueKind.RefOrOut;
@@ -182,13 +197,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        // Assigning to an non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
+                        // Assigning to a non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
                         // This is for IOperation purpose.
                         var indexerAccess = (BoundIndexerAccess)expr;
                         if (valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef)
                         {
                             expr = indexerAccess.Update(useSetterForDefaultArgumentGeneration: true);
                         }
+                    }
+                    break;
+
+                case BoundKind.UnconvertedObjectCreationExpression:
+                    if (valueKind == BindValueKind.RValue)
+                    {
+                        return expr;
                     }
                     break;
             }
@@ -233,9 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Since we have a concrete member in hand, we can resolve the receiver.
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
-                        receiver = otherSymbol.IsStatic
-                            ? null // no receiver required
-                            : typeOrValue.Data.ValueExpression;
+                        receiver = otherSymbol.RequiresInstanceReceiver()
+                            ? typeOrValue.Data.ValueExpression
+                            : null; // no receiver required
                     }
                     return new BoundBadExpression(
                         expr.Syntax,
@@ -257,6 +279,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupResultKind.NotAVariable;
 
             return ToBadExpression(expr, resultKind);
+        }
+
+        internal static bool IsTypeOrValueExpression(BoundExpression expression)
+        {
+            switch (expression?.Kind)
+            {
+                case BoundKind.TypeOrValueExpression:
+                case BoundKind.QueryClause when ((BoundQueryClause)expression).Value.Kind == BoundKind.TypeOrValueExpression:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -287,6 +321,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                 case BoundKind.IndexerAccess:
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = ((BoundIndexOrRangePatternIndexerAccess)expr);
+                    if (patternIndexer.PatternSymbol.Kind == SymbolKind.Property)
+                    {
+                        // If this is an Index indexer, PatternSymbol should be a property, pointing to the
+                        // pattern indexer. If it's a Range access, it will be a method, pointing to a Slice method
+                        // and it's handled below as part of invocations.
+                        return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
+                    }
+                    Debug.Assert(patternIndexer.PatternSymbol.Kind == SymbolKind.Method);
+                    break;
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
@@ -324,10 +370,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
 
+                case BoundKind.UnconvertedAddressOfOperator:
+                    var unconvertedAddressOf = (BoundUnconvertedAddressOfOperator)expr;
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, unconvertedAddressOf.Operand.Name, MessageID.IDS_AddressOfMethodGroup.Localize());
+                    return false;
+
+                case BoundKind.MethodGroup when valueKind == BindValueKind.AddressOf:
+                    // If the addressof operator is used not as an rvalue, that will get flagged when CheckValue
+                    // is called on the parent BoundUnconvertedAddressOf node.
+                    return true;
+
                 case BoundKind.MethodGroup:
-                    // method groups can only be used as RValues
+                    // method groups can only be used as RValues except when taking the address of one
                     var methodGroup = (BoundMethodGroup)expr;
-                    Error(diagnostics, GetMethodGroupLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
+                    Error(diagnostics, GetMethodGroupOrFunctionPointerLvalueError(valueKind), node, methodGroup.Name, MessageID.IDS_MethodGroup.Localize());
                     return false;
 
                 case BoundKind.RangeVariable:
@@ -346,22 +402,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                // array access is readwrite variable if the indexing expression is not System.Range
                 case BoundKind.ArrayAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        var boundAccess = (BoundArrayAccess)expr;
+                        if (boundAccess.Indices.Length == 1 &&
+                            TypeSymbol.Equals(
+                                boundAccess.Indices[0].Type,
+                                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                                TypeCompareKind.ConsiderEverything))
+                        {
+                            // Range indexer is an rvalue
+                            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                // pointer dereferencing is a readwrite variable
                 case BoundKind.PointerIndirectionOperator:
-                case BoundKind.PointerElementAccess:
-                    // array elements and pointer dereferencing are readwrite variables
-                    return true;
-
+                // The undocumented __refvalue(tr, T) expression results in a variable of type T.
                 case BoundKind.RefValueOperator:
-                    // The undocumented __refvalue(tr, T) expression results in a variable of type T.
-                    // it is a readwrite variable.
-                    return true;
-
+                // dynamic expressions are readwrite, and can even be passed by ref (which is implemented via a temp)
                 case BoundKind.DynamicMemberAccess:
                 case BoundKind.DynamicIndexerAccess:
-                    // dynamic expressions can be read and written to
-                    // can even be passed by reference (which is implemented via a temp)
-                    return true;
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        // These are readwrite variables
+                        return true;
+                    }
+
+                case BoundKind.PointerElementAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        var receiver = ((BoundPointerElementAccess)expr).Expression;
+                        if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
+                        {
+                            return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
+                        }
+
+                        return true;
+                    }
 
                 case BoundKind.Parameter:
                     var parameter = (BoundParameter)expr;
@@ -372,7 +469,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckLocalValueKind(node, local, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.ThisReference:
-                    var thisref = (BoundThisReference)expr;
+                    // `this` is never ref assignable
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
 
                     // We will already have given an error for "this" used outside of a constructor, 
                     // instance method, or instance accessor. Assume that "this" is a variable if it is in a struct.
@@ -384,22 +486,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC: of a struct, it is classified as a variable. 
 
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
-                    //"this" is readonly in members of readonly structs, unless we are in a constructor.
-                    if (!thisref.Type.IsValueType ||
-                            (RequiresAssignableVariable(valueKind) &&
-                             thisref.Type.IsReadOnly && 
-                             (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
+                    // "this" is readonly in members marked "readonly" and in members of readonly structs, unless we are in a constructor.
+                    var isValueType = ((BoundThisReference)expr).Type.IsValueType;
+                    if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
-                        Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
+                        Error(diagnostics, GetThisLvalueError(valueKind, isValueType), node, node);
                         return false;
                     }
 
                     return true;
 
+                case BoundKind.ImplicitReceiver:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
+                    Debug.Assert(!RequiresRefAssignableVariable(valueKind));
+                    return true;
+
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
                     return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
+
+                case BoundKind.FunctionPointerInvocation:
+                    return CheckMethodReturnValueKind(((BoundFunctionPointerInvocation)expr).FunctionPointer.Signature,
+                        expr.Syntax,
+                        node,
+                        valueKind,
+                        checkingReceiver,
+                        diagnostics);
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    // If we got here this should be a pattern indexer taking a Range,
+                    // meaning that the pattern symbol must be a method (either Slice or Substring)
+                    return CheckMethodReturnValueKind(
+                        (MethodSymbol)patternIndexer.PatternSymbol,
+                        patternIndexer.Syntax,
+                        node,
+                        valueKind,
+                        checkingReceiver,
+                        diagnostics);
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -416,8 +540,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.FieldAccess:
-                    var fieldAccess = (BoundFieldAccess)expr;
-                    return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
+                    {
+                        var fieldAccess = (BoundFieldAccess)expr;
+                        return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
+                    }
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expr;
+                    return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -454,7 +584,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, local.Syntax.Location, localSymbol);
                 }
 
-                if (!localSymbol.IsWritable)
+                // IsWritable means the variable is writable. If this is a ref variable, IsWritable
+                // does not imply anything about the storage location
+                if (localSymbol.RefKind == RefKind.RefReadOnly ||
+                    (localSymbol.RefKind == RefKind.None && !localSymbol.IsWritableVariable))
+                {
+                    ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
+                    return false;
+                }
+            }
+            else if (RequiresRefAssignableVariable(valueKind))
+            {
+                if (localSymbol.RefKind == RefKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefLocalOrParamExpected, node.Location, localSymbol);
+                    return false;
+                }
+                else if (!localSymbol.IsWritableVariable)
                 {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;
@@ -516,6 +662,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
             }
+            else if (parameterSymbol.RefKind == RefKind.None && RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
+            }
 
             if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
             {
@@ -533,8 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
-            // byval parameters can escape to method's top level.
-            // others can be escape further, unless they are ref-like.
+            // byval parameters can escape to method's top level. Others can escape further.
+            // NOTE: "method" here means nearest containing method, lambda or local function.
             if (escapeTo == Binder.ExternalScope && parameterSymbol.RefKind == RefKind.None)
             {
                 if (checkingReceiver)
@@ -575,15 +726,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldIsStatic == containing.IsStatic &&
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
                         (Compilation.FeatureStrictEnabled
-                            ? fieldSymbol.ContainingType == containing.ContainingType
+                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.ConsiderEverything2)
                             // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                            : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
+                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
                             MethodSymbol containingMethod = (MethodSymbol)containing;
                             MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                            canModifyReadonly = containingMethod.MethodKind == desiredMethodKind;
+                            canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
+                                isAssignedFromInitOnlySetterOnThis(fieldAccess.ReceiverOpt);
                         }
                         else if (containing.Kind == SymbolKind.Field)
                         {
@@ -598,11 +750,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (fieldSymbol.IsFixed)
+                if (fieldSymbol.IsFixedSizeBuffer)
                 {
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
                     return false;
                 }
+            }
+
+            if (RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
             }
 
             // r/w fields that are static or belong to reference types are writeable and returnable
@@ -613,6 +771,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+
+            bool isAssignedFromInitOnlySetterOnThis(BoundExpression receiver)
+            {
+                // bad: other.readonlyField = ...
+                // bad: base.readonlyField = ...
+                if (!(receiver is BoundThisReference))
+                {
+                    return false;
+                }
+
+                if (!(ContainingMemberOrLambda is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                return method.IsInitOnly;
+            }
+        }
+
+        private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
+        {
+            // Only ref-assigns produce LValues
+            if (assignment.IsRef)
+            {
+                return CheckValueKind(node, assignment.Left, valueKind, checkingReceiver: false, diagnostics);
+            }
+
+            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+            return false;
         }
 
         private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
@@ -659,12 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: availability of well-known members is checked in BindEventAssignment because
                 // we don't have the context to determine whether addition or subtraction is being performed.
 
-                if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
-                    return false;
-                }
-                else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+                if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                 {
                     // NOTE: BindEventAssignment checks use site errors on the specific accessor 
                     // (since we don't know which is being used).
@@ -714,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, DiagnosticBag diagnostics)
         {
             Debug.Assert(receiver != null);
-            return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ImplicitReceiver ||
+            return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder ||
                 CheckValueKind(node, receiver, kind, true, diagnostics);
         }
 
@@ -732,27 +914,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool RequiresVariableReceiver(BoundExpression receiver, Symbol symbol)
         {
-            return !symbol.IsStatic
+            return symbol.RequiresInstanceReceiver()
                 && symbol.Kind != SymbolKind.Event
                 && receiver?.Type?.IsValueType == true;
         }
 
         private bool CheckCallValueKind(BoundCall call, SyntaxNode node, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
+            => CheckMethodReturnValueKind(call.Method, call.Syntax, node, valueKind, checkingReceiver, diagnostics);
+
+        protected bool CheckMethodReturnValueKind(
+            MethodSymbol methodSymbol,
+            SyntaxNode callSyntaxOpt,
+            SyntaxNode node,
+            BindValueKind valueKind,
+            bool checkingReceiver,
+            DiagnosticBag diagnostics)
         {
             // A call can only be a variable if it returns by reference. If this is the case,
             // whether or not it is a valid variable depends on whether or not the call is the
             // RHS of a return or an assign by reference:
             // - If call is used in a context demanding ref-returnable reference all of its ref
             //   inputs must be ref-returnable
-            var methodSymbol = call.Method;
-            var callSyntax = call.Syntax;
 
             if (RequiresVariable(valueKind) && methodSymbol.RefKind == RefKind.None)
             {
                 if (checkingReceiver)
                 {
                     // Error is associated with expression, not node which may be distinct.
-                    Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, callSyntax, methodSymbol);
+                    Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, callSyntaxOpt, methodSymbol);
                 }
                 else
                 {
@@ -768,7 +957,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
+            }
+
             return true;
+
         }
 
         private bool CheckPropertyValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -795,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // change from Dev10 which reports this error for struct types only,
                     // not for type parameters constrained to "struct".
 
-                    Debug.Assert((object)propertySymbol.Type != null);
+                    Debug.Assert(propertySymbol.TypeWithAnnotations.HasType);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
                 else
@@ -817,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
 
-                if ((object)setMethod == null)
+                if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
                     if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
@@ -826,17 +1022,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-                else if (receiver?.Kind == BoundKind.BaseReference && setMethod.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
-                    return false;
-                }
-                else if (!object.Equals(setMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax))
-                {
-                    return false;
-                }
                 else
                 {
+                    if (setMethod.IsInitOnly &&
+                        !isAllowedInitOnlySet(receiver))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                        return false;
+                    }
+
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -858,10 +1052,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
-                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, BindValueKind.Assignable, diagnostics))
+                    var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
+                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
                     {
                         return false;
                     }
+
+                    if (IsBadBaseAccess(node, receiver, setMethod, diagnostics, propertySymbol) ||
+                        (!object.Equals(setMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax)))
+                    {
+                        return false;
+                    }
+
+                    CheckRuntimeSupportForSymbolAccess(node, receiver, setMethod, diagnostics);
                 }
             }
 
@@ -873,15 +1076,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)getMethod == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, node, propertySymbol);
-                    return false;
-                }
-                else if (receiver?.Kind == BoundKind.BaseReference && getMethod.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
-                    return false;
-                }
-                else if (!object.Equals(getMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax))
-                {
                     return false;
                 }
                 else
@@ -905,11 +1099,70 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
+
+                    if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
+                        (!object.Equals(getMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax)))
+                    {
+                        return false;
+                    }
+
+                    CheckRuntimeSupportForSymbolAccess(node, receiver, getMethod, diagnostics);
                 }
             }
 
+            if (RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
+            }
+
             return true;
+
+            bool isAllowedInitOnlySet(BoundExpression receiver)
+            {
+                // ok: new C() { InitOnlyProperty = ... }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder)
+                {
+                    return true;
+                }
+
+                // bad: other.InitOnlyProperty = ...
+                if (!(receiver is BoundThisReference || receiver is BoundBaseReference))
+                {
+                    return false;
+                }
+
+                var containingMember = ContainingMemberOrLambda;
+                if (!(containingMember is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                if (method.MethodKind == MethodKind.Constructor || method.IsInitOnly)
+                {
+                    // ok: setting on `this` or `base` from an instance constructor or init-only setter
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, DiagnosticBag diagnostics,
+                                     Symbol propertyOrEventSymbolOpt = null)
+        {
+            Debug.Assert(member.Kind != SymbolKind.Property);
+            Debug.Assert(member.Kind != SymbolKind.Event);
+
+            if (receiverOpt?.Kind == BoundKind.BaseReference && member.IsAbstract)
+            {
+                Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertyOrEventSymbolOpt ?? member);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -917,10 +1170,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
         ///       where escape is known otherwise. Therefore we do not vave two ref/val variants of this.
         ///       
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
+        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
-        private static uint GetInvocationEscapeScope(
+        internal static uint GetInvocationEscapeScope(
             Symbol symbol,
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
@@ -943,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //•	the safe-to-escape of all argument expressions(including the receiver)
             //
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1013,20 +1266,20 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
-                return GetValEscape(receiverOpt, scopeOfTheContainingExpression);
+                escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
             }
 
             return escapeScope;
         }
 
         /// <summary>
-        /// Validates whether given invocation can allow its results to escape from `escapeFrom` level to `escapeTo` level.
+        /// Validates whether given invocation can allow its results to escape from <paramref name="escapeFrom"/> level to <paramref name="escapeTo"/> level.
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// 
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
+        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
         private static bool CheckInvocationEscape(
@@ -1050,7 +1303,7 @@ moreArguments:
             //  o no ref or out argument(excluding the receiver and arguments of ref-like types) may have a narrower ref-safe-to-escape than E1; and
             //  o   no argument(including the receiver) may have a narrower safe-to-escape than E1.
 
-            if (symbol.IsStatic)
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1129,7 +1382,7 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, false, diagnostics);
             }
@@ -1139,7 +1392,7 @@ moreArguments:
 
         /// <summary>
         /// Validates whether the invocation is valid per no-mixing rules.
-        /// Returns `false` when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
+        /// Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
         /// </summary>
         private static bool CheckInvocationArgMixing(
             SyntaxNode syntax,
@@ -1147,12 +1400,16 @@ moreArguments:
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
         {
-            if (symbol.IsStatic)
+            // SPEC:
+            // In a method invocation, the following constraints apply:
+            // - If there is a ref or out argument of a ref struct type (including the receiver), with safe-to-escape E1, then
+            // - no argument (including the receiver) may have a narrower safe-to-escape than E1.
+
+            if (!symbol.RequiresInstanceReceiver())
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1163,7 +1420,7 @@ moreArguments:
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsByRefLikeType == true && receiverType?.IsReadOnly == false)
+            if (receiverType?.IsRefLikeType == true && !isReceiverRefReadOnly(symbol))
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
@@ -1181,8 +1438,8 @@ moreArguments:
                         break;
                     }
 
-                    var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-                    if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                    var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -1197,7 +1454,7 @@ moreArguments:
                     {
                         var argument = argListArgs[argIndex];
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
-                        if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                        if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                         {
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                         }
@@ -1213,7 +1470,7 @@ moreArguments:
 
             if (!argsOpt.IsDefault)
             {
- moreArguments:
+moreArguments:
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
                     // check val escape of all arguments
@@ -1256,17 +1513,28 @@ moreArguments:
             //    They have "outer" val escape, so cannot be worse than escapeTo.
 
             // check val escape of receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
             }
 
             return true;
+
+            static bool isReceiverRefReadOnly(Symbol methodOrPropertySymbol) => methodOrPropertySymbol switch
+            {
+                MethodSymbol m => m.IsEffectivelyReadOnly,
+                // TODO: val escape checks should be skipped for property accesses when
+                // we can determine the only accessors being called are readonly.
+                // For now we are pessimistic and check escape if any accessor is non-readonly.
+                // Tracking in https://github.com/dotnet/roslyn/issues/35606
+                PropertySymbol p => p.GetMethod?.IsEffectivelyReadOnly != false && p.SetMethod?.IsEffectivelyReadOnly != false,
+                _ => throw ExceptionUtilities.UnexpectedValue(methodOrPropertySymbol)
+            };
         }
 
         /// <summary>
         /// Gets "effective" ref kind of an argument. 
-        /// If the ref kind is 'in', marks that that correwsponding parameter was matched with a value
+        /// If the ref kind is 'in', marks that that corresponding parameter was matched with a value
         /// We need that to detect when there were optional 'in' parameters for which values were not supplied.
         /// 
         /// NOTE: Generally we know if a formal argument is passed as ref/out/in by looking at the call site. 
@@ -1274,10 +1542,10 @@ moreArguments:
         /// There are cases like params/vararg, when a corresponding parameter may not exist, then val cannot become 'in'.
         /// </summary>
         private static RefKind GetEffectiveRefKindAndMarkMatchedInParameter(
-            int argIndex, 
-            ImmutableArray<RefKind> argRefKindsOpt, 
-            ImmutableArray<ParameterSymbol> parameters, 
-            ImmutableArray<int> argsToParamsOpt, 
+            int argIndex,
+            ImmutableArray<RefKind> argRefKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
             ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
             var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
@@ -1317,7 +1585,7 @@ moreArguments:
 
                         if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
-                            parameter.Type.IsByRefLikeType == false)
+                            parameter.Type.IsRefLikeType == false)
                         {
                             return parameter;
                         }
@@ -1377,7 +1645,7 @@ moreArguments:
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        static private ErrorCode GetThisLvalueError(BindValueKind kind)
+        static private ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
         {
             switch (kind)
             {
@@ -1392,11 +1660,19 @@ moreArguments:
                     return ErrorCode.ERR_InvalidAddrOp;
 
                 case BindValueKind.IncrementDecrement:
-                    return ErrorCode.ERR_IncrementLvalueExpected;
+                    return isValueType ? ErrorCode.ERR_AssgReadonlyLocal : ErrorCode.ERR_IncrementLvalueExpected;
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
                     return ErrorCode.ERR_RefReturnThis;
+
+                case BindValueKind.RefAssignable:
+                    return ErrorCode.ERR_RefLocalOrParamExpected;
+            }
+
+            if (RequiresReferenceToLocation(kind))
+            {
+                return ErrorCode.ERR_RefLvalueExpected;
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -1417,6 +1693,9 @@ moreArguments:
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
                     return ErrorCode.ERR_RefReturnRangeVariable;
+
+                case BindValueKind.RefAssignable:
+                    return ErrorCode.ERR_RefLocalOrParamExpected;
             }
 
             if (RequiresReferenceToLocation(kind))
@@ -1427,13 +1706,8 @@ moreArguments:
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private static ErrorCode GetMethodGroupLvalueError(BindValueKind valueKind)
+        private static ErrorCode GetMethodGroupOrFunctionPointerLvalueError(BindValueKind valueKind)
         {
-            if (valueKind == BindValueKind.AddressOf)
-            {
-                return ErrorCode.ERR_InvalidAddrOp;
-            }
-
             if (RequiresReferenceToLocation(valueKind))
             {
                 return ErrorCode.ERR_RefReadonlyLocalCause;
@@ -1463,6 +1737,9 @@ moreArguments:
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
                     return ErrorCode.ERR_RefReturnLvalueExpected;
+
+                case BindValueKind.RefAssignable:
+                    return ErrorCode.ERR_RefLocalOrParamExpected;
             }
 
             if (RequiresReferenceToLocation(kind))
@@ -1487,7 +1764,7 @@ moreArguments:
         {
             Debug.Assert((object)field != null);
             Debug.Assert(RequiresAssignableVariable(kind));
-            Debug.Assert((object)field.Type != null);
+            Debug.Assert(field.Type != (object)null);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).
@@ -1553,7 +1830,7 @@ moreArguments:
         }
 
         /// <summary>
-        /// Checks whether given expression can escape from the current scope to the `escapeTo`
+        /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>
         /// In a case if it cannot a bad expression is returned and diagnostics is produced.
         /// </summary>
         internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, DiagnosticBag diagnostics)
@@ -1633,12 +1910,9 @@ moreArguments:
                 case BoundKind.Parameter:
                     var parameter = ((BoundParameter)expr).ParameterSymbol;
 
-                    // byval parameters can escape to method's top level.
-                    // others can be escape further, unless they are ref-like.
-                    // NOTE: "method" here means nearest containing method, lambda or nested method
-                    return parameter.RefKind == RefKind.None || parameter.Type?.IsByRefLikeType == true ?
-                        Binder.TopLevelScope :
-                        Binder.ExternalScope;
+                    // byval parameters can escape to method's top level. Others can escape further.
+                    // NOTE: "method" here means nearest containing method, lambda or local function.
+                    return parameter.RefKind == RefKind.None ? Binder.TopLevelScope : Binder.ExternalScope;
 
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
@@ -1747,6 +2021,17 @@ moreArguments:
                         default,
                         scopeOfTheContainingExpression,
                         isRefEscape: true);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expr;
+
+                    if (!assignment.IsRef)
+                    {
+                        // non-ref assignments are RValues
+                        break;
+                    }
+
+                    return GetRefEscape(assignment.Left, scopeOfTheContainingExpression);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -1916,6 +2201,44 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    RefKind refKind;
+                    ImmutableArray<ParameterSymbol> parameters;
+
+                    switch (patternIndexer.PatternSymbol)
+                    {
+                        case PropertySymbol p:
+                            refKind = p.RefKind;
+                            parameters = p.Parameters;
+                            break;
+                        case MethodSymbol m:
+                            refKind = m.RefKind;
+                            parameters = m.Parameters;
+                            break;
+                        default:
+                            throw ExceptionUtilities.Unreachable;
+                    }
+
+                    if (refKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return CheckInvocationEscape(
+                        patternIndexer.Syntax,
+                        patternIndexer.PatternSymbol,
+                        patternIndexer.Receiver,
+                        parameters,
+                        ImmutableArray.Create<BoundExpression>(patternIndexer.Argument),
+                        default,
+                        default,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: true);
+
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
                     var propertySymbol = propertyAccess.PropertySymbol;
@@ -1939,6 +2262,23 @@ moreArguments:
                         escapeTo,
                         diagnostics,
                         isRefEscape: true);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expr;
+
+                    // Only ref-assignments can be LValues
+                    if (!assignment.IsRef)
+                    {
+                        break;
+                    }
+
+                    return CheckRefEscape(
+                        node,
+                        assignment.Left,
+                        escapeFrom,
+                        escapeTo,
+                        checkingReceiver: false,
+                        diagnostics);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -1952,9 +2292,9 @@ moreArguments:
             foreach (var element in expr.Arguments)
             {
                 uint valEscape;
-                if (element.Kind == BoundKind.TupleLiteral)
+                if (element is BoundTupleExpression te)
                 {
-                    valEscape = GetBroadestValEscape((BoundTupleExpression)element, scopeOfTheContainingExpression);
+                    valEscape = GetBroadestValEscape(te, scopeOfTheContainingExpression);
                 }
                 else
                 {
@@ -1987,7 +2327,7 @@ moreArguments:
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsByRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true)
             {
                 return Binder.ExternalScope;
             }
@@ -1996,6 +2336,7 @@ moreArguments:
             // otherwise default to ExternalScope (ordinary values)
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2003,12 +2344,9 @@ moreArguments:
                     return Binder.ExternalScope;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return GetTupleValEscape(convertedTupleLiteral.Arguments, scopeOfTheContainingExpression);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2042,16 +2380,26 @@ moreArguments:
                         // the other one is the same or we will be reporting errors anyways.
                         return consEscape;
                     }
-                    
+
                     // val conditional gets narrowest of its operands
                     return Math.Max(consEscape,
                                     GetValEscape(conditional.Alternative, scopeOfTheContainingExpression));
+
+                case BoundKind.NullCoalescingOperator:
+                    var coalescingOp = (BoundNullCoalescingOperator)expr;
+
+                    return Math.Max(GetValEscape(coalescingOp.LeftOperand, scopeOfTheContainingExpression),
+                                    GetValEscape(coalescingOp.RightOperand, scopeOfTheContainingExpression));
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
+                    {
+                        // Already an error state.
+                        return Binder.ExternalScope;
+                    }
 
                     // for ref-like fields defer to the receiver.
                     return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
@@ -2080,6 +2428,25 @@ moreArguments:
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.ArgsToParamsOpt,
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var parameters = patternIndexer.PatternSymbol switch
+                    {
+                        PropertySymbol p => p.Parameters,
+                        MethodSymbol m => m.Parameters,
+                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
+                    };
+
+                    return GetInvocationEscapeScope(
+                        patternIndexer.PatternSymbol,
+                        patternIndexer.Receiver,
+                        parameters,
+                        default,
+                        default,
+                        default,
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
@@ -2169,7 +2536,7 @@ moreArguments:
                 case BoundKind.CollectionElementInitializer:
                     var colElement = (BoundCollectionElementInitializer)expr;
                     return GetValEscape(colElement.Arguments, scopeOfTheContainingExpression);
-                                
+
                 case BoundKind.ObjectInitializerMember:
                     // this node generally makes no sense outside of the context of containing initializer
                     // however binder uses it as a placeholder when binding assignments inside an object initializer
@@ -2177,12 +2544,42 @@ moreArguments:
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.ImplicitReceiver:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.DisposableValuePlaceholder:
+                    // Disposable value placeholder is only ever used to lookup a pattern dispose method
+                    // then immediately discarded. The actual expression will be generated during lowering 
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.AwaitableValuePlaceholder:
+                    return ((BoundAwaitableValuePlaceholder)expr).ValEscape;
+
+                case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
+                    // Unsafe code will always be allowed to escape.
+                    return Binder.ExternalScope;
+
+                case BoundKind.AsOperator:
+                case BoundKind.AwaitExpression:
+                case BoundKind.ConditionalAccess:
+                case BoundKind.ArrayAccess:
+                    // only possible in error cases (if possible at all)
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpr = (BoundSwitchExpression)expr;
+                    return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
+
                 default:
-                    throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
+                    // in error situations some unexpected nodes could make here
+                    // returning "scopeOfTheContainingExpression" seems safer than throwing.
+                    // we will still assert to make sure that all nodes are accounted for. 
+                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    return scopeOfTheContainingExpression;
             }
         }
 
@@ -2232,7 +2629,7 @@ moreArguments:
 
         /// <summary>
         /// A counterpart to the GetValEscape, which validates if given escape demand can be met by the expression.
-        /// The result indicates whether the escape is possible. 
+        /// The result indicates whether the escape is possible.
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
         internal static bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -2258,13 +2655,14 @@ moreArguments:
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsByRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true)
             {
                 return true;
             }
 
             switch (expr.Kind)
             {
+                case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
@@ -2272,12 +2670,9 @@ moreArguments:
                     return true;
 
                 case BoundKind.TupleLiteral:
-                    var tupleLiteral = (BoundTupleLiteral)expr;
-                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
-
                 case BoundKind.ConvertedTupleLiteral:
-                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
-                    return CheckTupleValEscape(convertedTupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
+                    var tupleLiteral = (BoundTupleExpression)expr;
+                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2289,10 +2684,17 @@ moreArguments:
                     return true;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    var placeholder = (BoundDeconstructValuePlaceholder)expr;
-                    if (placeholder.ValEscape > escapeTo)
+                    if (((BoundDeconstructValuePlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, placeholder.Syntax);
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.AwaitableValuePlaceholder:
+                    if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
                         return false;
                     }
                     return true;
@@ -2315,25 +2717,44 @@ moreArguments:
                     }
                     return true;
 
-                case BoundKind.ConditionalOperator:
-                    var conditional = (BoundConditionalOperator)expr;
-
-                    var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
-
-                    if (!consValid || conditional.IsRef)
+                case BoundKind.UnconvertedConditionalOperator:
                     {
-                        // ref conditional defers to one operand. 
-                        // the other one is the same or we will be reporting errors anyways.
-                        return consValid;
+                        var conditional = (BoundUnconvertedConditionalOperator)expr;
+                        return
+                            CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                            CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                     }
 
-                    return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                case BoundKind.ConditionalOperator:
+                    {
+                        var conditional = (BoundConditionalOperator)expr;
+
+                        var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                        if (!consValid || conditional.IsRef)
+                        {
+                            // ref conditional defers to one operand. 
+                            // the other one is the same or we will be reporting errors anyways.
+                            return consValid;
+                        }
+
+                        return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    }
+
+                case BoundKind.NullCoalescingOperator:
+                    var coalescingOp = (BoundNullCoalescingOperator)expr;
+                    return CheckValEscape(coalescingOp.LeftOperand.Syntax, coalescingOp.LeftOperand, escapeFrom, escapeTo, checkingReceiver, diagnostics) &&
+                            CheckValEscape(coalescingOp.RightOperand.Syntax, coalescingOp.RightOperand, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
+                    {
+                        // Already an error state.
+                        return true;
+                    }
 
                     // for ref-like fields defer to the receiver.
                     return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, true, diagnostics);
@@ -2368,6 +2789,30 @@ moreArguments:
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: false);
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var patternSymbol = patternIndexer.PatternSymbol;
+                    var parameters = patternSymbol switch
+                    {
+                        PropertySymbol p => p.Parameters,
+                        MethodSymbol m => m.Parameters,
+                        _ => throw ExceptionUtilities.Unreachable,
+                    };
+
+                    return CheckInvocationEscape(
+                        patternIndexer.Syntax,
+                        patternSymbol,
+                        patternIndexer.Receiver,
+                        parameters,
+                        ImmutableArray.Create(patternIndexer.Argument),
+                        default,
+                        default,
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
@@ -2413,14 +2858,14 @@ moreArguments:
                     var initializerExpr = objectCreation.InitializerExpressionOpt;
                     if (initializerExpr != null)
                     {
-                        escape = escape && 
+                        escape = escape &&
                             CheckValEscape(
-                                initializerExpr.Syntax, 
-                                initializerExpr, 
-                                escapeFrom, 
-                                escapeTo, 
-                                checkingReceiver:false, 
-                                diagnostics:diagnostics);
+                                initializerExpr.Syntax,
+                                initializerExpr,
+                                escapeFrom,
+                                escapeTo,
+                                checkingReceiver: false,
+                                diagnostics: diagnostics);
                     }
 
                     return escape;
@@ -2436,7 +2881,7 @@ moreArguments:
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
-                    return CheckValEscape(node, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    return CheckValEscape(node, assignment.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
@@ -2464,7 +2909,7 @@ moreArguments:
                     var clauseValue = ((BoundQueryClause)expr).Value;
                     return CheckValEscape(clauseValue.Syntax, clauseValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                case BoundKind.RangeVariable:  
+                case BoundKind.RangeVariable:
                     var variableValue = ((BoundRangeVariable)expr).Value;
                     return CheckValEscape(variableValue.Syntax, variableValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
@@ -2484,141 +2929,165 @@ moreArguments:
                     var colElement = (BoundCollectionElementInitializer)expr;
                     return CheckValEscape(colElement.Arguments, escapeFrom, escapeTo, diagnostics);
 
+                case BoundKind.PointerElementAccess:
+                    var accessedExpression = ((BoundPointerElementAccess)expr).Expression;
+                    return CheckValEscape(accessedExpression.Syntax, accessedExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
+                case BoundKind.PointerIndirectionOperator:
+                    var operandExpression = ((BoundPointerIndirectionOperator)expr).Operand;
+                    return CheckValEscape(operandExpression.Syntax, operandExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
+                case BoundKind.AsOperator:
+                case BoundKind.AwaitExpression:
+                case BoundKind.ConditionalAccess:
+                case BoundKind.ArrayAccess:
+                    // only possible in error cases (if possible at all)
+                    return false;
+
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
+                    foreach (var arm in ((BoundSwitchExpression)expr).SwitchArms)
+                    {
+                        var result = arm.Value;
+                        if (!CheckValEscape(result.Syntax, result, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                            return false;
+                    }
+
+                    return true;
+
                 default:
-                    throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
+                    // in error situations some unexpected nodes could make here
+                    // returning "false" seems safer than throwing.
+                    // we will still assert to make sure that all nodes are accounted for.
+                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
+                    return false;
 
-                #region "cannot produce ref-like values"
-//                case BoundKind.ThrowExpression:
-//                case BoundKind.PointerIndirectionOperator:
-//                case BoundKind.PointerElementAccess:
-//                case BoundKind.ArgListOperator:
-//                case BoundKind.ArgList:
-//                case BoundKind.RefTypeOperator:
-//                case BoundKind.AddressOfOperator:
-//                case BoundKind.AsOperator:
-//                case BoundKind.TypeOfOperator:
-//                case BoundKind.ArrayAccess:
-//                case BoundKind.NullCoalescingOperator:
-//                case BoundKind.AwaitExpression:
-//                case BoundKind.IsOperator:
-//                case BoundKind.SizeOfOperator:
-//                case BoundKind.DynamicMemberAccess:
-//                case BoundKind.DynamicInvocation:
-//                case BoundKind.NewT:
-//                case BoundKind.DelegateCreationExpression:
-//                case BoundKind.ArrayCreation:
-//                case BoundKind.AnonymousObjectCreationExpression:
-//                case BoundKind.NameOfOperator:
-//                case BoundKind.InterpolatedString:
-//                case BoundKind.StringInsert:
-//                case BoundKind.DynamicIndexerAccess:
-//                case BoundKind.Lambda:
-//                case BoundKind.DynamicObjectCreationExpression:
-//                case BoundKind.NoPiaObjectCreationExpression:
-//                case BoundKind.BaseReference:
-//                case BoundKind.Literal:
-//                case BoundKind.ConditionalAccess:
-//                case BoundKind.IsPatternExpression:
-//                case BoundKind.DeconstructionAssignmentOperator:
-//                case BoundKind.EventAccess:
+                    #region "cannot produce ref-like values"
+                    //                case BoundKind.ThrowExpression:
+                    //                case BoundKind.ArgListOperator:
+                    //                case BoundKind.ArgList:
+                    //                case BoundKind.RefTypeOperator:
+                    //                case BoundKind.AddressOfOperator:
+                    //                case BoundKind.TypeOfOperator:
+                    //                case BoundKind.IsOperator:
+                    //                case BoundKind.SizeOfOperator:
+                    //                case BoundKind.DynamicMemberAccess:
+                    //                case BoundKind.DynamicInvocation:
+                    //                case BoundKind.NewT:
+                    //                case BoundKind.DelegateCreationExpression:
+                    //                case BoundKind.ArrayCreation:
+                    //                case BoundKind.AnonymousObjectCreationExpression:
+                    //                case BoundKind.NameOfOperator:
+                    //                case BoundKind.InterpolatedString:
+                    //                case BoundKind.StringInsert:
+                    //                case BoundKind.DynamicIndexerAccess:
+                    //                case BoundKind.Lambda:
+                    //                case BoundKind.DynamicObjectCreationExpression:
+                    //                case BoundKind.NoPiaObjectCreationExpression:
+                    //                case BoundKind.BaseReference:
+                    //                case BoundKind.Literal:
+                    //                case BoundKind.IsPatternExpression:
+                    //                case BoundKind.DeconstructionAssignmentOperator:
+                    //                case BoundKind.EventAccess:
 
-                #endregion
+                    #endregion
 
-                #region "not expression that can produce a value"
-//                case BoundKind.FieldEqualsValue:
-//                case BoundKind.PropertyEqualsValue:
-//                case BoundKind.ParameterEqualsValue:
-//                case BoundKind.NamespaceExpression:
-//                case BoundKind.TypeExpression:
-//                case BoundKind.BadStatement:
-//                case BoundKind.MethodDefIndex:
-//                case BoundKind.SourceDocumentIndex:
-//                case BoundKind.ArgList:
-//                case BoundKind.ArgListOperator:
-//                case BoundKind.Block:
-//                case BoundKind.Scope:
-//                case BoundKind.NoOpStatement:
-//                case BoundKind.ReturnStatement:
-//                case BoundKind.YieldReturnStatement:
-//                case BoundKind.YieldBreakStatement:
-//                case BoundKind.ThrowStatement:
-//                case BoundKind.ExpressionStatement:
-//                case BoundKind.SwitchStatement:
-//                case BoundKind.SwitchSection:
-//                case BoundKind.SwitchLabel:
-//                case BoundKind.BreakStatement:
-//                case BoundKind.LocalFunctionStatement:
-//                case BoundKind.ContinueStatement:
-//                case BoundKind.PatternSwitchStatement:
-//                case BoundKind.PatternSwitchSection:
-//                case BoundKind.PatternSwitchLabel:
-//                case BoundKind.IfStatement:
-//                case BoundKind.DoStatement:
-//                case BoundKind.WhileStatement:
-//                case BoundKind.ForStatement:
-//                case BoundKind.ForEachStatement:
-//                case BoundKind.ForEachDeconstructStep:
-//                case BoundKind.UsingStatement:
-//                case BoundKind.FixedStatement:
-//                case BoundKind.LockStatement:
-//                case BoundKind.TryStatement:
-//                case BoundKind.CatchBlock:
-//                case BoundKind.LabelStatement:
-//                case BoundKind.GotoStatement:
-//                case BoundKind.LabeledStatement:
-//                case BoundKind.Label:
-//                case BoundKind.StatementList:
-//                case BoundKind.ConditionalGoto:
-//                case BoundKind.LocalDeclaration:
-//                case BoundKind.MultipleLocalDeclarations:
-//                case BoundKind.ArrayInitialization:
-//                case BoundKind.AnonymousPropertyDeclaration:
-//                case BoundKind.MethodGroup:
-//                case BoundKind.PropertyGroup:
-//                case BoundKind.EventAssignmentOperator:
-//                case BoundKind.Attribute:
-//                case BoundKind.FixedLocalCollectionInitializer:
-//                case BoundKind.DynamicObjectInitializerMember:
-//                case BoundKind.DynamicCollectionElementInitializer:
-//                case BoundKind.ImplicitReceiver:
-//                case BoundKind.FieldInitializer:
-//                case BoundKind.GlobalStatementInitializer:
-//                case BoundKind.TypeOrInstanceInitializers:
-//                case BoundKind.DeclarationPattern:
-//                case BoundKind.ConstantPattern:
-//                case BoundKind.WildcardPattern:
+                    #region "not expression that can produce a value"
+                    //                case BoundKind.FieldEqualsValue:
+                    //                case BoundKind.PropertyEqualsValue:
+                    //                case BoundKind.ParameterEqualsValue:
+                    //                case BoundKind.NamespaceExpression:
+                    //                case BoundKind.TypeExpression:
+                    //                case BoundKind.BadStatement:
+                    //                case BoundKind.MethodDefIndex:
+                    //                case BoundKind.SourceDocumentIndex:
+                    //                case BoundKind.ArgList:
+                    //                case BoundKind.ArgListOperator:
+                    //                case BoundKind.Block:
+                    //                case BoundKind.Scope:
+                    //                case BoundKind.NoOpStatement:
+                    //                case BoundKind.ReturnStatement:
+                    //                case BoundKind.YieldReturnStatement:
+                    //                case BoundKind.YieldBreakStatement:
+                    //                case BoundKind.ThrowStatement:
+                    //                case BoundKind.ExpressionStatement:
+                    //                case BoundKind.SwitchStatement:
+                    //                case BoundKind.SwitchSection:
+                    //                case BoundKind.SwitchLabel:
+                    //                case BoundKind.BreakStatement:
+                    //                case BoundKind.LocalFunctionStatement:
+                    //                case BoundKind.ContinueStatement:
+                    //                case BoundKind.PatternSwitchStatement:
+                    //                case BoundKind.PatternSwitchSection:
+                    //                case BoundKind.PatternSwitchLabel:
+                    //                case BoundKind.IfStatement:
+                    //                case BoundKind.DoStatement:
+                    //                case BoundKind.WhileStatement:
+                    //                case BoundKind.ForStatement:
+                    //                case BoundKind.ForEachStatement:
+                    //                case BoundKind.ForEachDeconstructStep:
+                    //                case BoundKind.UsingStatement:
+                    //                case BoundKind.FixedStatement:
+                    //                case BoundKind.LockStatement:
+                    //                case BoundKind.TryStatement:
+                    //                case BoundKind.CatchBlock:
+                    //                case BoundKind.LabelStatement:
+                    //                case BoundKind.GotoStatement:
+                    //                case BoundKind.LabeledStatement:
+                    //                case BoundKind.Label:
+                    //                case BoundKind.StatementList:
+                    //                case BoundKind.ConditionalGoto:
+                    //                case BoundKind.LocalDeclaration:
+                    //                case BoundKind.MultipleLocalDeclarations:
+                    //                case BoundKind.ArrayInitialization:
+                    //                case BoundKind.AnonymousPropertyDeclaration:
+                    //                case BoundKind.MethodGroup:
+                    //                case BoundKind.PropertyGroup:
+                    //                case BoundKind.EventAssignmentOperator:
+                    //                case BoundKind.Attribute:
+                    //                case BoundKind.FixedLocalCollectionInitializer:
+                    //                case BoundKind.DynamicObjectInitializerMember:
+                    //                case BoundKind.DynamicCollectionElementInitializer:
+                    //                case BoundKind.ImplicitReceiver:
+                    //                case BoundKind.FieldInitializer:
+                    //                case BoundKind.GlobalStatementInitializer:
+                    //                case BoundKind.TypeOrInstanceInitializers:
+                    //                case BoundKind.DeclarationPattern:
+                    //                case BoundKind.ConstantPattern:
+                    //                case BoundKind.WildcardPattern:
 
-                #endregion
+                    #endregion
 
-                #region "not found as an operand in no-error unlowered bound tree"
-//                case BoundKind.MaximumMethodDefIndex:
-//                case BoundKind.InstrumentationPayloadRoot:
-//                case BoundKind.ModuleVersionId:
-//                case BoundKind.ModuleVersionIdString:
-//                case BoundKind.Dup:
-//                case BoundKind.TypeOrValueExpression:
-//                case BoundKind.BadExpression:
-//                case BoundKind.ArrayLength:
-//                case BoundKind.MethodInfo:
-//                case BoundKind.FieldInfo:
-//                case BoundKind.SequencePoint:
-//                case BoundKind.SequencePointExpression:
-//                case BoundKind.SequencePointWithSpan:
-//                case BoundKind.StateMachineScope:
-//                case BoundKind.ConditionalReceiver:
-//                case BoundKind.ComplexConditionalReceiver:
-//                case BoundKind.PreviousSubmissionReference:
-//                case BoundKind.HostObjectMemberReference:
-//                case BoundKind.UnboundLambda:
-//                case BoundKind.LoweredConditionalAccess:
-//                case BoundKind.Sequence:
-//                case BoundKind.HoistedFieldAccess:
-//                case BoundKind.OutVariablePendingInference:
-//                case BoundKind.DeconstructionVariablePendingInference:
-//                case BoundKind.OutDeconstructVarPendingInference:
-//                case BoundKind.PseudoVariable:
+                    #region "not found as an operand in no-error unlowered bound tree"
+                    //                case BoundKind.MaximumMethodDefIndex:
+                    //                case BoundKind.InstrumentationPayloadRoot:
+                    //                case BoundKind.ModuleVersionId:
+                    //                case BoundKind.ModuleVersionIdString:
+                    //                case BoundKind.Dup:
+                    //                case BoundKind.TypeOrValueExpression:
+                    //                case BoundKind.BadExpression:
+                    //                case BoundKind.ArrayLength:
+                    //                case BoundKind.MethodInfo:
+                    //                case BoundKind.FieldInfo:
+                    //                case BoundKind.SequencePoint:
+                    //                case BoundKind.SequencePointExpression:
+                    //                case BoundKind.SequencePointWithSpan:
+                    //                case BoundKind.StateMachineScope:
+                    //                case BoundKind.ConditionalReceiver:
+                    //                case BoundKind.ComplexConditionalReceiver:
+                    //                case BoundKind.PreviousSubmissionReference:
+                    //                case BoundKind.HostObjectMemberReference:
+                    //                case BoundKind.UnboundLambda:
+                    //                case BoundKind.LoweredConditionalAccess:
+                    //                case BoundKind.Sequence:
+                    //                case BoundKind.HoistedFieldAccess:
+                    //                case BoundKind.OutVariablePendingInference:
+                    //                case BoundKind.DeconstructionVariablePendingInference:
+                    //                case BoundKind.OutDeconstructVarPendingInference:
+                    //                case BoundKind.PseudoVariable:
 
-                #endregion
+                    #endregion
             }
         }
 
@@ -2676,6 +3145,235 @@ moreArguments:
             }
 
             return true;
+        }
+
+        internal enum AddressKind
+        {
+            // reference may be written to
+            Writeable,
+
+            // reference itself will not be written to, but may be used for call, callvirt.
+            // for all purposes it is the same as Writeable, except when fetching an address of an array element
+            // where it results in a ".readonly" prefix to deal with array covariance.
+            Constrained,
+
+            // reference itself will not be written to, nor it will be used to modify fields.
+            ReadOnly,
+
+            // same as ReadOnly, but we are not supposed to get a reference to a clone
+            // regardless of compat settings.
+            ReadOnlyStrict,
+        }
+
+        internal static bool IsAnyReadOnly(AddressKind addressKind) => addressKind >= AddressKind.ReadOnly;
+
+        /// <summary>
+        /// Checks if expression directly or indirectly represents a value with its own home. In
+        /// such cases it is possible to get a reference without loading into a temporary.
+        /// </summary>
+        internal static bool HasHome(
+            BoundExpression expression,
+            AddressKind addressKind,
+            MethodSymbol method,
+            bool peVerifyCompatEnabled,
+            HashSet<LocalSymbol> stackLocalsOpt)
+        {
+            Debug.Assert(method is object);
+
+            switch (expression.Kind)
+            {
+                case BoundKind.ArrayAccess:
+                    if (addressKind == AddressKind.ReadOnly && !expression.Type.IsValueType && peVerifyCompatEnabled)
+                    {
+                        // due to array covariance getting a reference may throw ArrayTypeMismatch when element is not a struct, 
+                        // passing "readonly." prefix would prevent that, but it is unverifiable, so will make a copy in compat case
+                        return false;
+                    }
+
+                    return true;
+
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.RefValueOperator:
+                    return true;
+
+                case BoundKind.ThisReference:
+                    var type = expression.Type;
+                    if (type.IsReferenceType)
+                    {
+                        Debug.Assert(IsAnyReadOnly(addressKind), "`this` is readonly in classes");
+                        return true;
+                    }
+
+                    if (!IsAnyReadOnly(addressKind) && method.IsEffectivelyReadOnly)
+                    {
+                        return false;
+                    }
+
+                    return true;
+
+                case BoundKind.ThrowExpression:
+                    // vacuously this is true, we can take address of throw without temps
+                    return true;
+
+                case BoundKind.Parameter:
+                    return IsAnyReadOnly(addressKind) ||
+                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
+
+                case BoundKind.Local:
+                    // locals have home unless they are byval stack locals or ref-readonly
+                    // locals in a mutating call
+                    var local = ((BoundLocal)expression).LocalSymbol;
+                    return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) ||
+                        (!IsAnyReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
+
+                case BoundKind.Call:
+                    var methodRefKind = ((BoundCall)expression).Method.RefKind;
+                    return methodRefKind == RefKind.Ref ||
+                           (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
+
+                case BoundKind.Dup:
+                    //NB: Dup represents locals that do not need IL slot
+                    var dupRefKind = ((BoundDup)expression).RefKind;
+                    return dupRefKind == RefKind.Ref ||
+                        (IsAnyReadOnly(addressKind) && dupRefKind == RefKind.RefReadOnly);
+
+                case BoundKind.FieldAccess:
+                    return HasHome((BoundFieldAccess)expression, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+
+                case BoundKind.Sequence:
+                    return HasHome(((BoundSequence)expression).Value, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expression;
+                    if (!assignment.IsRef)
+                    {
+                        return false;
+                    }
+                    var lhsRefKind = assignment.Left.GetRefKind();
+                    return lhsRefKind == RefKind.Ref ||
+                        (IsAnyReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
+
+                case BoundKind.ComplexConditionalReceiver:
+                    Debug.Assert(HasHome(
+                        ((BoundComplexConditionalReceiver)expression).ValueTypeReceiver,
+                        addressKind,
+                        method,
+                        peVerifyCompatEnabled,
+                        stackLocalsOpt));
+                    Debug.Assert(HasHome(
+                        ((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver,
+                        addressKind,
+                        method,
+                        peVerifyCompatEnabled,
+                        stackLocalsOpt));
+                    goto case BoundKind.ConditionalReceiver;
+
+                case BoundKind.ConditionalReceiver:
+                    //ConditionalReceiver is a noop from Emit point of view. - it represents something that has already been pushed. 
+                    //We should never need a temp for it. 
+                    return true;
+
+                case BoundKind.ConditionalOperator:
+                    var conditional = (BoundConditionalOperator)expression;
+
+                    // only ref conditional may be referenced as a variable
+                    if (!conditional.IsRef)
+                    {
+                        return false;
+                    }
+
+                    // branch that has no home will need a temporary
+                    // if both have no home, just say whole expression has no home 
+                    // so we could just use one temp for the whole thing
+                    return HasHome(conditional.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(conditional.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Special HasHome for fields. 
+        /// Fields have readable homes when they are not constants.
+        /// Fields have writeable homes unless they are readonly and used outside of the constructor.
+        /// </summary>
+        private static bool HasHome(
+            BoundFieldAccess fieldAccess,
+            AddressKind addressKind,
+            MethodSymbol method,
+            bool peVerifyCompatEnabled,
+            HashSet<LocalSymbol> stackLocalsOpt)
+        {
+            Debug.Assert(method is object);
+
+            FieldSymbol field = fieldAccess.FieldSymbol;
+
+            // const fields are literal values with no homes. (ex: decimal.Zero)
+            if (field.IsConst)
+            {
+                return false;
+            }
+
+            // in readonly situations where ref to a copy is not allowed, consider fields as addressable
+            if (addressKind == AddressKind.ReadOnlyStrict)
+            {
+                return true;
+            }
+
+            // ReadOnly references can always be taken unless we are in peverify compat mode
+            if (addressKind == AddressKind.ReadOnly && !peVerifyCompatEnabled)
+            {
+                return true;
+            }
+
+            // Some field accesses must be values; values do not have homes.
+            if (fieldAccess.IsByValue)
+            {
+                return false;
+            }
+
+            if (!field.IsReadOnly)
+            {
+                // in a case if we have a writeable struct field with a receiver that only has a readable home we would need to pass it via a temp.
+                // it would be advantageous to make a temp for the field, not for the outer struct, since the field is smaller and we can get to is by fetching references.
+                // NOTE: this would not be profitable if we have to satisfy verifier, since for verifiability 
+                //       we would not be able to dig for the inner field using references and the outer struct will have to be copied to a temp anyways.
+                if (!peVerifyCompatEnabled)
+                {
+                    Debug.Assert(!IsAnyReadOnly(addressKind));
+
+                    var receiver = fieldAccess.ReceiverOpt;
+                    if (receiver?.Type.IsValueType == true)
+                    {
+                        // Check receiver:
+                        // has writeable home -> return true - the whole chain has writeable home (also a more common case)
+                        // has readable home -> return false - we need to copy the field
+                        // otherwise         -> return true  - the copy will be made at higher level so the leaf field can have writeable home
+
+                        return HasHome(receiver, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                            || !HasHome(receiver, AddressKind.ReadOnly, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    }
+                }
+
+                return true;
+            }
+
+            // while readonly fields have home it is not valid to refer to it when not constructing.
+            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            if (field.IsStatic)
+            {
+                return method.MethodKind == MethodKind.StaticConstructor;
+            }
+            else
+            {
+                return (method.MethodKind == MethodKind.Constructor || method.IsInitOnly) &&
+                    fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
+            }
         }
     }
 }

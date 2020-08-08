@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -18,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <WorkItem(531481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531481")>
         <Fact>
         Public Sub NestedTypeNamesShouldNotCountOuterTypes()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
-        <%= My.Resources.Resource.LongTypeName_vb %>
+        <%= SemanticResourceUtil.LongTypeName_vb %>
     </file>
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)
@@ -30,10 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <WorkItem(531481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531481")>
         <Fact>
         Public Sub NestedTypeNamesShouldNotCountOuterTypes2()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
-        <%= My.Resources.Resource.LongTypeNameNative_vb %>
+        <%= SemanticResourceUtil.LongTypeNameNative_vb %>
     </file>
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(c, <expected></expected>)
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <WorkItem(530442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
         <Fact>
         Public Sub StaticLocalWithTooLongName()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
 Imports System
@@ -75,7 +77,7 @@ BC37220: Name '$STATIC$MaximumLengthIdentifierIn2012$001$abcdefghijklmnopqrstuvw
         <WorkItem(530442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530442")>
         <Fact>
         Public Sub StaticLocalWithTooLongName2()
-            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
 Imports System

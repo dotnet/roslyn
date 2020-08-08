@@ -1,15 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Moq
 Imports Roslyn.Test.EditorUtilities
@@ -18,26 +21,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Friend Module EndConstructTestingHelpers
 
         Private Function CreateMockIndentationService() As ISmartIndentationService
-            Dim mock As New Mock(Of ISmartIndentationService)
+            Dim mock As New Mock(Of ISmartIndentationService)(MockBehavior.Strict)
             mock.Setup(Function(service) service.GetDesiredIndentation(It.IsAny(Of ITextView), It.IsAny(Of ITextSnapshotLine))).Returns(0)
             Return mock.Object
         End Function
 
-        <ThreadStatic>
-        Private t_disabledLineCommitExportProvider As ExportProvider
-
-        Private ReadOnly Property DisabledLineCommitExportProvider As ExportProvider
-            Get
-                If t_disabledLineCommitExportProvider Is Nothing Then
-                    t_disabledLineCommitExportProvider = TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic()
-                End If
-
-                Return t_disabledLineCommitExportProvider
-            End Get
-        End Property
-
         Private Sub DisableLineCommit(workspace As Workspace)
-            workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
         End Sub
 
         Private Sub VerifyTypedCharApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
@@ -47,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                            endCaretPos As Integer())
             Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
-            Using workspace = TestWorkspace.CreateVisualBasic(beforeText, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(beforeText, composition:=EditorTestCompositions.EditorFeatures)
                 DisableLineCommit(workspace)
 
                 Dim view = workspace.Documents.First().GetTextView()
@@ -64,10 +55,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Assert.Equal(after, view.TextSnapshot.GetText())
 
                 Dim actualLine As Integer
-                Dim actualCol As Integer
-                view.Caret.Position.BufferPosition.GetLineAndColumn(actualLine, actualCol)
+                Dim actualChar As Integer
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(actualLine, actualChar)
                 Assert.Equal(endCaretPos(0), actualLine)
-                Assert.Equal(endCaretPos(1), actualCol)
+                Assert.Equal(endCaretPos(1), actualChar)
             End Using
         End Sub
 
@@ -76,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                   beforeCaret As Integer(),
                                   after As String,
                                   afterCaret As Integer())
-            Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 DisableLineCommit(workspace)
 
                 Dim textView = workspace.Documents.First().GetTextView()
@@ -219,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             afterCaret As Integer())
 
             ' create separate composition
-            Using workspace = TestWorkspace.CreateVisualBasic(before, exportProvider:=DisabledLineCommitExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(before, composition:=EditorTestCompositions.EditorFeatures)
                 DisableLineCommit(workspace)
 
                 Dim view = workspace.Documents.First().GetTextView()
@@ -236,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                     workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry)())
 
                 Dim operations = factory.GetEditorOperations(view)
-                endConstructor.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() operations.InsertNewLine())
+                endConstructor.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() operations.InsertNewLine(), TestCommandExecutionContext.Create())
 
                 Assert.Equal(after, view.TextSnapshot.GetText())
 

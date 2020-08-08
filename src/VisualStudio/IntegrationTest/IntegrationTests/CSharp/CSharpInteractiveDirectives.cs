@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -14,10 +18,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyHostCommandsCompletionList()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
             VisualStudio.InteractiveWindow.InsertCode("#");
             VisualStudio.InteractiveWindow.InvokeCompletionList();
 
@@ -66,7 +69,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
                 "define");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyHashRDirective()
         {
             VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
@@ -77,7 +80,7 @@ bigInt");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("[0]");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyLocalDeclarationWithTheSameNameHidesImportedMembersFromHashR()
         {
             VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
@@ -89,7 +92,7 @@ comp.goo()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyLocalDeclarationInCsxFileWithTheSameNameHidesImportedMembersFromHashR()
         {
             VisualStudio.InteractiveWindow.SubmitText("#r \"System.Numerics\"");
@@ -106,15 +109,15 @@ comp.goo()");
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyAssembliesReferencedByDefault()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"using System.Diagnostics;
 Process.GetCurrentProcess().ProcessName");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"InteractiveHost\"");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"InteractiveHost64\"");
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyHashLoadDirective()
         {
             using (var temporaryTextFile = new TemporaryTextFile(
@@ -129,7 +132,7 @@ Process.GetCurrentProcess().ProcessName");
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifySquiggleAndErrorMessageUnderIncorrectDirective()
         {
             VisualStudio.InteractiveWindow.SubmitText("#goo");
@@ -144,7 +147,7 @@ Process.GetCurrentProcess().ProcessName");
             // VerifyErrorCount(2);
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyHashHelpDirectiveOutputNoSquigglesUnderHashHelp()
         {
             VisualStudio.InteractiveWindow.SubmitText("#help");
@@ -173,7 +176,7 @@ Script directives:
             // VerifyErrorCount(0);
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyHashCls()
         {
             VisualStudio.InteractiveWindow.SubmitText("#cls");
@@ -181,7 +184,7 @@ Script directives:
             // VerifyErrorCount(0);
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyHashReset()
         {
             VisualStudio.InteractiveWindow.SubmitText("1+1");
@@ -193,7 +196,7 @@ Loading context from");
             // VerifyErrorCount(0);
         }
 
-        [Fact]
+        [WpfFact]
         public void VerifyDisplayCommandUsageOutputNoSquigglesUnderSlashHelp()
         {
             VisualStudio.InteractiveWindow.SubmitText("#reset /help");
@@ -205,7 +208,7 @@ Loading context from");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS7010: Quoted file name expected");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8281")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/8281")]
         public void VerifyNoSquigglesErrorMessagesAndIntellisenseFeaturesContinueWorkingAfterReset()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"using static System.Console;
@@ -250,7 +253,7 @@ public static void Main(string[] args)
             // VerifyErrorCount(0);
         }
 
-        [Fact]
+        [WpfFact]
         public void WorkspaceClearedAfterReset()
         {
             VisualStudio.InteractiveWindow.SubmitText("double M() { return 13.1; }");
@@ -269,7 +272,7 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("13.2");
         }
 
-        [Fact]
+        [WpfFact]
         public void InitializationAfterReset()
         {
             VisualStudio.InteractiveWindow.SubmitText("#reset");

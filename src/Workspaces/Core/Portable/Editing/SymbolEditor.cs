@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return projectIds;
         }
 
-        private async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
+        private static async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
         {
             var project = solution.GetProject(projectId);
             if (project.SupportsCompilation)
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public async Task<IReadOnlyList<SyntaxNode>> GetCurrentDeclarationsAsync(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
-            return this.GetDeclarations(currentSymbol).ToImmutableReadOnlyListOrEmpty();
+            return this.GetDeclarations(currentSymbol).ToBoxedImmutableArray();
         }
 
         /// <summary>
@@ -262,12 +264,12 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
             {
                 editAction(e, d);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             },
             cancellationToken);
         }
 
-        private void CheckSymbolArgument(ISymbol currentSymbol, ISymbol argSymbol)
+        private static void CheckSymbolArgument(ISymbol currentSymbol, ISymbol argSymbol)
         {
             if (currentSymbol == null)
             {
@@ -315,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
-        public async Task<ISymbol> EditOneDeclarationAsync(
+        public Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             Location location,
             AsyncDeclarationEditAction editAction,
@@ -323,16 +325,10 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             var sourceTree = location.SourceTree;
 
-            var doc = _currentSolution.GetDocument(sourceTree);
+            var doc = _currentSolution.GetDocument(sourceTree) ?? _originalSolution.GetDocument(sourceTree);
             if (doc != null)
             {
-                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
-            }
-
-            doc = _originalSolution.GetDocument(sourceTree);
-            if (doc != null)
-            {
-                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
+                return EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken);
             }
 
             throw new ArgumentException("The location specified is not part of the solution.", nameof(location));
@@ -359,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 },
                 cancellationToken);
         }
@@ -442,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 },
                 cancellationToken);
         }
@@ -492,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     var newDeclaration = model.SyntaxTree.GetRoot(cancellationToken).GetCurrentNode(decl);
                     if (newDeclaration != null)
                     {
-                        var newSymbol = model.GetDeclaredSymbol(newDeclaration);
+                        var newSymbol = model.GetDeclaredSymbol(newDeclaration, cancellationToken);
                         if (newSymbol != null)
                         {
                             return newSymbol;
@@ -523,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 (e, d, c) =>
                 {
                     editAction(e, d);
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 },
                 cancellationToken);
         }

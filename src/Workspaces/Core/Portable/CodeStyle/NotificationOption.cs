@@ -1,32 +1,56 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    /// <summary>
-    /// Offers different notification styles for enforcing
-    /// a code style. Under the hood, it simply maps to <see cref="DiagnosticSeverity"/>
-    /// </summary>
-    /// <remarks>
-    /// This also supports various properties for databinding.
-    /// </remarks>
-    /// <completionlist cref="NotificationOption"/>
+    /// <inheritdoc cref="NotificationOption2"/>
     public class NotificationOption
     {
-        public string Name { get; set; }
+        private readonly NotificationOption2 _notificationOptionImpl;
 
-        public DiagnosticSeverity Value { get; set; }
-
-        public static readonly NotificationOption None = new NotificationOption(WorkspacesResources.None, DiagnosticSeverity.Hidden);
-        public static readonly NotificationOption Suggestion = new NotificationOption(WorkspacesResources.Suggestion, DiagnosticSeverity.Info);
-        public static readonly NotificationOption Warning = new NotificationOption(WorkspacesResources.Warning, DiagnosticSeverity.Warning);
-        public static readonly NotificationOption Error = new NotificationOption(WorkspacesResources.Error, DiagnosticSeverity.Error);
-
-        private NotificationOption(string name, DiagnosticSeverity severity)
+        /// <inheritdoc cref="NotificationOption2.Name"/>
+        public string Name
         {
-            Name = name;
-            Value = severity;
+            get => _notificationOptionImpl.Name;
+            set => _notificationOptionImpl.Name = value;
         }
 
-        public override string ToString() => Name;
+        /// <inheritdoc cref="NotificationOption2.Severity"/>
+        public ReportDiagnostic Severity
+        {
+            get => _notificationOptionImpl.Severity;
+            set => _notificationOptionImpl.Severity = value;
+        }
+
+        [Obsolete("Use " + nameof(Severity) + " instead.")]
+        public DiagnosticSeverity Value
+        {
+            get => Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
+            set => Severity = value.ToReportDiagnostic();
+        }
+
+        /// <inheritdoc cref="NotificationOption2.None"/>
+        public static readonly NotificationOption None = new NotificationOption(NotificationOption2.None);
+
+        /// <inheritdoc cref="NotificationOption2.Silent"/>
+        public static readonly NotificationOption Silent = new NotificationOption(NotificationOption2.Silent);
+
+        /// <inheritdoc cref="NotificationOption2.Suggestion"/>
+        public static readonly NotificationOption Suggestion = new NotificationOption(NotificationOption2.Suggestion);
+
+        /// <inheritdoc cref="NotificationOption2.Warning"/>
+        public static readonly NotificationOption Warning = new NotificationOption(NotificationOption2.Warning);
+
+        /// <inheritdoc cref="NotificationOption2.Error"/>
+        public static readonly NotificationOption Error = new NotificationOption(NotificationOption2.Error);
+
+        private NotificationOption(NotificationOption2 notificationOptionImpl)
+            => _notificationOptionImpl = notificationOptionImpl;
+
+        public override string ToString() => _notificationOptionImpl.ToString();
     }
 }

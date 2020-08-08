@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    TypeSymbol convertsFrom = op.ParameterTypes[0];
+                    TypeSymbol convertsFrom = op.GetParameterType(0);
                     TypeSymbol convertsTo = op.ReturnType;
                     Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                     Conversion toConversion = allowAnyTarget ? Conversion.Identity :
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If any of the operators in U convert from S then SX is S.
             if ((object)source != null)
             {
-                if (u.Any(conv => conv.FromType == source))
+                if (u.Any(conv => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2)))
                 {
                     return source;
                 }
@@ -351,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have previously written the appropriate "ToType" into the conversion analysis
             // to perpetuate this fiction.
 
-            if (u.Any(conv => conv.ToType == target))
+            if (u.Any(conv => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2)))
             {
                 return target;
             }
@@ -362,12 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static int LiftingCount(UserDefinedConversionAnalysis conv)
         {
             int count = 0;
-            if (conv.FromType != conv.Operator.ParameterTypes[0])
+            if (!TypeSymbol.Equals(conv.FromType, conv.Operator.GetParameterType(0), TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }
 
-            if (conv.ToType != conv.Operator.ReturnType)
+            if (!TypeSymbol.Equals(conv.ToType, conv.Operator.ReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }
@@ -377,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static int? MostSpecificConversionOperator(TypeSymbol sx, TypeSymbol tx, ImmutableArray<UserDefinedConversionAnalysis> u)
         {
-            return MostSpecificConversionOperator(conv => conv.FromType == sx && conv.ToType == tx, u);
+            return MostSpecificConversionOperator(conv => TypeSymbol.Equals(conv.FromType, sx, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(conv.ToType, tx, TypeCompareKind.ConsiderEverything2), u);
         }
 
         /// <summary>
@@ -555,20 +557,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Doesn't even exist.
                 case ConversionKind.NoConversion:
 
-                // Specifically disallowed because there would be subtle
-                // consequences for the overload betterness rules.
+                // These are conversions from expression and do not apply.
+                // Specifically disallowed because there would be subtle consequences for the overload betterness rules.
+                case ConversionKind.ImplicitDynamic:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.AnonymousFunction:
-                case ConversionKind.ImplicitDynamic:
                 case ConversionKind.InterpolatedString:
-
-                // DELIBERATE SPEC VIOLATION: 
-                // We do not support an encompassing implicit conversion from a zero constant
-                // to an enum type, because the native compiler did not.  It would be a breaking
-                // change.
+                case ConversionKind.SwitchExpression:
+                case ConversionKind.ConditionalExpression:
                 case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.StackAllocToPointerType:
+                case ConversionKind.StackAllocToSpanType:
 
-                // Not built in.
+                // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
 
@@ -579,10 +580,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
                 case ConversionKind.ExplicitDynamic:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitIntegerToPointer:
                 case ConversionKind.IntPtr:
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ExplicitTuple:
                     return false;
 
                 // Spec'd in C# 4.
@@ -592,21 +595,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
 
                 // Added to spec in Roslyn timeframe.
-                case ConversionKind.DefaultOrNullLiteral: // updated to include "default" in C# 7.1
-                case ConversionKind.NullToPointer:
+                case ConversionKind.NullLiteral:
+                case ConversionKind.ImplicitNullToPointer:
 
                 // Added for C# 7.
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitThrow:
-                    return true;
 
-                case ConversionKind.ExplicitTupleLiteral:
-                case ConversionKind.ExplicitTuple:
-                    return false;
+                // Added for C# 7.1
+                case ConversionKind.DefaultLiteral:
+                    return true;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -657,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol leftType = extract(left);
                     TypeSymbol rightType = extract(right);
-                    if (leftType == rightType)
+                    if (TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                     {
                         return BetterResult.Equal;
                     }
@@ -696,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol leftType = extract(left);
                     TypeSymbol rightType = extract(right);
-                    if (leftType == rightType)
+                    if (TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                     {
                         return BetterResult.Equal;
                     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -13,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly int _methodOrdinal;
-        private NamedTypeSymbol _currentDynamicCallSiteContainer;
+        private NamedTypeSymbol? _currentDynamicCallSiteContainer;
         private int _callSiteIdDispenser;
 
         internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal)
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicMemberInvocation(
             string name,
             BoundExpression loweredReceiver,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,
             ImmutableArray<RefKind> refKinds,
@@ -195,9 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool resultDiscarded)
         {
             _factory.Syntax = loweredReceiver.Syntax;
+            Debug.Assert(_factory.TopLevelMethod is { });
 
             CSharpBinderFlags binderFlags = 0;
-            if (hasImplicitReceiver && !_factory.TopLevelMethod.IsStatic)
+            if (hasImplicitReceiver && _factory.TopLevelMethod.RequiresInstanceReceiver)
             {
                 binderFlags |= CSharpBinderFlags.InvokeSimpleName;
             }
@@ -237,9 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Literal(name),
 
                 // type arguments:
-                typeArguments.IsDefaultOrEmpty ?
+                typeArgumentsWithAnnotations.IsDefaultOrEmpty ?
                     _factory.Null(_factory.WellKnownArrayType(WellKnownType.System_Type)) :
-                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArguments)),
+                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArgumentsWithAnnotations)),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType(),
@@ -511,13 +516,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol GetArgumentInfoFactory()
         {
-            return _factory.WellKnownMethod(WellKnownMember.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfo__Create, isOptional: false);
+            return _factory.WellKnownMethod(WellKnownMember.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfo__Create);
         }
 
-        private BoundExpression MakeBinderConstruction(WellKnownMember factoryMethod, BoundExpression[] args)
+        private BoundExpression? MakeBinderConstruction(WellKnownMember factoryMethod, BoundExpression[] args)
         {
             var binderFactory = _factory.WellKnownMember(factoryMethod);
-            if ((object)binderFactory == null)
+            if (binderFactory is null)
             {
                 return null;
             }
@@ -534,6 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //     GetS().M(d); // becomes Site(GetS(), d) without ref on the target obj arg
         internal static RefKind GetReceiverRefKind(BoundExpression loweredReceiver)
         {
+            Debug.Assert(loweredReceiver.Type is { });
             if (!loweredReceiver.Type.IsValueType)
             {
                 return RefKind.None;
@@ -564,12 +570,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames = default(ImmutableArray<string>),
             ImmutableArray<RefKind> refKinds = default(ImmutableArray<RefKind>),
-            BoundExpression loweredReceiver = null,
+            BoundExpression? loweredReceiver = null,
             RefKind receiverRefKind = RefKind.None,
             bool receiverIsStaticType = false,
-            BoundExpression loweredRight = null)
+            BoundExpression? loweredRight = null)
         {
-            const string NoName = null;
+            const string? NoName = null;
             Debug.Assert(argumentNames.IsDefaultOrEmpty || loweredArguments.Length == argumentNames.Length);
             Debug.Assert(refKinds.IsDefault || loweredArguments.Length == refKinds.Length);
             Debug.Assert(!receiverIsStaticType || receiverRefKind == RefKind.None);
@@ -600,30 +606,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal LoweredDynamicOperation MakeDynamicOperation(
-            BoundExpression binderConstruction,
-            BoundExpression loweredReceiver,
+            BoundExpression? binderConstruction,
+            BoundExpression? loweredReceiver,
             RefKind receiverRefKind,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<RefKind> refKinds,
-            BoundExpression loweredRight,
+            BoundExpression? loweredRight,
             TypeSymbol resultType)
         {
             Debug.Assert(!loweredArguments.IsDefault);
 
             // get well-known types and members we need:
-            NamedTypeSymbol delegateTypeOverMethodTypeParameters = GetDelegateType(loweredReceiver, receiverRefKind, loweredArguments, refKinds, loweredRight, resultType);
+            NamedTypeSymbol? delegateTypeOverMethodTypeParameters = GetDelegateType(loweredReceiver, receiverRefKind, loweredArguments, refKinds, loweredRight, resultType);
             NamedTypeSymbol callSiteTypeGeneric = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T);
             MethodSymbol callSiteFactoryGeneric = _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Create);
             FieldSymbol callSiteTargetFieldGeneric = (FieldSymbol)_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_CallSite_T__Target);
             MethodSymbol delegateInvoke;
 
             if (binderConstruction == null ||
-                (object)delegateTypeOverMethodTypeParameters == null ||
+                delegateTypeOverMethodTypeParameters is null ||
                 delegateTypeOverMethodTypeParameters.IsErrorType() ||
-                (object)(delegateInvoke = delegateTypeOverMethodTypeParameters.DelegateInvokeMethod) == null ||
+                (delegateInvoke = delegateTypeOverMethodTypeParameters.DelegateInvokeMethod) is null ||
                 callSiteTypeGeneric.IsErrorType() ||
-                (object)callSiteFactoryGeneric == null ||
-                (object)callSiteTargetFieldGeneric == null)
+                callSiteFactoryGeneric is null ||
+                callSiteTargetFieldGeneric is null)
             {
                 // CS1969: One or more types required to compile a dynamic expression cannot be found.
                 // Dev11 reports it with source location for each dynamic operation, which results in many error messages.
@@ -633,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LoweredDynamicOperation.Bad(loweredReceiver, loweredArguments, loweredRight, resultType);
             }
 
-            if ((object)_currentDynamicCallSiteContainer == null)
+            if (_currentDynamicCallSiteContainer is null)
             {
                 _currentDynamicCallSiteContainer = CreateCallSiteContainer(_factory, _methodOrdinal);
             }
@@ -642,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodToContainerTypeParametersMap = containerDef.TypeMap;
 
             ImmutableArray<LocalSymbol> temps = MakeTempsForDiscardArguments(ref loweredArguments);
-             
+
             var callSiteType = callSiteTypeGeneric.Construct(new[] { delegateTypeOverMethodTypeParameters });
             var callSiteFactoryMethod = callSiteFactoryGeneric.AsMember(callSiteType);
             var callSiteTargetField = callSiteTargetFieldGeneric.AsMember(callSiteType);
@@ -687,16 +693,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)
         {
+            Debug.Assert(factory.CompilationState.ModuleBuilderOpt is { });
+            Debug.Assert(factory.TopLevelMethod is { });
+            Debug.Assert(factory.CurrentFunction is { });
+
             // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
             var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, generation);
 
-            var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod);
+            var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod, factory.CurrentFunction);
             factory.AddNestedType(synthesizedContainer);
 
-            if (factory.TopLevelMethod.IsGenericMethod)
+            if (!synthesizedContainer.TypeParameters.IsEmpty)
             {
-                return synthesizedContainer.Construct(factory.TopLevelMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+                return synthesizedContainer.Construct(synthesizedContainer.ConstructedFromTypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
             }
 
             return synthesizedContainer;
@@ -709,15 +719,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var callSiteType = _factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T).Construct(new[] { delegateTypeOverContainerTypeParameters });
             var field = new SynthesizedFieldSymbol(containerDefinition, callSiteType, fieldName, isPublic: true, isStatic: true);
             _factory.AddField(containerDefinition, field);
+            Debug.Assert(_currentDynamicCallSiteContainer is { });
             return _currentDynamicCallSiteContainer.IsGenericType ? field.AsMember(_currentDynamicCallSiteContainer) : field;
         }
 
-        internal NamedTypeSymbol GetDelegateType(
-            BoundExpression loweredReceiver,
+        internal NamedTypeSymbol? GetDelegateType(
+            BoundExpression? loweredReceiver,
             RefKind receiverRefKind,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<RefKind> refKinds,
-            BoundExpression loweredRight,
+            BoundExpression? loweredRight,
             TypeSymbol resultType)
         {
             Debug.Assert(refKinds.IsDefaultOrEmpty || refKinds.Length == loweredArguments.Length);
@@ -729,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var delegateSignature = MakeCallSiteDelegateSignature(callSiteType, loweredReceiver, loweredArguments, loweredRight, resultType);
-            bool returnsVoid = resultType.SpecialType == SpecialType.System_Void;
+            bool returnsVoid = resultType.IsVoidType();
             bool hasByRefs = receiverRefKind != RefKind.None || !refKinds.IsDefaultOrEmpty;
 
             if (!hasByRefs)
@@ -776,15 +787,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int parameterCount = delegateSignature.Length - (returnsVoid ? 0 : 1);
+            Debug.Assert(_factory.CompilationState.ModuleBuilderOpt is { });
             int generation = _factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
             var synthesizedType = _factory.Compilation.AnonymousTypeManager.SynthesizeDelegate(parameterCount, byRefs, returnsVoid, generation);
             return synthesizedType.Construct(delegateSignature);
         }
 
         internal BoundExpression GetArgumentInfo(
-        MethodSymbol argumentInfoFactory,
+            MethodSymbol argumentInfoFactory,
             BoundExpression boundArgument,
-            string name,
+            string? name,
             RefKind refKind,
             bool isStaticType)
         {
@@ -799,6 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 flags |= CSharpArgumentInfoFlags.NamedArgument;
             }
+
+            Debug.Assert(refKind == RefKind.None || refKind == RefKind.Ref || refKind == RefKind.Out, "unexpected refKind in dynamic");
 
             // by-ref type doesn't trigger dynamic dispatch and it can't be a null literal => set UseCompileTimeType
             if (refKind == RefKind.Out)
@@ -846,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Check compile time type.
             // See also DynamicRewriter::GenerateCallingObjectFlags.
-            if ((object)argType != null && !argType.IsDynamic())
+            if (argType is { } && !argType.IsDynamic())
             {
                 flags |= CSharpArgumentInfoFlags.UseCompileTimeType;
             }
@@ -854,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.Call(null, argumentInfoFactory, _factory.Literal((int)flags), _factory.Literal(name));
         }
 
-        internal static ImmutableArray<BoundExpression> GetCallSiteArguments(BoundExpression callSiteFieldAccess, BoundExpression receiver, ImmutableArray<BoundExpression> arguments, BoundExpression right)
+        internal static ImmutableArray<BoundExpression> GetCallSiteArguments(BoundExpression callSiteFieldAccess, BoundExpression? receiver, ImmutableArray<BoundExpression> arguments, BoundExpression? right)
         {
             var result = new BoundExpression[1 + (receiver != null ? 1 : 0) + arguments.Length + (right != null ? 1 : 0)];
             int j = 0;
@@ -877,10 +891,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.AsImmutableOrNull();
         }
 
-        internal TypeSymbol[] MakeCallSiteDelegateSignature(TypeSymbol callSiteType, BoundExpression receiver, ImmutableArray<BoundExpression> arguments, BoundExpression right, TypeSymbol resultType)
+        internal TypeSymbol[] MakeCallSiteDelegateSignature(TypeSymbol callSiteType, BoundExpression? receiver, ImmutableArray<BoundExpression> arguments, BoundExpression? right, TypeSymbol resultType)
         {
             var systemObjectType = _factory.SpecialType(SpecialType.System_Object);
-            var result = new TypeSymbol[1 + (receiver != null ? 1 : 0) + arguments.Length + (right != null ? 1 : 0) + (resultType.SpecialType == SpecialType.System_Void ? 0 : 1)];
+            var result = new TypeSymbol[1 + (receiver != null ? 1 : 0) + arguments.Length + (right != null ? 1 : 0) + (resultType.IsVoidType() ? 0 : 1)];
             int j = 0;
 
             // CallSite:

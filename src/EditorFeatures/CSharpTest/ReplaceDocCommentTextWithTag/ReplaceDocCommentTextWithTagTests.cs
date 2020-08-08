@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWi
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System.IDisposable [||]interface.
+/// Testing keyword [||]null.
 class C<TKey>
 {
 }",
 
 @"
-/// TKey must implement the System.IDisposable <see langword=""interface""/>.
+/// Testing keyword <see langword=""null""/>.
 class C<TKey>
 {
 }");
@@ -36,13 +39,13 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System.IDisposable interface[||].
+/// Testing keyword abstract[||].
 class C<TKey>
 {
 }",
 
 @"
-/// TKey must implement the System.IDisposable <see langword=""interface""/>.
+/// Testing keyword <see langword=""abstract""/>.
 class C<TKey>
 {
 }");
@@ -53,13 +56,13 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System.IDisposable interface[||]
+/// Testing keyword static[||]
 class C<TKey>
 {
 }",
 
 @"
-/// TKey must implement the System.IDisposable <see langword=""interface""/>
+/// Testing keyword <see langword=""static""/>
 class C<TKey>
 {
 }");
@@ -70,13 +73,13 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System.IDisposable [|interface|].
+/// Testing keyword [|abstract|].
 class C<TKey>
 {
 }",
 
 @"
-/// TKey must implement the System.IDisposable <see langword=""interface""/>.
+/// Testing keyword <see langword=""abstract""/>.
 class C<TKey>
 {
 }");
@@ -87,13 +90,13 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System.IDisposable int[||]erface.
+/// Testing keyword asy[||]nc.
 class C<TKey>
 {
 }",
 
 @"
-/// TKey must implement the System.IDisposable <see langword=""interface""/>.
+/// Testing keyword <see langword=""async""/>.
 class C<TKey>
 {
 }");
@@ -408,5 +411,42 @@ class C
 }");
         }
 
+        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestNonApplicableKeyword()
+        {
+            await TestMissingAsync(
+@"
+/// Testing keyword interfa[||]ce.
+class C<TKey>
+{
+}");
+        }
+
+        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestInXMLAttribute()
+        {
+            await TestMissingAsync(
+@"
+/// Testing keyword inside <see langword =""nu[||]ll""/>
+class C
+{
+    void WriteLine<TKey>(TKey value) { }
+}");
+        }
+
+        [WorkItem(22278, "https://github.com/dotnet/roslyn/issues/22278")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestInXMLAttribute2()
+        {
+            await TestMissingAsync(
+@"
+/// Testing keyword inside <see langword =""nu[||]ll""
+class C
+{
+    void WriteLine<TKey>(TKey value) { }
+}");
+        }
     }
 }

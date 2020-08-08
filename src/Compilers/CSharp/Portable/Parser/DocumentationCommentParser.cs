@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -304,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // before doing ToString, check if 
             // all nodes contributing to ToString are recursively the same
             // NOTE: leading and trailing trivia do not contribute to ToString
-            if (!name.HasLeadingTrivia && 
+            if (!name.HasLeadingTrivia &&
                 !endName.HasTrailingTrivia &&
                 name.IsEquivalentTo(endName))
             {
@@ -1118,14 +1120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var list = _pool.AllocateSeparated<CrefParameterSyntax>();
             try
             {
-                while (CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleCrefParameter)
+                while (CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleCrefParameter())
                 {
                     list.Add(ParseCrefParameter());
 
                     if (CurrentToken.Kind != closeKind)
                     {
                         SyntaxToken comma = EatToken(SyntaxKind.CommaToken);
-                        if (!comma.IsMissing || IsPossibleCrefParameter)
+                        if (!comma.IsMissing || IsPossibleCrefParameter())
                         {
                             // Only do this if it won't be last in the list.
                             list.AddSeparator(comma);
@@ -1156,20 +1158,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// True if the current token could be the beginning of a cref parameter.
         /// </summary>
-        private bool IsPossibleCrefParameter
+        private bool IsPossibleCrefParameter()
         {
-            get
+            SyntaxKind kind = this.CurrentToken.Kind;
+            switch (kind)
             {
-                SyntaxKind kind = this.CurrentToken.Kind;
-                switch (kind)
-                {
-                    case SyntaxKind.RefKeyword:
-                    case SyntaxKind.OutKeyword:
-                    case SyntaxKind.IdentifierToken:
-                        return true;
-                    default:
-                        return SyntaxFacts.IsPredefinedType(kind);
-                }
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.IdentifierToken:
+                    return true;
+                default:
+                    return SyntaxFacts.IsPredefinedType(kind);
             }
         }
 
@@ -1181,17 +1181,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </remarks>
         private CrefParameterSyntax ParseCrefParameter()
         {
-            SyntaxToken refOrOutOpt = null;
+            SyntaxToken refKindOpt = null;
             switch (CurrentToken.Kind)
             {
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                    refOrOutOpt = EatToken();
+                case SyntaxKind.InKeyword:
+                    refKindOpt = EatToken();
                     break;
             }
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
-            return SyntaxFactory.CrefParameter(refOrOutOpt, type);
+            return SyntaxFactory.CrefParameter(refKindOpt, type);
         }
 
         /// <summary>

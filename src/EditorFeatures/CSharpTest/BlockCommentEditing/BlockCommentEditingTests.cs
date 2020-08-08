@@ -1,17 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
-using Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
 {
-    public class BlockCommentEditingTests : AbstractBlockCommentEditingTests
+    public class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
     {
         [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
@@ -139,7 +143,7 @@ $$";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             Verify(code, expected);
         }
@@ -238,7 +242,7 @@ $$*
             var expected = @"
     /*
      *
-     * $$
+     *$$
 ";
             Verify(code, expected);
         }
@@ -337,7 +341,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*
+     $$*
      */
 ";
             Verify(code, expected);
@@ -354,7 +358,7 @@ $$*
             var expected = @"
     /*
      *************
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -371,7 +375,7 @@ $$*
             var expected = @"
     /**
      *
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -387,7 +391,7 @@ $$*
             var expected = @"
     /**
       *
-      * $$
+      *$$
 ";
             Verify(code, expected);
         }
@@ -449,7 +453,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*/
+     $$*/
 ";
             Verify(code, expected);
         }
@@ -523,7 +527,7 @@ $$*";
     /*$$ ";
             var expected = @"
     /*
-     *$$";
+     * $$";
             Verify(code, expected);
         }
 
@@ -561,7 +565,7 @@ $$*";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             VerifyTabs(code, expected);
         }
@@ -677,10 +681,51 @@ $$*";
             VerifyTabs(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public void InLanguageConstructTrailingTrivia()
+        {
+            var code = @"
+class C
+{
+    int i; /*$$
+}
+";
+            var expected = @"
+class C
+{
+    int i; /*
+            * $$
+}
+";
+            Verify(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public void InLanguageConstructTrailingTrivia_Tabs()
+        {
+            var code = @"
+class C
+{
+<tab>int i; /*$$
+}
+";
+            var expected = @"
+class C
+{
+<tab>int i; /*
+<tab>        * $$
+}
+";
+            VerifyTabs(code, expected);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
             => TestWorkspace.CreateCSharp(initialMarkup);
 
-        internal override ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
-            => new BlockCommentEditingCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);
+        protected override (ReturnKeyCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
+            => (new ReturnKeyCommandArgs(textView, textBuffer), "\r\n");
+
+        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(TestWorkspace workspace)
+            => Assert.IsType<BlockCommentEditingCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(BlockCommentEditingCommandHandler)));
     }
 }

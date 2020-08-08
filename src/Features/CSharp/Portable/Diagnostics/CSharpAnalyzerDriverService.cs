@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
@@ -12,7 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
     [ExportLanguageService(typeof(IAnalyzerDriverService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpAnalyzerDriverService : IAnalyzerDriverService
     {
-        public void ComputeDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpAnalyzerDriverService()
+        {
+        }
+
+        public void ComputeDeclarationsInSpan(
+            SemanticModel model,
+            TextSpan span,
+            bool getSymbol,
+            ArrayBuilder<DeclarationInfo> builder,
+            CancellationToken cancellationToken)
         {
             CSharpDeclarationComputer.ComputeDeclarationsInSpan(model, span, getSymbol, builder, cancellationToken);
         }

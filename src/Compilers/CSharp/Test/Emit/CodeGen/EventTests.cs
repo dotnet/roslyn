@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -613,7 +615,7 @@ class D : C
 ";
 
             var ilAssemblyReference = TestReferences.SymbolsTests.Events;
-            var compilation = CreateStandardCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 VirtualEventWithRaise Raise
 D Raise
@@ -638,7 +640,7 @@ D Raise
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"
@@ -656,7 +658,7 @@ class C
     }
 }
 ";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (7,21): warning CS0067: The event 'C.e' is never used
                 //     public event E1 e;
@@ -699,7 +701,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -771,7 +773,7 @@ struct C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -834,7 +836,7 @@ class C
         remove => x = 0;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("C.E.add", @"
 {

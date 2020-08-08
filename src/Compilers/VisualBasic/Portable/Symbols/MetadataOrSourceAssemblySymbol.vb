@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -131,14 +133,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             result = IVTConclusion.NoRelationshipClaimed
 
-            'EDMAURER returns an empty list if there was no IVT attribute at all for the given name
-            'A name w/o a key is represented by a list with an entry that is empty
+            ' returns an empty list if there was no IVT attribute at all for the given name
+            ' A name w/o a key is represented by a list with an entry that is empty
             Dim publicKeys As IEnumerable(Of ImmutableArray(Of Byte)) = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(Me.Name)
 
-            'EDMAURER look for one that works, if none work, then return the failure for the last one examined.
+            ' We have an easy out here. Suppose the assembly wanting access is
+            ' being compiled as a module. You can only strong-name an assembly. So we are going to optimistically
+            ' assume that it Is going to be compiled into an assembly with a matching strong name, if necessary
+            If publicKeys.Any() AndAlso IsNetModule Then
+                Return IVTConclusion.Match
+            End If
+
+            ' look for one that works, if none work, then return the failure for the last one examined.
             For Each key In publicKeys
-                If result <> IVTConclusion.Match Then
-                    result = PerformIVTCheck(key, potentialGiverOfAccess.Identity)
+                ' We pass the public key of this assembly explicitly so PerformIVTCheck does not need
+                ' to get it from this.Identity, which would trigger an infinite recursion.
+                result = potentialGiverOfAccess.Identity.PerformIVTCheck(Me.PublicKey, key)
+
+                If result = IVTConclusion.Match Then
+                    ' Note that C# includes  OrElse result = IVTConclusion.OneSignedOneNot
+                    Exit For
                 End If
             Next
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -101,19 +103,19 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TestCompile()
         {
-            CompileAndVerify(s_tuplesTestSource,
+            CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.ReleaseDll,
-                additionalRefs: s_attributeRefs);
+                references: s_attributeRefs);
         }
 
         [Fact]
         public void TestTupleAttributes()
         {
-            var comp = CreateStandardCompilation(s_tuplesTestSource,
+            var comp = CreateCompilationWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
 
-            CompileAndVerify(comp, symbolValidator: module =>
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
             {
                 TupleAttributeValidator.ValidateTupleAttributes(module);
             });
@@ -122,7 +124,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TupleAttributeWithOnlyOneConstructor()
         {
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilationWithMscorlib40(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs + @"
 namespace System.Runtime.CompilerServices
 {
@@ -168,10 +170,10 @@ class C
         d((0, 0));
     }
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateEmptyCompilation(source1,
                 references: s_attributeRefs.Concat(new[] { ref0 }));
             comp.VerifyDiagnostics(
                 // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -204,10 +206,10 @@ class C
 {
     static (int x, int y) M() => (0, 0);
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateEmptyCompilation(source1,
                 references: new[] { ref0, ValueTupleRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -227,9 +229,10 @@ class C
         {
             ModuleSymbol sourceModule = null;
             ModuleSymbol peModule = null;
-            CompileAndVerify(s_tuplesTestSource,
+            CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                additionalRefs: s_attributeRefs,
+                references: s_attributeRefs,
+                verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
 
@@ -268,7 +271,10 @@ class C
                 case SymbolKind.Method:
                     var methodSymbol = (MethodSymbol)symbol;
                     typeSymbols.Add(methodSymbol.ReturnType);
-                    typeSymbols.AddRange(methodSymbol.ParameterTypes);
+                    foreach (var parameterType in methodSymbol.ParameterTypesWithAnnotations)
+                    {
+                        typeSymbols.Add(parameterType.Type);
+                    }
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
@@ -464,7 +470,7 @@ class C
                     {
                         false, false, false, true,
                         false, true, false, false,
-                        true, true 
+                        true, true
                     });
 
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
@@ -476,16 +482,17 @@ class C
                 var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, firstTuple.TupleElementTypes.Length);
-                var secondTuple = firstTuple.TupleElementTypes[1];
+                Assert.Equal(2, firstTuple.TupleElementTypesWithAnnotations.Length);
+                var secondTuple = firstTuple.TupleElementTypesWithAnnotations[1].Type;
                 Assert.True(secondTuple.IsTupleType);
                 Assert.True(secondTuple.TupleElementNames.IsDefault);
-                Assert.Equal(2, secondTuple.TupleElementTypes.Length);
+                Assert.Equal(2, secondTuple.TupleElementTypesWithAnnotations.Length);
 
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
                 ValidateTupleNameAttribute(field7.GetAttributes(), expectedTupleNamesAttribute: false);
-                Assert.False(field7.Type.IsTupleType);
+                Assert.True(field7.Type.IsTupleType);
+                Assert.Empty(field7.Type.TupleElementTypesWithAnnotations);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");
@@ -613,7 +620,7 @@ class C
                 {
                     var tupleAttr = synthesizedTupleElementNamesAttr.Single();
                     Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", tupleAttr.AttributeClass.ToTestDisplayString());
-                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                     if (expectedElementNames == null)
                     {
@@ -639,7 +646,7 @@ class C
         [Fact]
         public void TupleAttributeMissing()
         {
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilationWithMscorlib40(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs,
                 references: new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll);
@@ -801,7 +808,7 @@ public class C
 public struct S
 {
 }";
-            var comp = CreateStandardCompilation(text, references: s_attributeRefs);
+            var comp = CreateCompilationWithMscorlib40(text, references: s_attributeRefs);
             comp.VerifyDiagnostics(
                 // (31,2): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]
@@ -905,7 +912,7 @@ public interface I3<T>
             {
                 foreach (var t in m.GlobalNamespace.GetTypeMembers())
                 {
-                    switch(t.Name)
+                    switch (t.Name)
                     {
                         case "I1":
                         case "<Module>":
@@ -930,8 +937,8 @@ public interface I3<T>
                 }
             }
 
-            CompileAndVerify(src,
-                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerifyWithMscorlib40(src,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }
@@ -1029,8 +1036,8 @@ public interface I3 : I1<(int c, int d)> {}";
                 }
             }
 
-            CompileAndVerify(src,
-                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerifyWithMscorlib40(src,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }

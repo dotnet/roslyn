@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -44,40 +46,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
+            var typeWithAnnotations = this.TypeWithAnnotations;
+            var type = typeWithAnnotations.Type;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
+            Debug.Assert(!(_containingType is SimpleProgramNamedTypeSymbol));
             if (!_containingType.IsImplicitlyDeclared)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             }
 
             if (!this.SuppressDynamicAttribute &&
-                this.Type.ContainsDynamic() &&
+                type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
-            if (Type.ContainsTupleNames() &&
+            if (type.ContainsNativeInteger())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type));
+            }
+
+            if (type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
                     compilation.SynthesizeTupleNamesAttribute(Type));
             }
+
+            if (compilation.ShouldEmitNullableAttributes(this))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, ContainingType.GetNullableContextValue(), typeWithAnnotations));
+            }
         }
 
-        internal abstract override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+        internal abstract override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+            => FlowAnalysisAnnotations.None;
 
         public override string Name
         {
             get { return _name; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override Symbol AssociatedSymbol

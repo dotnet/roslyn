@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -40,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbol ReturnType
+            public override TypeWithAnnotations ReturnTypeWithAnnotations
             {
-                get { return this.Manager.System_Int32; }
+                get { return TypeWithAnnotations.Create(this.Manager.System_Int32); }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters

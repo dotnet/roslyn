@@ -22,9 +22,10 @@ Ref assemblies further remove metadata (private members) from metadata-only asse
 
 - A ref assembly only has references for what it needs in the API surface. The real assembly may have additional references related to specific implementations. For instance, the ref assembly for `class C { private void M() { dynamic d = 1; ... } }` does not reference any types required for `dynamic`.
 - Private function-members (methods, properties and events) are removed. If there are no `InternalsVisibleTo` attributes, do the same for internal function-members.
-- But all types (including private or nested types) are kept in ref assemblies. All attributes are kept (even internal ones).
+- But all types (including private or nested types) are kept in ref assemblies. All attributes are kept (even internal ones), as well as their (internal) constructors.
 - All virtual methods are kept. Explicit interface implementations are kept. Explicitly-implemented properties and events are kept, as their accessors are virtual (and are therefore kept).
 - All fields of a struct are kept. (This is a candidate for post-C#-7.1 refinement)
+- Any resources included on the command-line are not emitted into ref assemblies (produced either with `/refout` or `/refonly`). (This was fixed in dev16)
 
 ## API changes
 
@@ -83,7 +84,8 @@ That said, even if determinism isn't set, compilation of ref assemblies is [larg
 
 ## MSBuild
 
-* `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass `/refout:`). It requires opt-in. It is recommended that `Deterministic` also be set for best result (see details above).
+* `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass `/refout:`). It requires opt-in. It is recommended that `Deterministic` also be set for best result (see details above).  Cannot be used in conjunction with `ProduceOnlyReferenceAssembly`
+* `ProduceOnlyReferenceAssembly` (boolean) controls whether to pass `/refonly` to the compiler. It requires opt-in. Cannot be used in conjunction with `ProduceReferenceAssembly`
 * If you encounter a problem using reference assemblies, you can set the boolean property `CompileUsingReferenceAssemblies` to `false` to avoid using ref assemblies even if the projects you reference produce them. This is unset by default and only ever checked against `false`. It is only there to provide an emergency escape hatch; a customer who hits a bug can set it to `false` and avoid the new codepaths.
 
 ## Future

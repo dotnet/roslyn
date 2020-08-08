@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact()>
         Public Sub IteratorNoYields()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -47,7 +49,7 @@ End Module
 
         <Fact()>
         Public Sub BadReturnValueInIterator()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -84,7 +86,7 @@ BC36942: To return a value from an Iterator function, use 'Yield' rather than 'R
         Public Sub BadYieldInNonIteratorMethod()
 
             ' Cannot get the actual BadYieldInNonIteratorMethod error since Yield keyword is conditional.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -127,7 +129,7 @@ BC42105: Function 'goo1' doesn't return a value on all code paths. A null refere
         Public Sub YieldingUnassigned()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -202,7 +204,7 @@ End Class
         <Fact()>
         Public Sub YieldingFromTryCatchFinally()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -251,7 +253,7 @@ BC36939: 'Yield' cannot be used inside a 'Catch' statement or a 'Finally' statem
         Public Sub NoConversion()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -283,7 +285,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Exception'.
         Public Sub NotReadable()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -321,7 +323,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
         Public Sub LambdaConversions()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -352,7 +354,7 @@ End Module
         Public Sub InvalidParamType()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -382,7 +384,7 @@ BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Asy
         Public Sub EnumeratorNotImported()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -412,7 +414,7 @@ BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
         Public Sub ByRefParams()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -442,7 +444,7 @@ BC36927: Iterator methods cannot have ByRef parameters.
         Public Sub IteratorTypeWrong()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -479,7 +481,7 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
         Public Sub SubIterator()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -522,7 +524,7 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
         Public Sub StaticInIterator()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -553,7 +555,7 @@ BC36955: Static variables cannot appear inside Async or Iterator methods.
         Public Sub MiscInvalid()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -598,7 +600,7 @@ BC30218: 'Lib' expected.
         Public Sub IteratorInWrongPlaces()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -680,7 +682,7 @@ BC30201: Expression expected.
         Public Sub InferenceByrefLike()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -712,7 +714,7 @@ End Module
         Public Sub InferenceByref()
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -744,7 +746,7 @@ BC36639: 'ByRef' parameter 'x' cannot be used in a lambda expression.
 
         <Fact()>
         Public Sub InferenceErrors_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -798,7 +800,7 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
 
         <Fact()>
         Public Sub InferenceErrors_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -833,7 +835,7 @@ BC36645: Data type(s) of the type parameter(s) in method 'Public Sub baz(Of T)(x
 
         <Fact()>
         Public Sub InferenceErrors_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -863,7 +865,7 @@ End Module
 
         <Fact(), WorkItem(629565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629565")>
         Public Sub Bug629565()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -909,7 +911,7 @@ Object
 
         <Fact(), WorkItem(1006315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006315")>
         Public Sub BadAsyncSingleLineLambda()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -938,7 +940,7 @@ BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multilin
 
         <Fact(), WorkItem(1173145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173145"), WorkItem(2862, "https://github.com/dotnet/roslyn/issues/2862")>
         Public Sub CompoundAssignmentToAField()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1025,7 +1027,7 @@ Class B
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugExe) ' generate debug info
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugExe) ' generate debug info
             compilation.AssertTheseEmitDiagnostics(<expected/>)
             Dim [property] = compilation.GetMember(Of PropertySymbol)("A.P")
             Assert.True([property].GetMethod.IsIterator)

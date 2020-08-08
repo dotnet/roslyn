@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
@@ -13,7 +17,9 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using static Microsoft.Cci.SigningUtilities;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
+using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -74,7 +80,7 @@ namespace Microsoft.Cci
 
             if (!debugEntryPointHandle.IsNil)
             {
-                nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));
+                nativePdbWriterOpt?.SetEntryPoint(MetadataTokens.GetToken(debugEntryPointHandle));
             }
 
             if (nativePdbWriterOpt != null)
@@ -94,12 +100,12 @@ namespace Microsoft.Cci
                 {
 #if DEBUG
                     // validate that all definitions are writable
-                    // if same scenario would happen in an winmdobj project
+                    // if same scenario would happen in a winmdobj project
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }
 
-                nativePdbWriterOpt.WriteRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
             }
 
             Stream peStream = getPeStream();
@@ -108,7 +114,7 @@ namespace Microsoft.Cci
                 return false;
             }
 
-            BlobContentId pdbContentId = nativePdbWriterOpt?.GetContentId() ?? default(BlobContentId);
+            BlobContentId pdbContentId = nativePdbWriterOpt?.GetContentId() ?? default;
 
             // the writer shall not be used after this point for writing:
             nativePdbWriterOpt = null;
@@ -137,17 +143,27 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            var deterministicIdProvider = isDeterministic ?
-                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) :
+            var peIdProvider = isDeterministic ?
+                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSourceHash(content))) :
                 null;
 
+            // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
+            var portablePdbContentHash = default(ImmutableArray<byte>);
+
             BlobBuilder portablePdbToEmbed = null;
-            if (mdWriter.EmitStandaloneDebugMetadata)
+            if (mdWriter.EmitPortableDebugMetadata)
             {
-                mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
+
+                // The algorithm must be specified for deterministic builds (checked earlier).
+                Debug.Assert(!isDeterministic || context.Module.PdbChecksumAlgorithm.Name != null);
+
+                var portablePdbIdProvider = (context.Module.PdbChecksumAlgorithm.Name != null) ?
+                    new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(portablePdbContentHash = CryptographicHashProvider.ComputeHash(context.Module.PdbChecksumAlgorithm, content))) :
+                    null;
 
                 var portablePdbBlob = new BlobBuilder();
-                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, deterministicIdProvider);
+                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
 
@@ -168,7 +184,7 @@ namespace Microsoft.Cci
                         }
                         catch (Exception e) when (!(e is OperationCanceledException))
                         {
-                            throw new PdbWritingException(e);
+                            throw new SymUnmanagedWriterException(e.Message, e);
                         }
                     }
                 }
@@ -182,6 +198,14 @@ namespace Microsoft.Cci
                 {
                     string paddedPath = isDeterministic ? pdbPathOpt : PadPdbPath(pdbPathOpt);
                     debugDirectoryBuilder.AddCodeViewEntry(paddedPath, pdbContentId, portablePdbVersion);
+
+                    if (!portablePdbContentHash.IsDefault)
+                    {
+                        // Emit PDB Checksum entry for Portable and Embedded PDBs. The checksum is not as useful when the PDB is embedded, 
+                        // however it allows the client to efficiently validate a standalone Portable PDB that 
+                        // has been extracted from Embedded PDB and placed next to the PE file.
+                        debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name, portablePdbContentHash);
+                    }
                 }
 
                 if (isDeterministic)
@@ -200,13 +224,7 @@ namespace Microsoft.Cci
             }
 
             var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
-
             var corFlags = properties.CorFlags;
-            if (privateKeyOpt != null)
-            {
-                Debug.Assert(strongNameProvider.Capability == SigningCapability.SignsPeBuilder);
-                corFlags |= CorFlags.StrongNameSigned;
-            }
 
             var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
@@ -219,18 +237,18 @@ namespace Microsoft.Cci
                 CalculateStrongNameSignatureSize(context.Module, privateKeyOpt),
                 entryPointHandle,
                 corFlags,
-                deterministicIdProvider,
+                peIdProvider,
                 metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
-            if (privateKeyOpt != null)
-            {
-                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
-            }
-
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
+
+            if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
+            {
+                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
+            }
 
             try
             {
@@ -242,6 +260,24 @@ namespace Microsoft.Cci
             }
 
             return true;
+        }
+
+        private static MethodInfo s_calculateChecksumMethod;
+        // internal for testing
+        internal static uint CalculateChecksum(BlobBuilder peBlob, Blob checksumBlob)
+        {
+            if (s_calculateChecksumMethod == null)
+            {
+                s_calculateChecksumMethod = typeof(PEBuilder).GetRuntimeMethods()
+                    .Where(m => m.Name == "CalculateChecksum" && m.GetParameters().Length == 2)
+                    .Single();
+            }
+
+            return (uint)s_calculateChecksumMethod.Invoke(null, new object[]
+            {
+                peBlob,
+                checksumBlob,
+            });
         }
 
         private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)

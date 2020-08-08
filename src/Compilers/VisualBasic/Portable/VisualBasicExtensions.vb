@@ -1,9 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
-Imports System.ComponentModel
-Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -20,42 +20,44 @@ Namespace Microsoft.CodeAnalysis
     Public Module VisualBasicExtensions
 
         ''' <summary>
-        ''' Determines if SyntaxTrivia is a specified kind.
-        ''' </summary>        
-        '''<param name="trivia">The Source SyntaxTrivia.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
+        ''' Determines if <see cref="SyntaxTrivia"/> is of a specified kind.
+        ''' </summary>
+        ''' <param name="trivia">The source trivia.</param>
+        ''' <param name="kind">The syntax kind to test for.</param>
+        ''' <returns><see langword="true"/> if the trivia is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(trivia As SyntaxTrivia, kind As SyntaxKind) As Boolean
             Return trivia.RawKind = kind
         End Function
 
         ''' <summary>
-        ''' Determines if SyntaxToken is a specified kind.
+        ''' Determines if <see cref="SyntaxToken"/> is of a specified kind.
         ''' </summary>
-        '''<param name="token">The Source SyntaxToken.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
+        ''' <param name="token">The source token.</param>
+        ''' <param name="kind">The syntax kind to test for.</param>
+        ''' <returns><see langword="true"/> if the token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return token.RawKind = kind
         End Function
 
         ''' <summary>
-        ''' Determines if SyntaxNode is a specified kind.
+        ''' Determines if <see cref="SyntaxNode"/> is of a specified kind.
         ''' </summary>
-        ''' <param name="node">The Source SyntaxNode.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
-        ''' <returns>A boolean value if node is of specified kind; otherwise false.</returns>
+        ''' <param name="node">The Source node.</param>
+        ''' <param name="kind">The syntax kind  to test for.</param>
+        ''' <returns><see langword="true"/> if the node is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
             Return node IsNot Nothing AndAlso node.RawKind = kind
         End Function
 
         ''' <summary>
-        ''' Determines if a SyntaxNodeOrToken is a specified kind.
+        ''' Determines if <see cref="SyntaxNodeOrToken"/> is of a specified kind.
         ''' </summary>
-        ''' <param name="nodeOrToken">The source SyntaxNodeOrToken.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
-        ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
+        ''' <param name="nodeOrToken">The source node or token.</param>
+        ''' <param name="kind">The syntax kind to test for.</param>
+        ''' <returns><see langword="true"/> if the node or token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
             Return nodeOrToken.RawKind = kind
@@ -164,6 +166,11 @@ End Namespace
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Public Module VisualBasicExtensions
+        ''' <summary>
+        ''' Determines if the given raw kind value belongs to the Visual Basic <see cref="SyntaxKind"/> enumeration.
+        ''' </summary>
+        ''' <param name="rawKind">The raw value to test.</param>
+        ''' <returns><see langword="true"/> when the raw value belongs to the Visual Basic syntax kind; otherwise, <see langword="false"/>.</returns>
         Friend Function IsVisualBasicKind(rawKind As Integer) As Boolean
             Const LastPossibleVisualBasicKind As Integer = 8192
 
@@ -171,8 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxTrivia"/> nodes.
-        ''' </summary> 
+        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxTrivia"/> from <see cref="SyntaxTrivia.RawKind"/> property.
+        ''' </summary>
         <Extension>
         Public Function Kind(trivia As SyntaxTrivia) As SyntaxKind
             Dim rawKind = trivia.RawKind
@@ -181,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxToken"/> from <see cref="SyntaxToken.RawKind"/> property.
-        ''' </summary>       
+        ''' </summary>
         <Extension>
         Public Function Kind(token As SyntaxToken) As SyntaxKind
             Dim rawKind = token.RawKind
@@ -189,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxToken.RawKind"/> property.
+        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNode.RawKind"/> property.
         ''' </summary>
         <Extension>
         Public Function Kind(node As SyntaxNode) As SyntaxKind
@@ -198,8 +205,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNodeOrToken"/> from <see cref="SyntaxToken.RawKind"/> property.
-        ''' </summary>        
+        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNodeOrToken"/> from <see cref="SyntaxNodeOrToken.RawKind"/> property.
+        ''' </summary>
         <Extension>
         Public Function Kind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
             Dim rawKind = nodeOrToken.RawKind
@@ -558,7 +565,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function HandledEvents(methodSymbol As IMethodSymbol) As ImmutableArray(Of HandledEvent)
             Dim vbmethod = TryCast(methodSymbol, MethodSymbol)
-            Return vbmethod.HandledEvents
+            If vbmethod IsNot Nothing Then
+                Return vbmethod.HandledEvents
+            Else
+                Return ImmutableArray(Of HandledEvent).Empty
+            End If
         End Function
 
         <Extension>
@@ -702,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Gets the compilation RootNamespace property.
-        ''' </summary>      
+        ''' </summary>
         ''' <param name="compilation">A source Compilation object.</param>
         ''' <returns>A NamespaceSymbol instance, for the compilation instance RootNamespace property. otherwise Null if compilation instance is Null. </returns>
         <Extension>
@@ -786,7 +797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="semanticModel">A source semantic model.</param>
         ''' <param name="expression">A source expression syntax.</param>
         ''' <param name="destination">A destination TypeSymbol.</param>
-        ''' <returns>A Conversion instance, representing the kind of conversion between the expression and type symbol; otherwise Null if semantic model instance is Null.</returns>     
+        ''' <returns>A Conversion instance, representing the kind of conversion between the expression and type symbol; otherwise Null if semantic model instance is Null.</returns>
         <Extension>
         Public Function ClassifyConversion(semanticModel As SemanticModel, expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -1283,7 +1294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax 
+        ''' Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax
         ''' within <see cref="ObjectCollectionInitializerSyntax.Initializer"/>.
         ''' </summary>
         <Extension>
@@ -1369,9 +1380,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
-            Dim basicConversionExpression = TryCast(conversionExpression, BaseVisualBasicConversionExpression)
-            If basicConversionExpression IsNot Nothing Then
-                Return basicConversionExpression.ConversionInternal
+            If conversionExpression.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(conversionExpression, BaseConversionOperation).ConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
                                                           NameOf(IConversionOperation)),
@@ -1387,9 +1397,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetInConversion(argument As IArgumentOperation) As Conversion
-            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
-            If basicArgument IsNot Nothing Then
-                Return basicArgument.InConversionInternal
+            If argument.Language = LanguageNames.VisualBasic Then
+                Dim inConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgumentOperation).InConversionConvertibleOpt
+                Return If(inConversionConvertible IsNot Nothing, DirectCast(inConversionConvertible, Conversion), New Conversion(Conversions.Identity))
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
                                                           NameOf(IArgumentOperation)),
@@ -1405,9 +1415,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <exception cref="ArgumentException">If the <see cref="IArgumentOperation"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetOutConversion(argument As IArgumentOperation) As Conversion
-            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
-            If basicArgument IsNot Nothing Then
-                Return basicArgument.OutConversionInternal
+            If argument.Language = LanguageNames.VisualBasic Then
+                Dim outConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgumentOperation).OutConversionConvertibleOpt
+                Return If(outConversionConvertible IsNot Nothing, DirectCast(outConversionConvertible, Conversion), New Conversion(Conversions.Identity))
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
                                                           NameOf(IArgumentOperation)),
@@ -1428,9 +1438,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(compoundAssignment))
             End If
 
-            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
-            If basicCompoundOperation IsNot Nothing Then
-                Return basicCompoundOperation.InConversionInternal
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).InConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),
@@ -1451,9 +1460,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(compoundAssignment))
             End If
 
-            Dim basicCompoundOperation = TryCast(compoundAssignment, BaseVisualBasicCompoundAssignmentOperation)
-            If basicCompoundOperation IsNot Nothing Then
-                Return basicCompoundOperation.OutConversionInternal
+            If compoundAssignment.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).OutConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),
@@ -1648,11 +1656,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <item>
         '''     <term><see cref="FromClauseSyntax"/></term>
         '''     <description>
-        '''         Returns Select method associated with <see cref="FromClauseSyntax"/>, which has only one 
-        '''         <see cref="CollectionRangeVariableSyntax"/> and is the only query clause within 
-        '''         <see cref="QueryExpressionSyntax"/>. <see cref="SymbolInfo.None"/> otherwise. 
-        '''         The method call is injected by the compiler to make sure that query is translated to at 
-        '''         least one method call. 
+        '''         Returns Select method associated with <see cref="FromClauseSyntax"/>, which has only one
+        '''         <see cref="CollectionRangeVariableSyntax"/> and is the only query clause within
+        '''         <see cref="QueryExpressionSyntax"/>. <see cref="SymbolInfo.None"/> otherwise.
+        '''         The method call is injected by the compiler to make sure that query is translated to at
+        '''         least one method call.
         '''     </description>
         ''' </item>
         ''' <item>
@@ -1687,7 +1695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns Select method associated with <see cref="ExpressionRangeVariableSyntax"/> within a <see cref="LetClauseSyntax"/>, 
+        ''' Returns Select method associated with <see cref="ExpressionRangeVariableSyntax"/> within a <see cref="LetClauseSyntax"/>,
         ''' or <see cref="SymbolInfo.None"/> otherwise if none is.
         ''' </summary>
         <Extension>
@@ -1765,7 +1773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Analyze data-flow within an expression. 
+        ''' Analyze data-flow within an expression.
         ''' </summary>
         <Extension>
         Public Function AnalyzeDataFlow(semanticModel As SemanticModel, expression As ExpressionSyntax) As DataFlowAnalysis

@@ -1,22 +1,32 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
     Friend MustInherit Class AbstractImplementAbstractClassOrInterfaceCommandHandler
         Implements ICommandHandler(Of ReturnKeyCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
+
+        Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
+            Get
+                Return VBEditorResources.Implement_Abstract_Class_Or_Interface
+            End Get
+        End Property
 
         Protected Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService)
             _editorOperationsFactoryService = editorOperationsFactoryService
@@ -27,18 +37,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
-        Private Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
+        Private Function ExecuteCommand(args As ReturnKeyCommandArgs, context As CommandExecutionContext) As Boolean Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
             Dim caretPointOpt = args.TextView.GetCaretPoint(args.SubjectBuffer)
             If caretPointOpt Is Nothing Then
-                nextHandler()
-                Return
+                Return False
             End If
 
             ' Implement interface is not cancellable.
             Dim _cancellationToken = CancellationToken.None
             If Not TryExecute(args, _cancellationToken) Then
-                nextHandler()
-                Return
+                Return False
             End If
 
             ' It's possible that there may be an end construct to generate at this position.
@@ -53,22 +61,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             ' insert a new line.
             Dim lastNonWhitespacePosition = If(caretLine.GetLastNonWhitespacePosition(), -1)
             If lastNonWhitespacePosition > caretPosition.Position Then
-                nextHandler()
-                Return
+                Return False
             End If
 
             Dim nextLine = snapshot.GetLineFromLineNumber(caretLine.LineNumber + 1)
             If Not nextLine.IsEmptyOrWhitespace() Then
                 ' If the next line is not whitespace, we'll go ahead and pass through to insert a new line.
-                nextHandler()
-                Return
+                Return False
             End If
 
             ' If the next line *is* whitespace, we're just going to move the caret down a line.
             _editorOperationsFactoryService.GetEditorOperations(args.TextView).MoveLineDown(extendSelection:=False)
-        End Sub
 
-        Private Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
+            Return True
+        End Function
+
+        Private Shared Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
 
             Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
@@ -88,7 +96,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
             Dim endConstructGenerationService = document.GetLanguageService(Of IEndConstructGenerationService)()
 
-            Dim applicable As Boolean = False
             Return endConstructGenerationService.TryDo(args.TextView, args.SubjectBuffer, vbLf(0), cancellationToken)
         End Function
 
@@ -172,8 +179,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
-            Return nextHandler()
+        Private Function GetCommandState(args As ReturnKeyCommandArgs) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+            Return CommandState.Unspecified
         End Function
     End Class
 End Namespace

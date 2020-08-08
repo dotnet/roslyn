@@ -2,9 +2,109 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
+        <source>Adding analyzer config documents is not supported.</source>
+        <target state="translated">不支持添加分析器配置文档。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">读取指定的配置文件时出错: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_files">
+        <source>C# files</source>
+        <target state="translated">c# 文件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="translated">无法应用不在“{0}”中的操作</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
+        <source>Changing analyzer config documents is not supported.</source>
+        <target state="translated">不支持更改分析器配置文档。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_document_0_is_not_supported">
+        <source>Changing document '{0}' is not supported.</source>
+        <target state="translated">不支持更改文档“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Core_EditorConfig_Options">
+        <source>Core EditorConfig Options</source>
+        <target state="translated">Core EditorConfig 选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="translated">DateTimeKind 必须是 Utc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="translated">目标类型必须是 {0}、{1}、{2} 或 {3}，但给定类型是 {4}。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">文档不支持语法树</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="translated">读取源文件“{0}”中的内容时出错 -“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">缩进和间距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">新行首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_submission_project_can_reference_submission_projects">
+        <source>Only submission project can reference submission projects.</source>
+        <target state="translated">只有提交项目才能引用提交项目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="translated">选项并非来自指定的解决方案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="translated">项目不包含指定的引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">仅重构</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="translated">如果要从更高级别的目录继承 .editorconfig 设置，请删除以下行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
+        <source>Removing analyzer config documents is not supported.</source>
+        <target state="translated">不支持删除分析器配置文档。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">将“{0}” 重命名为“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Solution_does_not_contain_specified_reference">
+        <source>Solution does not contain specified reference</source>
+        <target state="translated">解决方案不包含指定的引用</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -82,9 +182,54 @@
         <target state="translated">不支持添加项目。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="translated">在提供的解决方案中找不到符号的项目</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="translated">将命名空间同步到文件夹结构</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="translated">项目已包含指定的引用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_already_contains_the_specified_reference">
+        <source>The solution already contains the specified reference.</source>
+        <target state="translated">解决方案已包含指定的引用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="translated">未知</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="translated">visual basic 文件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
+        <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
+        <target state="translated">添加导入将使扩展方法与 "{0}" 具有相同名称的作用域</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="translated">工作区错误</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">工作区不为空。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="translated">{0} 位于不同的项目中。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -165,11 +310,6 @@
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">解决方案已包含指定的文档。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">解决方案不包含指定的文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -267,11 +407,6 @@
         <target state="translated">{0}仍处于打开状态。</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">已存在键相同但值不同的元素。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">不能序列化具有多个维度的数组。</target>
@@ -285,11 +420,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">指定的路径必须是绝对路径。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">转换是多余的。</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
@@ -315,11 +445,6 @@
       <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
         <source>Invalid number of parameters for unary operator.</source>
         <target state="translated">参数数目对一元运算符无效。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">预期的绝对路径。</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -360,21 +485,6 @@
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">添加项:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">修复所有“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">修复“{1}”中的所有“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">修复解决方案中的所有“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -467,11 +577,6 @@
         <target state="translated">完成任务需要“{0}”类型的服务，但无法从工作区中使用这样的服务。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">提供的诊断不能为 null。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
         <source>At least one diagnostic must be supplied.</source>
         <target state="translated">必须提供至少一个诊断。</target>
@@ -552,11 +657,6 @@
         <target state="translated">此工作区不支持打开和关闭文档。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">用法:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">异常:</target>
@@ -564,7 +664,7 @@
       </trans-unit>
       <trans-unit id="_0_returned_an_uninitialized_ImmutableArray">
         <source>'{0}' returned an uninitialized ImmutableArray</source>
-        <target state="translated">'“{0}”返回一个未初始化的 ImmutableArray</target>
+        <target state="translated">“{0}”返回一个未初始化的 ImmutableArray</target>
         <note />
       </trans-unit>
       <trans-unit id="Failure">
@@ -575,26 +675,6 @@
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">警告</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">填充开关</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">应限定成员访问。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">向“{0}”报表添加大括号。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">选项不是来自工作区</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
@@ -627,110 +707,10 @@
         <target state="translated">“{0}”的反序列化读取器读取到错误数量的值。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">帕斯卡拼写法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Abstract_Method">
-        <source>Abstract Method</source>
-        <target state="translated">抽象方法</target>
-        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
       <trans-unit id="Async_Method">
         <source>Async Method</source>
         <target state="translated">异步方法</target>
         <note>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Begins_with_I">
-        <source>Begins with I</source>
-        <target state="translated">以 I 开始</target>
-        <note>{locked:I}</note>
-      </trans-unit>
-      <trans-unit id="Class">
-        <source>Class</source>
-        <target state="translated">类</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Delegate">
-        <source>Delegate</source>
-        <target state="translated">委托</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Enum">
-        <source>Enum</source>
-        <target state="translated">枚举</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Event">
-        <source>Event</source>
-        <target state="translated">事件</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Interface">
-        <source>Interface</source>
-        <target state="translated">接口</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Non_Field_Members">
-        <source>Non-Field Members</source>
-        <target state="translated">非字段成员</target>
-        <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_Method">
-        <source>Private Method</source>
-        <target state="translated">私有方法</target>
-        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Field">
-        <source>Private or Internal Field</source>
-        <target state="translated">私有或内部字段</target>
-        <note>{locked: private}{locked: internal}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Static_Field">
-        <source>Private or Internal Static Field</source>
-        <target state="translated">私有或内部静态字段</target>
-        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Property">
-        <source>Property</source>
-        <target state="translated">属性</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Public_or_Protected_Field">
-        <source>Public or Protected Field</source>
-        <target state="translated">公共或受保护的字段</target>
-        <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Static_Field">
-        <source>Static Field</source>
-        <target state="translated">静态字段</target>
-        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Static_Method">
-        <source>Static Method</source>
-        <target state="translated">静态方法</target>
-        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Struct">
-        <source>Struct</source>
-        <target state="translated">结构</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Types">
-        <source>Types</source>
-        <target state="translated">类型</target>
-        <note>{locked:types} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Method">
-        <source>Method</source>
-        <target state="translated">方法</target>
-        <note>{locked:method} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Missing_prefix_colon_0">
-        <source>Missing prefix: '{0}'</source>
-        <target state="translated">缺少前缀: {0}</target>
-        <note />
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
@@ -742,49 +722,9 @@
         <target state="translated">无</target>
         <note />
       </trans-unit>
-      <trans-unit id="Missing_suffix_colon_0">
-        <source>Missing suffix: '{0}'</source>
-        <target state="translated">缺少后缀: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
-        <source>These non-leading words must begin with an upper case letter: {0}</source>
-        <target state="translated">这些非前导字必须以大写字母开头: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">建议</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
-        <source>These non-leading words must begin with a lowercase letter: {0}</source>
-        <target state="translated">这些非前导字必须以小写字母开头: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
-        <source>These words cannot contain lower case characters: {0}</source>
-        <target state="translated">这些字不能包含小写字符: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
-        <source>These words cannot contain upper case characters: {0}</source>
-        <target state="translated">这些字不能包含大写字符: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
-        <source>These words must begin with upper case characters: {0}</source>
-        <target state="translated">这些字必须以大写字符开头: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
-        <source>The first word, '{0}', must begin with an upper case character</source>
-        <target state="translated">第一个字(“{0}”)必须以大写字符开头</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
-        <source>The first word, '{0}', must begin with a lower case character</source>
-        <target state="translated">第一个字(“{0}”)必须以小写字符开头</target>
         <note />
       </trans-unit>
       <trans-unit id="File_0_size_of_1_exceeds_maximum_allowed_size_of_2">
@@ -795,6 +735,16 @@
       <trans-unit id="Changing_document_property_is_not_supported">
         <source>Changing document properties is not supported</source>
         <target state="translated">不支持更改文档属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="dot_NET_Coding_Conventions">
+        <source>.NET Coding Conventions</source>
+        <target state="translated">.NET 编码约定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="translated">已捕获变量:</target>
         <note />
       </trans-unit>
     </body>

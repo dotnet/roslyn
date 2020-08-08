@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,6 +19,11 @@ namespace Microsoft.CodeAnalysis
         /// Gets the type of this local variable.
         /// </summary>
         ITypeSymbol Type { get; }
+
+        /// <summary>
+        /// Gets the top-level nullability of this local variable.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>
         /// Returns true if this local variable was declared as "const" (i.e. is a constant declaration).
@@ -42,9 +51,20 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the constant value of this local variable.
         /// </summary>
-        object ConstantValue { get; }
+        object? ConstantValue { get; }
 
-        // TODO: Add XML doc comment.
+        /// <summary>
+        /// Returns true if this local variable is function return variable whose name is the function's name, 
+        /// whose type is the return type of the function and whose initial value is the default of its type. 
+        /// </summary>
+        /// <remarks>
+        /// Is always false for the C# local variable
+        /// </remarks>
         bool IsFunctionValue { get; }
+
+        /// <summary>
+        /// Returns true if the local variable is declared with fixed-pointer-initializer (in unsafe context).
+        /// </summary>
+        bool IsFixed { get; }
     }
 }

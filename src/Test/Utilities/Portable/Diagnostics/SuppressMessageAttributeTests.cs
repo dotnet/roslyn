@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -108,6 +111,106 @@ namespace N4
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("N") },
                 Diagnostic("Declaration", "N2"),
                 Diagnostic("Declaration", "N3"));
+        }
+
+        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        public async Task GlobalSuppressionOnNamespaces_NamespaceAndDescendants()
+        {
+            await VerifyCSharpAsync(@"
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1"")]
+[module: SuppressMessage(""Test"", ""Declaration"", Scope=""namespaceanddescendants"", Target=""N4"")]
+
+namespace N
+{
+    namespace N1
+    {
+        namespace N2.N3
+        {
+        }
+    }
+}
+
+namespace N4
+{
+    namespace N5
+    {
+    }
+}
+
+namespace N.N1.N6.N7
+{
+}
+",
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("N") },
+                Diagnostic("Declaration", "N"));
+        }
+
+        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        public async Task GlobalSuppressionOnTypesAndNamespaces_NamespaceAndDescendants()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1.N2"")]
+[module: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N4"")]
+[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""C2"")]
+
+namespace N
+{
+    namespace N1
+    {
+        class C1
+        {
+        }
+
+        namespace N2.N3
+        {
+            class C2
+            {
+            }
+
+            class C3
+            {
+                class C4
+                {
+                }
+            }
+        }
+    }
+}
+
+namespace N4
+{
+    namespace N5
+    {
+        class C5
+        {
+        }
+    }
+
+    class C6
+    {
+    }
+}
+
+namespace N.N1.N2.N7
+{
+    class C7
+    {
+    }
+}
+";
+
+            await VerifyCSharpAsync(source,
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("N") },
+                Diagnostic("Declaration", "N"),
+                Diagnostic("Declaration", "N1"));
+
+            await VerifyCSharpAsync(source,
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("C") },
+                Diagnostic("Declaration", "C1"));
         }
 
         [Fact]
@@ -350,6 +453,23 @@ namespace A
                 Diagnostic("Token", "}").WithLocation(9, 1));
         }
 
+        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndChildDeclarationCSharp()
+        {
+            await VerifyTokenDiagnosticsCSharpAsync(@"
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope=""NamespaceAndDescendants"", Target=""A.B"")]
+namespace A
+[|{
+    namespace B
+    {
+        class C {}
+    }
+}|]
+",
+                Diagnostic("Token", "{").WithLocation(4, 1),
+                Diagnostic("Token", "}").WithLocation(9, 1));
+        }
+
         [Fact]
         public async Task SuppressSyntaxDiagnosticsOnNamespaceDeclarationBasic()
         {
@@ -370,11 +490,29 @@ End|] Namespace
                 Diagnostic("Token", "End").WithLocation(8, 1));
         }
 
-        [Fact]
-        public async Task DontSuppressSyntaxDiagnosticsInRootNamespaceBasic()
+        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndDescendantsDeclarationBasic()
         {
-            await VerifyBasicAsync(@"
-<module: System.Diagnostics.SuppressMessage(""Test"", ""Comment"", Scope:=""Namespace"", Target:=""RootNamespace"")>
+            await VerifyTokenDiagnosticsBasicAsync(@"
+<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope:=""NamespaceAndDescendants"", Target:=""A.B"")>
+Namespace [|A
+    Namespace B 
+        Class C
+        End Class
+    End Namespace
+End|] Namespace
+",
+                Diagnostic("Token", "A").WithLocation(3, 11),
+                Diagnostic("Token", "End").WithLocation(8, 1));
+        }
+
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        [InlineData("Namespace")]
+        [InlineData("NamespaceAndDescendants")]
+        public async Task DontSuppressSyntaxDiagnosticsInRootNamespaceBasic(string scope)
+        {
+            await VerifyBasicAsync($@"
+<module: System.Diagnostics.SuppressMessage(""Test"", ""Comment"", Scope:=""{scope}"", Target:=""RootNamespace"")>
 ' In root namespace
 ",
                 rootNamespace: "RootNamespace",
@@ -1129,51 +1267,11 @@ End Class
                 Diagnostic("TypeDeclaration", "C").WithLocation(9, 7));
         }
 
-        [Fact]
-        public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
-        {
-            var exceptionDiagnostics = new HashSet<Diagnostic>();
-
-            await VerifyCSharpAsync(@"
-public class C
-{
-}
-public class C1
-{
-}
-public class C2
-{
-}
-",
-                new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
-                onAnalyzerException: (ex, a, d) => exceptionDiagnostics.Add(d));
-
-            var diagnostic = Diagnostic("AD0001", null)
-                    .WithArguments(
-                        "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
-                        "System.Exception",
-                        "ThrowExceptionAnalyzer exception")
-                    .WithLocation(1, 1);
-
-            // expect 3 different diagnostics with 3 different contexts.
-            exceptionDiagnostics.Verify(diagnostic, diagnostic, diagnostic);
-        }
-
         #endregion
 
         protected async Task VerifyCSharpAsync(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics);
-        }
-
-        protected async Task VerifyCSharpAsync(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException);
-        }
-
-        protected async Task VerifyCSharpAsync(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionsAsDiagnostics, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionsAsDiagnostics);
         }
 
         protected Task VerifyTokenDiagnosticsCSharpAsync(string markup, params DiagnosticDescription[] diagnostics)
@@ -1184,7 +1282,7 @@ public class C2
         protected async Task VerifyBasicAsync(string source, string rootNamespace, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Assert.False(string.IsNullOrWhiteSpace(rootNamespace), string.Format("Invalid root namespace '{0}'", rootNamespace));
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, rootNamespace: rootNamespace);
+            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, rootNamespace: rootNamespace);
         }
 
         protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
@@ -1192,22 +1290,12 @@ public class C2
             await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics);
         }
 
-        protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException);
-        }
-
-        protected async Task VerifyBasicAsync(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionAsDiagnostics, params DiagnosticDescription[] diagnostics)
-        {
-            await VerifyAsync(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
-        }
-
         protected Task VerifyTokenDiagnosticsBasicAsync(string markup, params DiagnosticDescription[] diagnostics)
         {
             return VerifyTokenDiagnosticsAsync(markup, LanguageNames.VisualBasic, diagnostics);
         }
 
-        protected abstract Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, string rootNamespace = null);
+        protected abstract Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, string rootNamespace = null);
 
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed
         private Task VerifyTokenDiagnosticsAsync(string markup, string language, DiagnosticDescription[] diagnostics)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -20,7 +22,7 @@ Class C
 End Class
 </file></project>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single())
 
             ' CreateCompilation... method normalizes EOL chars of xml literals,
@@ -53,7 +55,7 @@ Class D
 End Class
 </file></project>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single())
 
             Dim sourceText = compilation.SyntaxTrees.Single().GetText().ToString()
@@ -69,7 +71,7 @@ Class C
 End Class
 </file></project>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single())
 
             ' CreateCompilation... method normalizes EOL chars of xml literals,
@@ -93,7 +95,7 @@ Class C
     End Sub
 End Class
 </file></project>
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim diag = compilation.GetDiagnostics().Single()
 
             Assert.Equal(DiagnosticSeverity.Warning, diag.Severity)
@@ -112,12 +114,12 @@ End Class
             Dim hidden = warning.WithSeverity(DiagnosticSeverity.Hidden)
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity)
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity)
-            Assert.Equal(4, hidden.WarningLevel)
+            Assert.Equal(1, hidden.WarningLevel)
 
             Dim info = warning.WithSeverity(DiagnosticSeverity.Info)
             Assert.Equal(DiagnosticSeverity.Info, info.Severity)
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity)
-            Assert.Equal(4, info.WarningLevel)
+            Assert.Equal(1, info.WarningLevel)
         End Sub
 
         <Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")>
@@ -227,7 +229,7 @@ End Namespace
         Public Sub CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
             Dim dict = New Dictionary(Of String, Object)
             dict.Add("1", Nothing)
-            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict))
+            Dim compilation = CreateEmptyCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
@@ -251,7 +253,7 @@ BC37285: Provided source code kind is unsupported or invalid: 'Interactive'
 
         <Fact>
         Public Sub CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
-            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, LanguageVersion)))
+            Dim compilation = CreateEmptyCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, LanguageVersion)))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC37287: Provided language version is unsupported or invalid: '10000'.
@@ -262,7 +264,7 @@ BC37287: Provided language version is unsupported or invalid: '10000'.
 
         <Fact>
         Public Sub CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
-            Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithDocumentationMode(CType(100, DocumentationMode)))
+            Dim compilation = CreateEmptyCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithDocumentationMode(CType(100, DocumentationMode)))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC37286: Provided documentation mode is unsupported or invalid: '100'.
@@ -285,7 +287,7 @@ BC37286: Provided documentation mode is unsupported or invalid: '100'.
             Dim syntaxTree3 = Parse(String.Empty, options:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict3))
 
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            Dim compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
+            Dim compilation = CreateCompilationWithMscorlib40({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
             Dim diagnostics = compilation.GetDiagnostics()
 
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
@@ -321,7 +323,7 @@ BC31030: Conditional compilation constant '3' is not valid: Identifier expected.
             Dim syntaxTree3 = Parse(String.Empty, options:=parseOptions2)
 
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            Dim compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
+            Dim compilation = CreateCompilationWithMscorlib40({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
             Dim diagnostics = compilation.GetDiagnostics()
 
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
@@ -352,7 +354,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
             Dim syntaxTree2 = Parse(String.Empty, options:=parseOptions2)
 
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, parseOptions:=parseOptions1)
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree1, syntaxTree2}, options:=options)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime({syntaxTree1, syntaxTree2}, options:=options)
             Dim diagnostics = compilation.GetDiagnostics()
 
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
@@ -363,10 +365,10 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 ~
 </errors>)
 
-            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.Equal("2", diagnostics(0).Arguments(1))
             Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree2)) ' Syntax tree parse options are reported in CompilationStage.Parse
 
-            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Equal("1", diagnostics(1).Arguments(1))
             Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 
@@ -388,7 +390,7 @@ BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
 </errors>)
 
             Dim syntaxTree = Parse(String.Empty, options:=parseOptions2)
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree}, options:=options)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime({syntaxTree}, options:=options)
             Dim diagnostics = compilation.GetDiagnostics()
 
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
@@ -399,10 +401,10 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 ~
 </errors>)
 
-            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.Equal("2", diagnostics(0).Arguments(1))
             Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree)) ' Syntax tree parse options are reported in CompilationStage.Parse
 
-            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Equal("1", diagnostics(1).Arguments(1))
             Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 
@@ -446,7 +448,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 
         <Fact>
         Public Sub TestEventQueueCompletionForEmptyCompilation()
-            Dim compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
+            Dim compilation = CreateCompilationWithMscorlib45(source:=Nothing).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
 
             ' Force complete compilation event queue
             Dim unused = compilation.GetDiagnostics()

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -18,8 +21,24 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         bool LastDesignTimeBuildSucceeded { get; set; }
         string BinOutputPath { get; set; }
 
+        /// <summary>
+        /// When this project is one of a multi-targeting group of projects, this value indicates whether or not this
+        /// particular project is the primary one.  The primary project is responsible for certain things when reporting
+        /// data from Roslyn's individual projects back to the project system itself.  For example, designer attributes
+        /// are only associated with the primary project, and should be skipped for other projects.
+        /// </summary>
+        bool IsPrimary { get; set; }
+
+        ProjectId Id { get; }
+
         // Options.
+
+        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         void SetOptions(string commandLineForOptions);
+        void SetOptions(ImmutableArray<string> arguments);
+
+        // Other project properties.
+        void SetProperty(string name, string value);
 
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);
@@ -34,6 +53,24 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RemoveSourceFile(string filePath);
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
+        void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
+        void RemoveDynamicFile(string filePath);
+
+        /// <summary>
+        /// Adds a file (like a .editorconfig) used to configure analyzers.
+        /// </summary>
+        void AddAnalyzerConfigFile(string filePath);
+
+        /// <summary>
+        /// Removes a file (like a .editorconfig) used to configure analyzers.
+        /// </summary>
+        void RemoveAnalyzerConfigFile(string filePath);
+
         void SetRuleSetFile(string filePath);
+
+        void StartBatch();
+        void EndBatch();
+
+        void ReorderSourceFiles(IEnumerable<string> filePaths);
     }
 }

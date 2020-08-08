@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Concurrent
@@ -226,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             compiler.WaitForWorkers()
 
             If moduleBeingBuiltOpt IsNot Nothing Then
-                Dim additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes()
+                Dim additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes(diagnostics)
                 If Not additionalTypes.IsEmpty Then
                     compiler.CompileSynthesizedMethods(additionalTypes)
                 End If
@@ -257,7 +259,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (compiler.GlobalHasErrors OrElse moduleBeingBuiltOpt.SourceModule.HasBadAttributes) AndAlso Not hasDeclarationErrors AndAlso Not diagnostics.HasAnyErrors Then
                     ' If there were errors but no diagnostics, explicitly add
                     ' a "Failed to emit module" error to prevent emitting.
-                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuiltOpt.SourceModule.Name)
+                    Dim messageResourceName = If(compiler.GlobalHasErrors, NameOf(CodeAnalysisResources.UnableToDetermineSpecificCauseOfFailure), NameOf(CodeAnalysisResources.ModuleHasInvalidAttributes))
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuiltOpt.SourceModule.Name,
+                        New LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, GetType(CodeAnalysisResources)))
                 End If
             End If
         End Sub
@@ -455,14 +459,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _cancellationToken.ThrowIfCancellationRequested()
 
             If Me._compilation.Options.ConcurrentBuild Then
-                Dim worker As Task = CompileNamespaceAsTask(symbol)
+                Dim worker As Task = CompileNamespaceAsync(symbol)
                 _compilerTasks.Push(worker)
             Else
                 CompileNamespace(symbol)
             End If
         End Sub
 
-        Private Function CompileNamespaceAsTask(symbol As NamespaceSymbol) As Task
+        Private Function CompileNamespaceAsync(symbol As NamespaceSymbol) As Task
             Return Task.Run(
                 UICultureUtilities.WithCurrentUICulture(
                     Sub()
@@ -487,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _cancellationToken.ThrowIfCancellationRequested()
             If PassesFilter(_filterOpt, symbol) Then
                 If Me._compilation.Options.ConcurrentBuild Then
-                    Dim worker As Task = CompileNamedTypeAsTask(symbol, _filterOpt)
+                    Dim worker As Task = CompileNamedTypeAsync(symbol, _filterOpt)
                     _compilerTasks.Push(worker)
                 Else
                     CompileNamedType(symbol, _filterOpt)
@@ -495,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CompileNamedTypeAsTask(symbol As NamedTypeSymbol, filter As Predicate(Of Symbol)) As Task
+        Private Function CompileNamedTypeAsync(symbol As NamedTypeSymbol, filter As Predicate(Of Symbol)) As Task
             Return Task.Run(
                 UICultureUtilities.WithCurrentUICulture(
                     Sub()
@@ -1507,7 +1511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optimizations = OptimizationLevel.Release
             End If
 
-            Dim builder As ILBuilder = New ILBuilder(moduleBuilder, localSlotManager, optimizations)
+            Dim builder As ILBuilder = New ILBuilder(moduleBuilder, localSlotManager, optimizations, areLocalsZeroed:=True)
 
             Try
                 Debug.Assert(Not diagnostics.HasAnyErrors)
@@ -1610,6 +1614,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       builder.RealizedSequencePoints,
                                       debugDocumentProvider,
                                       builder.RealizedExceptionHandlers,
+                                      areLocalsZeroed:=True,
+                                      hasStackalloc:=False,
                                       localScopes,
                                       hasDynamicLocalVariables:=False,
                                       importScopeOpt:=importScopeOpt,

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -8,8 +12,9 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -25,24 +30,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         {
             private readonly TestWorkspace _workspace;
             private readonly IMetadataAsSourceFileService _metadataAsSourceService;
-            private readonly ITextBufferFactoryService _textBufferFactoryService;
 
             public static TestContext Create(
-                string projectLanguage = null,
-                IEnumerable<string> metadataSources = null,
+                string? projectLanguage = null,
+                IEnumerable<string>? metadataSources = null,
                 bool includeXmlDocComments = false,
-                string sourceWithSymbolReference = null,
-                string languageVersion = null)
+                string? sourceWithSymbolReference = null,
+                string? languageVersion = null,
+                string? metadataLanguageVersion = null)
             {
-                projectLanguage = projectLanguage ?? LanguageNames.CSharp;
-                metadataSources = metadataSources ?? SpecializedCollections.EmptyEnumerable<string>();
+                projectLanguage ??= LanguageNames.CSharp;
+                metadataSources ??= SpecializedCollections.EmptyEnumerable<string>();
                 metadataSources = !metadataSources.Any()
                     ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
                     : metadataSources;
 
                 var workspace = CreateWorkspace(
-                    projectLanguage, metadataSources, includeXmlDocComments, 
-                    sourceWithSymbolReference, languageVersion);
+                    projectLanguage, metadataSources, includeXmlDocComments,
+                    sourceWithSymbolReference, languageVersion, metadataLanguageVersion);
                 return new TestContext(workspace);
             }
 
@@ -50,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             {
                 _workspace = workspace;
                 _metadataAsSourceService = _workspace.GetService<IMetadataAsSourceFileService>();
-                _textBufferFactoryService = _workspace.GetService<ITextBufferFactoryService>();
             }
 
             public Solution CurrentSolution
@@ -63,21 +67,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 get { return this.CurrentSolution.Projects.First(); }
             }
 
-            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project project = null, bool allowDecompilation = false)
+            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project? project = null, bool allowDecompilation = false)
             {
-                project = project ?? this.DefaultProject;
+                project ??= this.DefaultProject;
 
                 // Generate and hold onto the result so it can be disposed of with this context
                 return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
             }
 
-            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string symbolMetadataName = null, Project project = null, bool allowDecompilation = false)
+            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string? symbolMetadataName = null, Project? project = null, bool allowDecompilation = false)
             {
-                symbolMetadataName = symbolMetadataName ?? AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
-                project = project ?? this.DefaultProject;
+                symbolMetadataName ??= AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
+                project ??= this.DefaultProject;
 
                 // Get an ISymbol corresponding to the metadata name
-                var compilation = await project.GetCompilationAsync();
+                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
                 var diagnostics = compilation.GetDiagnostics().ToArray();
                 Assert.Equal(0, diagnostics.Length);
                 var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
@@ -88,13 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 return result;
             }
 
-            private static string GetSpaceSeparatedTokens(string source)
-            {
-                var tokens = source.Split(new[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Where(s => s != string.Empty);
-                return string.Join(" ", tokens);
-            }
-
-            public void VerifyResult(MetadataAsSourceFile file, string expected)
+            public static void VerifyResult(MetadataAsSourceFile file, string expected)
             {
                 var actual = File.ReadAllText(file.FilePath).Trim();
                 var actualSpan = file.IdentifierLocation.SourceSpan;
@@ -102,26 +100,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 // Compare exact texts and verify that the location returned is exactly that
                 // indicated by expected
                 MarkupTestFile.GetSpan(expected, out expected, out var expectedSpan);
-                Assert.Equal(expected, actual);
+                AssertEx.EqualOrDiff(expected, actual);
                 Assert.Equal(expectedSpan.Start, actualSpan.Start);
                 Assert.Equal(expectedSpan.End, actualSpan.End);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null)
             {
                 var result = await GenerateSourceAsync(symbolMetadataName, project);
                 VerifyResult(result, expected);
             }
 
-            public void VerifyDocumentReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
-            {
-                Assert.Same(a.FilePath, b.FilePath);
-            }
+            public static void VerifyDocumentReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
+                => Assert.Same(a.FilePath, b.FilePath);
 
-            public void VerifyDocumentNotReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
-            {
-                Assert.NotSame(a.FilePath, b.FilePath);
-            }
+            public static void VerifyDocumentNotReused(MetadataAsSourceFile a, MetadataAsSourceFile b)
+                => Assert.NotSame(a.FilePath, b.FilePath);
 
             public void Dispose()
             {
@@ -135,18 +129,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 }
             }
 
-            public async Task<ISymbol> ResolveSymbolAsync(string symbolMetadataName, Compilation compilation = null)
+            public async Task<ISymbol?> ResolveSymbolAsync(string symbolMetadataName, Compilation? compilation = null)
             {
                 if (compilation == null)
                 {
-                    compilation = await this.DefaultProject.GetCompilationAsync();
+                    compilation = await this.DefaultProject.GetRequiredCompilationAsync(CancellationToken.None);
                     var diagnostics = compilation.GetDiagnostics().ToArray();
                     Assert.Equal(0, diagnostics.Length);
                 }
 
                 foreach (var reference in compilation.References)
                 {
-                    var assemblySymbol = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(reference);
+                    var assemblySymbol = (IAssemblySymbol?)compilation.GetAssemblyOrModuleSymbol(reference);
+                    Contract.ThrowIfNull(assemblySymbol);
 
                     var namedTypeSymbol = assemblySymbol.GetTypeByMetadataName(symbolMetadataName);
                     if (namedTypeSymbol != null)
@@ -212,36 +207,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
 
             private static TestWorkspace CreateWorkspace(
-                string projectLanguage, IEnumerable<string> metadataSources, 
-                bool includeXmlDocComments, string sourceWithSymbolReference,
-                string languageVersion)
+                string projectLanguage,
+                IEnumerable<string>? metadataSources,
+                bool includeXmlDocComments,
+                string? sourceWithSymbolReference,
+                string? languageVersion,
+                string? metadataLanguageVersion)
             {
+                var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
+
                 var xmlString = string.Concat(@"
 <Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true""");
-
-                if (languageVersion != null)
-                {
-                    xmlString += $@" LanguageVersion=""{languageVersion}""";
-                }
+    <Project Language=""", projectLanguage, @""" CommonReferences=""true""", languageVersionAttribute);
 
                 xmlString += ">";
 
-                metadataSources = metadataSources ?? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
+                metadataSources ??= new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
 
                 foreach (var source in metadataSources)
                 {
                     var metadataLanguage = DeduceLanguageString(source);
-
-                    xmlString = string.Concat(xmlString, string.Format(@"
-        <MetadataReferenceFromSource Language=""{0}"" CommonReferences=""true"" IncludeXmlDocComments=""{2}"">
+                    var metadataLanguageVersionAttribute = metadataLanguageVersion is null ? "" : $@" LanguageVersion=""{metadataLanguageVersion}""";
+                    xmlString = string.Concat(xmlString, $@"
+        <MetadataReferenceFromSource Language=""{metadataLanguage}"" CommonReferences=""true"" {metadataLanguageVersionAttribute} IncludeXmlDocComments=""{includeXmlDocComments}"">
             <Document FilePath=""MetadataDocument"">
-{1}
+{SecurityElement.Escape(source)}
             </Document>
-        </MetadataReferenceFromSource>",
-                        metadataLanguage,
-                        SecurityElement.Escape(source),
-                        includeXmlDocComments.ToString()));
+        </MetadataReferenceFromSource>");
                 }
 
                 if (sourceWithSymbolReference != null)
@@ -262,24 +254,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             internal Document GetDocument(MetadataAsSourceFile file)
             {
-                using (var reader = new StreamReader(file.FilePath))
-                {
-                    var textBuffer = _textBufferFactoryService.CreateTextBuffer(reader, _textBufferFactoryService.TextContentType);
+                using var reader = File.OpenRead(file.FilePath);
+                var stringText = EncodedStringText.Create(reader);
 
-                    Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, textBuffer));
+                Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container));
 
-                    return textBuffer.AsTextContainer().GetRelatedDocuments().Single();
-                }
+                return stringText.Container.GetRelatedDocuments().Single();
             }
 
             internal async Task<ISymbol> GetNavigationSymbolAsync()
             {
                 var testDocument = _workspace.Documents.Single(d => d.FilePath == "SourceDocument");
-                var document = _workspace.CurrentSolution.GetDocument(testDocument.Id);
+                var document = _workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
-                var syntaxRoot = await document.GetSyntaxRootAsync();
-                var semanticModel = await document.GetSemanticModelAsync();
-                return semanticModel.GetSymbolInfo(syntaxRoot.FindNode(testDocument.SelectedSpans.Single())).Symbol;
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+                var symbol = semanticModel.GetSymbolInfo(syntaxRoot.FindNode(testDocument.SelectedSpans.Single())).Symbol;
+                Contract.ThrowIfNull(symbol);
+                return symbol;
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -61,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                        {
                                            SyntaxNode syntax = increment.Syntax;
                                            ITypeSymbol type = increment.Type;
-                                           Optional<object> constantValue = new Optional<object>(1);
+                                           var constantValue = ConstantValue.Create(1);
                                            bool isImplicit = increment.IsImplicit;
-                                           var value = new LiteralExpression(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
+                                           var value = new LiteralOperation(increment.SemanticModel, syntax, type, constantValue, isImplicit);
 
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }

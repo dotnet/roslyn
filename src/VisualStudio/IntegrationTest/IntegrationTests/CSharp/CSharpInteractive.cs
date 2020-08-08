@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -15,35 +19,35 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact]
+        [WpfFact]
         public void BclMathCall()
         {
             VisualStudio.InteractiveWindow.SubmitText("Math.Sin(1)");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("0.8414709848078965");
         }
 
-        [Fact]
+        [WpfFact]
         public void BclConsoleCall()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"Console.WriteLine(""Hello, World!"");");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("Hello, World!");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatement()
         {
             VisualStudio.InteractiveWindow.SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains($"{81}");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForEachStatement()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains(@"c:\windows\win.ini");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopLevelMethod()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"int Fac(int x)
@@ -54,7 +58,7 @@ Fac(4)");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput($"{24}");
         }
 
-        [Fact]
+        [WpfFact]
         public async Task WpfInteractionAsync()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"#r ""WindowsBase""
@@ -93,10 +97,9 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19232")]
+        [WpfFact]
         public void TypingHelpDirectiveWorks()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
             VisualStudio.InteractiveWindow.ShowWindow(waitForPrompt: true);
 
             // Directly type #help, rather than sending it through VisualStudio.InteractiveWindow.SubmitText. We want to actually test

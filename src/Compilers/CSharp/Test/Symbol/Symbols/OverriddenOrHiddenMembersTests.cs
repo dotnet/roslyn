@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -67,7 +69,7 @@ class D : B<D>
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var global = comp.GlobalNamespace;
 
@@ -113,14 +115,14 @@ class D : B<D>
             AssertSame(1, D_MofV.OverriddenOrHiddenMembers.OverriddenMembers.Length);
             Assert.Equal(D_MofV.OverriddenMethod, BofD_MofU);
             // ... but the "original" overridden method of D.M<V> is B<D>.M<V>
-            Assert.Equal(D_MofV.GetConstructedLeastOverriddenMethod(D), BofD_MofV);
+            Assert.Equal(D_MofV.GetConstructedLeastOverriddenMethod(D, requireSameReturnType: false), BofD_MofV);
 
             // D.M<D> overrides nothing, since it is constructed...
             Assert.Null(D_MofD.OverriddenMethod);
             // ... and the overridden members count is zero if the overridden method is null...
             AssertSame(0, D_MofD.OverriddenOrHiddenMembers.OverriddenMembers.Length);
             // ... but the original overridden method is B<D>.M<D>
-            Assert.Equal(D_MofD.GetConstructedLeastOverriddenMethod(D), BofD_MofD);
+            Assert.Equal(D_MofD.GetConstructedLeastOverriddenMethod(D, requireSameReturnType: false), BofD_MofD);
         }
 
         [Fact]
@@ -154,7 +156,7 @@ class Out3 : Out2
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var global = comp.GlobalNamespace;
 
@@ -235,7 +237,7 @@ interface DerivedInterface2 : BaseInterface2, BaseInterface1
     int Property { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseInterface1 = (NamedTypeSymbol)global.GetMembers("BaseInterface1").Single();
@@ -269,22 +271,18 @@ interface DerivedInterface2 : BaseInterface2, BaseInterface1
 
             var derivedInterface1MethodOverriddenOrHidden = derivedInterface1Method.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1MethodOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1MethodOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface1MethodOverriddenOrHidden.HiddenMembers, baseInterface1Method, baseInterface2Method);
 
             var derivedInterface1PropertyOverriddenOrHidden = derivedInterface1Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface1PropertyOverriddenOrHidden.HiddenMembers, baseInterface1Property, baseInterface2Property);
 
             var derivedInterface2MethodOverriddenOrHidden = derivedInterface2Method.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2MethodOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2MethodOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface2MethodOverriddenOrHidden.HiddenMembers, baseInterface1Method, baseInterface2Method);
 
             var derivedInterface2PropertyOverriddenOrHidden = derivedInterface2Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             AssertEx.SetEqual(derivedInterface2PropertyOverriddenOrHidden.HiddenMembers, baseInterface1Property, baseInterface2Property);
 
             Assert.Null(baseInterface1Method.OverriddenMethod);
@@ -330,7 +328,7 @@ interface DerivedInterface2 : BaseInterface2<int>, BaseInterface1<int>
     int Property { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseInterface1 = (NamedTypeSymbol)global.GetMembers("BaseInterface1").Single();
@@ -368,22 +366,18 @@ interface DerivedInterface2 : BaseInterface2<int>, BaseInterface1<int>
 
             var derivedInterface1MethodIntOverriddenOrHidden = derivedInterface1MethodInt.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1MethodIntOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1MethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(4, derivedInterface1MethodIntOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedInterface1PropertyOverriddenOrHidden = derivedInterface1Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface1PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(2, derivedInterface1PropertyOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedInterface2MethodIntOverriddenOrHidden = derivedInterface2MethodInt.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2MethodIntOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2MethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(4, derivedInterface2MethodIntOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedInterface2PropertyOverriddenOrHidden = derivedInterface2Property.OverriddenOrHiddenMembers;
             Assert.False(derivedInterface2PropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedInterface2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(2, derivedInterface2PropertyOverriddenOrHidden.HiddenMembers.Length);
 
             Assert.Null(baseInterface1MethodT.OverriddenMethod);
@@ -415,7 +409,7 @@ class DerivedClass : BaseClass
     public int Property { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -435,12 +429,10 @@ class DerivedClass : BaseClass
 
             var derivedClassMethodOverriddenOrHidden = derivedClassMethod.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassMethodOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Same(baseClassMethod, derivedClassMethodOverriddenOrHidden.HiddenMembers.Single());
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.HiddenMembers.Single());
 
             Assert.Null(baseClassMethod.OverriddenMethod);
@@ -468,7 +460,7 @@ class DerivedClass : BaseClass<int>
     public int Property { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -490,12 +482,10 @@ class DerivedClass : BaseClass<int>
 
             var derivedClassMethodIntOverriddenOrHidden = derivedClassMethodInt.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodIntOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassMethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(2, derivedClassMethodIntOverriddenOrHidden.HiddenMembers.Length);
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Equal(1, derivedClassPropertyOverriddenOrHidden.HiddenMembers.Length);
 
             Assert.Null(baseClassMethodT.OverriddenMethod);
@@ -557,27 +547,22 @@ class DerivedClass : BaseClass
             var derivedClassMethodOverriddenOrHidden = derivedClassMethod.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassMethod, derivedClassMethodOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassMethod, derivedClassMethodOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassProperty, derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassRefMethodOverriddenOrHidden = derivedClassRefMethod.OverriddenOrHiddenMembers;
             Assert.False(derivedClassRefMethodOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassRefMethod, derivedClassRefMethodOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassRefMethod, derivedClassRefMethodOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassRefPropertyOverriddenOrHidden = derivedClassRefProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassRefPropertyOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassRefProperty, derivedClassRefPropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassRefProperty, derivedClassRefPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             var derivedClassRefIndexerOverriddenOrHidden = derivedClassRefIndexer.OverriddenOrHiddenMembers;
             Assert.False(derivedClassRefIndexerOverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(baseClassRefIndexer, derivedClassRefIndexerOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseClassRefIndexer, derivedClassRefIndexerOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             Assert.Null(baseClassMethod.OverriddenMethod);
             Assert.Null(baseClassProperty.OverriddenProperty);
@@ -611,7 +596,7 @@ abstract class DerivedClass : BaseClass<int, long>
     public override int GetHashCode() { return 1; }
     public override bool Equals(object obj) { return true; }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var system = comp.GlobalNamespace.GetNestedNamespace("System");
 
@@ -634,22 +619,18 @@ abstract class DerivedClass : BaseClass<int, long>
             var baseClassToStringOverriddenOrHidden = baseClassToString.OverriddenOrHiddenMembers;
             Assert.False(baseClassToStringOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, baseClassToStringOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, baseClassToStringOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var baseClassGetHashCodeOverriddenOrHidden = baseClassGetHashCode.OverriddenOrHiddenMembers;
             Assert.False(baseClassGetHashCodeOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, baseClassGetHashCodeOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, baseClassGetHashCodeOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var derivedClassEqualsOverriddenOrHidden = derivedClassEquals.OverriddenOrHiddenMembers;
             Assert.False(derivedClassEqualsOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, derivedClassEqualsOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, derivedClassEqualsOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var derivedClassGetHashCodeOverriddenOrHidden = derivedClassGetHashCode.OverriddenOrHiddenMembers;
             Assert.False(derivedClassGetHashCodeOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(1, derivedClassGetHashCodeOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(1, derivedClassGetHashCodeOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             Assert.Same(objectToString, baseClassToString.OverriddenMethod);
             Assert.Same(objectGetHashCode, baseClassGetHashCode.OverriddenMethod);
@@ -677,7 +658,7 @@ class DerivedClass : BaseClass<int, long>
     public override int Property { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -702,11 +683,9 @@ class DerivedClass : BaseClass<int, long>
             var derivedClassMethodIntOverriddenOrHidden = derivedClassMethodParams.OverriddenOrHiddenMembers;
             Assert.False(derivedClassMethodIntOverriddenOrHidden.HiddenMembers.Any());
             Assert.Equal(2, derivedClassMethodIntOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(3, derivedClassMethodIntOverriddenOrHidden.RuntimeOverriddenMembers.Length);
 
             var derivedClassPropertyOverriddenOrHidden = derivedClassProperty.OverriddenOrHiddenMembers;
             Assert.False(derivedClassPropertyOverriddenOrHidden.HiddenMembers.Any());
-            Assert.Equal(1, derivedClassPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(1, derivedClassPropertyOverriddenOrHidden.OverriddenMembers.Length);
 
             Assert.Null(baseClassMethod1.OverriddenMethod);
@@ -750,15 +729,15 @@ class OverridingClass : HidingClass
 }
 ";
 
-            var comp1 = CreateStandardCompilation(text1);
+            var comp1 = CreateCompilation(text1);
             var comp1ref = new CSharpCompilationReference(comp1);
             var refs = new System.Collections.Generic.List<MetadataReference>() { comp1ref };
 
-            var comp2 = CreateStandardCompilation(text2, references: refs, assemblyName: "Test2");
+            var comp2 = CreateCompilation(text2, references: refs, assemblyName: "Test2");
             var comp2ref = new CSharpCompilationReference(comp2);
 
             refs.Add(comp2ref);
-            var comp = CreateStandardCompilation(text3, refs, assemblyName: "Test3");
+            var comp = CreateCompilation(text3, refs, assemblyName: "Test3");
 
             var global = comp.GlobalNamespace;
 
@@ -783,7 +762,6 @@ class OverridingClass : HidingClass
 
             var overridingClassMethod1OverriddenOrHidden = overridingClassMethod1.OverriddenOrHiddenMembers;
             Assert.False(overridingClassMethod1OverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(overridingClassMethod1OverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Same(hidingClassMethod1, overridingClassMethod1OverriddenOrHidden.HiddenMembers.Single());
             Assert.Null(overridingClassMethod1.OverriddenMethod);
 
@@ -791,19 +769,16 @@ class OverridingClass : HidingClass
             var overridingClassMethod2OverriddenOrHidden = overridingClassMethod2.OverriddenOrHiddenMembers;
             Assert.False(overridingClassMethod2OverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(hidingClassMethod2, overridingClassMethod2OverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(hidingClassMethod2, overridingClassMethod2OverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Null(overridingClassMethod2.OverriddenMethod);
 
             var overridingClassProperty1OverriddenOrHidden = overridingClassProperty1.OverriddenOrHiddenMembers;
             Assert.False(overridingClassProperty1OverriddenOrHidden.OverriddenMembers.Any());
-            Assert.False(overridingClassProperty1OverriddenOrHidden.RuntimeOverriddenMembers.Any());
             Assert.Null(overridingClassProperty1.OverriddenProperty);
 
             //counts as overriding even though the overridden property isn't virtual - we'll check for that later
             var overridingClassProperty2OverriddenOrHidden = overridingClassProperty2.OverriddenOrHiddenMembers;
             Assert.False(overridingClassProperty2OverriddenOrHidden.HiddenMembers.Any());
             Assert.Same(hidingClassProperty2, overridingClassProperty2OverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(hidingClassProperty2, overridingClassProperty2OverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Null(overridingClassProperty2.OverriddenProperty);
         }
 
@@ -881,7 +856,7 @@ class Base4 : Base3
 {
     public override int Property { set { } }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4", "Base3.Method(int, long)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4", "Base2.Method(int)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4", "Base.Property.get"));
@@ -917,7 +892,7 @@ class CustomModifierOverridingE : CustomModifierOverridingD
 ";
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             Assert.False(comp.GetDiagnostics().Any());
@@ -968,7 +943,6 @@ class CustomModifierOverridingE : CustomModifierOverridingD
             var classEMethod1OverriddenOrHiddenMembers = classEMethod1.OverriddenOrHiddenMembers;
             Assert.False(classEMethod1OverriddenOrHiddenMembers.HiddenMembers.Any());
             Assert.Same(classDMethod1, classEMethod1OverriddenOrHiddenMembers.OverriddenMembers.Single());
-            Assert.Same(classDMethod1, classEMethod1OverriddenOrHiddenMembers.RuntimeOverriddenMembers.Single());
 
             //no match, so apply tie breakers:
             // 1) prefer more derived (leaves classDMethod2)
@@ -977,7 +951,6 @@ class CustomModifierOverridingE : CustomModifierOverridingD
             var classEMethod2OverriddenOrHiddenMembers = classEMethod2.OverriddenOrHiddenMembers;
             Assert.False(classEMethod2OverriddenOrHiddenMembers.HiddenMembers.Any());
             Assert.Same(classDMethod2, classEMethod2OverriddenOrHiddenMembers.OverriddenMembers.Single());
-            Assert.Same(classDMethod2, classEMethod2OverriddenOrHiddenMembers.RuntimeOverriddenMembers.Single());
         }
 
         /// <summary>
@@ -1019,7 +992,7 @@ class Derived : Base
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1033,7 +1006,6 @@ class Derived : Base
 
             var overriddenOrHidden = derivedMethod.OverriddenOrHiddenMembers;
             Assert.Equal(baseMethod1, overriddenOrHidden.OverriddenMembers.Single());
-            Assert.Equal(baseMethod1, overriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Equal(0, overriddenOrHidden.HiddenMembers.Length);
         }
 
@@ -1089,7 +1061,7 @@ class Derived : Base
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1104,12 +1076,10 @@ class Derived : Base
 
             var overriddenOrHidden1 = derivedMethod1.OverriddenOrHiddenMembers;
             Assert.Equal(firstBaseMethod1, overriddenOrHidden1.OverriddenMembers.Single());
-            Assert.Equal(firstBaseMethod1, overriddenOrHidden1.RuntimeOverriddenMembers.Single());
             Assert.Equal(0, overriddenOrHidden1.HiddenMembers.Length);
 
             var overriddenOrHidden2 = derivedMethod2.OverriddenOrHiddenMembers;
             Assert.Equal(firstBaseMethod2, overriddenOrHidden2.OverriddenMembers.Single());
-            Assert.Equal(firstBaseMethod2, overriddenOrHidden2.RuntimeOverriddenMembers.Single());
             Assert.Equal(0, overriddenOrHidden2.HiddenMembers.Length);
         }
 
@@ -1135,7 +1105,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text)
+            CreateCompilation(text)
                 .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c2.P1").WithArguments("TestClass2.P1"));
         }
 
@@ -1160,7 +1130,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
         }
 
@@ -1178,7 +1148,7 @@ public class Derived1 : Base
     public override long Property1 { get { return 0; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
         }
 
@@ -1207,7 +1177,7 @@ public class CSClass : Metadata.VBClass02
 ";
             #endregion
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text1,
                 references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBClasses02 },
                 assemblyName: "OHI_OverrideSealNotVisibleMember001",
@@ -1244,7 +1214,7 @@ class CSHide : VBIMeth02Impl, IMeth02, IMeth03
 ";
             #endregion
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 text1,
                 references: new[]
                 {
@@ -1280,7 +1250,7 @@ abstract class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
@@ -1294,7 +1264,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.NoneAbstract.set'
                 // class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.set"),
@@ -1342,7 +1312,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override int NoneNone { get { return 0; } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1441,7 +1411,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override int NoneNone { set { } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1562,7 +1532,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
@@ -1576,7 +1546,7 @@ abstract class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new[] { TestReferences.SymbolsTests.Events };
-            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
@@ -1590,7 +1560,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Events };
-            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.NoneAbstract.remove'
                 // class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.remove"),
@@ -1640,7 +1610,7 @@ class Derived : AccessorModifierMismatch
 ";
             // ACASEY: these are not exactly the errors that Dev10 produces, but they seem sensible.
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Events };
-            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,41): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override event System.Action NoneNone { add { } remove { } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1754,7 +1724,7 @@ class Derived : AccessorModifierMismatch
     // Failed to implement AddAbstract
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.AbstractSealed.add'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.AbstractSealed.add"));
 
@@ -1765,7 +1735,7 @@ class Derived : AccessorModifierMismatch
     public override void AddAbstract(System.Action a) { }
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (5,26): error CS0115: 'Derived.AddAbstract(System.Action)': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "AddAbstract").WithArguments("Derived.AddAbstract(System.Action)"),
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.AbstractSealed.add'
@@ -1778,7 +1748,7 @@ class Derived : AccessorModifierMismatch
     public override event System.Action AbstractSealed { add { } }
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (5,41): error CS0065: 'Derived.AbstractSealed': event property must have both add and remove accessors
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "AbstractSealed").WithArguments("Derived.AbstractSealed"),
                 // (5,41): error CS0239: 'Derived.AbstractSealed': cannot override inherited member 'AccessorModifierMismatch.AbstractSealed' because it is sealed
@@ -1791,7 +1761,7 @@ class Derived : AccessorModifierMismatch
     public override event System.Action AbstractSealed { add { } remove { } }
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (5,41): error CS0239: 'Derived.AbstractSealed': cannot override inherited member 'AccessorModifierMismatch.AbstractSealed' because it is sealed
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "AbstractSealed").WithArguments("Derived.AbstractSealed", "AccessorModifierMismatch.AbstractSealed"));
         }
@@ -1844,7 +1814,7 @@ public class MainClass
     public static void Main() { }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
 
@@ -1887,7 +1857,7 @@ namespace A
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
 
@@ -1913,7 +1883,7 @@ public class TestClass3 : TestClass2
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"),
                 Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("TestClass3.P2.get", "TestClass2.P2"),
@@ -1938,7 +1908,7 @@ class B2 : B1, I1
     private new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1966,7 +1936,7 @@ class B2 : B1, I1
     public static new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1994,7 +1964,7 @@ class B2 : B1, I1
     public new float Goo { get { return 1; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -2022,7 +1992,7 @@ class B2 : B1, I1
     private new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,16): error CS0737: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement an interface member because it is not public.
                 // class B2 : B1, I1
@@ -2051,7 +2021,7 @@ class B2 : B1, I1
     public static new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,16): error CS0736: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement an interface member because it is static.
                 // class B2 : B1, I1
@@ -2091,7 +2061,7 @@ class B3 : I
 {
     public static void M<T>() { }
 }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (5,15): error CS0736: 'B2' does not implement interface member 'I.M<T>()'. 'A.M<T>()' cannot implement an interface member because it is static.
                 // class B2 : A, I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I").WithArguments("B2", "I.M<T>()", "A.M<T>()").WithLocation(5, 15),
@@ -2118,7 +2088,7 @@ class B2 : B1, I1
     public new float Goo { get { return 1; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,16): error CS0738: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement 'I1.Goo' because it does not have the matching return type of 'int'.
                 // class B2 : B1, I1
@@ -2139,13 +2109,13 @@ enum E
     Equals
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(543448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543448")]
         public void GenericMethodsHidingFieldsAndEvents()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Base
 {
     public int A = 1;
@@ -2186,7 +2156,7 @@ class Sub : Base
     public void C<T>() { }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,17): warning CS0108: 'Sub.A<T>()' hides inherited member 'Base.A'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "A").WithArguments("Sub.A<T>()", "Base.A"),
                 // (12,17): warning CS0108: 'Sub.B<T>()' hides inherited member 'Base.B'. Use the new keyword if hiding was intended.
@@ -2202,7 +2172,7 @@ class Sub : Base
         [Fact]
         public void OverrideMemberOfConstructedProtectedInnerClass()
         {
-            var c1 = CreateStandardCompilation(@"
+            var c1 = CreateCompilation(@"
 public class Outer1<T>
 {
     protected abstract class Inner1
@@ -2216,7 +2186,7 @@ public class Outer1<T>
     }
 }
 ");
-            var c2 = CreateStandardCompilation(@"
+            var c2 = CreateCompilation(@"
 internal class Outer2 : Outer1<Outer2>
 {
         private class Inner3 : Inner2 {}
@@ -2231,7 +2201,7 @@ internal class Outer2 : Outer1<Outer2>
         [Fact]
         public void Repro11967()
         {
-            var c1 = CreateStandardCompilation(@"
+            var c1 = CreateCompilation(@"
 
 using System.Collections.Generic;
 
@@ -2257,7 +2227,7 @@ public abstract partial class AbstractGenerateMethodService<TService, TSimpleNam
     }
 }
 ");
-            var c2 = CreateStandardCompilation(@"
+            var c2 = CreateCompilation(@"
 
 internal partial class CSharpGenerateMethodService :
         AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
@@ -2427,7 +2397,7 @@ class Test
         c.GAB(ref c); // modopts A, B (inside and outside ref, respectively)
     }
 }";
-            CompileAndVerify(CreateCompilationWithCustomILSource(csharp, il));
+            CompileAndVerify(CreateCompilationWithILAndMscorlib40(csharp, il));
         }
 
         [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
@@ -2458,7 +2428,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var global = comp.GlobalNamespace;
 
             var propA = global.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>("X");
@@ -2517,7 +2487,7 @@ class D : C
     public override event System.Action E;
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var global = comp.GlobalNamespace;
 
             var eventA = global.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E");
@@ -2582,7 +2552,7 @@ class D : C
     public override int M() { return 0; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var global = comp.GlobalNamespace;
 
             var methodA = global.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>("M");
@@ -2641,7 +2611,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var global = comp.GlobalNamespace;
 
             var indexerA = global.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
@@ -2854,7 +2824,7 @@ class Test
 ";
             var ref1 = CompileIL(il);
 
-            var comp = CreateStandardCompilation(csharp, new[] { ref1 }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(csharp, new[] { ref1 }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"
 SubSubT[System.Int32].vMeth(System.Int32)
 Base[System.Int32].vMeth(System.Int32)
@@ -2891,7 +2861,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilation(text, new MetadataReference[] { MscorlibRef_v20 });
+            var compilation = CreateEmptyCompilation(text, new MetadataReference[] { MscorlibRef_v20 });
 
             var obj = compilation.GetSpecialType(SpecialType.System_Object);
             var finalize = (MethodSymbol)obj.GetMembers("Finalize").Single();
@@ -2925,13 +2895,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
+            var comp1 = CreateCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -2973,13 +2943,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
+            var comp1 = CreateCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3021,13 +2991,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
+            var comp1 = CreateCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3068,13 +3038,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A");
+            var comp1 = CreateCompilation(source1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C");
+            var comp3 = CreateCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3115,13 +3085,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
+            var comp1 = CreateCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3162,13 +3132,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
+            var comp1 = CreateCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3234,15 +3204,15 @@ public class B : A
 } // end of class C
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A");
+            var comp1 = CreateCompilation(source1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B");
             var ref2 = comp2.EmitToImageReference();
 
             var ilRef = CompileIL(source3, prependDefaultHeader: false);
 
-            var comp3 = CreateStandardCompilation("", new[] { ref1, ref2, ilRef }, assemblyName: "Test");
+            var comp3 = CreateCompilation("", new[] { ref1, ref2, ilRef }, assemblyName: "Test");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3289,13 +3259,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
+            var comp1 = CreateCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var events = new[]
@@ -3392,7 +3362,7 @@ public class D8 : B
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (36,16): warning CS0108: 'D3.op_Explicit' hides inherited member 'B.explicit operator int(B)'. Use the new keyword if hiding was intended.
                 //     public int op_Explicit = 1;//
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Explicit").WithArguments("D3.op_Explicit", "B.explicit operator int(B)"),
@@ -3508,7 +3478,7 @@ public class D8 : B
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (23,22): warning CS0109: The member 'D1.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public class Finalize { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D1.Finalize"),
@@ -3603,7 +3573,7 @@ public class Derived2 : Base
     public override int M { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,16): error CS0102: The type 'Base' already contains a definition for 'M'
                 //     public int M; // NOTE: illegal, since there's already a method M.
@@ -3652,7 +3622,7 @@ class Derived : Base
 }";
 
             // Dev11 spuriously reports WRN_EqualsWithoutGetHashCode.
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3707,7 +3677,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
             var doValidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
@@ -3779,7 +3749,7 @@ public abstract class ValidatorBase<T> : Validator<T>
 public class Required : ValidatorBase<object>
 {
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics(
         // (46,14): error CS0534: 'Required' does not implement inherited abstract member 'Validator<object>.DoValidate(object)'
@@ -3839,7 +3809,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)");
@@ -3905,7 +3875,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"void ValidatorBase<T>.DoValidate(object objectToValidate)
 void Validator<T>.DoValidate(T objectToValidate)");
@@ -3963,7 +3933,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
             var doValidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
@@ -3999,7 +3969,7 @@ class B : A
     public void M(in int x) { }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,17): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
                 //     public void M(in int x) { }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 17));
@@ -4029,7 +3999,7 @@ class B : A
     public ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     public ref readonly int M() { return ref x; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(9, 29));
@@ -4059,7 +4029,7 @@ class B : A
     public ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     public ref readonly int M() { return ref x; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(9, 29));
@@ -4089,7 +4059,7 @@ class B : A
     public ref int M() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,20): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     public ref int M() { return ref x; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(9, 20));
@@ -4119,7 +4089,7 @@ class B : A
     public ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     public ref readonly int Property { get { return ref x; } }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(9, 29));
@@ -4149,7 +4119,7 @@ class B : A
     public ref int Property { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,20): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     public ref int Property { get { return ref x; } }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(9, 20));
@@ -4179,7 +4149,7 @@ class B : A
     public ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     public ref readonly int Property { get { return ref x; } }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(9, 29));
@@ -4208,7 +4178,7 @@ class B : A
     public new void M(in int x) { }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4235,7 +4205,7 @@ class B : A
     public new ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4262,7 +4232,7 @@ class B : A
     public new ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aProperty = comp.GetMember<PropertySymbol>("A.Property");
             var bProperty = comp.GetMember<PropertySymbol>("B.Property");
@@ -4288,7 +4258,7 @@ class B : A
     public override void M(in int x) { }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4315,7 +4285,7 @@ class B : A
     public override ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4342,7 +4312,7 @@ class B : A
     public override ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aProperty = comp.GetMember<PropertySymbol>("A.Property");
             var bProperty = comp.GetMember<PropertySymbol>("B.Property");
@@ -4368,7 +4338,7 @@ class B : A
     public void M(ref int x) { }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4384,7 +4354,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void OverriddingRefReadOnlyMembersWillOverwriteTheCorrectSlot()
+        public void OverridingRefReadOnlyMembersWillOverwriteTheCorrectSlot()
         {
             var text = @"
 class BaseClass
@@ -4402,7 +4372,7 @@ class DerivedClass : BaseClass
     public override ref readonly int this[int a] { get { return ref field; } }
 }";
 
-            var comp = CreateStandardCompilation(text).VerifyDiagnostics();
+            var comp = CreateCompilation(text).VerifyDiagnostics();
 
             var baseMethod = comp.GetMember<MethodSymbol>("BaseClass.Method1");
             var baseProperty = comp.GetMember<PropertySymbol>("BaseClass.Property1");
@@ -4447,7 +4417,7 @@ class ChildClass : BaseClass
     public override void Method2(ref int x) { }
 }";
 
-            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (10,26): error CS0115: 'ChildClass.Method2(ref int)': no suitable method found to override
                 //     public override void Method2(ref int x) { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method2").WithArguments("ChildClass.Method2(ref int)").WithLocation(10, 26),
@@ -4473,7 +4443,7 @@ class ChildClass : BaseClass
     public override ref int Method2() { return ref x; }
 }";
 
-            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (11,29): error CS8148: 'ChildClass.Method2()' must match by reference return of overridden member 'BaseClass.Method2()'
                 //     public override ref int Method2() { return ref x; }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method2").WithArguments("ChildClass.Method2()", "BaseClass.Method2()").WithLocation(11, 29),
@@ -4499,7 +4469,7 @@ class B : A
     public override ref int Property2 { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (11,29): error CS8148: 'B.Property2' must match by reference return of overridden member 'A.Property2'
                 //     public override ref int Property2 { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property2").WithArguments("B.Property2", "A.Property2").WithLocation(11, 29),
@@ -4523,7 +4493,7 @@ class B : A
     public override ref readonly int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,38): error CS8148: 'B.this[int]' must match by reference return of overridden member 'A.this[int]'
                 //     public override ref readonly int this[int p] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("B.this[int]", "A.this[int]").WithLocation(9, 38));
@@ -4544,7 +4514,7 @@ class B : A
     public override ref int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (9,29): error CS8148: 'B.this[int]' must match by reference return of overridden member 'A.this[int]'
                 //     public override ref int this[int p] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("B.this[int]", "A.this[int]").WithLocation(9, 29));
@@ -4564,7 +4534,7 @@ class B : A
     public override int this[in int p] { get { return p; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
+            var comp = CreateCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4581,7 +4551,7 @@ class B : A
     public override int this[int p] { get { return p; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,25): error CS0115: 'B.this[int]': no suitable method found to override
                 //     public override int this[int p] { get { return p; } }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[int]").WithLocation(8, 25),
@@ -4604,7 +4574,7 @@ class B : A
     public override int this[in int p] { get { return p; } }
 }";
 
-            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+            var comp = CreateCompilation(code).VerifyDiagnostics(
                 // (8,25): error CS0115: 'B.this[in int]': no suitable method found to override
                 //     public override int this[in int p] { get { return p; } }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[in int]").WithLocation(8, 25),

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
@@ -23,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.CorLibrary.GuidTest2,
-                                TestResources.NetFX.v4_0_21006.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              })
 
             Assert.Same(assemblies(1), DirectCast(assemblies(0).Modules(0), PEModuleSymbol).CorLibrary)
@@ -31,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")>
         Public Sub Bug760148_1()
-            Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
+            Dim corLib = CompilationUtils.CreateEmptyCompilation(
 <compilation>
     <file name="a.vb">
 Namespace System
@@ -39,14 +41,14 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim obj = corLib.GetSpecialType(SpecialType.System_Object)
 
             Assert.False(obj.IsErrorType())
             Assert.Same(corLib.Assembly, obj.ContainingAssembly)
 
-            Dim consumer = CompilationUtils.CreateCompilationWithReferences(
+            Dim consumer = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Namespace System
@@ -61,7 +63,7 @@ End Namespace
 
         <Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")>
         Public Sub Bug760148_2()
-            Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
+            Dim corLib = CompilationUtils.CreateEmptyCompilation(
 <compilation>
     <file name="a.vb">
 Namespace System
@@ -69,11 +71,11 @@ Namespace System
     End Class
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim obj = corLib.GetSpecialType(SpecialType.System_Object)
 
-            Dim consumer = CompilationUtils.CreateCompilationWithReferences(
+            Dim consumer = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Namespace System

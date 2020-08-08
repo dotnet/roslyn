@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -6,6 +8,7 @@ Imports System.IO
 Imports System.Linq
 Imports System.Text
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -54,7 +57,7 @@ Hello, world
 
         <WorkItem(547017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547017")>
         <WorkItem(547018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547018")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub SimpleImplicitDeclaration2()
             Dim compilation = CompileAndVerify(
 <compilation>
@@ -239,7 +242,7 @@ hello
 
         <Fact>
         Public Sub NoImplicitDeclInInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclInInitializer">
     <file name="a.vb">
 Option Explicit Off
@@ -425,7 +428,7 @@ End Module
 
         <Fact>
         Public Sub NoImplicitDeclInAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclInInitializer">
     <file name="a.vb">
         <![CDATA[
@@ -453,7 +456,7 @@ BC30451: 'zack' is not declared. It may be inaccessible due to its protection le
 
         <Fact>
         Public Sub NoImplicitDeclLeftOfDot()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclLeftOfDot">
     <file name="a.vb">
         <![CDATA[
@@ -482,7 +485,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
 
         <Fact>
         Public Sub NoImplicitDeclInvocation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoImplicitDeclInvocation">
     <file name="a.vb">
         <![CDATA[
@@ -511,7 +514,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
 
         <Fact()>
         Public Sub ImplicitInFor()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ImplicitInFor">
     <file name="a.vb">
         <![CDATA[
@@ -537,7 +540,7 @@ Class C1
 
         <Fact>
         Public Sub HidingEnclosingBlock1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock1">
     <file name="a.vb">
         <![CDATA[
@@ -572,7 +575,7 @@ BC30616: Variable 'x' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub HidingEnclosingBlock2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock2">
     <file name="a.vb">
         <![CDATA[
@@ -608,7 +611,7 @@ BC30616: Variable 'X' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub HidingEnclosingBlock3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock3">
     <file name="a.vb">
         <![CDATA[
@@ -647,7 +650,7 @@ BC30616: Variable 'y' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub HidingEnclosingBlock4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock4">
     <file name="a.vb">
         <![CDATA[
@@ -686,7 +689,7 @@ BC30616: Variable 'y' hides a variable in an enclosing block.
 
         <Fact>
         Public Sub ReservedNames()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="HidingEnclosingBlock4">
     <file name="a.vb">
         <![CDATA[
@@ -727,7 +730,7 @@ BC42104: Variable 'r' is used before it has been assigned a value. A null refere
         <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -754,7 +757,7 @@ End Module]]>
         <WorkItem(542455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542455")>
         <Fact>
         Public Sub VariableAcrossIfParts2()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -1008,14 +1011,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim tree = compilation1.SyntaxTrees.Single()
             Dim model = compilation1.GetSemanticModel(tree)
             Dim main1 = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
             Dim position = main1.Statements.First.SpanStart
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim main2 = compilation2.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
 
             Dim speculative As SemanticModel = Nothing
@@ -1050,14 +1053,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim tree = compilation1.SyntaxTrees.Single()
             Dim model = compilation1.GetSemanticModel(tree)
             Dim main1 = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
             Dim position = main1.Statements.First.SpanStart
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim main2 = compilation2.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
 
             Dim speculative As SemanticModel = Nothing
@@ -1083,7 +1086,7 @@ End Module
         <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub NotDeclaredTupleDeconstructionsAreConsideredObjects_ExplicitOff()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation><file name="a.vb">
 Option Explicit Off
 Module TestModule
@@ -1124,7 +1127,7 @@ BC42104: Variable 'member2' is used before it has been assigned a value. A null 
         <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub NotDeclaredTupleDeconstructionsProduceErrors_ExplicitOn()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation><file name="a.vb">
 Option Explicit On
 Module TestModule
@@ -1152,7 +1155,7 @@ BC30451: 'member2' is not declared. It may be inaccessible due to its protection
         <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInSameScopeErrorsOut()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation><file name="a.vb">
 Option Explicit Off
 Module TestModule
@@ -1177,7 +1180,7 @@ BC32000: Local variable 'notDeclaredYet' cannot be referred to before it is decl
         <WorkItem(14292, "https://github.com/dotnet/roslyn/issues/14292")>
         <Fact>
         Public Sub DeclaringImplicitlyDeclaredTupleArgumentsAgainInAnotherScopeErrorsOut()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation><file name="a.vb">
 Option Explicit Off
 Module TestModule
@@ -1275,7 +1278,7 @@ End Module
         End Sub
 
         Private Sub VerifyImplicitDeclarationSemanticInfo(code As XCData)
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(GetSourceXElementFromTemplate(code))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(GetSourceXElementFromTemplate(code))
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
             Dim objectSymbol = compilation.GetTypeByMetadataName("System.Object")
 
@@ -1283,7 +1286,7 @@ End Module
         End Sub
 
         Private Sub VerifyImplicitDeclarationBindExpression(code As XCData, expression As String, expectedTypeName As String, Optional symbolKind? As SymbolKind = Nothing, Optional expectedSymbol As String = Nothing)
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(GetSourceXElementFromTemplate(code))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(GetSourceXElementFromTemplate(code))
             Dim tree = compilation.SyntaxTrees.Where(Function(t) t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim position = CompilationUtils.FindPositionFromText(tree, "'BIND")
@@ -1297,7 +1300,7 @@ End Module
                 Throw New ArgumentException("Must specify a value for either 'expected' or 'notExpected'")
             End If
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(GetSourceXElementFromTemplate(code))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(GetSourceXElementFromTemplate(code))
             Dim actual = GetLookupSymbols(compilation, "a.vb").Select(Function(s) s.Name)
 
             For Each s In If(expected, {})

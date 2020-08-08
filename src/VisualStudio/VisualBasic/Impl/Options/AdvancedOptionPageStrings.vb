@@ -1,14 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Imports Microsoft.CodeAnalysis.Editor.ColorSchemes
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
-
-        Public ReadOnly Property Option_AllowMovingDeclaration As String
-            Get
-                Return BasicVSResources.Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere
-            End Get
-        End Property
-
         Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String
             Get
                 Return BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members
@@ -18,15 +15,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
-        Public ReadOnly Property Option_Enable_full_solution_analysis As String =
-            ServicesVSResources.Enable_full_solution_analysis
+        Public ReadOnly Property Option_Background_analysis_scope As String =
+            ServicesVSResources.Background_analysis_scope_colon
 
-        Public ReadOnly Property Option_Perform_editor_feature_analysis_in_external_process As String =
-            ServicesVSResources.Perform_editor_feature_analysis_in_external_process
+        Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
+            ServicesVSResources.Current_document
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_And_Projects As String =
+            ServicesVSResources.Open_documents
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
+            ServicesVSResources.Entire_solution
+
+        Public ReadOnly Property Option_use_editorconfig_compatibility_mode As String = ServicesVSResources.Use_editorconfig_compatibility_mode
 
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
                 Return BasicVSResources.Show_procedure_line_separators
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_Display_inline_parameter_name_hints As String
+            Get
+                Return ServicesVSResources.Display_inline_parameter_name_hints
             End Get
         End Property
 
@@ -102,6 +113,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String
             Get
                 Return BasicVSResources.Generate_XML_documentation_comments_for
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_ShowRemarksInQuickInfo As String
+            Get
+                Return BasicVSResources.Show_remarks_in_Quick_Info
             End Get
         End Property
 
@@ -200,16 +217,46 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_SeparateImportGroups As String =
             BasicVSResources.Separate_import_directive_groups
 
-        Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String
-            Get
-                Return BasicVSResources.Suggest_imports_for_types_in_reference_assemblies
-            End Get
-        End Property
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String =
+            BasicVSResources.Suggest_imports_for_types_in_reference_assemblies
 
-        Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String
-            Get
-                Return BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
-            End Get
-        End Property
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
+            BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
+
+        Public ReadOnly Property Option_Regular_Expressions As String =
+            ServicesVSResources.Regular_Expressions
+
+        Public ReadOnly Property Option_Colorize_regular_expressions As String =
+            ServicesVSResources.Colorize_regular_expressions
+
+        Public ReadOnly Property Option_Report_invalid_regular_expressions As String =
+            ServicesVSResources.Report_invalid_regular_expressions
+
+        Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
+            ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_Show_completion_list As String =
+            ServicesVSResources.Show_completion_list
+
+        Public ReadOnly Property Option_Editor_Color_Scheme As String =
+            ServicesVSResources.Editor_Color_Scheme
+
+        Public ReadOnly Property Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page As String =
+            ServicesVSResources.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page
+
+        Public ReadOnly Property Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations As String =
+            ServicesVSResources.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations
+
+        Public ReadOnly Property Option_Color_Scheme_VisualStudio2019 As String =
+            ServicesVSResources.Visual_Studio_2019
+
+        Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
+            ServicesVSResources.Visual_Studio_2017
+
+        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As SchemeName =
+            SchemeName.VisualStudio2019
+
+        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
+            SchemeName.VisualStudio2017
     End Module
 End Namespace

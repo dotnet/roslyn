@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -70,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void EnumWithPrivateLiterals()
         {
-            CreateCompilationWithCustomILSource(
+            CreateCompilationWithILAndMscorlib40(
 @"class C
 {
     static void F(E e) { }
@@ -127,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
         private void EnumWithBogusUnderlyingType(string ilSource)
         {
-            CreateCompilationWithCustomILSource(ExampleSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(ExampleSource, ilSource).VerifyDiagnostics(
                 // (6,15): error CS0570: 'E.A' is not supported by the language
                 //         E e = E.A; // Dev10: 'E.A' is not supported by the language
                 Diagnostic(ErrorCode.ERR_BindToBogus, "E.A").WithArguments("E.A"),
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     A = A,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = A,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5));
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     A = B + 1,
     B = A + 1,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = B + 1,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5));
@@ -181,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     B = A + 1,
     C = A + 2,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = B | C,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5));
@@ -198,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     C = D,
     D = D
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = A | B,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5),
@@ -221,7 +225,7 @@ enum F
     A = 1,
     B = E.A
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -238,7 +242,7 @@ enum F
     A = E.B + 1,
     B = A + 1,
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.A' involves a circular definition
                 //     A = B + F.B,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E.A").WithLocation(3, 5),
@@ -253,33 +257,33 @@ enum F
             // enum E { M0 = Mn + 1, M1, ..., Mn, }
             // Dev12 reports "CS1647: An expression is too long or complex to compile" at ~5600 members.
             var source = GenerateEnum(10000, (i, n) => (i == 0) ? string.Format("M{0} + 1", n - 1) : "");
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.M0' involves a circular definition
                 //     M0 = M5999 + 1,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
         [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void CircularDefinitionManyMembers_Explicit()
         {
             // enum E { M0 = Mn + 1, M1 = M0 + 1, ..., Mn = Mn-1 + 1, }
             // Dev12 reports "CS1647: An expression is too long or complex to compile" at ~1600 members.
             var source = GenerateEnum(10000, (i, n) => string.Format("M{0} + 1", (i == 0) ? (n - 1) : (i - 1)));
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,5): error CS0110: The evaluation of the constant value for 'E.M0' involves a circular definition
                 //     M0 = M1999 + 1,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
         [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void InvertedDefinitionManyMembers_Explicit()
         {
             // enum E { M0 = M1 - 1, M1 = M2 - 1, ..., Mn = n, }
             // Dev12 reports "CS1647: An expression is too long or complex to compile" at ~1500 members.
             var source = GenerateEnum(10000, (i, n) => (i < n - 1) ? string.Format("M{0} - 1", i + 1) : i.ToString());
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -303,6 +307,95 @@ enum F
             }
             builder.AppendLine("}");
             return builder.ToString();
+        }
+
+        [WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")]
+        [Fact]
+        public void UseSiteError_01()
+        {
+            var sourceA =
+@"public class A { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "UseSiteError_sourceA");
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B<T>
+{
+    public enum E { F }
+}
+public class C
+{
+    public const B<A>.E F = default;
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        const int x = (int)~C.F;
+        System.Console.WriteLine(x);
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refB });
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         const int x = (int)~C.F;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F").WithArguments("A", "UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 31)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.BitwiseNotExpression);
+            var value = model.GetConstantValue(expr);
+            Assert.False(value.HasValue);
+        }
+
+        [WorkItem(45625, "https://github.com/dotnet/roslyn/issues/45625")]
+        [Fact]
+        public void UseSiteError_02()
+        {
+            var sourceA =
+@"public class A { }";
+            var comp = CreateCompilation(sourceA, assemblyName: "UseSiteError_sourceA");
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"public class B<T>
+{
+    public enum E { F }
+}
+public class C
+{
+    public const B<A>.E F = default;
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var refB = comp.EmitToImageReference();
+
+            var sourceC =
+@"class Program
+{
+    static void Main()
+    {
+        var x = ~C.F;
+        System.Console.WriteLine(x);
+    }
+}";
+            comp = CreateCompilation(sourceC, references: new[] { refB }, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var x = ~C.F;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F").WithArguments("A", "UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 20)
+                );
+
+            comp = CreateCompilation(sourceC, references: new[] { refB }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var x = ~C.F;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "F").WithArguments("A", "UseSiteError_sourceA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 20)
+                );
         }
     }
 }

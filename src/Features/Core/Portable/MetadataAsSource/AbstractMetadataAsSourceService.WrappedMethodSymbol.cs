@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -25,11 +27,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
 
+            public bool IsReadOnly => _symbol.IsReadOnly;
+            public bool IsInitOnly => _symbol.IsInitOnly;
+
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
                 get
                 {
-                    return this.CanImplementImplicitly
+                    return CanImplementImplicitly
                         ? ImmutableArray.Create<IMethodSymbol>()
                         : _symbol.ExplicitInterfaceImplementations;
                 }
@@ -63,6 +68,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
+            public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
+
             public IMethodSymbol ReducedFrom =>
                     // This implementation feels incorrect!
                     _symbol.ReducedFrom;
@@ -83,10 +90,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol ReturnType => _symbol.ReturnType;
 
+            public NullableAnnotation ReturnNullableAnnotation => _symbol.ReturnNullableAnnotation;
+
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()
-            {
-                return _symbol.GetReturnTypeAttributes();
-            }
+                => _symbol.GetReturnTypeAttributes();
 
             public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
 
@@ -94,17 +101,18 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
 
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _symbol.TypeArgumentNullableAnnotations;
+
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-            {
-                return _symbol.Construct(typeArguments);
-            }
+                => _symbol.Construct(typeArguments);
+
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+                => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public DllImportData GetDllImportData()
-            {
-                return _symbol.GetDllImportData();
-            }
+                => _symbol.GetDllImportData();
 
             public IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
             {
@@ -115,6 +123,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsVararg => _symbol.IsVararg;
 
             public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
+
+            public bool IsConditional => _symbol.IsConditional;
         }
     }
 }

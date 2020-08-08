@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -6,9 +8,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -91,7 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' parent expression.
 
                     ' Dev10 allows parenthesized type expressions, let's bind as a general expression first.
-                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression, False, False, eventContext, diagnostics)
+                    Dim operand As BoundExpression = BindExpression(DirectCast(node, ParenthesizedExpressionSyntax).Expression,
+                                                                    isInvocationOrAddressOf:=False,
+                                                                    isOperandOfConditionalBranch:=isOperandOfConditionalBranch,
+                                                                    eventContext, diagnostics)
 
                     If operand.Kind = BoundKind.TypeExpression Then
                         Dim asType = DirectCast(operand, BoundTypeExpression)
@@ -943,6 +946,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
            expr As BoundExpression,
            diagnostics As DiagnosticBag
         ) As BoundExpression
+            If expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
+                Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
+                Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
+
+                Dim resultType As TypeSymbol = access.Type
+
+                If Not resultType.IsErrorType() Then
+                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
+                        If Not resultType.IsNullableType() Then
+                            resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
+                        End If
+                    ElseIf Not resultType.IsReferenceType Then
+                        ' Access cannot have unconstrained generic type or a restricted type
+                        ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
+                        resultType = ErrorTypeSymbol.UnknownResultType
+                    End If
+                End If
+
+                Return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.Placeholder, access, resultType)
+            End If
 
             If expr.HasErrors Then
                 Return expr
@@ -1116,6 +1139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      isLValue:=False,
                                                      receiverOpt:=access.ReceiverOpt,
                                                      arguments:=access.Arguments,
+                                                     defaultArguments:=access.DefaultArguments,
                                                      type:=access.Type,
                                                      hasErrors:=access.HasErrors)
 
@@ -1127,7 +1151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Call
                     Dim [call] = DirectCast(result, BoundCall)
                     result = New BoundCall(typeExpr.Syntax, [call].Method, [call].MethodGroupOpt, [call].ReceiverOpt, [call].Arguments,
-                                           [call].ConstantValueOpt,
+                                           [call].DefaultArguments, [call].ConstantValueOpt,
                                            isLValue:=False,
                                            suppressObjectClone:=[call].SuppressObjectClone,
                                            type:=[call].Type,
@@ -1200,25 +1224,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim enclosed As BoundExpression = MakeValue(parenthesized.Expression, diagnostics)
                     Return parenthesized.Update(enclosed, enclosed.Type)
                 End If
-            ElseIf expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
-                Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
-                Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
-
-                Dim resultType As TypeSymbol = access.Type
-
-                If Not resultType.IsErrorType() Then
-                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
-                        If Not resultType.IsNullableType() Then
-                            resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
-                        End If
-                    ElseIf Not resultType.IsReferenceType Then
-                        ' Access cannot have unconstrained generic type or a restricted type
-                        ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
-                        resultType = ErrorTypeSymbol.UnknownResultType
-                    End If
-                End If
-
-                Return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.Placeholder, access, resultType)
             End If
 
             expr = ReclassifyAsValue(expr, diagnostics)
@@ -1365,7 +1370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim getMethod = propertyAccess.PropertySymbol.GetMostDerivedGetMethod()
                 Debug.Assert(getMethod IsNot Nothing)
 
-                ReportDiagnosticsIfObsolete(diagnostics, getMethod, expr.Syntax)
+                ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, getMethod, expr.Syntax)
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Get
@@ -2094,11 +2099,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundSecondArgWithConversions = MakeRValueAndIgnoreDiagnostics(boundSecondArg)
             End If
 
-            '  if there are still no errors check the original type of the first argument to be 
-            '       of a reference or nullable type, generate IllegalCondTypeInIIF otherwise
+            ' If there are still no errors check the original type of the first argument. First, we check
+            ' the pre-VB 16.0 condition, which is the first operand must be Nothing, a reference type, or
+            ' a nullable value type
             If Not hasErrors AndAlso Not (boundFirstArg.IsNothingLiteral OrElse boundFirstArg.Type.IsNullableType OrElse boundFirstArg.Type.IsReferenceType) Then
-                ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
-                hasErrors = True
+                ' VB 16 changed the requirements on the first operand to permit unconstrained type parameters. If we're in that scenario,
+                ' ensure that the feature is enabled and report an error if it is not
+                If Not boundFirstArg.Type.IsValueType Then
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   node.Location,
+                                                                   DirectCast(node.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.UnconstrainedTypeParameterInConditional)
+                Else
+                    ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
+                    hasErrors = True
+                End If
             End If
 
             Return AnalyzeConversionAndCreateBinaryConditionalExpression(
@@ -2711,7 +2726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
                             Dim typeDiagnostics = New DiagnosticBag()
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
-                            If boundType.Type = leftType Then
+                            If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
                                 Dim err As ERRID = Nothing
                                 If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse Not BindSimpleNameIsMemberOfType(leftSymbol, ContainingType)) Then
                                     diagnostics.AddRange(typeDiagnostics)
@@ -3147,7 +3162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasError = CheckSharedSymbolAccess(node, eventSymbol.IsShared, receiver, qualKind, diagnostics)
                     End If
 
-                    ReportDiagnosticsIfObsolete(diagnostics, eventSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, eventSymbol, node)
 
                     If receiver IsNot Nothing AndAlso receiver.IsPropertyOrXmlPropertyAccess() Then
                         receiver = MakeRValue(receiver, diagnostics)
@@ -3183,7 +3198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
 
-                    ReportDiagnosticsIfObsolete(diagnostics, fieldSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, fieldSymbol, node)
 
                     ' const fields may need to determine the type because it's inferred
                     ' This is why using .Type was replaced by .GetInferredType to detect cycles.
@@ -3210,7 +3225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Local
                     Dim localSymbol = DirectCast(lookupResult.SingleSymbol, LocalSymbol)
 
-                    If localSymbol.IsFunctionValue Then
+                    If localSymbol.IsFunctionValue AndAlso Not IsNameOfArgument(node) Then
                         Dim method = DirectCast(localSymbol.ContainingSymbol, MethodSymbol)
 
                         If method.IsAsync OrElse method.IsIterator Then
@@ -3282,7 +3297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         lookupResult.ReplaceSymbol(constructedType)
                     End If
 
-                    ReportDiagnosticsIfObsolete(diagnostics, typeSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, typeSymbol, node)
 
                     If Not hasError Then
                         receiver = AdjustReceiverTypeOrValue(receiver, node, isShared:=True, diagnostics:=diagnostics, qualKind:=qualKind)

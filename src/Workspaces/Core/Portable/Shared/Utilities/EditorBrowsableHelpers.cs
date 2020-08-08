@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             var candidateConstructors = editorBrowsableAttributeType.Constructors
-                                                                    .Where(c => c.Parameters.Length == 1 && c.Parameters[0].Type == editorBrowsableStateType);
+                                                                    .Where(c => c.Parameters.Length == 1 && Equals(c.Parameters[0].Type, editorBrowsableStateType));
 
             // Ensure the constructor adheres to the expected EditorBrowsable pattern
             candidateConstructors = candidateConstructors.Where(c => (!c.IsVararg &&
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var candidateConstructors = typeLibAttributeType.Constructors
                                                             .Where(c => c.Parameters.Length == 1 &&
-                                                                        (c.Parameters[0].Type == typeLibFlagsType || c.Parameters[0].Type == shortType));
+                                                                        (Equals(c.Parameters[0].Type, typeLibFlagsType) || Equals(c.Parameters[0].Type, shortType)));
 
             candidateConstructors = candidateConstructors.Where(c => (!c.IsVararg &&
                                                                       !c.Parameters[0].IsRefOrOut() &&

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);
         }
 
-        public void CollectBlockSpans(
+        public static void CollectBlockSpans(
             SyntaxTree syntaxTree, SyntaxTrivia trivia,
             ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
         {
@@ -66,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var endPos = trivia.FullSpan.End;
             var text = syntaxTree.GetText(cancellationToken);
             return endPos >= 2 && text[endPos - 1] == '\n' && text[endPos - 2] == '\r' ? endPos - 2 :
-                   endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1])              ? endPos - 1 : endPos;
+                   endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1]) ? endPos - 1 : endPos;
         }
 
-        private SyntaxTrivia GetCorrespondingEndTrivia(
+        private static SyntaxTrivia GetCorrespondingEndTrivia(
             SyntaxTrivia trivia, SyntaxTriviaList triviaList, int index)
         {
             // Look through our parent token's trivia, to extend the span to the end of the last

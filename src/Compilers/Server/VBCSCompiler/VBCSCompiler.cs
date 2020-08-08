@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
@@ -7,14 +9,18 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal static class VBCSCompiler 
+    internal static class VBCSCompiler
     {
         public static int Main(string[] args)
         {
             NameValueCollection appSettings;
             try
             {
-#if NET46
+#if BOOTSTRAP
+                ExitingTraceListener.Install();
+#endif
+
+#if NET472
                 appSettings = System.Configuration.ConfigurationManager.AppSettings;
 #else
                 // Do not use AppSettings on non-desktop platforms
@@ -32,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                var controller = new DesktopBuildServerController(appSettings);
+                var controller = new BuildServerController(appSettings);
                 return controller.Run(args);
             }
             catch (FileNotFoundException e)

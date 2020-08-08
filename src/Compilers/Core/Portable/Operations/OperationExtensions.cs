@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -33,7 +36,22 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // if wrong compilation is given, GetSemanticModel will throw due to tree not belong to the given compilation.
-            var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            var model = operation.SemanticModel;
+
+            // An IOperation tree for a simple program includes statements from all compilation units involved,
+            // but each model is tied to a single syntax tree.
+            if (model is null || model.SyntaxTree != operation.Syntax.SyntaxTree)
+            {
+                model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            }
+
+            if (model.IsSpeculativeSemanticModel)
+            {
+                // GetDiagnostics not supported for speculative semantic model.
+                // https://github.com/dotnet/roslyn/issues/28075
+                return false;
+            }
+
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
@@ -140,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         /// <summary>
-        /// Gets the variable initialzer for the given <paramref name="declarationOperation"/>, checking to see if there is a parent initializer
+        /// Gets the variable initializer for the given <paramref name="declarationOperation"/>, checking to see if there is a parent initializer
         /// if the single variable initializer is null.
         /// </summary>
         /// <param name="declarationOperation">Single variable declaration to retrieve initializer for.</param>
@@ -223,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -240,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -257,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -298,5 +316,72 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return argumentRefKinds[index];
         }
+
+        /// <summary>
+        /// Gets the root operation for the <see cref="IOperation"/> tree containing the given <paramref name="operation"/>.
+        /// </summary>
+        /// <param name="operation">Operation whose root is requested.</param>
+        internal static IOperation GetRootOperation(this IOperation operation)
+        {
+            Debug.Assert(operation != null);
+
+            while (operation.Parent != null)
+            {
+                operation = operation.Parent;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Gets either a loop or a switch operation that corresponds to the given branch operation.
+        /// </summary>
+        /// <param name="operation">The branch operation for which a corresponding operation is looked up</param>
+        /// <returns>The corresponding operation or <c>null</c> in case not found (e.g. no loop or switch syntax, or the branch is not a break or continue)</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="operation"/> is null</exception>
+        /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph</exception>
+        public static IOperation GetCorrespondingOperation(this IBranchOperation operation)
+        {
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (operation.SemanticModel == null)
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
+            }
+
+            if (operation.BranchKind != BranchKind.Break && operation.BranchKind != BranchKind.Continue)
+            {
+                return null;
+            }
+
+            if (operation.Target == null)
+            {
+                return null;
+            }
+
+            for (IOperation current = operation; current.Parent != null; current = current.Parent)
+            {
+                switch (current)
+                {
+                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel) ||
+                                                               operation.Target.Equals(correspondingLoop.ContinueLabel):
+                        return correspondingLoop;
+                    case ISwitchOperation correspondingSwitch when operation.Target.Equals(correspondingSwitch.ExitLabel):
+                        return correspondingSwitch;
+                }
+            }
+
+            return null;
+        }
+
+#nullable enable
+        internal static ConstantValue? GetConstantValue(this IOperation operation)
+        {
+            return ((Operation)operation).OperationConstantValue;
+        }
+#nullable restore
     }
 }

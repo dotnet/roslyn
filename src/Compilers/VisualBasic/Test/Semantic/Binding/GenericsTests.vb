@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub WrongNumberOfGenericArgumentsTest()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="WrongNumberOfGenericArguments">
         <file name="a.vb">
 Namespace GenArity200
@@ -78,7 +80,7 @@ System.Int64]]>).VerifyDiagnostics()
         <WorkItem(543783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543783")>
         <Fact()>
         Public Sub ImportNestedGenericTypeWithErrors()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports GenImpClassOpenErrors.GenClassA(Of String).GenClassB.GenClassC(Of String)
@@ -107,7 +109,7 @@ Imports GenImpClassOpenErrors.GenClassA(Of String).GenClassB.GenClassC(Of String
         <WorkItem(543850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543850")>
         <Fact()>
         Public Sub ConflictingNakedConstraint()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Program
@@ -140,7 +142,7 @@ BC32110: Constraint 'Class c3' conflicts with the indirect constraint 'Class c2'
         <WorkItem(11887, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub WideningNullableConversion()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -161,7 +163,7 @@ End Module
         <WorkItem(543900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543900")>
         <Fact()>
         Public Sub NarrowingConversionNoReturn()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -183,7 +185,7 @@ End Namespace
         <WorkItem(543900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543900")>
         <Fact()>
         Public Sub NarrowingConversionNoReturn2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -205,7 +207,7 @@ End Namespace
         <WorkItem(543902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543902")>
         <Fact()>
         Public Sub ConversionOperatorShouldBePublic()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Namespace Program
@@ -226,7 +228,7 @@ End Namespace
 
         <Fact(), WorkItem(529249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529249")>
         Public Sub ArrayOfRuntimeArgumentHandle()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -246,7 +248,7 @@ End Module
         <WorkItem(543909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543909")>
         <Fact()>
         Public Sub StructureContainsItself()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -263,15 +265,15 @@ End Namespace
             )
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_RecordCycle2, "enumerator").WithArguments("s2",
-                                                                                                          vbCrLf &
-            "    's2' contains 'List(Of s2).Enumerator' (variable 'enumerator')." & vbCrLf &
+                                                                                                          Environment.NewLine &
+            "    's2' contains 'List(Of s2).Enumerator' (variable 'enumerator')." & Environment.NewLine &
             "    'List(Of s2).Enumerator' contains 's2' (variable 'current')."))
         End Sub
 
         <WorkItem(543921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543921")>
         <Fact()>
         Public Sub GenericConstraintInheritanceWithEvent()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Namespace GenClass7105
@@ -336,7 +338,7 @@ End Namespace
         <WorkItem(529287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529287")>
         <Fact()>
         Public Sub ProtectedMemberGenericClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Public Class c1(Of T)

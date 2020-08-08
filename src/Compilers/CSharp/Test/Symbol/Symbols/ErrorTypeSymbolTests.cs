@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class B<U> { }
 }";
-            var compilation1 = CreateStandardCompilation(source1, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A41");
+            var compilation1 = CreateCompilation(source1, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A41");
             compilation1.VerifyDiagnostics();
             var reference1 = MetadataReference.CreateFromImage(compilation1.EmitToArray(options: new EmitOptions(metadataOnly: true)));
 
@@ -35,7 +37,7 @@ class C4<T> : A<object>.B<T> { }
 class C5 : A<object>.B<int> { }
 class C6 : A<string>.B<object> { }
 class C7 : A<string>.B<object> { }";
-            var compilation2 = CreateStandardCompilation(source2, references: new[] { reference1 }, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A42");
+            var compilation2 = CreateCompilation(source2, references: new[] { reference1 }, assemblyName: "91AB32B7-DDDF-4E50-87EF-4E8B0A664A42");
             compilation2.VerifyDiagnostics();
             CompareConstructedErrorTypes(compilation2, missingTypes: false, fromSource: true);
             var reference2 = MetadataReference.CreateFromImage(compilation2.EmitToArray(options: new EmitOptions(metadataOnly: true)));
@@ -43,18 +45,18 @@ class C7 : A<string>.B<object> { }";
             // Loading types from metadata, no missing types.
             var source3 =
 @"";
-            var compilation3 = CreateStandardCompilation(source3, references: new[] { reference1, reference2 });
+            var compilation3 = CreateCompilation(source3, references: new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics();
             CompareConstructedErrorTypes(compilation3, missingTypes: false, fromSource: false);
 
             // Binding types in source, missing types, resulting inExtendedErrorTypeSymbols.
-            var compilation4 = CreateStandardCompilation(source2);
+            var compilation4 = CreateCompilation(source2);
             CompareConstructedErrorTypes(compilation4, missingTypes: true, fromSource: true);
 
             // Loading types from metadata, missing types, resulting in ErrorTypeSymbols.
             var source5 =
 @"";
-            var compilation5 = CreateStandardCompilation(source5, references: new[] { reference2 });
+            var compilation5 = CreateCompilation(source5, references: new[] { reference2 });
             CompareConstructedErrorTypes(compilation5, missingTypes: true, fromSource: false);
         }
 
@@ -100,7 +102,7 @@ class C7 : A<string>.B<object> { }";
                 {
                     var typeB = types[j];
                     bool expectedEqual = (i == 5) && (j == 6);
-                    Assert.Equal(typeA == typeB, expectedEqual);
+                    Assert.Equal(TypeSymbol.Equals(typeA, typeB, TypeCompareKind.ConsiderEverything2), expectedEqual);
                 }
             }
         }

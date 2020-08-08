@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -35,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = walker.Analyze(ref badRegion);
 #if DEBUG
                 // Assert that DataFlowsOut only contains variables that were assigned to inside the region
-                Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
+                // https://github.com/dotnet/roslyn/issues/41600 blocks some tests with local functions. 
+                // Enable the following assert once the issue is fixed.
+                //Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
 #endif
                 return badRegion ? new HashSet<Symbol>() : result;
             }
@@ -52,10 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<Symbol> _assignedInside = new HashSet<Symbol>();
 #endif
 
-        private new HashSet<Symbol> Analyze(ref bool badRegion)
+        private HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             return _dataFlowsOut;
+        }
+
+        protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
+        {
+            _dataFlowsOut.Clear();
+            return base.Scan(ref badRegion);
         }
 
         protected override void EnterRegion()
@@ -63,12 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to handle loops properly, we must assume that every variable that flows in is
             // assigned at the beginning of the loop.  If it isn't, then it must be in a loop
             // and flow out of the region in that loop (and into the region inside the loop).
-            foreach (Symbol variable in _dataFlowsIn)
+            foreach (ISymbol variable in _dataFlowsIn)
             {
-                int slot = this.GetOrCreateSlot(variable);
+                Symbol variableSymbol = variable.GetSymbol();
+                int slot = this.GetOrCreateSlot(variableSymbol);
                 if (slot > 0 && !this.State.IsAssigned(slot))
                 {
-                    _dataFlowsOut.Add(variable);
+                    _dataFlowsOut.Add(variableSymbol);
                 }
             }
 
@@ -107,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DeclarationPattern:
                         {
                             return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
+                        }
+
+                    case BoundKind.RecursivePattern:
+                        {
+                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
                         }
 
                     case BoundKind.FieldAccess:
@@ -238,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the field access is reported as unassigned it should mean the original local
                 // or parameter flows out, so we should get the symbol associated with the expression
-                _dataFlowsOut.Add(symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol);
+                _dataFlowsOut.Add(symbol.Kind == SymbolKind.Field ? GetNonMemberSymbol(slot) : symbol);
             }
 
             base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +12,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private const string SerializationFormat = "17";
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("20");
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
@@ -57,67 +59,83 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<ObjectReader, T> tryReadObject,
             CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
         {
-            if (checksum == null) 
+            using (Logger.LogBlock(FunctionId.SymbolTreeInfo_TryLoadOrCreate, cancellationToken))
             {
-                return loadOnly ? null : await createAsync().ConfigureAwait(false);
-            }
-
-            // Ok, we can use persistence.  First try to load from the persistence service.
-            var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
-
-            T result;
-            using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
-            {
-                // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
-                using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream))
+                if (checksum == null)
                 {
-                    if (reader != null)
+                    return loadOnly ? null : await CreateWithLoggingAsync().ConfigureAwait(false);
+                }
+
+                // Ok, we can use persistence.  First try to load from the persistence service.
+                var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+
+                T result;
+                using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
+                {
+                    // Get the unique key to identify our data.
+                    var key = PrefixMetadataSymbolTreeInfo + keySuffix;
+                    using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
+                    using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
                     {
-                        // We have some previously persisted data.  Attempt to read it back.  
-                        // If we're able to, and the version of the persisted data matches
-                        // our version, then we can reuse this instance.
-                        result = tryReadObject(reader);
-                        if (result?.Checksum == checksum)
+                        if (reader != null)
                         {
-                            return result;
+                            // We have some previously persisted data.  Attempt to read it back.  
+                            // If we're able to, and the version of the persisted data matches
+                            // our version, then we can reuse this instance.
+                            result = tryReadObject(reader);
+                            if (result != null)
+                            {
+                                // If we were able to read something in, it's checksum better
+                                // have matched the checksum we expected.
+                                Debug.Assert(result.Checksum == checksum);
+                                return result;
+                            }
                         }
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Couldn't read from the persistence service.  If we've been asked to only load
+                    // data and not create new instances in their absence, then there's nothing left
+                    // to do at this point.
+                    if (loadOnly)
+                    {
+                        return null;
+                    }
+
+                    // Now, try to create a new instance and write it to the persistence service.
+                    result = await CreateWithLoggingAsync().ConfigureAwait(false);
+                    Contract.ThrowIfNull(result);
+
+                    using (var stream = SerializableBytes.CreateWritableStream())
+                    {
+                        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                        {
+                            result.WriteTo(writer);
+                        }
+
+                        stream.Position = 0;
+
+                        await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Couldn't read from the persistence service.  If we've been asked to only load
-                // data and not create new instances in their absence, then there's nothing left
-                // to do at this point.
-                if (loadOnly)
-                {
-                    return null;
-                }
-
-                // Now, try to create a new instance and write it to the persistence service.
-                result = await createAsync().ConfigureAwait(false);
-                Contract.ThrowIfNull(result);
-
-                using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                {
-                    result.WriteTo(writer);
-                    stream.Position = 0;
-
-                    await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
-                }
+                return result;
             }
 
-            return result;
+            async Task<T> CreateWithLoggingAsync()
+            {
+                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
+                {
+                    return await createAsync().ConfigureAwait(false);
+                }
+            }
         }
+
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
         {
-            writer.WriteString(SerializationFormat);
-            Checksum.WriteTo(writer);
-
             writer.WriteString(_concatenatedNames);
 
             writer.WriteInt32(_nodes.Length);
@@ -139,58 +157,95 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     writer.WriteInt32(v);
                 }
             }
-        }
 
-        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
-            ObjectReader reader, Checksum checksum)
-        {
-            return TryReadSymbolTreeInfo(reader, 
-                (names, nodes) => Task.FromResult(
-                    new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
+            if (_receiverTypeNameToExtensionMethodMap == null)
+            {
+                writer.WriteInt32(0);
+            }
+            else
+            {
+                writer.WriteInt32(_receiverTypeNameToExtensionMethodMap.Count);
+                foreach (var key in _receiverTypeNameToExtensionMethodMap.Keys)
+                {
+                    writer.WriteString(key);
+
+                    var values = _receiverTypeNameToExtensionMethodMap[key];
+                    writer.WriteInt32(values.Count);
+
+                    foreach (var value in values)
+                    {
+                        writer.WriteString(value.FullyQualifiedContainerName);
+                        writer.WriteString(value.Name);
+                    }
+                }
+            }
         }
 
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
+            Checksum checksum,
             Func<string, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
-                var formatVersion = reader.ReadString();
-                if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
+                var concatenatedNames = reader.ReadString();
+
+                var nodeCount = reader.ReadInt32();
+                var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
+                for (var i = 0; i < nodeCount; i++)
                 {
-                    var checksum = Checksum.ReadFrom(reader);
+                    var start = reader.ReadInt32();
+                    var length = reader.ReadInt32();
+                    var parentIndex = reader.ReadInt32();
 
-                    var concatenatedNames = reader.ReadString();
+                    nodes.Add(new Node(new TextSpan(start, length), parentIndex));
+                }
 
-                    var nodeCount = reader.ReadInt32();
-                    var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
-                    for (var i = 0; i < nodeCount; i++)
+                var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
+                var inheritanceMapKeyCount = reader.ReadInt32();
+                for (var i = 0; i < inheritanceMapKeyCount; i++)
+                {
+                    var key = reader.ReadInt32();
+                    var valueCount = reader.ReadInt32();
+
+                    for (var j = 0; j < valueCount; j++)
                     {
-                        var start = reader.ReadInt32();
-                        var length = reader.ReadInt32();
-                        var parentIndex = reader.ReadInt32();
-
-                        nodes.Add(new Node(new TextSpan(start, length), parentIndex));
+                        var value = reader.ReadInt32();
+                        inheritanceMap.Add(key, value);
                     }
+                }
 
-                    var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
-                    var inheritanceMapKeyCount = reader.ReadInt32();
-                    for (var i = 0; i < inheritanceMapKeyCount; i++)
+                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap;
+
+                var keyCount = reader.ReadInt32();
+                if (keyCount == 0)
+                {
+                    receiverTypeNameToExtensionMethodMap = null;
+                }
+                else
+                {
+                    receiverTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+
+                    for (var i = 0; i < keyCount; i++)
                     {
-                        var key = reader.ReadInt32();
+                        var typeName = reader.ReadString();
                         var valueCount = reader.ReadInt32();
 
                         for (var j = 0; j < valueCount; j++)
                         {
-                            var value = reader.ReadInt32();
-                            inheritanceMap.Add(key, value);
+                            var containerName = reader.ReadString();
+                            var name = reader.ReadString();
+
+                            receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                         }
                     }
-
-                    var nodeArray = nodes.ToImmutableAndFree();
-                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
-                    return new SymbolTreeInfo(checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap);
                 }
+
+                var nodeArray = nodes.ToImmutableAndFree();
+                var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
+                return new SymbolTreeInfo(
+                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap,
+                    receiverTypeNameToExtensionMethodMap);
             }
             catch
             {
@@ -198,6 +253,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return null;
+        }
+
+        internal readonly partial struct TestAccessor
+        {
+            internal static SymbolTreeInfo ReadSymbolTreeInfo(
+                ObjectReader reader, Checksum checksum)
+            {
+                return TryReadSymbolTreeInfo(reader, checksum,
+                    (names, nodes) => Task.FromResult(
+                        new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
+            }
         }
     }
 }

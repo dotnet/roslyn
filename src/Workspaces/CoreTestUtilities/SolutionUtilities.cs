@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -12,10 +17,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static ProjectChanges GetSingleChangedProjectChanges(Solution oldSolution, Solution newSolution)
         {
             var solutionDifferences = newSolution.GetChanges(oldSolution);
-            var projectId = solutionDifferences.GetProjectChanges().Single().ProjectId;
+            var projectChanges = solutionDifferences.GetProjectChanges();
 
-            var oldProject = oldSolution.GetProject(projectId);
-            var newProject = newSolution.GetProject(projectId);
+            Assert.NotNull(projectChanges);
+            Assert.NotEmpty(projectChanges);
+
+            var projectId = projectChanges.Single().ProjectId;
+
+            var oldProject = oldSolution.GetRequiredProject(projectId);
+            var newProject = newSolution.GetRequiredProject(projectId);
 
             return newProject.GetChanges(oldProject);
         }
@@ -31,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
             var documentId = projectDifferences.GetChangedDocuments().Single();
 
-            return newSolution.GetDocument(documentId);
+            return newSolution.GetDocument(documentId)!;
         }
 
         public static TextDocument GetSingleChangedAdditionalDocument(Solution oldSolution, Solution newSolution)
@@ -39,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
             var documentId = projectDifferences.GetChangedAdditionalDocuments().Single();
 
-            return newSolution.GetAdditionalDocument(documentId);
+            return newSolution.GetAdditionalDocument(documentId)!;
         }
 
         public static IEnumerable<DocumentId> GetChangedDocuments(Solution oldSolution, Solution newSolution)
@@ -59,7 +69,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
             var documentId = projectDifferences.GetAddedDocuments().Single();
 
-            return newSolution.GetDocument(documentId);
+            return newSolution.GetDocument(documentId)!;
+        }
+
+        public static IEnumerable<DocumentId> GetTextChangedDocuments(Solution oldSolution, Solution newSolution)
+        {
+            var changedDocuments = new List<DocumentId>();
+            var projectsDifference = GetChangedProjectChanges(oldSolution, newSolution);
+            foreach (var projectDifference in projectsDifference)
+            {
+                changedDocuments.AddRange(projectDifference.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true));
+            }
+
+            return changedDocuments;
         }
 
         public static IEnumerable<DocumentId> GetAddedDocuments(Solution oldSolution, Solution newSolution)

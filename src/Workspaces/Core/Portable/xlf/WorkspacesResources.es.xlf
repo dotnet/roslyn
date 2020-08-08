@@ -2,9 +2,109 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
+        <source>Adding analyzer config documents is not supported.</source>
+        <target state="translated">No se permite agregar documentos de configuración del analizador.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Error al leer el archivo de configuración especificado: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_files">
+        <source>C# files</source>
+        <target state="translated">Archivos de C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="translated">No se puede aplicar una acción que no está en "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
+        <source>Changing analyzer config documents is not supported.</source>
+        <target state="translated">No se permite cambiar documentos de configuración del analizador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_document_0_is_not_supported">
+        <source>Changing document '{0}' is not supported.</source>
+        <target state="translated">Documento cambiante '{0}' no es compatible.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Core_EditorConfig_Options">
+        <source>Core EditorConfig Options</source>
+        <target state="translated">Opciones principales de EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="translated">DateTimeKind debe ser Utc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="translated">El tipo de destino debe ser una instancia de {0}, {1}, {2} o {3}, pero el proporcionado es {4}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">El documento no admite árboles de sintaxis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="translated">Error al leer el contenido del archivo de origen "{0}"--"{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Sangría y espaciado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Nuevas preferencias de línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_submission_project_can_reference_submission_projects">
+        <source>Only submission project can reference submission projects.</source>
+        <target state="translated">Solo un proyecto de envío puede hacer referencia a proyectos de envío.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="translated">Las opciones no procedían de la solución especificada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="translated">El proyecto no contiene la referencia especificada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Solo refactorización</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="translated">Elimine la línea siguiente si desea heredar la configuración de .editorconfig de directorios más elevados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
+        <source>Removing analyzer config documents is not supported.</source>
+        <target state="translated">No se permite quitar documentos de configuración del analizador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">Cambiar el nombre de '{0}' a '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Solution_does_not_contain_specified_reference">
+        <source>Solution does not contain specified reference</source>
+        <target state="translated">La solución no contiene la referencia especificada</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -82,9 +182,54 @@
         <target state="translated">No se admite la adición de proyectos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="translated">No se pudo encontrar el proyecto del símbolo en la solución proporcionada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="translated">Sincronizar espacio de nombres con estructura de carpetas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="translated">El proyecto ya contiene la referencia especificada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_already_contains_the_specified_reference">
+        <source>The solution already contains the specified reference.</source>
+        <target state="translated">La solución ya contiene la referencia especificada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="translated">Desconocido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="translated">Archivos de Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
+        <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
+        <target state="translated">Al agregar importaciones, se incorporará un método de extensión en el ámbito con el mismo nombre que "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="translated">Error del área de trabajo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">El área de trabajo no está vacía.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_in_a_different_project">
+        <source>{0} is in a different project.</source>
+        <target state="translated">{0} está en un proyecto distinto.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -165,11 +310,6 @@
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">La solución ya contiene el documento especificado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_solution_does_not_contain_the_specified_document">
-        <source>The solution does not contain the specified document.</source>
-        <target state="translated">La solución no contiene el documento especificado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
@@ -267,11 +407,6 @@
         <target state="translated">{0} aún está abierto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Ya existe un elemento con la misma clave pero un valor distinto.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
         <target state="translated">Las matrices con más de una dimensión no se pueden serializar.</target>
@@ -287,14 +422,9 @@
         <target state="translated">La ruta de acceso especificada debe ser absoluta.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant.</source>
-        <target state="translated">La conversión es redundante.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
-        <target state="translated">Se puede simplificar el nombre.</target>
+        <target state="translated">El nombre se puede simplificar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">
@@ -315,11 +445,6 @@
       <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
         <source>Invalid number of parameters for unary operator.</source>
         <target state="translated">Número de parámetros no válido para el operador unario.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Absolute_path_expected">
-        <source>Absolute path expected.</source>
-        <target state="translated">Ruta de acceso absoluta esperada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -360,21 +485,6 @@
       <trans-unit id="Added_colon">
         <source>Added:</source>
         <target state="translated">Agregado:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0">
-        <source>Fix all '{0}'</source>
-        <target state="translated">Corregir todo '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_1">
-        <source>Fix all '{0}' in '{1}'</source>
-        <target state="translated">Corregir todo '{0}' en '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_Solution">
-        <source>Fix all '{0}' in Solution</source>
-        <target state="translated">Corregir todo '{0}' en solución</target>
         <note />
       </trans-unit>
       <trans-unit id="After_colon">
@@ -467,11 +577,6 @@
         <target state="translated">El servicio de tipo '{0}' es necesario para realizar la tarea, pero no está disponibles desde el área de trabajo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Supplied_diagnostic_cannot_be_null">
-        <source>Supplied diagnostic cannot be null.</source>
-        <target state="translated">El diagnóstico suministrado no puede ser nulo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
         <source>At least one diagnostic must be supplied.</source>
         <target state="translated">Se debe suministrar al menos un diagnóstico.</target>
@@ -499,22 +604,22 @@
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
         <source>Label for node '{0}' is invalid, it must be within [0, {1}).</source>
-        <target state="translated">La etiqueta para el nodo '{0}' no es válida; debe estar entre [0, {1}).</target>
+        <target state="translated">La etiqueta para el nodo "{0}" no es válida; debe estar dentro del intervalo [0, {1}).</target>
         <note />
       </trans-unit>
       <trans-unit id="Matching_nodes_0_and_1_must_have_the_same_label">
         <source>Matching nodes '{0}' and '{1}' must have the same label.</source>
-        <target state="translated">Los nodos coincidentes '{0}' y '{1}' deben tener la misma etiqueta.</target>
+        <target state="translated">Los nodos coincidentes "{0}" y "{1}" deben tener la misma etiqueta.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_new_tree">
         <source>Node '{0}' must be contained in the new tree.</source>
-        <target state="translated">El nodo '{0}' se debe incluir en el nuevo árbol.</target>
+        <target state="translated">El nodo "{0}" debe incluirse en el árbol nuevo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">El nodo '{0}' se debe incluir en el árbol antiguo.</target>
+        <target state="translated">El nodo "{0}" debe incluirse en el árbol antiguo.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
@@ -552,11 +657,6 @@
         <target state="translated">Esta área de trabajo no admite la apertura y el cierre de documentos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Uso:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Exceptions_colon">
         <source>Exceptions:</source>
         <target state="translated">Excepciones:</target>
@@ -575,26 +675,6 @@
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Advertencia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Populate_switch">
-        <source>Populate switch</source>
-        <target state="translated">Rellenar switch</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_access_should_be_qualified">
-        <source>Member access should be qualified.</source>
-        <target state="translated">Debe calificarse el acceso a miembros.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces_to_0_statement">
-        <source>Add braces to '{0}' statement.</source>
-        <target state="translated">Agregar llaves a la instrucción '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Las opciones no procedían del área de trabajo</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
@@ -627,164 +707,24 @@
         <target state="translated">El lector de deserialización de "{0}" leyó un número incorrecto de valores.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pascal_Case">
-        <source>Pascal Case</source>
-        <target state="translated">Pascal Case</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Abstract_Method">
-        <source>Abstract Method</source>
-        <target state="translated">Método abstracto</target>
-        <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
       <trans-unit id="Async_Method">
         <source>Async Method</source>
         <target state="translated">Metodo asincrónico</target>
         <note>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
-      <trans-unit id="Begins_with_I">
-        <source>Begins with I</source>
-        <target state="translated">Empieza por I</target>
-        <note>{locked:I}</note>
-      </trans-unit>
-      <trans-unit id="Class">
-        <source>Class</source>
-        <target state="translated">Clase</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Delegate">
-        <source>Delegate</source>
-        <target state="translated">Delegado</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Enum">
-        <source>Enum</source>
-        <target state="translated">Enumeración</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Event">
-        <source>Event</source>
-        <target state="translated">Evento</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Interface">
-        <source>Interface</source>
-        <target state="translated">Interfaz</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Non_Field_Members">
-        <source>Non-Field Members</source>
-        <target state="translated">Miembros que no son un campo</target>
-        <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_Method">
-        <source>Private Method</source>
-        <target state="translated">Método privado</target>
-        <note>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Field">
-        <source>Private or Internal Field</source>
-        <target state="translated">Campo privado o interno</target>
-        <note>{locked: private}{locked: internal}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Private_or_Internal_Static_Field">
-        <source>Private or Internal Static Field</source>
-        <target state="translated">Campo estático privado o interno</target>
-        <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Property">
-        <source>Property</source>
-        <target state="translated">Propiedad</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Public_or_Protected_Field">
-        <source>Public or Protected Field</source>
-        <target state="translated">Campo público o protegido</target>
-        <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Static_Field">
-        <source>Static Field</source>
-        <target state="translated">Campo estático</target>
-        <note>{locked:static}{locked:field} (unless the capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Static_Method">
-        <source>Static Method</source>
-        <target state="translated">Método estático</target>
-        <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="Struct">
-        <source>Struct</source>
-        <target state="translated">Struct</target>
-        <note>{locked} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Types">
-        <source>Types</source>
-        <target state="translated">Tipos</target>
-        <note>{locked:types} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Method">
-        <source>Method</source>
-        <target state="translated">Método</target>
-        <note>{locked:method} unless the capitalization should be handled differently</note>
-      </trans-unit>
-      <trans-unit id="Missing_prefix_colon_0">
-        <source>Missing prefix: '{0}'</source>
-        <target state="translated">Falta el prefijo: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="translated">Fehler</target>
         <note />
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">Ninguna</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Missing_suffix_colon_0">
-        <source>Missing suffix: '{0}'</source>
-        <target state="translated">Falta el sufijo: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0">
-        <source>These non-leading words must begin with an upper case letter: {0}</source>
-        <target state="translated">Las palabras que no están al principio deben comenzar con una letra mayúscula: {0}</target>
+        <target state="translated">NONE</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Sugerencia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0">
-        <source>These non-leading words must begin with a lowercase letter: {0}</source>
-        <target state="translated">Las palabras que no están al principio deben comenzar con una letra minúscula: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_lower_case_characters_colon_0">
-        <source>These words cannot contain lower case characters: {0}</source>
-        <target state="translated">Estas palabras no pueden contener caracteres en minúscula: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_cannot_contain_upper_case_characters_colon_0">
-        <source>These words cannot contain upper case characters: {0}</source>
-        <target state="translated">Estas palabras no pueden contener caracteres en mayúscula: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="These_words_must_begin_with_upper_case_characters_colon_0">
-        <source>These words must begin with upper case characters: {0}</source>
-        <target state="translated">Estas palabras deben comenzar por caracteres en mayúscula: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_an_upper_case_character">
-        <source>The first word, '{0}', must begin with an upper case character</source>
-        <target state="translated">La primera palabra, '{0}', debe comenzar con un carácter en mayúscula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
-        <source>The first word, '{0}', must begin with a lower case character</source>
-        <target state="translated">La primera palabra, '{0}', debe comenzar con un carácter en minúscula</target>
         <note />
       </trans-unit>
       <trans-unit id="File_0_size_of_1_exceeds_maximum_allowed_size_of_2">
@@ -795,6 +735,16 @@
       <trans-unit id="Changing_document_property_is_not_supported">
         <source>Changing document properties is not supported</source>
         <target state="translated">No se admite el cambio de propiedades de documentos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="dot_NET_Coding_Conventions">
+        <source>.NET Coding Conventions</source>
+        <target state="translated">Convenciones de codificación .NET</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="translated">Variables capturadas:</target>
         <note />
       </trans-unit>
     </body>

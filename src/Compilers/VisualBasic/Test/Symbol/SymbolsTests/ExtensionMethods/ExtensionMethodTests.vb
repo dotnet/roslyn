@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.CSharp
@@ -7,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
 
@@ -14,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
 
         <Fact>
         Public Sub DetectingExtensionAttributeOnImport1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation name="DetectingExtensionAttributeOnImport">
         <file name="a.vb">
 Module Module1
@@ -24,7 +27,7 @@ Module Module1
 
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             Dim enumerable As NamedTypeSymbol = compilation1.GetTypeByMetadataName("System.Linq.Enumerable")
 
@@ -208,7 +211,7 @@ End Module
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
             <file name="a.vb">
 Module M1
@@ -419,7 +422,7 @@ End Module
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
             <file name="a.vb">
 Module M1
@@ -615,7 +618,7 @@ End Module
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
             <file name="a.vb">
 Module M1
@@ -810,7 +813,7 @@ End Module
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
             <file name="a.vb">
 Module M1
@@ -1007,7 +1010,7 @@ End Module
 
                 Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
             <file name="a.vb">
 Module M1
@@ -1038,7 +1041,7 @@ End Module
 
         <Fact>
         Public Sub MightContainExtensionMethods_InSource()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="MightContainExtensionMethods_InSource">
         <file name="a.vb">
 Module Module1
@@ -1071,7 +1074,7 @@ End Class
 
         <Fact>
         Public Sub DeclaringExtensionMethods1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod1">
         <file name="a.vb">
 Module Module1
@@ -1118,7 +1121,7 @@ Module Module1
     End Sub
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
 
             Dim module1 As NamedTypeSymbol = compilation1.GetTypeByMetadataName("Module1")
@@ -1162,7 +1165,7 @@ BC36561: Extension method 'Test7' has type constraints that can never be satisfi
 
         <Fact>
         Public Sub DeclaringExtensionMethods2()
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation name="DeclaringExtensionMethod2">
         <file name="a.vb">
 Class Module2
@@ -1209,7 +1212,7 @@ Class Module2
     End Sub
 End Class
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             Dim module2 As NamedTypeSymbol = compilation2.GetTypeByMetadataName("Module2")
 
@@ -1251,7 +1254,7 @@ BC36551: Extension methods can be defined only in modules.
 
         <Fact>
         Public Sub DeclaringExtensionMethods3()
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod3">
         <file name="a.vb">
 &lt;System.Runtime.CompilerServices.Extension()&gt; 'C
@@ -1278,7 +1281,7 @@ End Module
 &lt;System.Runtime.CompilerServices.Extension()&gt; 'D
 Delegate Sub D()
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             For Each type As NamedTypeSymbol In compilation2.SourceModule.GlobalNamespace.GetTypeMembers()
                 Assert.False(type.MightContainExtensionMethods)
@@ -1306,7 +1309,7 @@ BC30662: Attribute 'ExtensionAttribute' cannot be applied to 'D' because the att
 
         <Fact>
         Public Sub DeclaringExtensionMethods4()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod4">
         <file name="a.vb">
 Module Module2
@@ -1357,7 +1360,7 @@ Module Module1
 End Module
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
 
             Dim module1 As NamedTypeSymbol = compilation1.GetTypeByMetadataName("Module2+Module1")
@@ -1400,7 +1403,7 @@ BC36561: Extension method 'Test7' has type constraints that can never be satisfi
 
         <Fact>
         Public Sub DetectingAbsenceOfExtensionMethods1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="DeclaringExtensionMethod1">
         <file name="a.vb">
 Module Module1
@@ -1442,7 +1445,7 @@ BC30002: Type 'System.Runtime.CompilerServices.Extension' is not defined.
 
         <Fact>
         Public Sub DetectingAbsenceOfExtensionMethods2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod1">
         <file name="a.vb">
 Module Module1
@@ -1453,7 +1456,7 @@ Module Module2
 End Module
 End Module
         </file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
 
             Dim module1 As NamedTypeSymbol = compilation1.GetTypeByMetadataName("Module1")
@@ -1498,7 +1501,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1529,7 +1532,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1562,7 +1565,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1594,7 +1597,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(1, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1624,7 +1627,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(0, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1653,7 +1656,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={Net40.SystemCore},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Assert.Equal(0, m.ContainingAssembly.
                                                                   GetAttributes("System.Runtime.CompilerServices",
@@ -1671,7 +1674,7 @@ End Module
 
         <Fact>
         Public Sub EmitExtensionAttribute7()
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="EmitExtensionAttribute7_1">
         <file name="a.vb">
 Namespace System.Runtime.CompilerServices
@@ -1683,7 +1686,7 @@ End Namespace
 
             CompilationUtils.AssertNoErrors(compilation2)
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="EmitExtensionAttribute7_2">
         <file name="a.vb">
 Namespace System.Runtime.CompilerServices
@@ -1712,15 +1715,15 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1Def,
-                                                                                                       {SystemCoreRef,
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1Def,
+                                                                                                       {Net40.SystemCore,
                                                                                                         New VisualBasicCompilationReference(compilation2),
                                                                                                         New VisualBasicCompilationReference(compilation3)},
                                                                                                        TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation1, expectedOutput:="345")
 
-            Dim compilation3_1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation3_1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="EmitExtensionAttribute7_3_1">
         <file name="a.vb">
 Namespace System.Runtime.CompilerServices
@@ -1731,8 +1734,8 @@ End Namespace
         </file>
     </compilation>)
 
-            Dim compilation1_1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1Def,
-                                                                                                        {SystemCoreRef,
+            Dim compilation1_1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1Def,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
                                                                                                          TestOptions.ReleaseExe)
 
@@ -1758,7 +1761,7 @@ BC30560: 'ExtensionAttribute' is ambiguous in the namespace 'System.Runtime.Comp
 
 </expected>)
 
-            Dim compilation3_2 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation3_2 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="EmitExtensionAttribute7_3_2">
         <file name="a.vb">
 Namespace System.Runtime.CompilerServices
@@ -1769,8 +1772,8 @@ End Namespace
         </file>
     </compilation>)
 
-            Dim compilation1_2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1Def,
-                                                                                                        {SystemCoreRef,
+            Dim compilation1_2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1Def,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_2)},
                                                                                                          TestOptions.ReleaseExe)
 
@@ -1794,8 +1797,8 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation1_3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1_3_Def,
-                                                                                                        {SystemCoreRef,
+            Dim compilation1_3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1_3_Def,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
                                                                                                         TestOptions.ReleaseExe)
 
@@ -1839,15 +1842,15 @@ End Namespace
         </file>
     </compilation>
 
-            Dim compilation1_4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1_4_Def,
-                                                                                                        {SystemCoreRef,
+            Dim compilation1_4 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1_4_Def,
+                                                                                                        {Net40.SystemCore,
                                                                                                          New VisualBasicCompilationReference(compilation3_1)},
                                                                                                         TestOptions.ReleaseExe)
 
 
             CompileAndVerify(compilation1_4, expectedOutput:="345")
 
-            Dim compilation3_3 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation3_3 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="EmitExtensionAttribute7_3_3">
         <file name="a.vb">
 Namespace System.Runtime.CompilerServices
@@ -1860,7 +1863,7 @@ End Namespace
         </file>
     </compilation>)
 
-            Dim compilation1_5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilation1Def,
+            Dim compilation1_5 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilation1Def,
                                                                                                         {New VisualBasicCompilationReference(compilation3_3)})
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1_5,
@@ -1880,7 +1883,7 @@ BC30517: Overload resolution failed because no 'New' is accessible.
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
     <compilation name="EmitExtensionAttribute7_4">
         <file name="a.vb">
 
@@ -1893,7 +1896,7 @@ Module Module1
 
 End Module
         </file>
-    </compilation>, {SystemCoreRef,
+    </compilation>, {Net40.SystemCore,
                      New VisualBasicCompilationReference(compilation2),
                      New VisualBasicCompilationReference(compilation3)})
 
@@ -1911,7 +1914,7 @@ Module Module1
        ~~~~~~~
 </expected>)
 
-            Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="EmitExtensionAttribute7_5">
         <file name="a.vb">
 &lt;Assembly:System.Runtime.CompilerServices.Extension()&gt;            
@@ -1925,7 +1928,7 @@ Module Module1
 
 End Module
         </file>
-    </compilation>, {SystemCoreRef,
+    </compilation>, {Net40.SystemCore,
                      New VisualBasicCompilationReference(compilation2),
                      New VisualBasicCompilationReference(compilation3)})
 
@@ -1955,7 +1958,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef})
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.SystemCore})
             Dim assembly = compilation.SourceModule.ContainingAssembly
             Dim securityAttributes = assembly.GetAttributes()
             Debug.Assert(securityAttributes.Length = 1)
@@ -1978,7 +1981,7 @@ End Module
 
         <Fact>
         Public Sub BC36558ERR_ExtensionAttributeInvalid1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="ExtensionAttributeInvalid">
         <file name="a.vb">
             Namespace System.Runtime.Compilerservices
@@ -2005,7 +2008,7 @@ BC36558: The custom-designed version of 'System.Runtime.CompilerServices.Extensi
 
         <Fact>
         Public Sub BC36558ERR_ExtensionAttributeInvalid2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="ExtensionAttributeInvalid">
         <file name="a.vb">
             Namespace System.Runtime.CompilerServices
@@ -2033,7 +2036,7 @@ BC36558: The custom-designed version of 'System.Runtime.CompilerServices.Extensi
 
         <Fact>
         Public Sub BC36558ERR_ExtensionAttributeInvalid3()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="ExtensionAttributeInvalid">
         <file name="a.vb">
             Namespace System.Runtime.CompilerServices
@@ -2065,7 +2068,7 @@ BC36558: The custom-designed version of 'System.Runtime.CompilerServices.Extensi
 
         <Fact>
         Public Sub FlowAnalysis1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="FlowAnalysis1">
         <file name="a.vb">
 Option Strict Off
@@ -2243,7 +2246,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 
                 Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
-                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
         <compilation name="ExtensionMethodsDeclaredInTypesWithConflictingNamesAreNotVisible">
             <file name="a.vb">
 Imports Extensions
@@ -2266,7 +2269,7 @@ End Module
 
         <Fact()>
         Public Sub AttributeErrors_1()
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod3">
         <file name="a.vb"><![CDATA[
 <System.Runtime.CompilerServices.Extension()> ' 1
@@ -2274,7 +2277,7 @@ End Module
 Class C
         End Class
         ]]></file>
-    </compilation>, {SystemCoreRef})
+    </compilation>, {Net40.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation2,
 <expected><![CDATA[
@@ -2289,7 +2292,7 @@ Class C
 
         <Fact()>
         Public Sub AttributeErrors_2()
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod3">
         <file name="a.vb"><![CDATA[
 <System.Runtime.CompilerServices.ExtensionAttribute()> ' 1
@@ -2318,7 +2321,7 @@ BC31503: 'ExtensionAttribute' cannot be used as an attribute because it is not a
 
         <Fact()>
         Public Sub AttributeErrors_3()
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod3">
         <file name="a.vb"><![CDATA[
 <System.Runtime.CompilerServices.ExtensionAttribute()> ' 1
@@ -2347,7 +2350,7 @@ BC31504: 'ExtensionAttribute' cannot be used as an attribute because it does not
 
         <Fact()>
         Public Sub AttributeErrors_4()
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="DeclaringExtensionMethod3">
         <file name="a.vb"><![CDATA[
 <System.Runtime.CompilerServices.ExtensionAttribute()> ' 1
@@ -2375,7 +2378,7 @@ BC30662: Attribute 'ExtensionAttribute' cannot be applied to 'C' because the att
         <Fact(), WorkItem(545799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545799")>
         Public Sub SameExtensionMethodSymbol()
 
-            Dim comp = CreateCompilationWithMscorlibAndReferences(
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(
     <compilation name="SameExtensionMethodSymbol">
         <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -2401,7 +2404,7 @@ Module M
 
 End Module
         ]]></file>
-    </compilation>, references:={SystemCoreRef})
+    </compilation>, references:={Net40.SystemCore})
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
@@ -2450,7 +2453,7 @@ o.F()]]>
 
         <Fact>
         Public Sub InteractiveExtensionMethods()
-            Dim references = {MscorlibRef, SystemCoreRef}
+            Dim references = {Net40.mscorlib, Net40.SystemCore}
 
             Dim source0 = "
 Imports System.Runtime.CompilerServices
@@ -2496,9 +2499,9 @@ public static class Extensions
     {
         System.Console.Write(p);
     }
-}", referencedAssemblies:={MscorlibRef, SystemCoreRef}, parseOptions:=options).EmitToImageReference()
+}", referencedAssemblies:={Net40.mscorlib, Net40.SystemCore}, parseOptions:=options).EmitToImageReference()
 
-            Dim vb = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim vb = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
         <![CDATA[
@@ -2525,9 +2528,9 @@ public static class Extensions
     {
         System.Console.Write(p);
     }
-}", referencedAssemblies:={MscorlibRef, SystemCoreRef}, parseOptions:=options).EmitToImageReference()
+}", referencedAssemblies:={Net40.mscorlib, Net40.SystemCore}, parseOptions:=options).EmitToImageReference()
 
-            Dim vb = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim vb = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssemblyName">
     <file name="a.vb">
         <![CDATA[

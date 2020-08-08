@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -119,7 +121,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            New BoundMethodGroup(typeNode, Nothing,
                                                              ImmutableArray.Create(constructorSymbol), LookupResultKind.Good, Nothing,
                                                              QualificationKind.QualifiedViaTypeName)),
-                                        ImmutableArray(Of BoundExpression).Empty,
+                                        arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                        defaultArguments:=BitVector.Null,
                                         BindObjectCollectionOrMemberInitializer(node,
                                                                                 type0,
                                                                                 asNewVariablePlaceholderOpt,
@@ -197,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorReported As Boolean = False        ' was an error already reported?
             Dim type As NamedTypeSymbol = Nothing
 
-            Debug.Assert(objectInitializerExpressionOpt Is Nothing OrElse objectInitializerExpressionOpt.Type = type0)
+            Debug.Assert(objectInitializerExpressionOpt Is Nothing OrElse TypeSymbol.Equals(objectInitializerExpressionOpt.Type, type0, TypeCompareKind.ConsiderEverything))
 
             Select Case type0.TypeKind
                 Case TypeKind.Class
@@ -459,16 +462,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim methodResult = results.BestResult.Value
 
-                    boundArguments = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
+                    Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
+                    boundArguments = argumentInfo.Arguments
 
-                    ReportDiagnosticsIfObsolete(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
 
                     ' If a coclass was instantiated, convert the class to the interface type.
                     If type0.IsInterfaceType() Then
                         Debug.Assert(type.Equals(DirectCast(type0, NamedTypeSymbol).CoClassType))
                         ApplyImplicitConversion(node, type0, New BoundRValuePlaceholder(node, type), diagnostics)
                     Else
-                        Debug.Assert(type = type0)
+                        Debug.Assert(TypeSymbol.Equals(type, type0, TypeCompareKind.ConsiderEverything))
                     End If
 
                     ' If the type was not creatable, create a bad expression so that semantic model results can reflect that.
@@ -491,6 +495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol),
                                                                              constructorsGroup,
                                                                              boundArguments,
+                                                                             argumentInfo.DefaultArguments,
                                                                              objectInitializerExpressionOpt,
                                                                              type0)
                     End If
@@ -714,7 +719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 memberAssignments.Add(assignmentOperator)
 
                 ' assert that the conversion really happened.
-                Debug.Assert(DirectCast(memberAssignments.Last, BoundAssignmentOperator).Right.Type = DirectCast(memberAssignments.Last, BoundAssignmentOperator).Left.Type)
+                Debug.Assert(TypeSymbol.Equals(DirectCast(memberAssignments.Last, BoundAssignmentOperator).Right.Type, DirectCast(memberAssignments.Last, BoundAssignmentOperator).Left.Type, TypeCompareKind.ConsiderEverything))
 
                 memberBindingDiagnostics.Clear()
             Next
@@ -902,6 +907,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           callerInfoOpt:=topLevelInitializer)
                 invocation.SetWasCompilerGenerated()
 
+                If invocation.Kind = BoundKind.LateInvocation Then
+                    invocation = DirectCast(invocation, BoundLateInvocation).SetLateBoundAccessKind(LateBoundAccessKind.Call)
+                End If
+
                 Return invocation
             Else
                 Return New BoundBadExpression(topLevelInitializer,
@@ -918,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Special binder for binding ObjectInitializers. 
     ''' This binder stores a reference to the receiver of the initialization, because fields in an object initializer can be 
-    ''' referenced with an omitted left expression in an member access expression (e.g. .Fieldname = .OtherFieldname).
+    ''' referenced with an omitted left expression in a member access expression (e.g. .Fieldname = .OtherFieldname).
     ''' </summary>
     Friend Class ObjectInitializerBinder
         Inherits Binder

@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -12,8 +17,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExpressionEvaluator(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public BasicExpressionEvaluator(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
             VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
@@ -55,7 +67,7 @@ Module Module1
 End Module");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void ValidateLocalsWindow()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -83,7 +95,7 @@ End Module");
             VisualStudio.LocalsWindow.Verify.CheckEntry("myMulticastDelegate", "System.MulticastDelegate", "Nothing");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void EvaluatePrimitiveValues()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -96,7 +108,7 @@ End Module");
             VisualStudio.Debugger.CheckExpression("myString", "String", "\"\"");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19526")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19526")]
         public void EvaluateLambdaExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -104,14 +116,14 @@ End Module");
             VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "Integer", "2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void EvaluateInvalidExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Debugger.CheckExpression("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
         public void StateMachineTypeParameters()
         {
             VisualStudio.Editor.SetText(@"
@@ -136,7 +148,7 @@ End Module
 ");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.LocalsWindow.Verify.CheckEntry("Type variables", "", "");
-            VisualStudio.LocalsWindow.Verify.CheckEntry( new string[] { "Type variables", "T" }, "String", "String");
+            VisualStudio.LocalsWindow.Verify.CheckEntry(new string[] { "Type variables", "T" }, "String", "String");
 
             // It is better to use the Immediate Window but DTE does not provide an access to it.
             VisualStudio.Debugger.CheckExpression("GetType(T) = GetType(String)", "Boolean", "True");

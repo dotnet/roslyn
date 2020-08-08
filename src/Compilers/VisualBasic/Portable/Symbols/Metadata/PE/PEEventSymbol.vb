@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Immutable
@@ -103,10 +105,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' and the remove method takes an EventRegistrationToken
                 ' as a parameter.
                 Return _
-                    _addMethod.ReturnType = evt AndAlso
+                    TypeSymbol.Equals(_addMethod.ReturnType, evt, TypeCompareKind.ConsiderEverything) AndAlso
                     _addMethod.ParameterCount = 1 AndAlso
                     _removeMethod.ParameterCount = 1 AndAlso
-                    _removeMethod.Parameters(0).Type = evt
+                    TypeSymbol.Equals(_removeMethod.Parameters(0).Type, evt, TypeCompareKind.ConsiderEverything)
             End Get
         End Property
 

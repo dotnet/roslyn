@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -97,9 +99,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public sealed override ImmutableArray<TypeSymbol> TypeArguments
+            public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+            public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+            public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
             {
-                get { return ImmutableArray<TypeSymbol>.Empty; }
+                get { return ImmutableArray<TypeWithAnnotations>.Empty; }
             }
 
             public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -117,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<MethodSymbol>.Empty; }
             }
 
-            public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
-            }
+            // methods on classes are never 'readonly'
+            internal sealed override bool IsDeclaredReadOnly => false;
+
+            internal sealed override bool IsInitOnly => false;
 
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {
@@ -215,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected SyntheticBoundNodeFactory CreateBoundNodeFactory(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentMethod = this;
+                F.CurrentFunction = this;
                 return F;
             }
 

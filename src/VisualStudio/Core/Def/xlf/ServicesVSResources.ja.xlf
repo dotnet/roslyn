@@ -2,10 +2,880 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
+        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
+        <target state="translated">新しい .editorconfig ファイルがソリューションのルートで検出されました。ソリューション項目にしますか?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="translated">新しい名前空間が作成されます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_type_and_name_must_be_provided">
+        <source>A type and name must be provided.</source>
+        <target state="translated">種類と名前を指定する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add">
+        <source>_Add</source>
+        <target state="translated">追加(_A)</target>
+        <note>Adding an element to a list</note>
+      </trans-unit>
+      <trans-unit id="Add_Parameter">
+        <source>Add Parameter</source>
+        <target state="translated">パラメーターの追加</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+        <target state="translated">現在のファイルに追加(_C)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Added_Parameter">
+        <source>Added parameter.</source>
+        <target state="translated">追加されたパラメーター。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+        <target state="translated">リファクタリングを完了するには、追加的な変更が必要です。下記の変更内容を確認してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">すべてのメソッド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_sources">
+        <source>All sources</source>
+        <target state="translated">すべてのソース</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="translated">許可:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="translated">わかりやすくするために常に</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_0_keymapping_scheme">
+        <source>Apply '{0}' keymapping scheme</source>
+        <target state="translated">'{0}' のキー マップ スキームを適用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
+        <source>Avoid expression statements that implicitly ignore value</source>
+        <target state="translated">値を暗黙的に無視する式ステートメントを指定しないでください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">使用されないパラメーターを指定しないでください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_value_assignments">
+        <source>Avoid unused value assignments</source>
+        <target state="translated">使用されない値の代入を指定しないでください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Back">
+        <source>Back</source>
+        <target state="translated">戻る</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Background_analysis_scope_colon">
+        <source>Background analysis scope:</source>
+        <target state="translated">バックグラウンドの分析スコープ:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="new">32-bit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="new">64-bit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="translated">ビルド + ライブ分析 (NuGet パッケージ)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="translated">C#/Visual Basic 言語サーバー クライアント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+        <target state="translated">依存を計算しています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Call_site_value">
+        <source>Call site value:</source>
+        <target state="translated">呼び出しサイトの値:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Callsite">
+        <source>Call site</source>
+        <target state="translated">呼び出しサイト</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_0">
+        <source>Code analysis completed for '{0}'.</source>
+        <target state="translated">'{0}' のコード分析が完了しました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_Solution">
+        <source>Code analysis completed for Solution.</source>
+        <target state="translated">ソリューションのコード分析が完了しました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_0">
+        <source>Code analysis terminated before completion for '{0}'.</source>
+        <target state="translated">コード分析が、'{0}' の完了前に終了しました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
+        <source>Code analysis terminated before completion for Solution.</source>
+        <target state="translated">コード分析が、ソリューションでの完了前に終了しました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="translated">正規表現をカラー化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_member">
+        <source>Containing Member</source>
+        <target state="translated">含んでいるメンバー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_type">
+        <source>Containing Type</source>
+        <target state="translated">含んでいる型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_document">
+        <source>Current document</source>
+        <target state="translated">現在のドキュメント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_parameter">
+        <source>Current parameter</source>
+        <target state="new">Current parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints (experimental)</source>
+        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit">
+        <source>_Edit</source>
+        <target state="translated">編集(_E)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_0">
+        <source>Edit {0}</source>
+        <target state="translated">{0} の編集</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
+      <trans-unit id="Editor_Color_Scheme">
+        <source>Editor Color Scheme</source>
+        <target state="translated">エディターの配色</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
+        <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
+        <target state="translated">エディターの配色オプションは、Visual Studio にバンドルされている配色テーマを使用している場合にのみ使用できます。配色テーマは、[環境] &gt; [全般] オプション ページで構成できます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">要素が有効ではありません。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
+        <source>Enter a call site value or choose a different value injection kind</source>
+        <target state="translated">呼び出しサイトの値を入力するか、別の値の挿入の種類を選択してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_repository">
+        <source>Entire repository</source>
+        <target state="translated">リポジトリ全体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_solution">
+        <source>Entire solution</source>
+        <target state="translated">ソリューション全体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluating_0_tasks_in_queue">
+        <source>Evaluating ({0} tasks in queue)</source>
+        <target state="translated">評価中 ({0} 個のタスクがキューにあります)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finish">
+        <source>Finish</source>
+        <target state="translated">終了</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_dot_editorconfig_file_from_settings">
+        <source>Generate .editorconfig file from settings</source>
+        <target state="translated">設定から .editorconfig ファイルを生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_components_under_cursor">
+        <source>Highlight related components under cursor</source>
+        <target state="translated">カーソルの下にある関連コンポーネントをハイライトする</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="translated">その他の演算子内で</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Index">
+        <source>Index</source>
+        <target state="translated">インデックス</target>
+        <note>Index of parameter in original signature</note>
+      </trans-unit>
+      <trans-unit id="Infer_from_context">
+        <source>Infer from context</source>
+        <target state="translated">コンテキストから推論する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_organization">
+        <source>Indexed in organization</source>
+        <target state="translated">組織内でインデックス付け</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_repo">
+        <source>Indexed in repo</source>
+        <target state="translated">リポジトリ内でインデックス付け</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inserting_call_site_value_0">
+        <source>Inserting call site value '{0}'</source>
+        <target state="translated">呼び出しサイトの値 "{0}" を挿入しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="translated">Microsoft で推奨されている Roslyn アナライザーをインストールします。これにより、一般的な API の設計、セキュリティ、パフォーマンス、信頼性の問題に対する追加の診断と修正が提供されます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+        <target state="translated">インターフェイスにフィールドを含めることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntroduceUndefinedTodoVariables">
+        <source>Introduce undefined TODO variables</source>
+        <target state="translated">未定義の TODO 変数の導入</target>
+        <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
+      <trans-unit id="Item_origin">
+        <source>Item origin</source>
+        <target state="translated">項目の送信元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keep_all_parentheses_in_colon">
+        <source>Keep all parentheses in:</source>
+        <target state="translated">すべてのかっこを保持:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="translated">種類</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="translated">Live Share C#/Visual Basic 言語サーバー クライアント</target>
+        <note>'Live Share' is a product name and does not need to be localized.</note>
+      </trans-unit>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="translated">ライブ分析 (VSIX 拡張機能)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_items">
+        <source>Loaded items</source>
+        <target state="translated">読み込まれた項目</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_solution">
+        <source>Loaded solution</source>
+        <target state="translated">読み込まれたソリューション</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local">
+        <source>Local</source>
+        <target state="translated">ローカル</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_metadata">
+        <source>Local metadata</source>
+        <target state="translated">ローカル メタデータ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+        <target state="translated">'{0}' を抽象化する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+        <target state="translated">抽象化する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+        <target state="translated">メンバー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="translated">修飾子設定:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to Namespace</source>
+        <target state="translated">名前空間に移動します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="translated">名前空間</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0">
+        <source>Namespace: '{0}'</source>
+        <target state="translated">名前空間: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Class">
+        <source>class</source>
+        <target state="new">class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Delegate">
+        <source>delegate</source>
+        <target state="new">delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Enum">
+        <source>enum</source>
+        <target state="new">enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Event">
+        <source>event</source>
+        <target state="new">event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Field">
+        <source>field</source>
+        <target state="translated">フィールド</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Interface">
+        <source>interface</source>
+        <target state="new">interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Local">
+        <source>local</source>
+        <target state="translated">ローカル</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_LocalFunction">
+        <source>local function</source>
+        <target state="translated">ローカル関数</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Method">
+        <source>method</source>
+        <target state="translated">メソッド</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Namespace">
+        <source>namespace</source>
+        <target state="new">namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Parameter">
+        <source>parameter</source>
+        <target state="translated">パラメーター</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Property">
+        <source>property</source>
+        <target state="translated">プロパティ</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_Struct">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_CSharp_TypeParameter">
+        <source>type parameter</source>
+        <target state="translated">型パラメーター</target>
+        <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Class">
+        <source>Class</source>
+        <target state="new">Class</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Delegate">
+        <source>Delegate</source>
+        <target state="new">Delegate</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Enum">
+        <source>Enum</source>
+        <target state="new">Enum</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Event">
+        <source>Event</source>
+        <target state="new">Event</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Field">
+        <source>Field</source>
+        <target state="translated">フィールド</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Interface">
+        <source>Interface</source>
+        <target state="new">Interface</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Local">
+        <source>Local</source>
+        <target state="translated">ローカル</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Method">
+        <source>Method</source>
+        <target state="translated">メソッド</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Module">
+        <source>Module</source>
+        <target state="new">Module</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Parameter">
+        <source>Parameter</source>
+        <target state="translated">パラメーター</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Property">
+        <source>Property</source>
+        <target state="new">Property</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_Structure">
+        <source>Structure</source>
+        <target state="new">Structure</target>
+        <note>{Locked} This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (including this one).</note>
+      </trans-unit>
+      <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
+        <source>Type Parameter</source>
+        <target state="translated">型パラメーター</target>
+        <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="translated">名前付けルール</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="translated">不必要なら保持しない</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">パブリックでないメソッド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="translated">なし</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_only_for_optional_parameters">
+        <source>Omit (only for optional parameters)</source>
+        <target state="translated">省略 (省略可能なパラメーターの場合のみ)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Open_documents">
+        <source>Open documents</source>
+        <target state="translated">開かれているドキュメント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_parameters_must_provide_a_default_value">
+        <source>Optional parameters must provide a default value</source>
+        <target state="translated">省略可能なパラメーターには、既定値を指定する必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_with_default_value_colon">
+        <source>Optional with default value:</source>
+        <target state="translated">既定値を含むオプション:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Others</source>
+        <target state="translated">その他</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_Details">
+        <source>Parameter Details</source>
+        <target state="translated">パラメーターの詳細</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_Name">
+        <source>Parameter name:</source>
+        <target state="translated">パラメーター名:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_information">
+        <source>Parameter information</source>
+        <target state="translated">パラメーター情報</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_kind">
+        <source>Parameter kind</source>
+        <target state="translated">パラメーターの種類</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_name_contains_invalid_characters">
+        <source>Parameter name contains invalid character(s).</source>
+        <target state="translated">パラメーター名に無効な文字が含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences_colon">
+        <source>Parameter preferences:</source>
+        <target state="translated">パラメーターの優先順位:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_type_contains_invalid_characters">
+        <source>Parameter type contains invalid character(s).</source>
+        <target state="translated">パラメーターの種類に無効な文字が含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences_colon">
+        <source>Parentheses preferences:</source>
+        <target state="translated">かっこの優先順位:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paused_0_tasks_in_queue">
+        <source>Paused ({0} tasks in queue)</source>
+        <target state="translated">一時停止中 ({0} 個のタスクがキューにあります)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_enter_a_type_name">
+        <source>Please enter a type name</source>
+        <target state="translated">型の名前を入力してください</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="translated">'GetHashCode' の 'System.HashCode' を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="translated">複合代入を優先</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_index_operator">
+        <source>Prefer index operator</source>
+        <target state="translated">インデックス演算子を優先</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_range_operator">
+        <source>Prefer range operator</source>
+        <target state="translated">範囲演算子を優先</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="translated">readonly フィールドを優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="translated">単純な 'using' ステートメントを優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="translated">単純なブール式を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="translated">静的ローカル関数を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="translated">メンバーをプルアップ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Razor_CSharp_Language_Server_Client">
+        <source>Razor C# Language Server Client</source>
+        <target state="translated">Razor C# 言語サーバー クライアント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="translated">正規表現</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="translated">{0} の名前を {1} に変更</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="translated">無効な正規表現を報告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repository">
+        <source>Repository</source>
+        <target state="translated">リポジトリ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>Required</source>
+        <target state="translated">必須</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Requires_System_HashCode_be_present_in_project">
+        <source>Requires 'System.HashCode' be present in project</source>
+        <target state="translated">'System.HashCode' がプロジェクトに存在する必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_Visual_Studio_default_keymapping">
+        <source>Reset Visual Studio default keymapping</source>
+        <target state="translated">Visual Studio の既定のキーマップをリセットします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="translated">変更のプレビュー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Code_Analysis_on_0">
+        <source>Run Code Analysis on {0}</source>
+        <target state="translated">{0} で Code Analysis を実行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_0">
+        <source>Running code analysis for '{0}'...</source>
+        <target state="translated">'{0}' のコード分析を実行しています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_Solution">
+        <source>Running code analysis for Solution...</source>
+        <target state="translated">ソリューションのコード分析を実行しています...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_low_priority_background_processes">
+        <source>Running low priority background processes</source>
+        <target state="translated">優先度の低いバックグラウンド プロセスを実行しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Save_dot_editorconfig_file">
+        <source>Save .editorconfig file</source>
+        <target state="translated">.editorconfig ファイルの保存</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="translated">宛先の選択</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>Select _Dependents</source>
+        <target state="translated">依存の選択(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>Select _Public</source>
+        <target state="translated">パブリックの選択(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+        <target state="translated">プルアップする宛先とメンバーを選択します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="translated">宛先の選択:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="translated">メンバーの選択</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+        <target state="translated">メンバーの選択:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="translated">入力候補一覧の表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
+        <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
+        <target state="translated">一部の配色パターンの色は、[環境] &gt; [フォントおよび色] オプション ページで行われた変更によって上書きされます。[フォントおよび色] オプション ページで [既定値を使用] を選択すると、すべてのカスタマイズが元に戻ります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="translated">ターゲット名前空間:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="translated">これは無効な名前空間です</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Name">
+        <source>Type name:</source>
+        <target state="translated">種類の名前:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_name_has_a_syntax_error">
+        <source>Type name has a syntax error</source>
+        <target state="translated">型名に構文エラーがあります</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_not_recognized">
+        <source>Type name is not recognized</source>
+        <target state="translated">型名が認識されません</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_recognized">
+        <source>Type name is recognized</source>
+        <target state="translated">型名が認識されます</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="translated">未使用のローカルに未使用の値が明示的に割り当てられます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="translated">未使用の値が discard に明示的に割り当てられます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="translated">重要度を更新しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="translated">.editorconfig 互換性モードを使用する (再起動が必要)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="translated">ラムダに式本体を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="translated">ローカル関数に式本体を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_named_argument">
+        <source>Use named argument</source>
+        <target state="translated">名前付き引数を使用する</target>
+        <note>"argument" is a programming term for a value passed to a function</note>
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="translated">ここで割り当てた値は一度も使用されません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="translated">値:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="translated">呼び出しによって返された値が暗黙的に無視されます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_to_inject_at_call_sites">
+        <source>Value to inject at call sites</source>
+        <target state="translated">呼び出しサイトで挿入する値</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_2017">
+        <source>Visual Studio 2017</source>
+        <target state="translated">Visual Studio 2017</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_2019">
+        <source>Visual Studio 2019</source>
+        <target state="translated">Visual Studio 2019</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_duplicate_parameter_name">
+        <source>Warning: duplicate parameter name</source>
+        <target state="translated">警告: パラメーター名が重複しています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_type_does_not_bind">
+        <source>Warning: type does not bind</source>
+        <target state="translated">警告: 型はバインドしていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
+        <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
+        <target state="translated">'{0}' が中断されました。キーマップをリセットして、移動とリファクターを続行してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="translated">このワークスペースでは、Visual Basic コンパイル オプションの更新がサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_change_the_signature">
+        <source>You must change the signature</source>
+        <target state="translated">署名を変更する必要があります</target>
+        <note>"signature" here means the definition of a method</note>
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
@@ -127,6 +997,21 @@
         <target state="translated">有効な値ではありません</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="translated">'{0}' は抽象に変更されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="translated">'{0}' は非静的に変更されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+        <target state="translated">'{0}' はパブリックに変更されます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
         <source>given workspace doesn't support undo</source>
         <target state="translated">指定されたワークスペースは元に戻す操作をサポートしていません</target>
@@ -190,11 +1075,6 @@
       <trans-unit id="Could_not_find_location_of_folder_on_disk">
         <source>Could not find location of folder on disk</source>
         <target state="translated">ディスクにフォルダーの場所が見つかりませんでした</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">{0}' の読み取り中にエラーが発生しました: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Assembly">
@@ -297,16 +1177,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">プロジェクト: {0}
 
 ドロップダウンを使用して、このファイルが属している可能性のある他のプロジェクトを表示し、それらのプロジェクトに切り替えます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">規則セット ファイル {0} を読み込み中にエラーが発生しました - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -584,31 +1454,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">アナライザー アセンブリ '{0}' は '{1}' に依存しますが、見つかりませんでした。欠落しているアセンブリがアナライザー参照として追加されない限り、アナライザーを正常に実行できない可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">抑制状態</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">アクティブ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">抑制済み</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">該当なし</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">抑制状態は IntelliSense 診断でのみサポートされています。この診断は現在のソリューションのスナップショットを対象にしています。抑制用の 'Intellisense' 診断に切り替えます。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_diagnostics">
         <source>Suppress diagnostics</source>
         <target state="translated">診断を抑制する</target>
@@ -701,7 +1546,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Rule">
         <source>Enter a title for this Naming Rule.</source>
-        <target state="translated">この名前付け規則のタイトルを入力してください。</target>
+        <target state="translated">この名前付けルールのタイトルを入力してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
@@ -726,12 +1571,12 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="all_lower">
         <source>all lower</source>
-        <target state="translated">すべて小文字</target>
+        <target state="translated">すべて小文字(all lower)</target>
         <note />
       </trans-unit>
       <trans-unit id="ALL_UPPER">
         <source>ALL UPPER</source>
-        <target state="translated">すべて大文字</target>
+        <target state="translated">すべて大文字(ALL UPPER)</target>
         <note />
       </trans-unit>
       <trans-unit id="camel_Case_Name">
@@ -766,7 +1611,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Naming_Rule">
         <source>Naming Rule</source>
-        <target state="translated">名前付け規則</target>
+        <target state="translated">名前付けルール</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Style">
@@ -781,12 +1626,12 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
         <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
-        <target state="translated">名前付け規則を使用すると、特定のシンボル セットの名前付け方法と、正しく名前付けされていないシンボルの処理方法を定義できます。</target>
+        <target state="translated">名前付けルールを使用すると、特定のシンボル セットの名前付け方法と、正しく名前付けされていないシンボルの処理方法を定義できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
         <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
-        <target state="translated">シンボルに名前を付けるときには、最初に一致するトップレベルの名前付け規則が既定で使用されますが、特殊なケースの場合は一致する子規則によって処理されます。</target>
+        <target state="translated">シンボルに名前を付けるときには、最初に一致するトップレベルの名前付けルールが既定で使用されますが、特殊なケースの場合は一致する子ルールによって処理されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Style_Title_colon">
@@ -1095,17 +1940,12 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Some_naming_rules_are_incomplete_Please_complete_or_remove_them">
         <source>Some naming rules are incomplete. Please complete or remove them.</source>
-        <target state="translated">一部の名前付け規則が不完全です。不完全な規則を完成させるか削除してください。</target>
+        <target state="translated">一部の名前付けルールが不完全です。不完全なルールを完成させるか削除してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_specifications">
         <source>Manage specifications</source>
         <target state="translated">仕様の管理</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">スタイルの管理</target>
         <note />
       </trans-unit>
       <trans-unit id="Reorder">
@@ -1130,7 +1970,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule">
         <source>This item cannot be deleted because it is used by an existing Naming Rule.</source>
-        <target state="translated">このアイテムは既存の名前付け規則で使用されているため、削除できませんでした。</target>
+        <target state="translated">このアイテムは既存の名前付けルールで使用されているため、削除できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_collection_initializer">
@@ -1290,12 +2130,12 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Add_a_naming_rule">
         <source>Add a naming rule</source>
-        <target state="translated">名前付け規則の追加</target>
+        <target state="translated">名前付けルールの追加</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_naming_rule">
         <source>Remove naming rule</source>
-        <target state="translated">名前付け規則の削除</target>
+        <target state="translated">名前付けルールの削除</target>
         <note />
       </trans-unit>
       <trans-unit id="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread">
@@ -1316,11 +2156,6 @@ Additional information: {1}</source>
       <trans-unit id="Options">
         <source>Options</source>
         <target state="translated">オプション</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">ライブ コード分析拡張機能のプレビュー バージョンをお試しください。共通 API の設計、名前付け、パフォーマンス、信頼性の問題について多数の修正を提供しています</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_show_this_again">
@@ -1353,16 +2188,6 @@ Additional information: {1}</source>
         <target state="translated">解析</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="translated">完全ソリューション解析を有効にする(_A)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">外部プロセスでエディター機能解析を実行する (試験段階)(_F)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">到達できないコードをフェードアウトします</target>
@@ -1373,32 +2198,8 @@ Additional information: {1}</source>
         <target state="translated">フェード</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">アセンブリが読み込まれていない場合、変更は許可されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">デバッグを開始したときにプロジェクトがビルドされていない場合、変更は許可されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">デバッグを開始したときにプロジェクトが読み込みおよびビルドされていない場合、変更は許可されません。
-
-現在のソリューションで 'ライトウェイト ソリューション ロード' が有効になっています。無効にして、デバッグの開始時にすべてのプロジェクトが読み込まれていることを確認します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">コードの実行中は変更が許可されません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">匿名関数よりローカル関数を優先します</target>
         <note />
       </trans-unit>
@@ -1432,39 +2233,9 @@ Additional information: {1}</source>
         <target state="translated">自動プロパティを優先する</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">ファイルの読み取り中にエラーが発生しました</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">モジュールがアンロードされました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">変更を適用できません -- モジュール '{0}' がアンロードされています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Restore_Visual_Studio_keybindings">
-        <source>Restore Visual Studio keybindings</source>
-        <target state="translated">Visual Studio キー バインドの復元</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Keybindings_for_extensions">
-        <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
-        <target state="translated">ReSharper/IntelliJ/Vim などのキー バインドを使用します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Visual Studio コマンドとのキー バインドのマップが解除されました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">‘ReSharper Ultimate’ が中断されたものと思われます。Visual Studio キー バインドを復元し、ナビゲートとリファクターを続行してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1474,15 +2245,15 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Message">
         <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
 (i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
 (ii) obtain permission to decompile the binary code from the owner of the software.
- 
+
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="translated">重要: Visual Studio には、逆コンパイル機能 (“デコンパイラ”) が含まれています。これは、バイナリ コードからのソース コードの再生成を可能にする機能です。デコンパイラにアクセスしてこれを使用することで、デコンパイラに関する以下の Visual Studio のライセンス条項に同意します。ここでまとめられている条項に同意しない場合は、デコンパイラへのアクセスも使用も行わないでください。
+        <target state="needs-review-translation">重要: Visual Studio には、逆コンパイル機能 (“デコンパイラ”) が含まれています。これは、バイナリ コードからのソース コードの再生成を可能にする機能です。デコンパイラにアクセスしてこれを使用することで、デコンパイラに関する以下の Visual Studio のライセンス条項に同意します。ここでまとめられている条項に同意しない場合は、デコンパイラへのアクセスも使用も行わないでください。
 
 バイナリ コードとソース コードが著作権と商標に関する法律によって保護されている可能性があることに同意します。バイナリ コードでデコンパイラを使用する前に、次のことを行う必要があります:
 (i) バイナリ コードの使用を管理するライセンス条項にソフトウェアのデコンパイルを禁止するプロビジョンが含まれていないことを確認する。または
@@ -1496,6 +2267,36 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
         <target state="translated">デコンパイラの法的通知</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="translated">このページに構成されているローカル設定 (ご使用のマシンにのみ適用される) が .editorconfig ファイルによって上書きされる可能性があります。これらの設定をソリューション全体に適用するよう構成するには、EditorConfig ファイルを使用します。詳細情報</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">クラス ビューの同期</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' の分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">名前付けスタイルを管理する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="translated">代入のある 'if' より条件式を優先する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="translated">戻り値のある 'if' より条件式を優先する</target>
         <note />
       </trans-unit>
     </body>

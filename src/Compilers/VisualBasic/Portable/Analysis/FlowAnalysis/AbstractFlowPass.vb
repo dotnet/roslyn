@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -691,6 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        <DebuggerStepThrough>
         Private Shadows Function VisitWithStackGuard(node As BoundNode) As BoundNode
             Dim expression = TryCast(node, BoundExpression)
 
@@ -701,6 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.Visit(node)
         End Function
 
+        <DebuggerStepThrough>
         Protected Overrides Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
             Return DirectCast(MyBase.Visit(node), BoundExpression)
         End Function
@@ -1869,10 +1873,10 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitRelationalCaseClause(node As BoundRelationalCaseClause) As BoundNode
             ' Exactly one of the operand or condition must be non-null
-            Debug.Assert(node.OperandOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
+            Debug.Assert(node.ValueOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
 
-            If node.OperandOpt IsNot Nothing Then
-                VisitRvalue(node.OperandOpt)
+            If node.ValueOpt IsNot Nothing Then
+                VisitRvalue(node.ValueOpt)
             Else
                 VisitRvalue(node.ConditionOpt)
             End If
@@ -2546,8 +2550,16 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto) As BoundNode
-            VisitRvalue(node.Condition)
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
+            VisitCondition(node.Condition)
+            Debug.Assert(Me.IsConditionalState)
+            If node.JumpIfTrue Then
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenTrue, Me._nesting))
+                Me.SetState(Me.StateWhenFalse)
+            Else
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenFalse, Me._nesting))
+                Me.SetState(Me.StateWhenTrue)
+            End If
+
             Return Nothing
         End Function
 

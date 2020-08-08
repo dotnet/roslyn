@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -210,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(parameterType IsNot Nothing)
 
                     If Me.MethodKind = MethodKind.EventAdd Then
-                        If Not eventType.IsErrorType AndAlso eventType <> parameterType Then
+                        If Not eventType.IsErrorType AndAlso Not TypeSymbol.Equals(eventType, parameterType, TypeCompareKind.ConsiderEverything) Then
                             Dim errid As ERRID = If(_event.IsWindowsRuntimeEvent, ERRID.ERR_AddParamWrongForWinRT, ERRID.ERR_AddRemoveParamNotEventType)
                             diagnostics.Add(errid, location)
                         End If
@@ -223,18 +225,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 binder.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
 
                             Dim firstImplementedEvent As EventSymbol = _event.ExplicitInterfaceImplementations(0)
-                            If Not registrationTokenType.IsErrorType AndAlso firstImplementedEvent.IsWindowsRuntimeEvent <> (parameterType = registrationTokenType) Then
+                            If Not registrationTokenType.IsErrorType AndAlso firstImplementedEvent.IsWindowsRuntimeEvent <> (TypeSymbol.Equals(parameterType, registrationTokenType, TypeCompareKind.ConsiderEverything)) Then
                                 diagnostics.Add(ERRID.ERR_EventImplRemoveHandlerParamWrong, location, _event.Name, firstImplementedEvent.Name, firstImplementedEvent.ContainingType)
                             End If
                         ElseIf _event.IsWindowsRuntimeEvent Then
                             ' Reporting diagnostics when this type is missing will only ever result in cascading, so don't bother.
                             Dim registrationTokenType As NamedTypeSymbol =
                                 binder.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
-                            If Not registrationTokenType.IsErrorType AndAlso parameterType <> registrationTokenType Then
+                            If Not registrationTokenType.IsErrorType AndAlso Not TypeSymbol.Equals(parameterType, registrationTokenType, TypeCompareKind.ConsiderEverything) Then
                                 diagnostics.Add(ERRID.ERR_RemoveParamWrongForWinRT, location)
                             End If
                         Else
-                            If Not eventType.IsErrorType AndAlso eventType <> parameterType Then
+                            If Not eventType.IsErrorType AndAlso Not TypeSymbol.Equals(eventType, parameterType, TypeCompareKind.ConsiderEverything) Then
                                 diagnostics.Add(ERRID.ERR_AddRemoveParamNotEventType, location)
                             End If
                         End If

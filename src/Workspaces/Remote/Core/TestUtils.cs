@@ -1,99 +1,200 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote.DebugUtil
+#if DEBUG
+using System.Diagnostics;
+using System.Text;
+using Microsoft.CodeAnalysis.Internal.Log;
+#endif
+
+namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class TestUtils
     {
         public static void RemoveChecksums(this Dictionary<Checksum, object> map, ChecksumWithChildren checksums)
         {
-            map.Remove(checksums.Checksum);
+            var set = new HashSet<Checksum>();
+            set.AppendChecksums(checksums);
 
-            foreach (var child in checksums.Children)
+            RemoveChecksums(map, set);
+        }
+
+        public static void RemoveChecksums(this Dictionary<Checksum, object> map, IEnumerable<Checksum> checksums)
+        {
+            foreach (var checksum in checksums)
             {
-                if (child is Checksum checksum)
-                {
-                    map.Remove(checksum);
-                }
-
-                if (child is ChecksumCollection collection)
-                {
-                    foreach (var item in collection)
-                    {
-                        map.Remove(item);
-                    }
-                }
+                map.Remove(checksum);
             }
         }
 
-        public static Dictionary<Checksum, object> GetAssetMap(this Solution solution)
+        internal static async Task AssertChecksumsAsync(
+            AssetProvider assetService,
+            Checksum checksumFromRequest,
+            Solution solutionFromScratch,
+            Solution incrementalSolutionBuilt)
+        {
+#if DEBUG
+            var sb = new StringBuilder();
+            var allChecksumsFromRequest = await GetAllChildrenChecksumsAsync(checksumFromRequest).ConfigureAwait(false);
+
+            var assetMapFromNewSolution = await solutionFromScratch.GetAssetMapAsync(CancellationToken.None).ConfigureAwait(false);
+            var assetMapFromIncrementalSolution = await incrementalSolutionBuilt.GetAssetMapAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // check 4 things
+            // 1. first see if we create new solution from scratch, it works as expected (indicating a bug in incremental update)
+            var mismatch1 = assetMapFromNewSolution.Where(p => !allChecksumsFromRequest.Contains(p.Key)).ToList();
+            AppendMismatch(mismatch1, "assets only in new solutoin but not in the request", sb);
+
+            // 2. second check what items is mismatching for incremental solution
+            var mismatch2 = assetMapFromIncrementalSolution.Where(p => !allChecksumsFromRequest.Contains(p.Key)).ToList();
+            AppendMismatch(mismatch2, "assets only in the incremental solution but not in the request", sb);
+
+            // 3. check whether solution created from scratch and incremental one have any mismatch
+            var mismatch3 = assetMapFromNewSolution.Where(p => !assetMapFromIncrementalSolution.ContainsKey(p.Key)).ToList();
+            AppendMismatch(mismatch3, "assets only in new solution but not in incremental solution", sb);
+
+            var mismatch4 = assetMapFromIncrementalSolution.Where(p => !assetMapFromNewSolution.ContainsKey(p.Key)).ToList();
+            AppendMismatch(mismatch4, "assets only in incremental solution but not in new solution", sb);
+
+            // 4. see what item is missing from request
+            var mismatch5 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromNewSolution.Keys)).ConfigureAwait(false);
+            AppendMismatch(mismatch5, "assets only in the request but not in new solution", sb);
+
+            var mismatch6 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromIncrementalSolution.Keys)).ConfigureAwait(false);
+            AppendMismatch(mismatch6, "assets only in the request but not in incremental solution", sb);
+
+            var result = sb.ToString();
+            if (result.Length > 0)
+            {
+                Logger.Log(FunctionId.SolutionCreator_AssetDifferences, result);
+                Debug.Fail("Differences detected in solution checksum: " + result);
+            }
+
+            static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
+            {
+                if (items.Count == 0)
+                {
+                    return;
+                }
+
+                stringBuilder.AppendLine(title);
+                foreach (var kv in items)
+                {
+                    stringBuilder.AppendLine($"{kv.Key.ToString()}, {kv.Value.ToString()}");
+                }
+
+                stringBuilder.AppendLine();
+            }
+
+            async Task<List<KeyValuePair<Checksum, object>>> GetAssetFromAssetServiceAsync(IEnumerable<Checksum> checksums)
+            {
+                var items = new List<KeyValuePair<Checksum, object>>();
+
+                foreach (var checksum in checksums)
+                {
+                    items.Add(new KeyValuePair<Checksum, object>(checksum, await assetService.GetAssetAsync<object>(checksum, CancellationToken.None).ConfigureAwait(false)));
+                }
+
+                return items;
+            }
+
+            async Task<HashSet<Checksum>> GetAllChildrenChecksumsAsync(Checksum solutionChecksum)
+            {
+                var set = new HashSet<Checksum>();
+
+                var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, CancellationToken.None).ConfigureAwait(false);
+                set.AppendChecksums(solutionChecksums);
+
+                foreach (var projectChecksum in solutionChecksums.Projects)
+                {
+                    var projectChecksums = await assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, CancellationToken.None).ConfigureAwait(false);
+                    set.AppendChecksums(projectChecksums);
+
+                    foreach (var documentChecksum in projectChecksums.Documents.Concat(projectChecksums.AdditionalDocuments).Concat(projectChecksums.AnalyzerConfigDocuments))
+                    {
+                        var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, CancellationToken.None).ConfigureAwait(false);
+                        set.AppendChecksums(documentChecksums);
+                    }
+                }
+
+                return set;
+            }
+#else
+
+            // have this to avoid error on async
+            await Task.CompletedTask.ConfigureAwait(false);
+#endif
+        }
+
+        /// <summary>
+        /// create checksum to correspoing object map from solution
+        /// this map should contain every parts of solution that can be used to re-create the solution back
+        /// </summary>
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();
-
-            AppendAssetMap(solution, map);
-
+            await solution.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             return map;
         }
 
-        public static Dictionary<Checksum, object> GetAssetMap(this Project project)
+        /// <summary>
+        /// create checksum to correspoing object map from project
+        /// this map should contain every parts of project that can be used to re-create the project back
+        /// </summary>
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();
 
-            AppendAssetMap(project, map);
-
+            await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             return map;
         }
 
-        public static void AppendAssetMap(this Solution solution, Dictionary<Checksum, object> map)
+        public static async Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(solution.State.TryGetStateChecksums(out var solutionChecksums));
+            var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            solutionChecksums.Find(solution.State, Flatten(solutionChecksums), map, CancellationToken.None);
+            await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
             foreach (var project in solution.Projects)
             {
-                AppendAssetMap(project, map);
+                await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private static void AppendAssetMap(Project project, Dictionary<Checksum, object> map)
+        private static async Task AppendAssetMapAsync(this Project project, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
         {
-            if (!project.State.TryGetStateChecksums(out var projectChecksums))
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
-                Contract.Requires(!RemoteSupportedLanguages.IsSupported(project.Language));
                 return;
             }
 
-            projectChecksums.Find(project.State, Flatten(projectChecksums), map, CancellationToken.None);
+            var projectChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            await projectChecksums.FindAsync(project.State, Flatten(projectChecksums), map, cancellationToken).ConfigureAwait(false);
 
-            foreach (var document in project.Documents)
+            foreach (var document in project.Documents.Concat(project.AdditionalDocuments).Concat(project.AnalyzerConfigDocuments))
             {
-                AppendAssetMap(document, map);
+                var documentChecksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                await documentChecksums.FindAsync(document.State, Flatten(documentChecksums), map, cancellationToken).ConfigureAwait(false);
             }
-
-            foreach (var document in project.AdditionalDocuments)
-            {
-                AppendAssetMap(document, map);
-            }
-        }
-
-        private static void AppendAssetMap(TextDocument document, Dictionary<Checksum, object> map)
-        {
-            Contract.ThrowIfFalse(document.State.TryGetStateChecksums(out var documentChecksums));
-
-            documentChecksums.Find(document.State, Flatten(documentChecksums), map, CancellationToken.None);
-
-            // fix up due to source text can't be obtained synchronously in product code
-            map[documentChecksums.Text] = document.State.GetTextSynchronously(CancellationToken.None);
         }
 
         private static HashSet<Checksum> Flatten(ChecksumWithChildren checksums)
         {
             var set = new HashSet<Checksum>();
+            set.AppendChecksums(checksums);
+
+            return set;
+        }
+
+        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumWithChildren checksums)
+        {
             set.Add(checksums.Checksum);
 
             foreach (var child in checksums.Children)
@@ -105,14 +206,9 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
 
                 if (child is ChecksumCollection collection)
                 {
-                    foreach (var item in collection)
-                    {
-                        set.Add(item);
-                    }
+                    set.AppendChecksums(collection);
                 }
             }
-
-            return set;
         }
     }
 }

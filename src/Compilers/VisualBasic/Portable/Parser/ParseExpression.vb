@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '
 '============ Methods for parsing portions of executable statements ==
@@ -165,9 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 Return expression
-
-                ' TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
-                ' Is available in the PCL
             Finally
                 _recursionDepth -= 1
             End Try
@@ -952,7 +951,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 TryEatNewLine(ScannerState.VB)
             Else
                 operatorToken = DirectCast(HandleUnexpectedToken(SyntaxKind.IsKeyword), KeywordSyntax)
-                ReportSyntaxError(operatorToken, ERRID.ERR_MissingIsInTypeOf)
             End If
 
             Dim typeName = ParseGeneralType()

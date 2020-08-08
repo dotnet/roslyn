@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,8 @@ namespace Roslyn.Utilities
 {
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif
@@ -31,18 +35,16 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001001;
+        internal const byte VersionByte2 = 0b00001011;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// Map of reference id's to deserialized objects.
-        ///
-        /// These are not readonly because they're structs and we mutate them.
         /// </summary>
-        private ReaderReferenceMap<object> _objectReferenceMap;
-        private ReaderReferenceMap<string> _stringReferenceMap;
+        private readonly ReaderReferenceMap<object> _objectReferenceMap;
+        private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
@@ -58,16 +60,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectReader"/>.
         /// </summary>
         /// <param name="stream">The stream to read objects from.</param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
         /// <param name="cancellationToken"></param>
         private ObjectReader(
             Stream stream,
+            bool leaveOpen,
             CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _reader = new BinaryReader(stream, Encoding.UTF8);
+            _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = ReaderReferenceMap<object>.Create();
             _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
@@ -80,11 +84,12 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-        /// If the <paramref name="stream"/> does not start with a valid header, then <code>null</code> will
+        /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
         /// be returned.
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
+            bool leaveOpen = false,
             CancellationToken cancellationToken = default)
         {
             if (stream == null)
@@ -98,7 +103,7 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            return new ObjectReader(stream, cancellationToken);
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
         }
 
         public void Dispose()
@@ -238,19 +243,40 @@ namespace Roslyn.Utilities
                 case EncodingKind.Array_2:
                 case EncodingKind.Array_3:
                     return ReadArray(kind);
+
+                case EncodingKind.EncodingName: return Encoding.GetEncoding(ReadString());
+                case EncodingKind.EncodingUTF8: return s_encodingUTF8;
+                case EncodingKind.EncodingUTF8_BOM: return Encoding.UTF8;
+                case EncodingKind.EncodingUTF32_BE: return s_encodingUTF32_BE;
+                case EncodingKind.EncodingUTF32_BE_BOM: return s_encodingUTF32_BE_BOM;
+                case EncodingKind.EncodingUTF32_LE: return s_encodingUTF32_LE;
+                case EncodingKind.EncodingUTF32_LE_BOM: return Encoding.UTF32;
+                case EncodingKind.EncodingUnicode_BE: return s_encodingUnicode_BE;
+                case EncodingKind.EncodingUnicode_BE_BOM: return Encoding.BigEndianUnicode;
+                case EncodingKind.EncodingUnicode_LE: return s_encodingUnicode_LE;
+                case EncodingKind.EncodingUnicode_LE_BOM: return Encoding.Unicode;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
+        private static readonly Encoding s_encodingUTF8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        private static readonly Encoding s_encodingUTF32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
+        private static readonly Encoding s_encodingUTF32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
+        private static readonly Encoding s_encodingUTF32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
+        private static readonly Encoding s_encodingUnicode_BE = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
+        private static readonly Encoding s_encodingUnicode_LE = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
+
         /// <summary>
-        /// An reference-id to object map, that can share base data efficiently.
+        /// A reference-id to object map, that can share base data efficiently.
         /// </summary>
-        private struct ReaderReferenceMap<T> where T : class
+        private struct ReaderReferenceMap<T> : IDisposable
+            where T : class
         {
             private readonly List<T> _values;
 
-            internal static readonly ObjectPool<List<T>> s_objectListPool
+            private static readonly ObjectPool<List<T>> s_objectListPool
                 = new ObjectPool<List<T>>(() => new List<T>(20));
 
             private ReaderReferenceMap(List<T> values)
@@ -264,7 +290,6 @@ namespace Roslyn.Utilities
                 _values.Clear();
                 s_objectListPool.Free(_values);
             }
-
 
             public int GetNextObjectId()
             {
@@ -443,12 +468,15 @@ namespace Roslyn.Utilities
 
         private bool[] ReadBooleanArrayElements(bool[] array)
         {
+            // Confirm the type to be read below is ulong
+            Debug.Assert(BitVector.BitsPerWord == 64);
+
             var wordLength = BitVector.WordsRequired(array.Length);
 
             var count = 0;
             for (var i = 0; i < wordLength; i++)
             {
-                var word = _reader.ReadUInt32();
+                var word = _reader.ReadUInt64();
 
                 for (var p = 0; p < BitVector.BitsPerWord; p++)
                 {
@@ -607,7 +635,12 @@ namespace Roslyn.Utilities
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);
-            _objectReferenceMap.AddValue(objectId, instance);
+
+            if (instance.ShouldReuseInSerialization)
+            {
+                _objectReferenceMap.AddValue(objectId, instance);
+            }
+
             return instance;
         }
 

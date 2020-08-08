@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -9,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell;
@@ -37,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private int _selectedNonSuppressionStateItems;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticListSuppressionStateService(
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace)
@@ -140,6 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out string filePath) ||
                 string.IsNullOrEmpty(filePath);
+
             var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
             if (roslynSnapshot == null)
             {
@@ -148,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
             }
 
-            var diagnosticData = roslynSnapshot?.GetItem(index)?.Primary;
+            var diagnosticData = roslynSnapshot?.GetItem(index)?.Data;
             if (!IsEntryWithConfigurableSuppressionState(diagnosticData))
             {
                 isRoslynEntry = false;
@@ -165,9 +171,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private static bool IsNonRoslynEntrySupportingSuppressionState(ITableEntryHandle entryHandle, out bool isSuppressedEntry)
         {
-            if (entryHandle.TryGetValue(SuppressionStateColumnDefinition.ColumnName, out string suppressionStateValue))
+            if (entryHandle.TryGetValue(StandardTableKeyNames.SuppressionState, out SuppressionState suppressionStateValue))
             {
-                isSuppressedEntry = suppressionStateValue == ServicesVSResources.Suppressed;
+                isSuppressedEntry = suppressionStateValue == SuppressionState.Suppressed;
                 return true;
             }
 
@@ -188,19 +194,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 !entry.IsBuildDiagnostic();
         }
 
-        private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
-        {
-            return GetEntriesSnapshot(entryHandle, out var index);
-        }
-
-        private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+        private static AbstractTableEntriesSnapshot<DiagnosticTableItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {
             if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
             {
                 return null;
             }
 
-            return snapshot as AbstractTableEntriesSnapshot<DiagnosticData>;
+            return snapshot as AbstractTableEntriesSnapshot<DiagnosticTableItem>;
         }
 
         /// <summary>
@@ -222,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
                 if (roslynSnapshot != null)
                 {
-                    diagnosticData = roslynSnapshot.GetItem(index)?.Primary;
+                    diagnosticData = roslynSnapshot.GetItem(index)?.Data;
                 }
                 else if (!isAddSuppression)
                 {
@@ -234,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     string filePath = null;
-                    int line = -1; // FxCop only supports line, not column.
+                    var line = -1; // FxCop only supports line, not column.
                     DiagnosticDataLocation location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
@@ -269,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 continue;
                             }
 
-                            filePathToDocumentMapOpt = filePathToDocumentMapOpt ?? new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                            filePathToDocumentMapOpt ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
                             if (!filePathToDocumentMapOpt.TryGetValue(project, out var filePathMap))
                             {
                                 filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
@@ -310,7 +311,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             location: location,
                             customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
                             properties: ImmutableDictionary<string, string>.Empty,
-                            workspace: _workspace,
                             projectId: project.Id);
                     }
                 }
@@ -382,9 +382,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void HandleNonSuppressionStateEntry(bool added)
-        {
-            UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
-        }
+            => UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
 
         private void UpdateQueryStatus()
         {

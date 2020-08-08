@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 
@@ -13,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Methods only appear in non-terminal nodes. All terminal nodes have a Conversion.
     ///
     /// Here's an example:
-    /// A deconstruction like `(int x1, (long x2, long x3)) = deconstructable1` with
-    /// `Deconstructable1.Deconstruct(out int y1, out Deconstructable2 y2)` and
-    /// `Deconstructable2.Deconstruct(out int z1, out int z2)` is represented as 5 DeconstructionInfo nodes.
+    /// A deconstruction like <c>(int x1, (long x2, long x3)) = deconstructable1</c> with
+    /// <c>Deconstructable1.Deconstruct(out int y1, out Deconstructable2 y2)</c> and
+    /// <c>Deconstructable2.Deconstruct(out int z1, out int z2)</c> is represented as 5 DeconstructionInfo nodes.
     ///
     /// The top-level node has a <see cref="Method"/> (Deconstructable1.Deconstruct), no <see cref="Conversion"/>, but has two <see cref="Nested"/> nodes.
     /// Its first nested node has no <see cref="Method"/>, but has a <see cref="Conversion"/> (Identity).
@@ -29,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The Deconstruct method (if any) for this non-terminal position in the deconstruction tree.
         /// </summary>
-        public IMethodSymbol Method
+        public IMethodSymbol? Method
         {
             get
             {
                 return _conversion.Kind == ConversionKind.Deconstruction
-                    ? _conversion.Method
+                    ? _conversion.MethodSymbol
                     : null;
             }
         }

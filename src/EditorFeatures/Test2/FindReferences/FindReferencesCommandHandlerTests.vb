@@ -1,18 +1,19 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Public Class FindReferencesCommandHandlerTests
         <WorkItem(47594, "https://developercommunity.visualstudio.com/content/problem/47594/c-postfix-operators-inhibit-find-all-references-sh.html")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24794"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSelection() As Task
             Dim source = "
 class C
@@ -34,21 +35,19 @@ class C
                 view.Selection.Select(
                     testDocument.AnnotatedSpans("Selection").Single().ToSnapshotSpan(snapshot), isReversed:=False)
 
-                Dim waiter = New Waiter()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
-                    workspace.GetService(Of IWaitIndicator),
-                    {}, {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindReferencesPresenter(context))},
-                    {New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(Function() waiter, New FeatureMetadata(FeatureAttribute.FindReferences))})
+                    New MockStreamingFindReferencesPresenter(context),
+                    listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(
-                    New FindReferencesCommandArgs(view, textBuffer), Sub()
-                                                                     End Sub)
+                    New FindReferencesCommandArgs(view, textBuffer), Utilities.TestCommandExecutionContext.Create())
 
                 ' Wait for the find refs to be done.
-                Await waiter.CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).ExpeditedWaitAsync()
 
                 Assert.Equal(1, context.Definitions.Count)
                 Assert.Equal(testDocument.AnnotatedSpans("Definition").Single(),
@@ -76,11 +75,10 @@ class C
             Public Function StartSearch(title As String, supportsReferences As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
                 Return _context
             End Function
-        End Class
 
-        Private Class Waiter
-            Inherits AsynchronousOperationListener
-
+            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
+                Return _context
+            End Function
         End Class
     End Class
 End Namespace

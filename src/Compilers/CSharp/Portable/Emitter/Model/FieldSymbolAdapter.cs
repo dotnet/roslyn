@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -20,9 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            var customModifiers = this.CustomModifiers;
-            var isFixed = this.IsFixed;
-            var implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : this.Type;
+            TypeWithAnnotations fieldTypeWithAnnotations = this.TypeWithAnnotations;
+            var customModifiers = fieldTypeWithAnnotations.CustomModifiers;
+            var isFixed = this.IsFixedSizeBuffer;
+            var implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : fieldTypeWithAnnotations.Type;
             var type = moduleBeingBuilt.Translate(implType,
                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                   diagnostics: context.Diagnostics);
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, customModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(customModifiers));
             }
         }
 
@@ -76,14 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (!this.IsDefinition)
-            {
-                return moduleBeingBuilt.Translate(this.ContainingType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                  diagnostics: context.Diagnostics);
-            }
-
-            return this.ContainingType;
+            return moduleBeingBuilt.Translate(this.ContainingType,
+                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              diagnostics: context.Diagnostics,
+                                              needDeclaration: this.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -154,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     Assert.Null(assembly);
                     AssertEx.Equal(new[]
                     {
-                        "(1,5): error CS1733: Expected expression",
-                        "(1,1): error CS1525: Invalid expression term '??'"
+                        $"(1,5): error CS1733: { CSharpResources.ERR_ExpressionExpected }",
+                        $"(1,1): error CS1525: { string.Format(CSharpResources.ERR_InvalidExprTerm, "??") }",
                     }, errorMessages);
 
                     Assert.True(methodTokens.IsEmpty);
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object y;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -195,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     Assert.Null(assembly);
                     AssertEx.Equal(new[]
                     {
-                        "(1,1): error CS0103: The name 'z' does not exist in the current context",
-                        "(1,6): error CS0103: The name 'z' does not exist in the current context"
+                        $"(1,1): error CS0103: { string.Format(CSharpResources.ERR_NameNotInContext,"z") }",
+                        $"(1,6): error CS0103: { string.Format(CSharpResources.ERR_NameNotInContext,"z") }",
                     }, errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -229,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     Assert.Null(assembly);
                     AssertEx.Equal(new[]
                     {
-                        $"error CS7013: Name '<{longName}>i__Field' exceeds the maximum length allowed in metadata.",
-                        $"error CS7013: Name '<{longName}>j__TPar' exceeds the maximum length allowed in metadata.",
-                        $"error CS7013: Name '<{longName}>i__Field' exceeds the maximum length allowed in metadata.",
-                        $"error CS7013: Name 'get_{longName}' exceeds the maximum length allowed in metadata.",
-                        $"error CS7013: Name '{longName}' exceeds the maximum length allowed in metadata.",
-                        $"error CS7013: Name '{longName}' exceeds the maximum length allowed in metadata."
+                        $"error CS7013: { string.Format(CSharpResources.ERR_MetadataNameTooLong, $"<{longName}>i__Field") }",
+                        $"error CS7013: { string.Format(CSharpResources.ERR_MetadataNameTooLong, $"<{longName}>j__TPar") }",
+                        $"error CS7013: { string.Format(CSharpResources.ERR_MetadataNameTooLong, $"<{longName}>i__Field") }",
+                        $"error CS7013: { string.Format(CSharpResources.ERR_MetadataNameTooLong, $"get_{longName}") }",
+                        $"error CS7013: { string.Format(CSharpResources.ERR_MetadataNameTooLong, $"{longName}") }",
+                        $"error CS7013: { string.Format(CSharpResources.ERR_MetadataNameTooLong, $"{longName}") }",
                     }, errorMessages);
 
                     Assert.True(methodTokens.IsEmpty);
@@ -253,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         object o;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         o = null;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -348,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         out var errorMessages);
                     Assert.Null(assembly);
                     AssertEx.Equal(
-                        new[] { "(1,11): error CS8185: A declaration is not allowed in this context." },
+                        new[] { $"(1,11): error CS8185: { CSharpResources.ERR_DeclarationExpressionNotPermitted }" },
                         errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });
@@ -364,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -380,9 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     Assert.Null(assembly);
                     AssertEx.Equal(new[]
                     {
-                        "(1,1): error CS0103: The name '$exception' does not exist in the current context",
-                        "(1,1): error CS0103: The name '$1' does not exist in the current context",
-                        "(1,7): error CS0103: The name '$unknown' does not exist in the current context",
+                        $"(1,1): error CS0103: { string.Format(CSharpResources.ERR_NameNotInContext, "$exception") }",
+                        $"(1,1): error CS0103: { string.Format(CSharpResources.ERR_NameNotInContext, "$1") }",
+                        $"(1,7): error CS0103: { string.Format(CSharpResources.ERR_NameNotInContext, "$unknown") }",
                     }, errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });
@@ -399,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         d.F();
     }
 }";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -498,7 +500,7 @@ class C
             // Test with CompileExpression rather than CompileExpressions
             // so field references in IL are named.
             // Debug build.
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { TestMetadata.Net40.SystemCore });
             WithRuntimeInstance(
                 comp,
                 references: null,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,12 +8,11 @@ using System.Composition;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -28,10 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+            => _serviceProvider = serviceProvider;
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
@@ -53,8 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private ImmutableArray<TaggedText> GetDisplayParts(
             string filePath, int lineNumber, int charOffset)
         {
-            var builder = ImmutableArray.CreateBuilder<TaggedText>();
-
             var sourceLine = GetSourceLine(filePath, lineNumber).Trim(' ', '\t');
 
             // Put the line in 1-based for the presentation of this item.
@@ -65,19 +63,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
         private string GetSourceLine(string filePath, int lineNumber)
         {
-            using (var invisibleEditor = new InvisibleEditor(
-                _serviceProvider, filePath, projectOpt: null, needsSave: false, needsUndoDisabled: false))
+            using var invisibleEditor = new InvisibleEditor(
+                _serviceProvider, filePath, hierarchy: null, needsSave: false, needsUndoDisabled: false);
+            var vsTextLines = invisibleEditor.VsTextLines;
+            if (vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
+                vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
             {
-                var vsTextLines = invisibleEditor.VsTextLines;
-                if (vsTextLines != null &&
-                    vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
-                    vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
-                {
-                    return lineText;
-                }
-
-                return ServicesVSResources.Preview_unavailable;
+                return lineText;
             }
+
+            return ServicesVSResources.Preview_unavailable;
         }
 
         private class ExternalDefinitionItem : DefinitionItem
@@ -95,11 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 IServiceProvider serviceProvider,
                 string filePath,
                 int lineNumber,
-                int charOffset) 
+                int charOffset)
                 : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
                        originationParts: default,
                        sourceSpans: default,
                        properties: null,
+                       displayableProperties: null,
                        displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
@@ -110,18 +106,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             public override bool CanNavigateTo(Workspace workspace) => true;
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
-            {
-                return TryOpenFile() && TryNavigateToPosition();
-            }
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
+                => TryOpenFile() && TryNavigateToPosition();
 
             private bool TryOpenFile()
             {
                 var shellOpenDocument = (IVsUIShellOpenDocument)_serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
                 var textViewGuid = VSConstants.LOGVIEWID.TextView_guid;
                 if (shellOpenDocument.OpenDocumentViaProject(
-                        _filePath, ref textViewGuid, out var oleServiceProvider, 
-                        out var hierarchy, out var itemid, out var frame) == VSConstants.S_OK)
+                        _filePath, ref textViewGuid, out _,
+                        out _, out _, out var frame) == VSConstants.S_OK)
                 {
                     frame.Show();
                     return true;
@@ -132,17 +126,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             private bool TryNavigateToPosition()
             {
-                IVsRunningDocumentTable docTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+                var docTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
                 if (docTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, _filePath,
-                        out var hierarchy, out var itemid, out var bufferPtr, out var cookie) != VSConstants.S_OK)
+                        out _, out _, out var bufferPtr, out _) != VSConstants.S_OK)
                 {
                     return false;
                 }
 
                 try
                 {
-                    var lines = Marshal.GetObjectForIUnknown(bufferPtr) as IVsTextLines;
-                    if (lines == null)
+                    if (!(Marshal.GetObjectForIUnknown(bufferPtr) is IVsTextLines lines))
                     {
                         return false;
                     }
@@ -154,8 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                     }
 
                     return textManager.NavigateToLineAndColumn(
-                        lines, VSConstants.LOGVIEWID.TextView_guid, 
-                        _lineNumber, _charOffset, 
+                        lines, VSConstants.LOGVIEWID.TextView_guid,
+                        _lineNumber, _charOffset,
                         _lineNumber, _charOffset) == VSConstants.S_OK;
                 }
                 finally

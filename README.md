@@ -1,27 +1,6 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
-[//]: # (Begin current test results)
-
-### Windows - Unit Tests
-|Branch|Debug x86|Debug x64|Release x86|Release x64|Determinism|Debug Integration|Release Integration|
-|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-|**master**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/master/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/master/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/windows_release_vs-integration/)|
-|**dev15.0.x**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.0.x/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.0.x/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/windows_release_vs-integration/)|
-|**dev15.3.x**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.3.x/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev15.3.x/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/windows_release_vs-integration/)|
-|**dev16**|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit32/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit32/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit64/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_unit64/)|[![Build Status](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_determinism/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_determinism/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev16/windows_debug_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_debug_vs-integration/)|[![Build Status](https://ci.dot.net/buildStatus/icon?job=dotnet_roslyn/dev16/windows_release_vs-integration)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/windows_release_vs-integration/)|
-
-### Linux/Mac - Unit Tests
-|Branch|Ubuntu14|Ubuntu16|macOS|
-|:--:|:--:|:--:|:--:|
-|**master**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_14_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_14_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_16_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/ubuntu_16_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/master/job/mac_debug/)|
-|**dev15.0.x**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/linux_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/linux_debug/)||[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.0.x/job/mac_debug/)|
-|**dev15.3.x**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/ubuntu_14_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/ubuntu_14_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/ubuntu_16_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/ubuntu_16_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev15.3.x/job/mac_debug/)|
-|**dev16**|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_14_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_14_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_16_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/ubuntu_16_debug/)|[![BuildStatus](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/mac_debug/badge/icon)](https://ci.dot.net/job/dotnet_roslyn/job/dev16/job/mac_debug/)|
-
-[//]: # (End current test results)
-
-[![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
+[![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Chat on Discord](https://discordapp.com/api/guilds/143867839282020352/widget.png)](http://aka.ms/discord-csharp-roslyn)
 
 Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
@@ -36,26 +15,23 @@ Discussion about the transition of language design to the new repos is at https:
 
 ### Download C# and Visual Basic
 
-Want to start developing in C# and Visual Basic? Download [Visual Studio 2017](https://www.visualstudio.com/downloads/), which has the latest features built-in. There are 
-also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202017) available with 
-Visual Studio 2017 already installed.
+Want to start developing in C# and Visual Basic? Download [Visual Studio 2019](https://www.visualstudio.com/downloads/), which has the latest features built-in. There are 
+also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202019) available with 
+Visual Studio 2019 already installed.
 
-To install the latest release without Visual Studio, run one of the following [nuget](https://dist.nuget.org/index.html) command lines:
+To install the latest release without Visual Studio, download the [.NET SDK nightlies](https://github.com/dotnet/installer/blob/master/README.md#installers-and-binaries).
 
-```
-nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
-nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
-```
+See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/wiki/Changelog-for-C%23-and-VB-compilers).
 
-Daily NuGet builds of the project are also available in our MyGet feed:
-
-> [https://dotnet.myget.org/F/roslyn/api/v3/index.json](https://dotnet.myget.org/F/roslyn/api/v3/index.json)
-
+**Pre-release builds** are available from the following public NuGet feeds: 
+- [Compiler](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json`
+- [IDE Services](https://devdiv.visualstudio.com/DevDiv/_packaging?_a=feed&feed=vssdk): `https://devdiv.pkgs.visualstudio.com/_packaging/vssdk/nuget/v3/index.json` 
+- [.NET SDK](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet5): `https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json`
 
 ### Source code
 
 * Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
-* [Enhanced source view](http://source.roslyn.io/), powered by Roslyn 
+* [Enhanced source view](http://sourceroslyn.io/), powered by Roslyn 
 * [Building, testing and debugging the sources](https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging)
 
 ### Get started
@@ -84,9 +60,39 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 
 Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/labels/help%20wanted) is a great place to start.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This [project](CODE-OF-CONDUCT.md) has adopted the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
 ### .NET Foundation
 
 This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
-projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/). 
+projects like [the .NET Runtime](https://github.com/dotnet/runtime/).
+
+[//]: # (Begin current test results)
+
+### Continuous Integration status
+
+#### Desktop Unit Tests
+|Branch|Debug x86|Debug x64|Release x86|Release x64|
+|:--:|:--:|:--:|:--:|:--:|
+**master**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20debug_32&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20debug_64&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20release_32&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20release_64&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|
+**master-vs-deps**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20debug_32&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20debug_64&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20release_32&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_Desktop_Unit_Tests&configuration=Windows_Desktop_Unit_Tests%20release_64&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|
+
+#### CoreClr Unit Tests
+|Branch|Windows Debug|Windows Release|Linux|
+|:--:|:--:|:--:|:--:|
+**master**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_CoreClr_Unit_Tests&configuration=Windows_CoreClr_Unit_Tests%20debug&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_CoreClr_Unit_Tests&configuration=Windows_CoreClr_Unit_Tests%20release&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Linux_Test&configuration=Linux_Test%20coreclr&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|
+**master-vs-deps**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_CoreClr_Unit_Tests&configuration=Windows_CoreClr_Unit_Tests%20debug&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_CoreClr_Unit_Tests&configuration=Windows_CoreClr_Unit_Tests%20release&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Linux_Test&configuration=Linux_Test%20coreclr&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|
+
+#### Integration Tests
+|Branch|Debug|Release
+|:--:|:--:|:--:|
+**master**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=master&jobname=VS_Integration&configuration=VS_Integration%20debug_async&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=245&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=master&jobname=VS_Integration&configuration=VS_Integration%20release_async&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=245&branchname=master&view=logs)|
+**master-vs-deps**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=master-vs-deps&jobname=VS_Integration&configuration=VS_Integration%20debug_async&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=245&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-integration-CI?branchname=master-vs-deps&jobname=VS_Integration&configuration=VS_Integration%20release_async&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=245&branchname=master-vs-deps&view=logs)|
+
+#### Misc Tests
+|Branch|Determinism|Build Correctness|Spanish|Mono|
+|:--:|:--:|:--:|:--:|:--:|
+**master**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_Determinism_Test&configuration=Windows_Determinism_Test&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_Correctness_Test&configuration=Windows_Correctness_Test&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Windows_Desktop_Spanish_Unit_Tests&configuration=Windows_Desktop_Spanish_Unit_Tests&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master&jobname=Linux_Test&configuration=Linux_Test%20mono&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master&view=logs)|
+**master-vs-deps**|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_Determinism_Test&configuration=Windows_Determinism_Test&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_Correctness_Test&configuration=Windows_Correctness_Test&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Windows_Desktop_Spanish_Unit_Tests&configuration=Windows_Desktop_Spanish_Unit_Tests&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/roslyn-CI?branchname=master-vs-deps&jobname=Linux_Test&configuration=Linux_Test%20mono&label=build)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=15&branchname=master-vs-deps&view=logs)|
+
+[//]: # (End current test results)

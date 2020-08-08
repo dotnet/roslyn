@@ -2,6 +2,31 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="translated">Добавить Await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="translated">Добавить Await и "ConfigureAwait(false)"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">Добавить &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="translated">Добавить отсутствующий оператор Imports</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="translated">Добавить "Shadows"</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Вставка "{0}"</target>
@@ -37,9 +62,14 @@
         <target state="translated">Обнаружены конфликты.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">Оператор Invert If</target>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="translated">Ввести оператор "Using"</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">Сделать "{0}" наследуемым</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -52,9 +82,9 @@
         <target state="translated">Удалить оператор "{0}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Удалить ненужные импорты</target>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;Несколько типов&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -162,16 +192,6 @@
         <target state="translated">Исправить неверный тип возвращения функции</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Удалить ненужное приведение</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">Приведение избыточно</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
         <target state="translated">Упрощение имени "{0}"</target>
@@ -199,7 +219,7 @@
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="translated">Не все ветви кода возвращают значения</target>
+        <target state="translated">Не все пути к коду возвращают значения</target>
         <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
@@ -305,11 +325,6 @@
       <trans-unit id="new_variable">
         <source>&lt;new variable&gt;</source>
         <target state="translated">&lt;новая переменная&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Удалить &amp;и сортировать импорты</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -948,7 +963,7 @@ Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;com
       </trans-unit>
       <trans-unit id="Introduces_a_statement_block_to_be_run_if_the_specified_exception_occurs_inside_a_Try_block">
         <source>Introduces a statement block to be run if the specified exception occurs inside a Try block.</source>
-        <target state="translated">Вводит блок оператора, который будет запущен, если указанное исключение относится к блоку Try.</target>
+        <target state="translated">Вводит блок операторов, который будет запущен, если указанное исключение относится к блоку Try.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text">
@@ -1105,7 +1120,7 @@ Option Explicit {On | Off}</target>
       </trans-unit>
       <trans-unit id="Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure">
         <source>Introduces a statement block to be run before exiting a Try structure.</source>
-        <target state="translated">Вводит блок оператора, который будет запущен перед выходом из структуры Try.</target>
+        <target state="translated">Вводит блок операторов, который будет запущен перед выходом из структуры Try.</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection">
@@ -1452,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Сделать {0} асинхронной функцией.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Вставьте отсутствующее приведений</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Преобразовать {0} в итератор</target>
@@ -1469,7 +1479,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
-        <target state="translated">Используйте правильную переменную управления</target>
+        <target state="translated">Используйте правильную переменную элемента управления</target>
         <note />
       </trans-unit>
       <trans-unit id="NameOf_function">
@@ -1479,42 +1489,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Создайте сужающееся преобразование в "{0}"</target>
+        <target state="translated">Создайте сужающее преобразование в "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
         <target state="translated">Создайте расширяющееся преобразование в "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">Не изменяйте этот код. Разместите код очистки выше в методе Dispose(disposing As Boolean).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: освободить неуправляемые ресурсы (неуправляемые объекты) и переопределить ниже Finalize().</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: переопределить Finalize(), только если Dispose(disposing As Boolean) выше имеет код для освобождения неуправляемых ресурсов.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Этот код добавлен редактором Visual Basic для правильной реализации шаблона высвобождаемого класса.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: раскомментировать следующую строку, если Finalize() переопределен выше.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Оператор Imports не нужен.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1703,9 +1683,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">Добавить перегрузки</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="translated">Добавить "Overloads"</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
@@ -1797,24 +1777,24 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Сделать Sub асинхронной</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Добавьте "'Me".</target>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="translated">Преобразовать в "Select Case"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">Преобразовать If в Select Case</target>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="translated">Преобразовать в "For Each"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Использовать флажок "Is Nothing"</target>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="translated">Преобразовать в "For"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Использовать флажок "IsNot Nothing"</target>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">Инвертировать оператор if</target>
         <note />
       </trans-unit>
     </body>

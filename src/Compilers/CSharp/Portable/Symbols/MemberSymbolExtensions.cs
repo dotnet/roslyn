@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -44,16 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the types of the parameters of a member symbol.  Should be a method, property, or event.
         /// </summary>
-        internal static ImmutableArray<TypeSymbol> GetParameterTypes(this Symbol member)
+        internal static ImmutableArray<TypeWithAnnotations> GetParameterTypes(this Symbol member)
         {
             switch (member.Kind)
             {
                 case SymbolKind.Method:
-                    return ((MethodSymbol)member).ParameterTypes;
+                    return ((MethodSymbol)member).ParameterTypesWithAnnotations;
                 case SymbolKind.Property:
-                    return ((PropertySymbol)member).ParameterTypes;
+                    return ((PropertySymbol)member).ParameterTypesWithAnnotations;
                 case SymbolKind.Event:
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    return ImmutableArray<TypeWithAnnotations>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
@@ -100,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterCount;
                 case SymbolKind.Event:
+                case SymbolKind.Field:
                     return 0;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
@@ -108,15 +111,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasUnsafeParameter(this Symbol member)
         {
-            foreach (TypeSymbol parameterType in member.GetParameterTypes())
+            foreach (var parameterType in member.GetParameterTypes())
             {
-                if (parameterType.IsUnsafe())
+                if (parameterType.Type.IsUnsafe())
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public static bool IsEventOrPropertyWithImplementableNonPublicAccessor(this Symbol symbol)
+        {
+            Debug.Assert(symbol.ContainingType.IsInterface);
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Property:
+                    var propertySymbol = (PropertySymbol)symbol;
+                    return isImplementableAndNotPublic(propertySymbol.GetMethod) || isImplementableAndNotPublic(propertySymbol.SetMethod);
+
+                case SymbolKind.Event:
+                    var eventSymbol = (EventSymbol)symbol;
+                    return isImplementableAndNotPublic(eventSymbol.AddMethod) || isImplementableAndNotPublic(eventSymbol.RemoveMethod);
+            }
+
+            return false;
+
+            bool isImplementableAndNotPublic(MethodSymbol accessor)
+            {
+                return accessor.IsImplementable() && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
+        }
+
+        public static bool IsImplementable(this MethodSymbol methodOpt)
+        {
+            return (object)methodOpt != null && !methodOpt.IsSealed && (methodOpt.IsAbstract || methodOpt.IsVirtual);
         }
 
         public static bool IsAccessor(this MethodSymbol methodSymbol)
@@ -168,13 +199,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += method.ReturnTypeCustomModifiers.Length + method.RefCustomModifiers.Length;
-            count += method.ReturnType.CustomModifierCount();
+            var methodReturnType = method.ReturnTypeWithAnnotations;
+            count += methodReturnType.CustomModifiers.Length + method.RefCustomModifiers.Length;
+            count += methodReturnType.Type.CustomModifierCount();
 
             foreach (ParameterSymbol param in method.Parameters)
             {
-                count += param.CustomModifiers.Length + param.RefCustomModifiers.Length;
-                count += param.Type.CustomModifierCount();
+                var paramType = param.TypeWithAnnotations;
+                count += paramType.CustomModifiers.Length + param.RefCustomModifiers.Length;
+                count += paramType.Type.CustomModifierCount();
             }
 
             return count;
@@ -189,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
                 case SymbolKind.TypeParameter:
+                case SymbolKind.FunctionPointerType:
                     return ((TypeSymbol)m).CustomModifierCount();
                 case SymbolKind.Event:
                     return ((EventSymbol)m).CustomModifierCount();
@@ -214,13 +248,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += property.TypeCustomModifiers.Length + property.RefCustomModifiers.Length;
-            count += property.Type.CustomModifierCount();
+            var type = property.TypeWithAnnotations;
+            count += type.CustomModifiers.Length + property.RefCustomModifiers.Length;
+            count += type.Type.CustomModifierCount();
 
             foreach (ParameterSymbol param in property.Parameters)
             {
-                count += param.CustomModifiers.Length + param.RefCustomModifiers.Length;
-                count += param.Type.CustomModifierCount();
+                var paramType = param.TypeWithAnnotations;
+                count += paramType.CustomModifiers.Length + param.RefCustomModifiers.Length;
+                count += paramType.Type.CustomModifierCount();
             }
 
             return count;
@@ -304,16 +340,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
-                    return ((MethodSymbol)symbol).TypeArguments;
+                    return ((MethodSymbol)symbol).TypeArgumentsWithAnnotations.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.NamedType:
                 case SymbolKind.ErrorType:
-                    return ((NamedTypeSymbol)symbol).TypeArgumentsNoUseSiteDiagnostics;
+                    return ((NamedTypeSymbol)symbol).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                     return ImmutableArray<TypeSymbol>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
+
+        internal static bool IsConstructor(this MethodSymbol method)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.Constructor:
+                case MethodKind.StaticConstructor:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -335,6 +383,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.IsImplicitlyDeclared &&
                    method.ContainingType.IsValueType &&
                    method.IsParameterlessConstructor();
+        }
+
+        /// <summary>
+        /// Indicates whether the method should be emitted.
+        /// </summary>
+        internal static bool ShouldEmit(this MethodSymbol method)
+        {
+            // Don't emit the default value type constructor - the runtime handles that
+            if (method.IsDefaultValueTypeConstructor())
+            {
+                return false;
+            }
+
+            if (method is SynthesizedStaticConstructor cctor && !cctor.ShouldEmit())
+            {
+                return false;
+            }
+
+            // Don't emit partial methods without an implementation part.
+            if (method.IsPartialMethod() && method.PartialImplementationPart is null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -471,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt);
+                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt, requireSameReturnType: false);
 
                 case SymbolKind.Property:
                     var property = (PropertySymbol)member;

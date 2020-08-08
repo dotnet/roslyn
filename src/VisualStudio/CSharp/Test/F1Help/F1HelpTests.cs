@@ -1,33 +1,141 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 {
+    [UseExportProvider]
     public class F1HelpTests
     {
-        private async Task TestAsync(string markup, string expectedText)
+        private static async Task TestAsync(string markup, string expectedText)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var caret = workspace.Documents.First().CursorPosition;
+            // TODO: Using VisualStudioTestComposition.LanguageServices fails with "Failed to clean up listeners in a timely manner. WorkspaceChanged TaskQueue.cs 38"
+            // https://github.com/dotnet/roslyn/issues/46250
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(CSharpHelpContextService)));
+            var caret = workspace.Documents.First().CursorPosition;
 
-                var service = new CSharpHelpContextService();
-                var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
-                Assert.Equal(expectedText, actualText);
-            }
+            var service = Assert.IsType<CSharpHelpContextService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IHelpContextService>());
+            var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
+            Assert.Equal(expectedText, actualText);
         }
 
-        private async Task Test_KeywordAsync(string markup, string expectedText)
+        private static async Task Test_KeywordAsync(string markup, string expectedText)
         {
             await TestAsync(markup, expectedText + "_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInternal()
+        {
+            await Test_KeywordAsync(
+@"intern[||]al class C
+{
+}", "internal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtected()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted void goo();
+}", "protected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    internal protec[||]ted void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted internal void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    private protec[||]ted void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    priv[||]ate protected void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected3()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protected priv[||]ate void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected4()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    prot[||]ected private void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoup()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    private new prot[||]ected static unsafe void foo()
+    {
+    }
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoupField()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    new prot[||]ected static unsafe private goo;
+}", "privateprotected");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -559,6 +667,20 @@ class Program
                   select [||]y;
     }
 }", "System.String");
+        }
+
+        [WorkItem(36001, "https://github.com/dotnet/roslyn/issues/36001")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNameof()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void goo()
+    {
+        var v = [||]nameof(goo);
+    }
+}", "nameof");
         }
     }
 }

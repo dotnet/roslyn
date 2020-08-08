@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -18,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub ArrayTypes()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Public Class C
@@ -63,7 +66,7 @@ End Class
 
         <Fact>
         Public Sub NullableTypes()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Public Class C
@@ -93,7 +96,7 @@ End Class
 
         <Fact>
         Public Sub GlobalNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace N        
@@ -159,7 +162,7 @@ End Module
 
         <Fact>
         Public Sub BasicTypeName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace System.Goo        
@@ -246,7 +249,7 @@ End Namespace
 
         <Fact>
         Public Sub BasicTypeParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace System.Goo        
@@ -285,7 +288,7 @@ End Namespace
 
         <Fact>
         Public Sub GenericTypeName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace System.Goo        
@@ -353,7 +356,7 @@ End Namespace
 
         <Fact>
         Public Sub DottedTypeName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace System.Goo        
@@ -454,7 +457,7 @@ End Namespace
 
         <Fact>
         Public Sub DottedGenericTypeName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace System.Goo.Bar        
@@ -530,7 +533,7 @@ End Namespace
 
         <Fact>
         Public Sub ImportMembersAtFileLevel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System.Collections.Generic
@@ -605,7 +608,7 @@ End Class
                     "N1",
                     "N1.N2.Gen(Of String, Integer)"}))
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Public Class C
@@ -670,7 +673,7 @@ End Class
 
         <Fact>
         Public Sub ImportAliasesAtFileLevel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System.Collections
@@ -725,7 +728,7 @@ Imports DD=System.Console
                      "ArrayList=System.Collections.Generic.List(Of Integer)",
                      "DD=System.Console"}))
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Public Class C
@@ -737,7 +740,7 @@ End Class
 Public Class DD
 End Class
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim sourceMod = DirectCast(compilation.SourceModule, SourceModuleSymbol)
@@ -765,7 +768,7 @@ End Class
 
         <Fact>
         Public Sub BasicTypeNameErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Public Class C
@@ -822,7 +825,7 @@ BC30562: 'S' is ambiguous between declarations in Modules 'TMod, TMod2'.
 
         <Fact>
         Public Sub GenericTypeNameErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Public Class C
@@ -871,7 +874,7 @@ BC30002: Type 'Elvis' is not defined.
 
         <Fact>
         Public Sub DottedTypeNameErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Public Class C
@@ -935,7 +938,7 @@ BC30468: Type declaration characters are not valid in this context.
 
         <Fact>
         Public Sub GenericDottedTypeNameErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace N        
@@ -994,7 +997,7 @@ BC30002: Type 'M.P.Z' is not defined.
 
         <Fact>
         Public Sub ImportResolutionErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System.Collections
@@ -1049,7 +1052,7 @@ BC30561: 'Goo' is ambiguous, imported from the namespaces or types 'N.K, N2.L'.
                     "N",
                     "N2"}))
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -1095,7 +1098,7 @@ BC30561: 'Goo' is ambiguous, imported from the namespaces or types 'N.K, N2.L'.
 
         <Fact>
         Public Sub AliasResolutionErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System.Collections
@@ -1135,7 +1138,7 @@ BC32045: 'List(Of Object)' has no type parameters and so cannot have type argume
                     {"System.Collections",
                     "ArrayList=System.Collections.Generic.List(Of Object)",
                     "HT=System.Collections.HashTable"}))
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class A
@@ -1149,7 +1152,7 @@ End Class
 Class HT
 End Class
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedErrors = <errors>
 BC31403: Error in project-level import 'HT=System.Collections.HashTable' at 'HT=System.Collections.HashTable' : Imports alias 'HT' conflicts with 'HT' declared in the root namespace.
@@ -1168,7 +1171,7 @@ BC32045: 'List(Of Object)' has no type parameters and so cannot have type argume
         Public Sub GlobalNamespace1()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("RootNS")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace Global.F.G
@@ -1197,7 +1200,7 @@ Namespace Global
     End Namespace
 End Namespace
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim globalNS = compilation.GlobalNamespace
 
@@ -1263,7 +1266,7 @@ End Namespace
         Public Sub GlobalNamespace2()
             Dim options = TestOptions.ReleaseDll ' no global namespace
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace Global.F.G
@@ -1285,7 +1288,7 @@ Namespace Global.C
     End Class
 End Namespace
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim globalNS = compilation.GlobalNamespace
 
@@ -1339,7 +1342,7 @@ End Namespace
 
         <Fact>
         Public Sub Error31544InNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace Goo
@@ -1372,7 +1375,7 @@ BC31544: Global namespace may not be nested in another namespace.
 
         <Fact>
         Public Sub Error30468InNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace Goo%
@@ -1399,7 +1402,7 @@ Namespace A.B.Cat$.Dog@.E
 
         <Fact>
         Public Sub Error30231()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I1
@@ -1421,7 +1424,7 @@ BC30231: 'Implements' not valid in Modules.
 
         <Fact>
         Public Sub Error30232()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class cls1
@@ -1441,7 +1444,7 @@ BC30232: Implemented type must be an interface.
 
         <Fact>
         Public Sub Error30354()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I1
@@ -1461,7 +1464,7 @@ BC30354: Interface can inherit only from another interface.
 
         <Fact>
         Public Sub Error31033()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I1
@@ -1485,7 +1488,7 @@ BC31033: Interface 'I1' can be implemented only once by this type.
 
         <Fact>
         Public Sub Error32056()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I1
@@ -1509,7 +1512,7 @@ BC32056: Type parameter not allowed in 'Implements' clause.
 
         <Fact>
         Public Sub Error30584()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I1   

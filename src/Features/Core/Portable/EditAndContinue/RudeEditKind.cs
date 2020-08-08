@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -31,12 +33,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         DeclareAliasUpdate = 19,
         Renamed = 20,
         Insert = 21,
-        //// InsertNonPrivate = 22,
+        // InsertNonPrivate = 22,
         InsertVirtual = 23,
         InsertOverridable = 24,
         InsertExtern = 25,
         InsertOperator = 26,
-        //// InsertNonPublicConstructor = 27,
+        // InsertNonPublicConstructor = 27,
         InsertGenericMethod = 28,
         InsertDllImport = 29,
         InsertIntoStruct = 30,
@@ -51,8 +53,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         GenericTypeTriviaUpdate = 39,
         GenericTypeInitializerUpdate = 40,
         PartialTypeInitializerUpdate = 41,
-        //// AsyncMethodUpdate = 42,
-        //// AsyncMethodTriviaUpdate = 43,
+        // AsyncMethodUpdate = 42,
+        // AsyncMethodTriviaUpdate = 43,
         StackAllocUpdate = 44,
 
         ExperimentalFeaturesEnabled = 45,
@@ -93,11 +95,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdatingStateMachineMethodMissingAttribute = 75,
 
         SwitchBetweenLambdaAndLocalFunction = 76,
-        RefStruct = 77,
-        ReadOnlyStruct = 78,
-        ReadOnlyReferences = 79,
+        //RefStruct = 77,
+        //ReadOnlyStruct = 78,
+        //ReadOnlyReferences = 79,
 
-        // TODO: remove values below
-        RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
+        InternalError = 80,
+
+        InsertMethodWithExplicitInterfaceSpecifier = 81,
+        InsertIntoInterface = 82,
+        InsertLocalFunctionIntoInterfaceMethod = 83,
+        SwitchExpressionUpdate = 84,
+        ChangingFromAsynchronousToSynchronous = 85,
+        ChangingStateMachineShape = 86,
+
+        // Chagned from 0x103 in 16.1
+        ComplexQueryExpression = 82,
     }
 }

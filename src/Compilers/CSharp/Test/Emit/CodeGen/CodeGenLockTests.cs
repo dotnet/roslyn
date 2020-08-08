@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -470,7 +472,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(text);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
             CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       95 (0x5f)
@@ -643,7 +645,7 @@ public static partial class Extensions
     public static object Test(this object o) { return o; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(text);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
             CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       72 (0x48)
@@ -1737,7 +1739,7 @@ public class Test
 
         private static CSharpCompilation CreateCompilationWithCorlib20(string text)
         {
-            return CreateCompilation(new string[] { text }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+            return CreateEmptyCompilation(new string[] { text }, new[] { TestMetadata.Net20.mscorlib });
         }
 
         #endregion Pre-4.0 codegen
@@ -1894,7 +1896,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1915,7 +1917,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1936,7 +1938,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
@@ -1965,7 +1967,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
 
             compilation.VerifyEmitDiagnostics(
@@ -1993,7 +1995,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
@@ -2029,7 +2031,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor);
 
             compilation.VerifyEmitDiagnostics(

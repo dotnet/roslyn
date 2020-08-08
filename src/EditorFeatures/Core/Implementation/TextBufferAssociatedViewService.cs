@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -14,12 +16,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    [Export(typeof(IWpfTextViewConnectionListener))]
+    [Export(typeof(ITextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [Export(typeof(ITextBufferAssociatedViewService))]
-    internal class TextBufferAssociatedViewService : IWpfTextViewConnectionListener, ITextBufferAssociatedViewService
+    internal class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
     {
 #if DEBUG
         private static readonly HashSet<ITextView> s_registeredViews = new HashSet<ITextView>();
@@ -29,9 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor
         private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
             new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TextBufferAssociatedViewService()
+        {
+        }
+
         public event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersConnected;
 
-        void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             lock (s_gate)
             {
@@ -51,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor
             this.SubjectBuffersConnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 
-        void IWpfTextViewConnectionListener.SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        void ITextViewConnectionListener.SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             lock (s_gate)
             {
@@ -92,14 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public IEnumerable<ITextView> GetAssociatedTextViews(ITextBuffer textBuffer)
-        {
-            return GetTextViews(textBuffer);
-        }
+            => GetTextViews(textBuffer);
 
         private static bool HasFocus(ITextView textView)
-        {
-            return textView.HasAggregateFocus;
-        }
+            => textView.HasAggregateFocus;
 
         public static bool AnyAssociatedViewHasFocus(ITextBuffer textBuffer)
         {
@@ -119,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         [Conditional("DEBUG")]
-        private void DebugRegisterView_NoLock(ITextView textView)
+        private static void DebugRegisterView_NoLock(ITextView textView)
         {
 #if DEBUG
             if (s_registeredViews.Add(textView))
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
 #if DEBUG
-        private void OnTextViewClose(object sender, EventArgs e)
+        private static void OnTextViewClose(object sender, EventArgs e)
         {
             var view = sender as ITextView;
 

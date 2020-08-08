@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -15,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Private ReadOnly _workspace As TestWorkspace
             Private ReadOnly _libraryManager As AbstractObjectBrowserLibraryManager
 
-            Sub New(workspace As TestWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
+            Public Sub New(workspace As TestWorkspace, libraryManager As AbstractObjectBrowserLibraryManager)
                 _workspace = workspace
                 _libraryManager = libraryManager
             End Sub
@@ -250,6 +252,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
         <Extension>
         Friend Function GetMemberList(simpleObjectList As IVsSimpleObjectList2, index As Integer) As IVsSimpleObjectList2
             Return GetList(simpleObjectList, index, ObjectListKind.Members)
+        End Function
+
+        <Extension>
+        Friend Function GetReferenceList(simpleLibrary As IVsSimpleLibrary2) As IVsSimpleObjectList2
+            Return GetList(simpleLibrary, ObjectListKind.References)
+        End Function
+
+        <Extension>
+        Friend Function GetReferenceList(simpleObjectList As IVsSimpleObjectList2, index As Integer) As IVsSimpleObjectList2
+            Return GetList(simpleObjectList, index, ObjectListKind.References)
         End Function
 
     End Module

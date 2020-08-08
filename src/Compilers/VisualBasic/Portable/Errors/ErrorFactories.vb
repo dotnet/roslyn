@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -71,6 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New DiagnosticInfo(MessageProvider.Instance, id, arguments)
         End Function
 
+        Public Shared Function ObsoleteErrorInfo(id As ERRID, data As ObsoleteAttributeData, ParamArray arguments As Object()) As CustomObsoleteDiagnosticInfo
+            Return New CustomObsoleteDiagnosticInfo(MessageProvider.Instance, id, data, arguments)
+        End Function
+
         Public Shared Function ErrorInfo(id As ERRID, ByRef syntaxToken As SyntaxToken) As DiagnosticInfo
             Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.Kind))
         End Function
@@ -91,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared ReadOnly Property ResourceManager As Resources.ResourceManager
             Get
                 If s_resourceManager Is Nothing Then
-                    s_resourceManager = New Resources.ResourceManager("VBResources", GetType(ERRID).GetTypeInfo().Assembly)
+                    s_resourceManager = New Resources.ResourceManager(GetType(VBResources).FullName, GetType(ERRID).GetTypeInfo().Assembly)
                 End If
 
                 Return s_resourceManager

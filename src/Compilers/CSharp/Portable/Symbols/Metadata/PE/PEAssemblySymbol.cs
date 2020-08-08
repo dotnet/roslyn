@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -148,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);
         }
 
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            return this.PrimaryModule.GetForwardedTypes();
+        }
+
         internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
         {
             // Check if it is a forwarded type.
@@ -160,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // Report the main module as that is the only one checked. clr does not honor type forwarders in non-primary modules.
                     return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, this.PrimaryModule, firstSymbol, secondSymbol);
                 }
-                
+
                 // Don't bother to check the forwarded-to assembly if we've already seen it.
                 if (visitedAssemblies != null && visitedAssemblies.Contains(firstSymbol))
                 {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,40 +12,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public static class DiagnosticProviderTestUtilities
     {
-        public static async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
+        public static async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(
+            Document document,
+            TextSpan span,
+            bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, workspaceAnalyzerOpt, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics);
-            return await testDriver.GetAllDiagnosticsAsync(workspaceAnalyzerOpt, document, span);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics);
+            return await testDriver.GetAllDiagnosticsAsync(document, span);
         }
 
-        public static async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
+        public static async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(
+            Document document,
+            TextSpan span,
+            bool includeSuppressedDiagnostics = false)
         {
-            var testDriver = new TestDiagnosticAnalyzerDriver(project, workspaceAnalyzerOpt, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics);
-            return await testDriver.GetAllDiagnosticsAsync(workspaceAnalyzerOpt, project);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics);
+            return await testDriver.GetDocumentDiagnosticsAsync(document, span);
         }
 
-        public static async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
+        public static async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(
+            Project project,
+            bool includeSuppressedDiagnostics = false)
         {
-            var diagnostics = new List<Diagnostic>();
-            foreach (var project in solution.Projects)
-            {
-                var projectDiagnostics = await GetAllDiagnosticsAsync(workspaceAnalyzerOpt, project, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics);
-                diagnostics.AddRange(projectDiagnostics);
-            }
-
-            return diagnostics;
-        }
-
-        public static async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
-        {
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, workspaceAnalyzerOpt, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics);
-            return await testDriver.GetDocumentDiagnosticsAsync(workspaceAnalyzerOpt, document, span);
-        }
-
-        public static async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
-        {
-            var testDriver = new TestDiagnosticAnalyzerDriver(project, workspaceAnalyzerOpt, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics);
-            return await testDriver.GetProjectDiagnosticsAsync(workspaceAnalyzerOpt, project);
+            var testDriver = new TestDiagnosticAnalyzerDriver(project, includeSuppressedDiagnostics);
+            return await testDriver.GetProjectDiagnosticsAsync(project);
         }
     }
 }

@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, targetFramework: TargetFramework.Empty, expectedOutput: expectedOutput, references: references, options: options, verify: verify);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -145,7 +146,6 @@ a
 ";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expected);
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expected);
-
         }
 
         [Fact]
@@ -231,7 +231,7 @@ class C
         y = 1;
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -244,7 +244,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -258,7 +258,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SynthesizedVariables1()
         {
             var source =
@@ -283,7 +283,7 @@ class C
         lock (this) { }
     }
 }";
-            CompileAndVerify(source, s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -301,7 +301,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            var vd = CompileAndVerify(source, s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var vd = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -333,39 +333,39 @@ class C
             });
 
             vd.VerifyPdb("C.M", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""M"" parameterNames=""disposable"">
-      <customDebugInfo>
-        <forwardIterator name=""&lt;M&gt;d__3"" />
-        <encLocalSlotMap>
-          <slot kind=""6"" offset=""11"" />
-          <slot kind=""8"" offset=""11"" />
-          <slot kind=""0"" offset=""11"" />
-          <slot kind=""4"" offset=""53"" />
-          <slot kind=""6"" offset=""98"" />
-          <slot kind=""8"" offset=""98"" />
-          <slot kind=""0"" offset=""98"" />
-          <slot kind=""4"" offset=""151"" />
-          <slot kind=""4"" offset=""220"" />
-          <slot kind=""28"" offset=""261"" />
-          <slot kind=""28"" offset=""261"" ordinal=""1"" />
-          <slot kind=""28"" offset=""281"" />
-          <slot kind=""28"" offset=""281"" ordinal=""1"" />
-          <slot kind=""28"" offset=""281"" ordinal=""2"" />
-          <slot kind=""28"" offset=""261"" ordinal=""2"" />
-          <slot kind=""4"" offset=""307"" />
-          <slot kind=""4"" offset=""376"" />
-          <slot kind=""3"" offset=""410"" />
-          <slot kind=""2"" offset=""410"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-    </method>
-  </methods>
-</symbols>
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M"" parameterNames=""disposable"">
+          <customDebugInfo>
+            <forwardIterator name=""&lt;M&gt;d__3"" />
+            <encLocalSlotMap>
+              <slot kind=""6"" offset=""11"" />
+              <slot kind=""8"" offset=""11"" />
+              <slot kind=""0"" offset=""11"" />
+              <slot kind=""4"" offset=""53"" />
+              <slot kind=""6"" offset=""98"" />
+              <slot kind=""8"" offset=""98"" />
+              <slot kind=""0"" offset=""98"" />
+              <slot kind=""4"" offset=""151"" />
+              <slot kind=""4"" offset=""220"" />
+              <slot kind=""28"" offset=""261"" />
+              <slot kind=""28"" offset=""261"" ordinal=""1"" />
+              <slot kind=""28"" offset=""261"" ordinal=""2"" />
+              <slot kind=""28"" offset=""281"" />
+              <slot kind=""28"" offset=""281"" ordinal=""1"" />
+              <slot kind=""28"" offset=""281"" ordinal=""2"" />
+              <slot kind=""4"" offset=""307"" />
+              <slot kind=""4"" offset=""376"" />
+              <slot kind=""3"" offset=""410"" />
+              <slot kind=""2"" offset=""410"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 
@@ -592,7 +592,6 @@ class Test
   IL_00be:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -880,7 +879,6 @@ class Test
   IL_0263:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -960,7 +958,7 @@ class Test
             IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap", StringComparison.Ordinal)).Cast<FieldSymbol>().GroupBy(x => x.Type);
 
             Assert.Equal(1, spillFieldsByType.Count());
-            Assert.Equal(1, spillFieldsByType.Single(x => x.Key == comp.GetSpecialType(SpecialType.System_Int32)).Count());
+            Assert.Equal(1, spillFieldsByType.Single(x => TypeSymbol.Equals(x.Key, comp.GetSpecialType(SpecialType.System_Int32), TypeCompareKind.ConsiderEverything2)).Count());
         }
 
         [Fact]
@@ -1239,7 +1237,7 @@ public class C
         var b8 = await Task.FromResult(default(Tuple<long, long, long>));
     }
 }";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1293,7 +1291,7 @@ class C
         Console.Write(i);
     }
 }";
-            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1");
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1", verify: Verification.Fails);
             verifier.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"
 {
@@ -1398,7 +1396,7 @@ class C
   IL_00c0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00c5:  ret
 }");
-            verifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"1");
+            verifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"1", verify: Verification.Fails);
             verifier.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"
 {
@@ -1552,7 +1550,6 @@ class Test
 }";
             var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
-
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -1684,10 +1681,9 @@ class Test
   IL_0123:  ret
 }");
 
-
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -1879,7 +1875,6 @@ class Test
 }";
             var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
-
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2011,10 +2006,9 @@ class Test
   IL_0123:  ret
 }");
 
-
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2174,6 +2168,5 @@ class Test
   IL_014a:  ret
 }");
         }
-
     }
 }

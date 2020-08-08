@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,10 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             }
         }
 
-        protected override Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        protected override Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
         protected override async Task SearchWorkerAsync(ISymbol symbol, Project project, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 var bestLocation = sourceLocations.FirstOrDefault(d => documents == null || documents.Contains(d));
                 if (bestLocation != null)
                 {
-                    var item = await Provider.CreateItem(implementation, bestLocation.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).ConfigureAwait(false);
+                    var item = await Provider.CreateItemAsync(implementation, bestLocation.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).ConfigureAwait(false);
                     callback.AddResult(item);
                     cancellationToken.ThrowIfCancellationRequested();
                 }

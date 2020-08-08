@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
 Imports System.Reflection.Metadata
@@ -430,7 +432,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=1, Pack:=-1)>
                                               ~~~~~~~~
@@ -470,7 +472,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(LayoutKind.Sequential, Size:=-1)>
                                      ~~~~~~~~
@@ -508,7 +510,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
 <StructLayout(DirectCast((-1), LayoutKind), CharSet:=CharSet.Ansi)>
               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -676,7 +678,7 @@ End Enum
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).AssertTheseDiagnostics(<![CDATA[
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
 BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value.
     <FieldOffset(-1)>
                  ~~

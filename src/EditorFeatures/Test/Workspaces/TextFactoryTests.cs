@@ -1,11 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -14,9 +19,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+    [UseExportProvider]
     public class TextFactoryTests
     {
-        private byte[] _nonUTF8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
+        private readonly byte[] _nonUTF8StringBytes = new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF };
 
         [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018"), WorkItem(1041792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041792")]
         public void TestCreateTextFallsBackToSystemDefaultEncoding()
@@ -60,21 +66,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-            var text = Text.SourceText.From("Hello, World!");
+            var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
-            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
-            {
-                // Write text into it
-                await temporaryStorage.WriteTextAsync(text);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            // Write text into it
+            await temporaryStorage.WriteTextAsync(text);
 
-                // Read text back from it
-                var text2 = await temporaryStorage.ReadTextAsync();
+            // Read text back from it
+            var text2 = await temporaryStorage.ReadTextAsync();
 
-                Assert.NotSame(text, text2);
-                Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, null);
-            }
+            Assert.NotSame(text, text2);
+            Assert.Equal(text.ToString(), text2.ToString());
+            Assert.Null(text2.Encoding);
         }
 
         [Fact]
@@ -83,55 +87,68 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-            var text = Text.SourceText.From("Hello, World!", Encoding.ASCII);
+            var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
-            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
-            {
-                // Write text into it
-                await temporaryStorage.WriteTextAsync(text);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            // Write text into it
+            await temporaryStorage.WriteTextAsync(text);
 
-                // Read text back from it
-                var text2 = await temporaryStorage.ReadTextAsync();
+            // Read text back from it
+            var text2 = await temporaryStorage.ReadTextAsync();
 
-                Assert.NotSame(text, text2);
-                Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, Encoding.ASCII);
-            }
+            Assert.NotSame(text, text2);
+            Assert.Equal(text.ToString(), text2.ToString());
+            Assert.Equal(text2.Encoding, Encoding.ASCII);
         }
 
-        private EditorTextFactoryService CreateMockTextFactoryService()
+        private static EditorTextFactoryService CreateMockTextFactoryService()
         {
-            var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>();
+            var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>(MockBehavior.Strict);
             mockTextBufferFactoryService
                 .Setup(t => t.CreateTextBuffer(It.IsAny<TextReader>(), It.IsAny<IContentType>()))
                 .Returns<TextReader, IContentType>((reader, contentType) =>
                 {
                     var text = reader.ReadToEnd();
 
-                    var mockImage = new Mock<ITextImage>();
+                    var mockImage = new Mock<ITextImage>(MockBehavior.Strict);
                     mockImage.Setup(i => i.GetText(It.IsAny<Span>())).Returns(text);
+                    mockImage.Setup(i => i.Length).Returns(text.Length);
 
-                    var mockSnapshot = new Mock<ITextSnapshot2>();
+                    var mockSnapshot = new Mock<ITextSnapshot2>(MockBehavior.Strict);
                     mockSnapshot.Setup(s => s.TextImage).Returns(mockImage.Object);
                     mockSnapshot.Setup(s => s.GetText()).Returns(text);
 
-                    var mockTextBuffer = new Mock<ITextBuffer>();
+                    var mockTextBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
                     mockTextBuffer.Setup(b => b.CurrentSnapshot).Returns(mockSnapshot.Object);
                     return mockTextBuffer.Object;
                 });
 
-            return new EditorTextFactoryService(mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+            var mockUnknownContentType = new Mock<IContentType>(MockBehavior.Strict);
+            var mockContentTypeRegistryService = new Mock<IContentTypeRegistryService>(MockBehavior.Strict);
+            mockContentTypeRegistryService.Setup(r => r.UnknownContentType).Returns(mockUnknownContentType.Object);
+
+            return new EditorTextFactoryService(new FakeTextBufferCloneService(), mockTextBufferFactoryService.Object, mockContentTypeRegistryService.Object);
         }
 
-        private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
+        private static void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
         {
             var factory = CreateMockTextFactoryService();
-            using (var stream = new MemoryStream(bytes))
-            {
-                var text = factory.CreateText(stream, defaultEncoding);
-                Assert.Equal(expectedEncoding, text.Encoding);
-            }
+            using var stream = new MemoryStream(bytes);
+            var text = factory.CreateText(stream, defaultEncoding);
+            Assert.Equal(expectedEncoding, text.Encoding);
+        }
+
+        private class FakeTextBufferCloneService : ITextBufferCloneService
+        {
+            public ITextBuffer CloneWithUnknownContentType(SnapshotSpan span) => throw new NotImplementedException();
+
+            public ITextBuffer CloneWithUnknownContentType(ITextImage textImage) => throw new NotImplementedException();
+
+            public ITextBuffer CloneWithRoslynContentType(SourceText sourceText) => throw new NotImplementedException();
+
+            public ITextBuffer Clone(SourceText sourceText, IContentType contentType) => throw new NotImplementedException();
+
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -53,43 +52,50 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
             {
                 var metadataName = reader.ReadString();
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+
+                if (containingSymbolFailureReason != null)
+                {
+                    failureReason = $"({nameof(EventSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                    return default;
+                }
 
                 if (isCompilationGlobalNamespace)
                 {
+                    failureReason = null;
                     return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
                 }
 
-                var namespaces = GetAllSymbols(containingSymbolResolution).SelectMany(
-                    s => Resolve(s, metadataName));
+                using var result = PooledArrayBuilder<INamespaceSymbol>.GetInstance();
+                foreach (var container in containingSymbolResolution)
+                {
+                    switch (container)
+                    {
+                        case IAssemblySymbol assembly:
+                            Debug.Assert(metadataName == string.Empty);
+                            result.AddIfNotNull(assembly.GlobalNamespace);
+                            break;
+                        case IModuleSymbol module:
+                            Debug.Assert(metadataName == string.Empty);
+                            result.AddIfNotNull(module.GlobalNamespace);
+                            break;
+                        case INamespaceSymbol namespaceSymbol:
+                            foreach (var member in namespaceSymbol.GetMembers(metadataName))
+                            {
+                                if (member is INamespaceSymbol childNamespace)
+                                {
+                                    result.AddIfNotNull(childNamespace);
+                                }
+                            }
+                            break;
+                    }
+                }
 
-                return CreateSymbolInfo(namespaces);
-            }
-
-            private static IEnumerable<INamespaceSymbol> Resolve(ISymbol container, string metadataName)
-            {
-                if (container is IAssemblySymbol assembly)
-                {
-                    Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(assembly.GlobalNamespace);
-                }
-                else if (container is IModuleSymbol module)
-                {
-                    Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(module.GlobalNamespace);
-                }
-                else if (container is INamespaceSymbol namespaceSymbol)
-                {
-                    return namespaceSymbol.GetMembers(metadataName).OfType<INamespaceSymbol>();
-                }
-                else
-                {
-                    return SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
-                }
+                return CreateResolution(result, $"({nameof(NamespaceSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
         }
     }

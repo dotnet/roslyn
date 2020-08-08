@@ -1,16 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
+    [Export(typeof(ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
+    [Name(PredefinedCommandHandlerNames.Rename)]
     // Line commit and rename are both executed on Save. Ensure any rename session is committed
     // before line commit runs to ensure changes from both are correctly applied.
     [Order(Before = PredefinedCommandHandlerNames.Commit)]
@@ -18,23 +26,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Rename, ContentTypeNames.RoslynContentType, ContentTypeNames.XamlContentType)]
     internal partial class RenameCommandHandler
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly InlineRenameService _renameService;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RenameCommandHandler(
-            InlineRenameService renameService,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IWaitIndicator waitIndicator)
+            IThreadingContext threadingContext,
+            InlineRenameService renameService)
         {
+            _threadingContext = threadingContext;
             _renameService = renameService;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _waitIndicator = waitIndicator;
         }
+
+        public string DisplayName => EditorFeaturesResources.Rename;
 
         private CommandState GetCommandState(Func<CommandState> nextHandler)
         {
@@ -46,7 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             return nextHandler();
         }
 
-        private void HandlePossibleTypingCommand(CommandArgs args, Action nextHandler, Action<SnapshotSpan> actionIfInsideActiveSpan)
+        private CommandState GetCommandState()
+            => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
+
+        private void HandlePossibleTypingCommand(EditorCommandArgs args, Action nextHandler, Action<SnapshotSpan> actionIfInsideActiveSpan)
         {
             if (_renameService.ActiveSession == null)
             {
@@ -79,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void CommitIfActiveAndCallNextHandler(CommandArgs args, Action nextHandler)
+        private void CommitIfActive(EditorCommandArgs args)
         {
             if (_renameService.ActiveSession != null)
             {
@@ -91,7 +101,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
                 args.TextView.Caret.MoveTo(translatedSelection.End);
             }
+        }
 
+        private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler)
+        {
+            CommitIfActive(args);
             nextHandler();
         }
     }

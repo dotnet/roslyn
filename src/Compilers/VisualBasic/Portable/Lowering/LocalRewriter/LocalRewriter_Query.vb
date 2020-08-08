@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -136,12 +138,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: If we are in context of a lambda to be converted to an expression tree we need to use PropertyAccess.
                     getCallOrPropertyAccess = New BoundPropertyAccess(syntax,
                                                                       propertyDef,
-                                                                      Nothing,
+                                                                      propertyGroupOpt:=Nothing,
                                                                       PropertyAccessKind.Get,
                                                                       isWriteable:=False,
                                                                       isLValue:=False,
                                                                       receiverOpt:=anonymousTypeInstance,
                                                                       arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                                                      defaultArguments:=BitVector.Null,
                                                                       type:=propertyDef.Type)
                 Else
                     Dim getter = propertyDef.GetMethod

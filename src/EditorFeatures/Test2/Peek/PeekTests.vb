@@ -1,8 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Peek
 Imports Microsoft.CodeAnalysis.Editor.Peek
@@ -13,6 +14,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
+    <[UseExportProvider]>
     Public Class PeekTests
         <WpfFact, WorkItem(820706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820706"), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub TestInvokeInEmptyFile()
@@ -55,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("String", StringComparison.Ordinal))
             End Using
         End Sub
@@ -73,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("Distinct", StringComparison.Ordinal))
             End Using
         End Sub
@@ -93,8 +95,8 @@ End Class
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("New()", StringComparison.Ordinal)) ' Navigates to constructor
             End Using
         End Sub
@@ -119,7 +121,6 @@ End Class
             End Using
         End Sub
 
-
         <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363"), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub TestPeekDefinitionOnLinqVariable()
             Using workspace = TestWorkspace.Create(<Workspace>
@@ -141,7 +142,6 @@ End Module
             End Using
         End Sub
 
-
         <WpfFact>
         <WorkItem(1091211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091211")>
         Public Sub TestPeekAcrossProjectsInvolvingPortableReferences()
@@ -158,7 +158,7 @@ End Module
             }
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
             Imports N
@@ -182,13 +182,13 @@ End Module
 
         End Sub
 
-        Private Function GetPeekResultCollection(element As XElement) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
             Using workspace = TestWorkspace.Create(element)
                 Return GetPeekResultCollection(workspace)
             End Using
         End Function
 
-        Private Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
             Dim document = workspace.Documents.FirstOrDefault(Function(d) d.CursorPosition.HasValue)
 
             If document Is Nothing Then
@@ -201,7 +201,6 @@ End Module
             Dim peekableItemSource As New PeekableItemSource(textBuffer,
                                                              workspace.GetService(Of IPeekableItemFactory),
                                                              New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IMetadataAsSourceFileService),
                                                              workspace.GetService(Of IWaitIndicator))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)
@@ -220,11 +219,14 @@ End Module
             Dim item = items.SingleOrDefault()
 
             If item IsNot Nothing Then
+                Dim callbackMock = New Mock(Of IFindPeekResultsCallback)(MockBehavior.Strict)
+                callbackMock.Setup(Sub(s) s.ReportProgress(It.IsAny(Of Integer)))
+
                 Dim resultSource = item.GetOrCreateResultSource(PredefinedPeekRelationships.Definitions.Name)
                 resultSource.FindResults(PredefinedPeekRelationships.Definitions.Name,
                                          peekResult,
                                          CancellationToken.None,
-                                         New Mock(Of IFindPeekResultsCallback)(MockBehavior.Loose).Object)
+                                         callbackMock.Object)
             End If
 
             Return peekResult

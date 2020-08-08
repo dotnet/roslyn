@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -4365,9 +4367,9 @@ End Module
             <![CDATA[
 IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: '"6" To "8"')
   Min: 
-    null
+    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "6") (Syntax: '"6"')
   Max: 
-    null
+    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "8") (Syntax: '"8"')
 ]]>.Value)
         End Sub
 
@@ -4588,7 +4590,7 @@ End Module
 
         <Fact()>
         Public Sub MissingReferenceToVBRuntime()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System        
@@ -4616,7 +4618,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class m1
@@ -4632,7 +4634,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod_1()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
     Select ""
@@ -4672,7 +4674,7 @@ End Module
         <WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")>
         <Fact()>
         Public Sub MissingCharsProperty()
-            CompilationUtils.CreateCompilationWithReferences(
+            CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class M1

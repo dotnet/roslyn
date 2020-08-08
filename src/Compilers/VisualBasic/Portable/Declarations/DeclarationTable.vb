@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -281,8 +283,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Shared Function ContainsName(
             mergedRoot As MergedNamespaceDeclaration,
+            name As String,
+            filter As SymbolFilter,
+            cancellationToken As CancellationToken) As Boolean
+
+            Return ContainsNameHelper(
+                mergedRoot,
+                Function(n) IdentifierComparison.Equals(n, name),
+                filter,
+                Function(t) t.MemberNames.Contains(name),
+                cancellationToken)
+        End Function
+
+        Public Shared Function ContainsName(
+            mergedRoot As MergedNamespaceDeclaration,
             predicate As Func(Of String, Boolean),
             filter As SymbolFilter,
+            cancellationToken As CancellationToken) As Boolean
+
+            Return ContainsNameHelper(
+                mergedRoot,
+                predicate,
+                filter,
+                Function(t)
+                    For Each name In t.MemberNames
+                        If predicate(name) Then
+                            Return True
+                        End If
+                    Next
+
+                    Return False
+                End Function,
+                cancellationToken)
+        End Function
+
+        Public Shared Function ContainsNameHelper(
+            mergedRoot As MergedNamespaceDeclaration,
+            predicate As Func(Of String, Boolean),
+            filter As SymbolFilter,
+            typePredicate As Func(Of SingleTypeDeclaration, Boolean),
             cancellationToken As CancellationToken) As Boolean
 
             Dim includeNamespace = (filter And SymbolFilter.Namespace) = SymbolFilter.Namespace
@@ -311,22 +350,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If includeMember Then
                         Dim mergedType = DirectCast(current, MergedTypeDeclaration)
-                        For Each name In mergedType.MemberNames
-                            If predicate(name) Then
+                        For Each childType In mergedType.Declarations
+                            If typePredicate(childType) Then
                                 Return True
                             End If
                         Next
                     End If
                 End If
 
-                For Each child In current.Children.OfType(Of MergedNamespaceOrTypeDeclaration)()
-                    If includeMember OrElse includeType Then
-                        stack.Push(child)
-                        Continue For
-                    End If
+                For Each child In current.Children
+                    Dim childNamespaceOrType = DirectCast(child, MergedNamespaceOrTypeDeclaration)
 
-                    If child.Kind = DeclarationKind.Namespace Then
-                        stack.Push(child)
+                    If includeMember OrElse includeType OrElse childNamespaceOrType.Kind = DeclarationKind.Namespace Then
+                        stack.Push(childNamespaceOrType)
                     End If
                 Next
             End While

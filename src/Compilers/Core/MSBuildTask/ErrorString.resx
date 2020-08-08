@@ -199,4 +199,19 @@
     <value>MSB3402: There was an error creating the pdb file "{0}". {1}</value>
     <comment>{StrBegin="MSB3402: "}</comment>
   </data>
+  <data name="MapSourceRoots.ContainsDuplicate">
+    <value>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</value>
+  </data>
+  <data name="MapSourceRoots.NoSuchTopLevelSourceRoot">
+    <value>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</value>
+  </data>
+  <data name="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+    <value>{0} paths are required to end with a slash or backslash: '{1}'</value>
+  </data>
+  <data name="MapSourceRoots.NoTopLevelSourceRoot">
+    <value>{0} items must include at least one top-level (not nested) item when {1} is true</value>
+  </data>
+  <data name="General_UnableToReadFile" xml:space="preserve">
+    <value>File "{0}" could not be read: {1}</value>
+  </data>
 </root>

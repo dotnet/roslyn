@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -33,7 +35,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var global = compilation.GlobalNamespace;
 
@@ -59,19 +61,16 @@ class Derived : Base
             OverriddenOrHiddenMembersResult derivedPropertyOverriddenOrHidden = derivedProperty.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedPropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseProperty, derivedPropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseProperty, derivedPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Same(baseProperty, derivedProperty.OverriddenProperty);
 
             OverriddenOrHiddenMembersResult derivedGetterOverriddenOrHidden = derivedGetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedGetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseGetter, derivedGetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseGetter, derivedGetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Same(baseGetter, derivedGetter.OverriddenMethod);
 
             OverriddenOrHiddenMembersResult derivedSetterOverriddenOrHidden = derivedSetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedSetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseSetter, derivedSetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseSetter, derivedSetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
             Assert.Same(baseSetter, derivedSetter.OverriddenMethod);
         }
 
@@ -95,7 +94,7 @@ class Derived2 : Derived1
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var global = compilation.GlobalNamespace;
 
@@ -117,22 +116,18 @@ class Derived2 : Derived1
             OverriddenOrHiddenMembersResult derived1PropertyOverriddenOrHidden = derived1Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1PropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseProperty, derived1PropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseProperty, derived1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived1GetterOverriddenOrHidden = derived1Getter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1GetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseGetter, derived1GetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseGetter, derived1GetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2PropertyOverriddenOrHidden = derived2Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2PropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2SetterOverriddenOrHidden = derived2Setter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2SetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(baseSetter, derived2SetterOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(baseSetter, derived2SetterOverriddenOrHidden.RuntimeOverriddenMembers.Single());
         }
 
         [Fact]
@@ -150,7 +145,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var global = compilation.GlobalNamespace;
 
@@ -166,17 +161,14 @@ class Derived : Base
 
             OverriddenOrHiddenMembersResult derivedPropertyOverriddenOrHidden = derivedProperty.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedPropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derivedPropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseProperty, derivedPropertyOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derivedGetterOverriddenOrHidden = derivedGetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedGetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derivedGetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseGetter, derivedGetterOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derivedSetterOverriddenOrHidden = derivedSetter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedSetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derivedSetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseSetter, derivedSetterOverriddenOrHidden.HiddenMembers.Single());
         }
 
@@ -201,14 +193,14 @@ class Derived : Base
 }
 ";
 
-            var comp1 = CreateStandardCompilation(text1);
+            var comp1 = CreateCompilation(text1);
             var comp1ref = new CSharpCompilationReference(comp1);
             var refs = new System.Collections.Generic.List<MetadataReference>() { comp1ref };
 
-            var comp2 = CreateStandardCompilation(text2, references: refs, assemblyName: "Test2");
+            var comp2 = CreateCompilation(text2, references: refs, assemblyName: "Test2");
             var comp2ref = new CSharpCompilationReference(comp2);
             refs.Add(comp2ref);
-            var compilation = CreateStandardCompilation(text3, refs, assemblyName: "Test3");
+            var compilation = CreateCompilation(text3, refs, assemblyName: "Test3");
 
             var global = compilation.GlobalNamespace;
 
@@ -228,23 +220,19 @@ class Derived : Base
 
             OverriddenOrHiddenMembersResult derived1PropertyOverriddenOrHidden = derived1Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1PropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derived1PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseProperty, derived1PropertyOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived1GetterOverriddenOrHidden = derived1Getter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1GetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derived1GetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Same(baseGetter, derived1GetterOverriddenOrHidden.HiddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2PropertyOverriddenOrHidden = derived2Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2PropertyOverriddenOrHidden.HiddenMembers.Length);
             Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.OverriddenMembers.Single());
-            Assert.Same(derived1Property, derived2PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Single());
 
             OverriddenOrHiddenMembersResult derived2SetterOverriddenOrHidden = derived2Setter.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived2SetterOverriddenOrHidden.HiddenMembers.Length);
             Assert.Equal(0, derived2SetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, derived2SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
         }
 
         [WorkItem(540145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540145")]
@@ -262,7 +250,7 @@ abstract public class TestClass2 : TestClass1
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,29): error CS0533: 'TestClass2.P2' hides inherited abstract member 'TestClass1.P2'
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"));
         }
@@ -291,7 +279,7 @@ public class TestClass3 : TestClass2
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (8,29): error CS0533: 'TestClass2.P2' hides inherited abstract member 'TestClass1.P2'
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"),
                 // (15,9): error CS0545: 'TestClass3.P2.get': cannot override because 'TestClass2.P2' does not have an overridable get accessor
@@ -323,7 +311,7 @@ public class Derived2 : Derived1
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var ilGetter = global.GetMember<NamedTypeSymbol>("Base").GetMember<PropertySymbol>("P").GetMethod;
@@ -353,7 +341,7 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
@@ -386,7 +374,7 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
@@ -420,7 +408,7 @@ class Derived : Base, I
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (14,16): error CS0470: Method 'Derived.get_P()' cannot implement interface accessor 'I.P.get' for type 'Derived'. Use an explicit interface implementation.
@@ -473,7 +461,7 @@ class Derived : Base, I
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (17,20): error CS0686: Accessor 'Derived.P.get' cannot implement interface member 'I.get_P()' for type 'Derived'. Use an explicit interface implementation.
@@ -497,6 +485,57 @@ class Derived : Base, I
         }
 
         [Fact]
+        public void ImplementingAccessorWithNonAccessorMayReportInInterfaceReference()
+        {
+            var source = @"
+interface I<T>
+{
+	T P { get; }
+}
+class Base
+{
+    public int get_P() { return 1; }
+}
+class Derived : Base, I<int> // CS0470 must be reported in ""I<int>""
+{
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,23): error CS0470: Method 'Base.get_P()' cannot implement interface accessor 'I<int>.P.get' for type 'Derived'. Use an explicit interface implementation.
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "I<int>").WithArguments("Base.get_P()", "I<int>.P.get", "Derived").WithLocation(10, 23),
+                // (10,23): error CS0535: 'Derived' does not implement interface member 'I<int>.P'
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<int>").WithArguments("Derived", "I<int>.P").WithLocation(10, 23));
+        }
+
+        [Fact]
+        public void ImplementingNonAccessorWithAccessorMayReportInInterfaceReference()
+        {
+            var source = @"
+interface I<T>
+{
+    T get_P();
+}
+class Base
+{
+    public int P { get; }
+}
+class Derived : Base, I<int> // CS0686 must be reported in ""I<int>""
+{
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,23): error CS0686: Accessor 'Base.P.get' cannot implement interface member 'I<int>.get_P()' for type 'Derived'. Use an explicit interface implementation.
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_AccessorImplementingMethod, "I<int>").WithArguments("Base.P.get", "I<int>.get_P()", "Derived").WithLocation(10, 23));
+        }
+
+        [Fact]
         public void PropertyHidesBetterImplementation()
         {
             var text = @"
@@ -516,7 +555,7 @@ class Derived : Base, I //CS0535
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (12,7): error CS0535: 'Derived' does not implement interface member 'I.P.set'
@@ -586,7 +625,7 @@ class Derived3 : Derived2, I
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics();
 
@@ -642,7 +681,7 @@ interface I4 : I3
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (14,9): warning CS0108: 'I3.P' hides inherited member 'I1.P'. Use the new keyword if hiding was intended.
@@ -672,22 +711,18 @@ interface I4 : I3
 
             var interface3PropertyOverriddenOrHidden = interface3Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface3PropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface3PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             AssertEx.SetEqual(interface3PropertyOverriddenOrHidden.HiddenMembers, interface1Property, interface2Property);
 
             var interface3GetterOverriddenOrHidden = interface3Getter.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface3GetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface3GetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             AssertEx.SetEqual(interface3GetterOverriddenOrHidden.HiddenMembers, interface1Getter, interface2Getter);
 
             var interface4PropertyOverriddenOrHidden = interface4Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface4PropertyOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface4PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(interface3Property, interface4PropertyOverriddenOrHidden.HiddenMembers.Single());
 
             var interface4SetterOverriddenOrHidden = interface4Setter.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface4SetterOverriddenOrHidden.OverriddenMembers.Length);
-            Assert.Equal(0, interface4SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(0, interface4SetterOverriddenOrHidden.HiddenMembers.Length);
         }
 
@@ -711,7 +746,7 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var @interface = global.GetMember<NamedTypeSymbol>("I");
@@ -786,7 +821,7 @@ public class CSIPropImpl : VBIPropImpl, IProp
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp = CreateStandardCompilation(text1, references: refs, assemblyName: "OHI_ExpImpPropGetSetMismatch001",
+            var comp = CreateCompilation(text1, references: refs, assemblyName: "OHI_ExpImpPropGetSetMismatch001",
                             options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
@@ -815,13 +850,13 @@ public class CSIPropImpl : VBIPropImpl, IProp
         [Fact]
         public void AccessorWithImportedGenericType()
         {
-            var comp0 = CreateStandardCompilation(@"
+            var comp0 = CreateCompilation(@"
 public class MC<T> { }
 public delegate void MD<T>(T t);
 ");
 
             var compref = new CSharpCompilationReference(comp0);
-            var comp1 = CreateStandardCompilation(@"
+            var comp1 = CreateCompilation(@"
 using System;
 public class G<T>
 {
@@ -833,7 +868,7 @@ public class G<T>
 
             var mtdata = comp1.EmitToArray(options: new EmitOptions(metadataOnly: true));
             var mtref = MetadataReference.CreateFromImage(mtdata);
-            var comp2 = CreateStandardCompilation(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
+            var comp2 = CreateCompilation(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
 
             var tsym = comp2.GetReferencedAssemblySymbol(mtref).GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             Assert.NotNull(tsym);
@@ -963,7 +998,7 @@ using System;
                 var source = testCase.Item1;
                 var expectedResult = testCase.Item2;
 
-                var compilation = CreateStandardCompilation(source);
+                var compilation = (Compilation)CreateCompilation(source);
                 var syntaxTree = compilation.SyntaxTrees.Single();
                 var nodes = syntaxTree.GetRoot().DescendantNodes();
 
@@ -984,27 +1019,27 @@ using System;
                 Assert.Equal(0, memberNameSyntax.Arity);
 
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                var classDisposable = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Disposable");
+                var classDisposable = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Disposable");
                 Assert.Equal(TypeKind.Class, classDisposable.TypeKind);
                 Assert.Equal("Disposable", classDisposable.Name);
 
-                var localD = (LocalSymbol)semanticModel.GetSymbolInfo(identifierSyntax).Symbol;
+                var localD = (ILocalSymbol)semanticModel.GetSymbolInfo(identifierSyntax).Symbol;
                 Assert.Equal("d", localD.Name);
                 Assert.Equal("Disposable", localD.Type.Name);
                 Assert.Equal(classDisposable, localD.Type);
 
-                var methodDispose = (MethodSymbol)semanticModel.GetSymbolInfo(memberAccessSyntax).Symbol;
+                var methodDispose = (IMethodSymbol)semanticModel.GetSymbolInfo(memberAccessSyntax).Symbol;
                 Assert.Equal("Dispose", methodDispose.Name);
                 Assert.Equal(0, methodDispose.Arity);
-                Assert.Equal(0, methodDispose.ParameterCount);
+                Assert.Empty(methodDispose.Parameters);
                 Assert.True(methodDispose.ReturnsVoid);
                 Assert.Equal(classDisposable, methodDispose.ContainingType);
                 Assert.Equal(Accessibility.Public, methodDispose.DeclaredAccessibility);
-                Assert.False(methodDispose.IsExplicitInterfaceImplementation);
+                Assert.Empty(methodDispose.ExplicitInterfaceImplementations);
 
                 var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
                 var interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
-                var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is NamedTypeSymbol;
+                var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is INamedTypeSymbol;
                 Assert.Equal(expectedResult.isInterfaceNameBound, isInterfaceNameBound);
 
                 var memberAccessed = memberAccessSyntax;

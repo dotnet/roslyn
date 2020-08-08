@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -17,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub Operators1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -143,7 +146,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, options:=TestOptions.ReleaseExe, additionalRefs:={SystemCoreRef})
+</compilation>, options:=TestOptions.ReleaseExe, references:={SystemCoreRef})
 
             Dim model As VBSemanticModel = GetSemanticModel(compilation, "a.vb")
             Dim operatorSyntax As OperatorStatementSyntax
@@ -256,7 +259,7 @@ op_UnaryPlus - True
 
         <Fact>
         Public Sub Operators2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -349,7 +352,7 @@ Class A3
     End Operator
 End Class
     ]]></file>
-</compilation>)
+</compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             Dim model As VBSemanticModel = GetSemanticModel(compilation, "a.vb")
             Dim operatorSyntax As OperatorStatementSyntax
             Dim op As MethodSymbol
@@ -468,7 +471,7 @@ BC30371: Module 'A2' cannot be used as a type.
 
         <Fact>
         Public Sub Operators3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -587,7 +590,7 @@ BC33014: Operator 'CType' must have one parameter.
 
         <Fact>
         Public Sub Operators4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -723,7 +726,7 @@ BC33023: Operator 'IsFalse' must have a return type of Boolean.
 
         <Fact>
         Public Sub Operators5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -877,7 +880,7 @@ BC33031: Conversion operators cannot convert from a derived type.
 
         <Fact>
         Public Sub Operators6()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A12
@@ -926,7 +929,7 @@ BC30651: operator parameters cannot be declared 'ByRef'.
 
         <Fact()>
         Public Sub Operators7()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -1124,9 +1127,37 @@ BC30452: Operator '/' is not defined for types 'A14' and 'A14'.
 </expected>)
         End Sub
 
+        <Fact(), WorkItem(34872, "https://github.com/dotnet/roslyn/issues/34872")>
+        Public Sub GenericOperatorVoidConversion()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+Public Class C(Of T)
+    Public Shared Widening Operator CType(t As T) As C(Of T)
+        Return New C(Of T)
+	End Operator
+
+    Public Sub M()
+    End Sub
+
+    Public Function M2() As C(Of Object)
+		Return M()
+	End Function
+End Class
+    ]]></file>
+</compilation>)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30491: Expression does not produce a value.
+		Return M()
+         ~~~
+]]></expected>)
+        End Sub
+
         <Fact()>
         Public Sub Operators8()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb"><![CDATA[
 Public Class A1
@@ -1217,7 +1248,7 @@ BC30516: Overload resolution failed because no accessible '+' accepts this numbe
         ''' </summary>
         <Fact()>
         Public Sub UserDefinedShortCircuitingOperators_IsTrueAndIsFalseOnBaseType()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A(Of T)
@@ -1267,7 +1298,7 @@ BC30452: Operator 'OrElse' is not defined for types 'C' and 'C'.
         ''' </summary>
         <Fact()>
         Public Sub UserDefinedShortCircuitingOperators_IsTrueAndIsFalseOnDerivedType()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A(Of T)

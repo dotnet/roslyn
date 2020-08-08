@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -23,7 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
         ''' <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         ''' <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
-        Public Shared Function Filter(diagnostic As Diagnostic, generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As Diagnostic
+        Public Shared Function Filter(
+            diagnostic As Diagnostic,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
+            syntaxTreeOptions As SyntaxTreeOptionsProvider) As Diagnostic
+
             ' Diagnostic ids must be processed in case-insensitive fashion in VB.
             Dim caseInsensitiveSpecificDiagnosticOptions =
             ImmutableDictionary.Create(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer).AddRange(specificDiagnosticOptions)
@@ -66,10 +73,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostic.Category,
                 generalDiagnosticOption,
                 caseInsensitiveSpecificDiagnosticOptions,
+                syntaxTreeOptions,
                 hasSourceSuppression)
             Else
-                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location,
-                    diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions, hasSourceSuppression)
+                report = GetDiagnosticReport(
+                    diagnostic.Severity,
+                    diagnostic.IsEnabledByDefault,
+                    diagnostic.Id,
+                    diagnostic.Location,
+                    diagnostic.Category,
+                    generalDiagnosticOption,
+                    caseInsensitiveSpecificDiagnosticOptions,
+                    syntaxTreeOptions,
+                    hasSourceSuppression)
             End If
 
             If hasSourceSuppression Then
@@ -79,13 +95,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagnostic.WithReportDiagnostic(report)
         End Function
 
-        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic), <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
+        ''' <summary>
+        ''' Take a warning And return the final disposition of the given warning,
+        ''' based on both command line options And pragmas. The diagnostic options
+        ''' have precedence in the following order:
+        '''     1. Global warning options
+        '''     2. Syntax tree options
+        '''     3. Compilation options
+        '''
+        ''' Global overrides are complicated. Global options never override suppression.
+        ''' Even if you have generalDiagnosticOption = ReportDiagnostic.Error, a
+        ''' suppressed diagnostic will not turn into an error. However, general diagnostic options
+        ''' do override warnings and infos into suppressions, i.e. if you had a syntaxtree option
+        ''' to turn a diagnostic into a warning, and the global option was Suppress, the diagnostic
+        ''' would be suppressed.
+        '''
+        ''' Pragmas are considered separately. If a diagnostic would not otherwise
+        ''' be suppressed, but is suppressed by a pragma,
+        ''' <paramref name="hasDisableDirectiveSuppression"/>
+        ''' is true but the diagnostic is not reported as suppressed.
+        ''' </summary> 
+        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity,
+                                                   isEnabledByDefault As Boolean,
+                                                   id As String,
+                                                   location As Location,
+                                                   category As String,
+                                                   generalDiagnosticOption As ReportDiagnostic,
+                                                   caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
+                                                   syntaxTreeOptions As SyntaxTreeOptionsProvider,
+                                                   <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
             hasDisableDirectiveSuppression = False
 
-            ' Read options (e.g., /nowarn or /warnaserror)
-            Dim report As ReportDiagnostic = ReportDiagnostic.Default
-            Dim isSpecified = caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report)
-            If Not isSpecified Then
+            Dim report As ReportDiagnostic
+            Dim tree = If(location IsNot Nothing, location.SourceTree, Nothing)
+            Dim isSpecified As Boolean = False
+
+            ' Global options depend on other options, so calculate those first
+            If tree IsNot Nothing AndAlso syntaxTreeOptions IsNot Nothing AndAlso
+               syntaxTreeOptions.TryGetDiagnosticValue(tree, id, report) Then
+                ' 2. Syntax tree level
+                isSpecified = True
+            ElseIf caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
+                ' 3. Compilation level
+                isSpecified = True
+            Else
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
             End If
 
@@ -100,12 +153,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasDisableDirectiveSuppression = True
             End If
 
+            ' 1. Global options
+            ' If present, they override previous options
+
             ' check options (/nowarn)
             ' When doing suppress-all-warnings, don't lower severity for anything other than warning and info.
             ' We shouldn't suppress hidden diagnostics here because then features that use hidden diagnostics to
             ' display light bulb would stop working if someone has suppress-all-warnings (/nowarn) specified in their project.
             If generalDiagnosticOption = ReportDiagnostic.Suppress AndAlso
-            (severity = DiagnosticSeverity.Warning OrElse severity = DiagnosticSeverity.Info) Then
+                (severity = DiagnosticSeverity.Warning OrElse severity = DiagnosticSeverity.Info) Then
                 Return ReportDiagnostic.Suppress
             End If
 

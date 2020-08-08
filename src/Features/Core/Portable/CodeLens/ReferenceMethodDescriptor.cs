@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
@@ -16,10 +18,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
         ///  Method full name is expected to be in the .NET full name type convention. That is,
         ///  namespace/type is delimited by '.' and nested type is delimited by '+'
         /// </remarks>
-        public ReferenceMethodDescriptor(string fullName, string filePath)
+        public ReferenceMethodDescriptor(string fullName, string filePath, string outputFilePath)
         {
             FullName = fullName;
             FilePath = filePath;
+            OutputFilePath = outputFilePath;
         }
 
         /// <summary>
@@ -31,5 +34,10 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// Returns method's file path.
         /// </summary>
         public string FilePath { get; private set; }
+
+        /// <summary>
+        /// Returns output file path for the project containing the method.
+        /// </summary>
+        public string OutputFilePath { get; private set; }
     }
 }

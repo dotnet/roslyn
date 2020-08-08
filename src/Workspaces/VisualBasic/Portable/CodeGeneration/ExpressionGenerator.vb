@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
@@ -65,21 +67,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf TypeOf value Is Char Then
                 Return GenerateCharLiteralExpression(DirectCast(value, Char))
             ElseIf TypeOf value Is SByte Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_SByte, value, canUseFieldReference, LiteralSpecialValues.SByteSpecialValues)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_SByte, DirectCast(value, SByte), canUseFieldReference, LiteralSpecialValues.SByteSpecialValues, Function(x) x < 0, Function(x) -x, "128")
             ElseIf TypeOf value Is Short Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int16, value, canUseFieldReference, LiteralSpecialValues.Int16SpecialValues)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int16, DirectCast(value, Short), canUseFieldReference, LiteralSpecialValues.Int16SpecialValues, Function(x) x < 0, Function(x) -x, "32768")
             ElseIf TypeOf value Is Integer Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int32, value, canUseFieldReference, LiteralSpecialValues.Int32SpecialValues)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int32, DirectCast(value, Integer), canUseFieldReference, LiteralSpecialValues.Int32SpecialValues, Function(x) x < 0, Function(x) -x, "2147483648")
             ElseIf TypeOf value Is Long Then
-                Return GenerateLongLiteralExpression(type, DirectCast(value, Long), canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int64, DirectCast(value, Long), canUseFieldReference, LiteralSpecialValues.Int64SpecialValues, Function(x) x < 0, Function(x) -x, "9223372036854775808")
             ElseIf TypeOf value Is Byte Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Byte, value, canUseFieldReference, LiteralSpecialValues.ByteSpecialValues)
+                Return GenerateNonNegativeIntegralLiteralExpression(type, SpecialType.System_Byte, DirectCast(value, Byte), canUseFieldReference, LiteralSpecialValues.ByteSpecialValues)
             ElseIf TypeOf value Is UShort Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_UInt16, value, canUseFieldReference, LiteralSpecialValues.UInt16SpecialValues)
+                Return GenerateNonNegativeIntegralLiteralExpression(type, SpecialType.System_UInt16, DirectCast(value, UShort), canUseFieldReference, LiteralSpecialValues.UInt16SpecialValues)
             ElseIf TypeOf value Is UInteger Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_UInt32, value, canUseFieldReference, LiteralSpecialValues.UInt32SpecialValues)
+                Return GenerateNonNegativeIntegralLiteralExpression(type, SpecialType.System_UInt32, DirectCast(value, UInteger), canUseFieldReference, LiteralSpecialValues.UInt32SpecialValues)
             ElseIf TypeOf value Is ULong Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_UInt64, value, canUseFieldReference, LiteralSpecialValues.UInt64SpecialValues)
+                Return GenerateNonNegativeIntegralLiteralExpression(type, SpecialType.System_UInt64, DirectCast(value, ULong), canUseFieldReference, LiteralSpecialValues.UInt64SpecialValues)
             ElseIf TypeOf value Is Single Then
                 Return GenerateSingleLiteralExpression(type, DirectCast(value, Single), canUseFieldReference)
             ElseIf TypeOf value Is Double Then
@@ -155,11 +157,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return invocation.WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
 
-        Private Function GenerateIntegralLiteralExpression(Of TStructure)(type As ITypeSymbol,
-                                                                          specialType As SpecialType,
-                                                                          value As Object,
-                                                                          canUseFieldReference As Boolean,
-                                                                          specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String))) As ExpressionSyntax
+        Private Function GenerateNonNegativeIntegralLiteralExpression(Of TStructure As IEquatable(Of TStructure))(
+                type As ITypeSymbol,
+                specialType As SpecialType,
+                value As TStructure,
+                canUseFieldReference As Boolean,
+                specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String))) As ExpressionSyntax
+
+            Return GenerateIntegralLiteralExpression(
+                type, specialType, value, canUseFieldReference, specialValues,
+                Function(v) False,
+                Function(v)
+                    Throw New InvalidOperationException()
+                End Function,
+                Nothing)
+        End Function
+
+        Private Function GenerateIntegralLiteralExpression(Of TStructure As IEquatable(Of TStructure))(
+                type As ITypeSymbol,
+                specialType As SpecialType,
+                value As TStructure,
+                canUseFieldReference As Boolean,
+                specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String)),
+                isNegative As Func(Of TStructure, Boolean),
+                negate As Func(Of TStructure, TStructure),
+                integerMinValueString As String) As ExpressionSyntax
 
             If canUseFieldReference Then
                 Dim field = GenerateFieldReference(specialType, value, specialValues)
@@ -168,14 +190,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
+            Dim negative = isNegative(value)
+
+            Dim nonNegativeValue = If(negative,
+                negate(value),
+                value)
+
             Dim typeSuffix As TypeCharacter = TypeCharacter.None
             Dim suffix As String = String.Empty
-            DetermineSuffix(type, value, typeSuffix, suffix)
+            DetermineSuffix(type, nonNegativeValue, typeSuffix, suffix)
 
-            Dim literal = DirectCast(value, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix
-            Dim expression = SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
+            Dim literal = If(negative AndAlso nonNegativeValue.Equals(value),
+                integerMinValueString,
+                DirectCast(nonNegativeValue, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix)
+
+            Dim expression As ExpressionSyntax = SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
                     literal, LiteralBase.Decimal, typeSuffix,
-                    IntegerUtilities.ToUInt64(value)))
+                    IntegerUtilities.ToUInt64(nonNegativeValue)))
+
+            If negative Then
+                expression = SyntaxFactory.UnaryMinusExpression(expression)
+            End If
 
             If TypeOf value Is Byte AndAlso Not IsSpecialType(type, SpecialType.System_Byte) Then
                 Return SyntaxFactory.PredefinedCastExpression(SyntaxFactory.Token(SyntaxKind.CByteKeyword), expression)
@@ -184,19 +219,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return expression
-        End Function
-
-        Private Function GenerateLongLiteralExpression(type As ITypeSymbol,
-                                                       value As Long,
-                                                       canUseFieldReference As Boolean) As ExpressionSyntax
-            If canUseFieldReference OrElse value > Long.MinValue Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int64, value, canUseFieldReference, LiteralSpecialValues.Int64SpecialValues)
-            End If
-
-            ' We have to special case how Long.MinValue is printed when we can't refer to the 
-            ' field directly.
-            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
-                "&H8000000000000000", LiteralBase.Hexadecimal, TypeCharacter.None, IntegerUtilities.ToUInt64(value)))
         End Function
 
         Private Sub DetermineSuffix(type As ITypeSymbol,
@@ -250,8 +272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Sub
 
         Private Function GenerateDoubleLiteralExpression(type As ITypeSymbol,
-                                                                value As Double,
-                                                                canUseFieldReference As Boolean) As ExpressionSyntax
+                                                         value As Double,
+                                                         canUseFieldReference As Boolean) As ExpressionSyntax
             If Not canUseFieldReference Then
                 If Double.IsNaN(value) Then
                     Return SyntaxFactory.DivideExpression(
@@ -268,12 +290,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
-            Return GenerateFloatLiteralExpression(type, SpecialType.System_Double, value, canUseFieldReference, LiteralSpecialValues.DoubleSpecialValues)
+            Return GenerateFloatLiteralExpression(
+                type, SpecialType.System_Double, value, canUseFieldReference,
+                LiteralSpecialValues.DoubleSpecialValues, Function(t) t < 0, Function(t) -t)
         End Function
 
-        Private Function GenerateSingleLiteralExpression(type As ITypeSymbol,
-                                                                value As Single,
-                                                                canUseFieldReference As Boolean) As ExpressionSyntax
+        Private Function GenerateSingleLiteralExpression(
+                type As ITypeSymbol,
+                value As Single,
+                canUseFieldReference As Boolean) As ExpressionSyntax
             If Not canUseFieldReference Then
                 If Double.IsNaN(value) Then
                     Return SyntaxFactory.DivideExpression(
@@ -290,14 +315,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
-            Return GenerateFloatLiteralExpression(type, SpecialType.System_Single, value, canUseFieldReference, LiteralSpecialValues.SingleSpecialValues)
+            Return GenerateFloatLiteralExpression(
+                type, SpecialType.System_Single, value, canUseFieldReference,
+                LiteralSpecialValues.SingleSpecialValues, Function(t) t < 0, Function(t) -t)
         End Function
 
-        Private Function GenerateFloatLiteralExpression(Of TStructure)(type As ITypeSymbol,
-                                                                       specialType As SpecialType,
-                                                                       value As Object,
-                                                                       canUseFieldReference As Boolean,
-                                                                       specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String))) As ExpressionSyntax
+        Private Function GenerateFloatLiteralExpression(Of TStructure)(
+                type As ITypeSymbol,
+                specialType As SpecialType,
+                value As TStructure,
+                canUseFieldReference As Boolean,
+                specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String)),
+                isNegative As Func(Of TStructure, Boolean),
+                negate As Func(Of TStructure, TStructure)) As ExpressionSyntax
             If canUseFieldReference Then
                 Dim field = GenerateFieldReference(specialType, value, specialValues)
                 If field IsNot Nothing Then
@@ -305,12 +335,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
+            Dim negative = isNegative(value)
+            If negative Then
+                value = negate(value)
+            End If
+
             Dim typeSuffix As TypeCharacter = TypeCharacter.None
             Dim suffix As String = String.Empty
             DetermineSuffix(type, value, typeSuffix, suffix)
 
             Dim literal = DirectCast(value, IFormattable).ToString("R", CultureInfo.InvariantCulture) & suffix
-            Return GenerateFloatLiteral(Convert.ToDouble(value), literal, typeSuffix)
+            Dim literalSyntax As ExpressionSyntax = GenerateFloatLiteral(Convert.ToDouble(value), literal, typeSuffix)
+
+            Return If(negative, SyntaxFactory.UnaryMinusExpression(literalSyntax), literalSyntax)
         End Function
 
         Private Function GenerateFloatLiteral(value As Double,
@@ -319,7 +356,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.FloatingLiteralToken(
                 literal, typeSuffix, value))
         End Function
-
 
         Private Function GenerateCharLiteralExpression(c As Char) As ExpressionSyntax
             Dim pieces = StringPiece.Split(c.ToString())

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // 000000000011111111112222222222333333333344444444445555555555666666666677777777778
             // 012345678901234567890123456789012345678901234567890123456789012345678901234567890
-            var comp = CreateCompilation(text, new[] { MscorlibRef });
+            var comp = CreateEmptyCompilation(text, new[] { MscorlibRef });
             var global = comp.GlobalNamespace;
             var n = global.GetMembers("N").Single() as NamespaceSymbol;
             AssertPos(n, 10, 1);

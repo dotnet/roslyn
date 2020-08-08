@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -14,9 +19,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Reversed enumerable.
         /// </summary>
-        public struct Reversed : IEnumerable<SyntaxToken>, IEquatable<Reversed>
+        public readonly struct Reversed : IEnumerable<SyntaxToken>, IEquatable<Reversed>
         {
-            private SyntaxTokenList _list;
+            private readonly SyntaxTokenList _list;
 
             public Reversed(SyntaxTokenList list)
             {
@@ -25,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
             public Enumerator GetEnumerator()
             {
-                return new Enumerator(ref _list);
+                return new Enumerator(in _list);
             }
 
             IEnumerator<SyntaxToken> IEnumerable<SyntaxToken>.GetEnumerator()
@@ -35,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                     return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
                 }
 
-                return new EnumeratorImpl(ref _list);
+                return new EnumeratorImpl(in _list);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -45,12 +50,12 @@ namespace Microsoft.CodeAnalysis
                     return SpecializedCollections.EmptyEnumerator<SyntaxToken>();
                 }
 
-                return new EnumeratorImpl(ref _list);
+                return new EnumeratorImpl(in _list);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                return obj is Reversed && Equals((Reversed)obj);
+                return obj is Reversed r && Equals(r);
             }
 
             public bool Equals(Reversed other)
@@ -67,16 +72,16 @@ namespace Microsoft.CodeAnalysis
             [StructLayout(LayoutKind.Auto)]
             public struct Enumerator
             {
-                private readonly SyntaxNode _parent;
-                private readonly GreenNode _singleNodeOrList;
+                private readonly SyntaxNode? _parent;
+                private readonly GreenNode? _singleNodeOrList;
                 private readonly int _baseIndex;
                 private readonly int _count;
 
                 private int _index;
-                private GreenNode _current;
+                private GreenNode? _current;
                 private int _position;
 
-                public Enumerator(ref SyntaxTokenList list)
+                internal Enumerator(in SyntaxTokenList list)
                     : this()
                 {
                     if (list.Any())
@@ -104,7 +109,9 @@ namespace Microsoft.CodeAnalysis
 
                     _index--;
 
+                    Debug.Assert(_singleNodeOrList is object);
                     _current = GetGreenNodeAt(_singleNodeOrList, _index);
+                    Debug.Assert(_current is object);
                     _position -= _current.FullWidth;
 
                     return true;
@@ -123,7 +130,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                public override bool Equals(object obj)
+                public override bool Equals(object? obj)
                 {
                     throw new NotSupportedException();
                 }
@@ -139,9 +146,9 @@ namespace Microsoft.CodeAnalysis
                 private Enumerator _enumerator;
 
                 // SyntaxTriviaList is a relatively big struct so is passed as ref
-                internal EnumeratorImpl(ref SyntaxTokenList list)
+                internal EnumeratorImpl(in SyntaxTokenList list)
                 {
-                    _enumerator = new Enumerator(ref list);
+                    _enumerator = new Enumerator(in list);
                 }
 
                 public SyntaxToken Current => _enumerator.Current;

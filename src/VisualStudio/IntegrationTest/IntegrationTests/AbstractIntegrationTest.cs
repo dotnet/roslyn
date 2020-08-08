@@ -1,35 +1,84 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CaptureTestName]
-    public abstract class AbstractIntegrationTest : IDisposable
+    public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
     {
-        public readonly VisualStudioInstance VisualStudio;
+        protected const string ProjectName = "TestProj";
+        protected const string SolutionName = "TestSolution";
 
-        protected readonly string ProjectName = "TestProj";
-        protected readonly string SolutionName = "TestSolution";
-
+        private readonly MessageFilter _messageFilter;
+        private readonly VisualStudioInstanceFactory _instanceFactory;
         private VisualStudioInstanceContext _visualStudioContext;
 
-        protected AbstractIntegrationTest(
-            VisualStudioInstanceFactory instanceFactory)
+        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
         {
-            _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
-            VisualStudio = _visualStudioContext.Instance;
+            Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
+
+            // Install a COM message filter to handle retry operations when the first attempt fails
+            _messageFilter = RegisterMessageFilter();
+            _instanceFactory = instanceFactory;
+
+            try
+            {
+                Helper.Automation.TransactionTimeout = 20000;
+            }
+            catch
+            {
+                _messageFilter.Dispose();
+                _messageFilter = null;
+                throw;
+            }
         }
 
-        public void Dispose()
+        public VisualStudioInstance VisualStudio => _visualStudioContext?.Instance;
+
+        public virtual async Task InitializeAsync()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            try
+            {
+                _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(false);
+                _visualStudioContext.Instance.ActivateMainWindow();
+            }
+            catch
+            {
+                _messageFilter.Dispose();
+                throw;
+            }
         }
+
+        /// <summary>
+        /// This method implements <see cref="IAsyncLifetime.DisposeAsync"/>, and is used for releasing resources
+        /// created by <see cref="IAsyncLifetime.InitializeAsync"/>. This method is only called if
+        /// <see cref="InitializeAsync"/> completes successfully.
+        /// </summary>
+        public virtual Task DisposeAsync()
+        {
+            if (VisualStudio?.Editor.IsCompletionActive() ?? false)
+            {
+                // Make sure completion isn't visible.
+                // 🐛 Only needed as a workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/801435
+                VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            }
+
+            _visualStudioContext.Dispose();
+            return Task.CompletedTask;
+        }
+
+        protected virtual MessageFilter RegisterMessageFilter()
+            => new MessageFilter();
 
         protected void Wait(double seconds)
         {
@@ -37,12 +86,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             Thread.Sleep(timeout);
         }
 
-        protected virtual void Dispose(bool disposing)
+        /// <summary>
+        /// This method provides the implementation for <see cref="IDisposable.Dispose"/>.
+        /// This method is called via the <see cref="IDisposable"/> interface if the constructor completes successfully.
+        /// The <see cref="InitializeAsync"/> may or may not have completed successfully.
+        /// </summary>
+        public virtual void Dispose()
         {
-            if (disposing)
-            {
-                _visualStudioContext.Dispose();
-            }
+            _messageFilter.Dispose();
         }
 
         protected KeyPress Ctrl(VirtualKey virtualKey)

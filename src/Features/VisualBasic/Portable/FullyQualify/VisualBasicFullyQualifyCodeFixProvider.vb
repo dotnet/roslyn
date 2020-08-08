@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CaseCorrection
@@ -42,6 +45,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
         ''' </summary>
         Friend Const BC32045 = "BC32045"
 
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30002, IDEDiagnosticIds.UnboundIdentifierId, BC30451, BC30561, BC40056, BC32045)
@@ -76,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
             Return True
         End Function
 
-        Private Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
+        Private Shared Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
             While (qn IsNot Nothing)
                 Dim left = qn.Left
                 Dim simpleName = TryCast(left, SimpleNameSyntax)

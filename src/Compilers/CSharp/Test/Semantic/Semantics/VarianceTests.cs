@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -106,7 +108,7 @@ class Test
                 {
                     try
                     {
-                        var comp = CreateStandardCompilation(string.Format(text, i, j));
+                        var comp = CreateCompilation(string.Format(text, i, j));
                         var errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
                         if (!validAssignments[i].Contains(j))
                         {
@@ -219,7 +221,7 @@ class Test
                 {
                     try
                     {
-                        var comp = CreateStandardCompilation(string.Format(text, i, j));
+                        var comp = CreateCompilation(string.Format(text, i, j));
                         var errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
                         if (!validAssignments[i].Contains(j))
                         {
@@ -266,7 +268,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(D<IIn<I>>)' and 'C.Goo(D<I>)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(D<IIn<I>>)", "C.Goo(D<I>)"));
         }
@@ -291,7 +293,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (10,30): error CS0266: Cannot implicitly convert type 'IC<double>' to 'IN<IC<string>>'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "bar").WithArguments("IC<double>", "IN<IC<string>>"));
         }
@@ -326,7 +328,7 @@ class Test
      }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (22,19): error CS0266: Cannot implicitly convert type 'X' to 'A<Y>'. An explicit conversion exists (are you missing a cast?)
                 //          A<Y> x = new X ();
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new X ()").WithArguments("X", "A<Y>")
@@ -364,7 +366,7 @@ class M {
   }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (22,15): error CS0266: Cannot implicitly convert type 'A' to 'N<X>'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
@@ -405,7 +407,7 @@ class M
 ";
             // There should not be any diagnostics, but we blow our stack and make a guess.
             // NB: this is a breaking change.
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (24,19): error CS0266: Cannot implicitly convert type 'A' to 'N<X>'. An explicit conversion exists (are you missing a cast?)
                 //         N<X> nx = a;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
@@ -437,7 +439,7 @@ interface I4<out T, in U, V>
     void M2<X>() where X : C<U>;
     void M3<X>() where X : C<V>;
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,12): error CS1961: Invalid variance: The type parameter 'T' must be contravariantly valid on 'I1<T, U, V>.M<X>()'. 'T' is covariant.
                 //     void M<X>() where X : T, U, V;
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "X").WithArguments("I1<T, U, V>.M<X>()", "T", "covariant", "contravariantly").WithLocation(6, 12),
@@ -493,7 +495,7 @@ interface I8<in T, U>
 {
     S<U> M(S<T> o);
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (5,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I1<T, U>.M(C<U>)'. 'T' is covariant.
                 //     C<T> M(C<U> o);
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<T>").WithArguments("I1<T, U>.M(C<U>)", "T", "covariant", "invariantly").WithLocation(5, 5),
@@ -545,7 +547,7 @@ interface I4<in T, U>
 {
     C<U>.E M(C<T>.E o);
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (7,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I1<T, U>.M(C<U>.E)'. 'T' is covariant.
                 //     C<T>.E M(C<U>.E o);
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<T>.E").WithArguments("I1<T, U>.M(C<U>.E)", "T", "covariant", "invariantly").WithLocation(7, 5),
@@ -569,7 +571,7 @@ interface I4<in T, U>
 interface IA<in T> { }
 interface IB<in T> : IA<IB<T>> { }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (3,17): error CS1961: Invalid variance: The type parameter 'T' must be covariantly valid on 'IA<IB<T>>'. 'T' is contravariant.
                 // interface IB<in T> : IA<IB<T>> { }
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("IA<IB<T>>", "T", "contravariant", "covariantly").WithLocation(3, 17));
@@ -601,7 +603,7 @@ interface I<out T> :
     I<T, T>
 {
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (7,5): error CS1961: Invalid variance: The type parameter 'U' must be invariantly valid on 'I<T, U>.M(C<T>)'. 'U' is contravariant.
                 //     C<U> M(C<T> o);
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<U>").WithArguments("I<T, U>.M(C<T>)", "U", "contravariant", "invariantly").WithLocation(7, 5),
@@ -631,7 +633,7 @@ interface I<out T> :
         [Fact]
         public void CovarianceBoundariesForRefReadOnly_Parameters()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 interface ITest<in T>
 {
     void M(in T p);
@@ -644,7 +646,7 @@ interface ITest<in T>
         [Fact]
         public void CovarianceBoundariesForRefReadOnly_ReturnType()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 interface ITest<in T>
 {
     ref readonly T M();

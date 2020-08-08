@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 IsInstanceExpressionOrStatement(context) ||
-                IsExtensionMethodParameterContext(context, cancellationToken) ||
+                IsThisParameterModifierContext(context) ||
                 IsConstructorInitializerContext(context);
         }
 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsConstructorInitializerContext(CSharpSyntaxContext context)
+        private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
             //   Goo() : |
@@ -58,45 +59,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private static bool IsExtensionMethodParameterContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsThisParameterModifierContext(CSharpSyntaxContext context)
         {
-            // TODO(cyrusn): lambda/anon methods can have out/ref parameters
-            if (!context.SyntaxTree.IsParameterModifierContext(context.Position, context.LeftToken, cancellationToken, isThisKeyword: true))
+            if (context.SyntaxTree.IsParameterModifierContext(
+                    context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
             {
-                return false;
+                if (previousModifier == SyntaxKind.None ||
+                    previousModifier == SyntaxKind.RefKeyword ||
+                    previousModifier == SyntaxKind.InKeyword)
+                {
+                    if (parameterIndex == 0 &&
+                        context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
+                    {
+                        return true;
+                    }
+                }
             }
 
-            var token = context.LeftToken;
-            var method = token.GetAncestor<MethodDeclarationSyntax>();
-            var typeDecl = method.GetAncestorOrThis<TypeDeclarationSyntax>();
-
-            if (method == null || typeDecl == null)
-            {
-                return false;
-            }
-
-            if (typeDecl.Kind() != SyntaxKind.ClassDeclaration)
-            {
-                return false;
-            }
-
-            if (!method.Modifiers.Any(t => t.Kind() == SyntaxKind.StaticKeyword))
-            {
-                return false;
-            }
-
-            if (!typeDecl.Modifiers.Any(t => t.Kind() == SyntaxKind.StaticKeyword))
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
         protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var outerType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
-            return context.InferredTypes.Any(t => t == outerType);
+            return context.InferredTypes.Any(t => Equals(t, outerType));
         }
     }
 }

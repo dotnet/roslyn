@@ -1,19 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        CommandState IChainedCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
 
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return nextHandler();
         }
 
-        void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
 
@@ -130,8 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             AssertIsForeground();
 
-            var matchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
-            var unmatchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
+            using var matchedProvidersDisposer = ArrayBuilder<ISignatureHelpProvider>.GetInstance(out var matchedProviders);
+            using var unmatchedProvidersDisposer = ArrayBuilder<ISignatureHelpProvider>.GetInstance(out var unmatchedProviders);
             foreach (var provider in providers)
             {
                 if (provider.IsTriggerCharacter(ch))
@@ -144,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            return (matchedProviders.ToImmutableAndFree(), unmatchedProviders.ToImmutableAndFree());
+            return (matchedProviders.ToImmutable(), unmatchedProviders.ToImmutable());
         }
     }
 }

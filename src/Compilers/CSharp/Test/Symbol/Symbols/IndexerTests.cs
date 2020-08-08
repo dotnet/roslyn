@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -119,7 +122,7 @@ class C : IB, IC
             var compilation = CompileAndVerify(source);
             compilation.VerifyDiagnostics();
 
-            var globalNamespace = (NamespaceSymbol)compilation.Compilation.GlobalNamespace;
+            var globalNamespace = (NamespaceSymbol)((CSharpCompilation)compilation.Compilation).GlobalNamespace;
 
             var type = globalNamespace.GetMember<NamedTypeSymbol>("IA");
             CheckIndexer(type.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
@@ -230,7 +233,7 @@ class C : IB, IC
             c[1, 2, 3];
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this[0]").WithArguments("y", "C.this[int, int]").WithLocation(9, 16),
                 // (10,18): error CS1503: Argument 2: cannot convert from 'C' to 'int'
@@ -264,7 +267,7 @@ public class C : B
 {
     public override int this[int x] { get { return 0; } }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             // NOTE: we could eliminate WRN_NewOrOverrideExpected by putting a "new" modifier on B.this[]
             compilation.VerifyDiagnostics(
@@ -304,7 +307,7 @@ class C : I1, I2
 }
 ";
 
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
 
             var interface1 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
@@ -526,7 +529,7 @@ class C : I1
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (4,12): warning CS0473: Explicit interface implementation 'C.I1.this[int]' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "this").WithArguments("C.I1.this[int]"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'I1.this[int]'
@@ -587,7 +590,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,16): warning CS0108: 'Derived.this[int]' hides inherited member 'Base.this[int]'. Use the new keyword if hiding was intended.
@@ -711,7 +714,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // As in dev10, we report only the first hidden member.
             compilation.VerifyDiagnostics(
@@ -785,7 +788,7 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (4,25): error CS0462: The inherited members 'Base.this[int]' and 'Base.this[int]' have the same signature in type 'Derived', so they cannot be overridden
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "this").WithArguments("Base.this[int]", "Base.this[int]", "Derived"));
 
@@ -828,7 +831,7 @@ class Derived : Base
         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
     }
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
                 //         c[0] = c[0, 0, 0]; //wrong number of arguments
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]").WithLocation(7, 9),
@@ -870,7 +873,7 @@ class Derived : Base
         int x = c[0]; //pick the first overload, even though it has no getter and the second would work
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,17): error CS0154: The property or indexer 'C.this[int]' cannot be used in this context because it lacks the get accessor
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c[0]").WithArguments("C.this[int]"));
         }
@@ -895,7 +898,7 @@ class C : I
         int y = ((I)c)[0];
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (13,17): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[0]").WithArguments("C"));
         }
@@ -915,7 +918,7 @@ class C : I
         c.set_Item(y); //CS0571 - use the indexer
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,19): error CS1061: 'C' does not contain a definition for 'Item' and no extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item"),
                 // (8,19): error CS0571: 'C.this[int].get': cannot explicitly call operator or accessor
@@ -938,7 +941,7 @@ class C : I
         int x = c[0][1][2][3]['a'][1]; //fine
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -961,7 +964,7 @@ class C : I
         x = c[0, z:'a', y: ""hello""]; //some reordered
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -985,7 +988,7 @@ class C : I
         x = c[x: 0, y: ""hello"", z:'a'];
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0443: Syntax error; value expected
                 Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
@@ -1020,7 +1023,7 @@ class C : I
         x = c[args: new char[3], c: 'a'];
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0443: Syntax error; value expected
                 Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
         }
@@ -1040,7 +1043,7 @@ class C : I
         int y = new C()['a']; //we don't even check for this kind of error because it's always cascading
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,23): error CS0106: The modifier 'static' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 23),
                 // (8,17): error CS0119: 'C' is a 'type', which is not valid in the given context
@@ -1091,7 +1094,7 @@ public class C : B
     }
 }";
             // Doesn't matter that B's indexer has an explicit name - the symbols are all called "this[]".
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,16): warning CS0114: 'B.this[int]' hides inherited member 'A.this[int]'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "this").WithArguments("B.this[int]", "A.this[int]"),
                 // (31,25): error CS0506: 'C.this[int]': cannot override inherited member 'B.this[int]' because it is not marked virtual, abstract, or override
@@ -1184,7 +1187,7 @@ class C : I
         System.Console.WriteLine(this[0]);
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -1242,7 +1245,7 @@ public class C : I
 {
     public virtual int this[int x] { get; set; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,38): error CS0501: 'B.this[int].get' must declare a body because it is not marked abstract, extern, or partial
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("B.this[int].get"),
                 // (3,43): error CS0501: 'B.this[int].set' must declare a body because it is not marked abstract, extern, or partial
@@ -1268,7 +1271,7 @@ public class Derived : Base
     }
 }";
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var indexerAccessSyntax = GetElementAccessExpressions(tree.GetCompilationUnitRoot()).Single();
@@ -1279,7 +1282,7 @@ public class Derived : Base
             // Confirm that the base indexer is used (even though the derived indexer signature matches).
             var model = comp.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(indexerAccessSyntax);
-            Assert.Equal(baseIndexer, symbolInfo.Symbol);
+            Assert.Equal(baseIndexer.GetPublicSymbol(), symbolInfo.Symbol);
         }
 
         /// <summary>
@@ -1302,7 +1305,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
 
             compilation.VerifyDiagnostics(
                 // (8,13): error CS1545: Property, indexer, or event 'RefIndexer.this[ref int]' is not supported by the language; try directly calling accessor methods 'RefIndexer.get_Item(ref int)' or 'RefIndexer.set_Item(ref int, int)'
@@ -1333,7 +1336,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
             compilation.VerifyDiagnostics();
         }
 
@@ -1349,7 +1352,7 @@ class Test : RefIndexer
     public override int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateStandardCompilation(source,
+            var compilation = CreateCompilation(source,
                 new MetadataReference[] { TestReferences.SymbolsTests.Indexers });
             compilation.VerifyDiagnostics(
                 // (4,25): error CS0115: 'Test.this[int]': no suitable method found to override
@@ -1368,7 +1371,7 @@ class Test : IRefIndexer
     public int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
 
             // Normally, we wouldn't see errors for the accessors, but here we do because the indexer is bogus.
             compilation.VerifyDiagnostics(
@@ -1390,7 +1393,7 @@ class Test : IRefIndexer
     int IRefIndexer.this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateStandardCompilation(source,
+            var compilation = CreateCompilation(source,
                 new MetadataReference[] { TestReferences.SymbolsTests.Indexers });
             // Normally, we wouldn't see errors for the accessors, but here we do because the indexer is bogus.
             compilation.VerifyDiagnostics(
@@ -1414,7 +1417,7 @@ class B
     public virtual int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").Indexers.Single();
@@ -1439,7 +1442,7 @@ interface I
     int this[int x] { get; set; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I").Indexers.Single();
@@ -1468,7 +1471,7 @@ class D : B
     public int this[int x, int y] { get { return 0; } set { } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (15,16): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
                 Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this"));
         }
@@ -1494,7 +1497,7 @@ class D : B
     public int this[int x, int y] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
             var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
             Assert.True(derivedType.Indexers.All(i => i.MetadataName == "A"));
@@ -1520,7 +1523,7 @@ class D : B
     public int this[int x, int y] { get { return 0; } set { } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1546,7 +1549,7 @@ class C : B
     public int this[int x, int y] { get { return 0; } }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
@@ -1575,7 +1578,7 @@ class A
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,30): error CS0102: The type 'A' already contains a definition for 'get_X'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("A", "get_X"));
@@ -1606,7 +1609,7 @@ class A
 }
 ";
             // NOTE: Dev10 reports CS0571 for MyAttribute's use of get_Item
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS0571: 'A.this[int].get': cannot explicitly call operator or accessor
                 //     [IndexerName(get_Item)]
@@ -1638,7 +1641,7 @@ class B
 }
 ";
             // NOTE: Dev10 reports CS0117 in A, but CS0571 in B
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,20): error CS0571: 'B.this[int].get': cannot explicitly call operator or accessor
                 //     [IndexerName(B.get_Item)]
@@ -1667,7 +1670,7 @@ class B : A
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1696,7 +1699,7 @@ class B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
@@ -1733,7 +1736,7 @@ struct B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
@@ -1770,29 +1773,29 @@ interface B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
-                // (13,18): error CS0110: The evaluation of the constant value for 'A.Constant2' involves a circular definition
-                //     const string Constant2 = A.Constant2;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A.Constant2"),
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2").WithLocation(18, 18),
+                // (7,18): error CS0110: The evaluation of the constant value for 'A.Constant2' involves a circular definition
+                //     const string Constant2 = B.Constant2;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A.Constant2").WithLocation(7, 18),
                 // (19,9): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
                 //     int this[long x] { get; }
-                Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this"),
-
-                // (12,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 9),
+                // (12,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (13,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(12, 18),
+                // (13,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = A.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"),
-                // (6,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(13, 18),
+                // (6,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant1 = B.Constant1;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (7,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(6, 18),
+                // (7,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     const string Constant2 = B.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(7, 18)
+                );
         }
 
         [Fact]
@@ -1819,7 +1822,7 @@ class B<T>
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
@@ -1852,7 +1855,7 @@ struct B<T>
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
@@ -1885,26 +1888,26 @@ interface B<T>
     int this[int x] { get; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
-                // (7,25): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
-                //     public const string Constant2 = B<int>.Constant2;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A<T>.Constant2"),
-
-                // (15,18): error CS0525: Interfaces cannot contain fields
-                //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (16,18): error CS0525: Interfaces cannot contain fields
-                //     const string Constant2 = A<bool>.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"),
-                // (6,18): error CS0525: Interfaces cannot contain fields
-                //     const string Constant1 = B<string>.Constant1;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (7,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2").WithLocation(9, 18),
+                // (7,18): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
                 //     const string Constant2 = B<int>.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"));
+                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A<T>.Constant2").WithLocation(7, 18),
+                // (15,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     const string Constant1 = "X";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(15, 18),
+                // (16,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     const string Constant2 = A<bool>.Constant2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(16, 18),
+                // (6,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     const string Constant1 = B<string>.Constant1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "8.0").WithLocation(6, 18),
+                // (7,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     const string Constant2 = B<int>.Constant2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "8.0").WithLocation(7, 18)
+                );
         }
 
         [Fact]
@@ -1937,7 +1940,7 @@ class B<T> where T : Q
     public int this[long x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,25): error CS0110: The evaluation of the constant value for 'P.Constant2' involves a circular definition
                 //     public const string Constant2 = Q.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("P.Constant2"),
@@ -1986,7 +1989,7 @@ class A
     public int this[ulong x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,5): error CS0110: The evaluation of the constant value for 'E.E' involves a circular definition
                 //     E = F,
                 Diagnostic(ErrorCode.ERR_CircConstValue, "E").WithArguments("E.E"),
@@ -2029,7 +2032,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (13,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Name)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Name"),
@@ -2057,7 +2060,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B.GetName())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.GetName()"),
@@ -2083,7 +2086,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,20): error CS0117: 'A' does not contain a definition for 'Fake'
                 //     [IndexerName(A.Fake)]
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Fake").WithArguments("A", "Fake"),
@@ -2108,7 +2111,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source).VerifyDiagnostics();
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
 
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
             Assert.True(indexer.IsIndexer);
@@ -2146,7 +2149,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
                 type.ForceComplete(null, default(CancellationToken)));
@@ -2177,7 +2180,7 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
                 type.ForceComplete(null, default(CancellationToken)));
@@ -2213,7 +2216,7 @@ class B
     }
 }";
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2254,7 +2257,7 @@ public class Derived : Base
     }
 }";
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2296,7 +2299,7 @@ public class Derived : Base
     }
 }";
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2334,7 +2337,7 @@ class Test2
     }
 }";
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2367,7 +2370,7 @@ class Test2
         x = d[d, d, d, d, d]; // CS1501
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,13): error CS1501: No overload for method 'this' takes 5 arguments
                 Diagnostic(ErrorCode.ERR_BadArgCount, "b[d, d, d, d, d]").WithArguments("this", "5"),
                 // (17,13): error CS1501: No overload for method 'this' takes 5 arguments
@@ -2384,7 +2387,7 @@ struct Test
     public byte this[byte p] { get { return p; } }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             NamedTypeSymbol type01 = comp.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single();
             var indexer = type01.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol;
             Assert.NotNull(indexer.GetMethod);
@@ -2413,7 +2416,7 @@ public class Derived : Base
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -2478,7 +2481,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
                 // (7,34): error CS0121: The call is ambiguous between the following methods or properties: 'SameSignaturesDifferentNames.this[int, long]' and 'SameSignaturesDifferentNames.this[int, long]'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "s[0, 1]").WithArguments("SameSignaturesDifferentNames.this[int, long]", "SameSignaturesDifferentNames.this[int, long]"));
         }
@@ -2540,12 +2543,12 @@ partial class C
     public void M() {}
 }
 ";
-            var compilation = CreateStandardCompilation(new string[] { text1, text2 });
-            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
+            var compilation = CreateCompilation(new string[] { text1, text2 });
+            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => x.IsIndexer()));
 
             //test with text inputs reversed in case syntax ordering predicate ever changes.
-            compilation = CreateStandardCompilation(new string[] { text2, text1 });
-            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
+            compilation = CreateCompilation(new string[] { text2, text1 });
+            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => x.IsIndexer()));
         }
 
         [WorkItem(543957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543957")]
@@ -2592,7 +2595,7 @@ public class Wrapper
 }
 ";
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2622,18 +2625,18 @@ public class Wrapper
             // The receiver of each access expression has an indexer group.
             foreach (var syntax in receiverSyntaxes)
             {
-                var type = model.GetTypeInfo(syntax).Type;
+                var type = model.GetTypeInfo(syntax).Type.GetSymbol();
                 Assert.NotNull(type);
 
                 var indexerGroup = model.GetIndexerGroup(syntax);
 
                 if (type.Equals(baseType))
                 {
-                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(baseIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else if (type.Equals(derivedType))
                 {
-                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup, EqualityComparer<IPropertySymbol>.Default));
+                    Assert.True(indexerGroup.SetEquals(derivedIndexerGroup.GetPublicSymbols(), EqualityComparer<IPropertySymbol>.Default));
                 }
                 else
                 {
@@ -2679,7 +2682,7 @@ class Derived2 : Base
 }
 ";
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree);
@@ -2706,17 +2709,17 @@ class Derived2 : Base
 
             // In declaring type, can see everything.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[0]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer, privateIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can see non-private.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[1]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer, protectedIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
 
             // In subtype of declaring type, can only see public (or internal) members of other subtypes.
             Assert.True(model.GetIndexerGroup(receiverSyntaxes[2]).SetEquals(
-                ImmutableArray.Create<PropertySymbol>(publicIndexer),
+                ImmutableArray.Create<PropertySymbol>(publicIndexer).GetPublicSymbols(),
                 EqualityComparer<IPropertySymbol>.Default));
         }
 
@@ -2776,7 +2779,7 @@ class C
         a[1] += 1; // Dev11 uses get_P default for both
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"get_P: 3
 set_P: 3
 get_P: 3
@@ -2815,8 +2818,8 @@ class Test
 ";
             #endregion
 
-            var comp1 = CreateCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
-            var comp2 = CreateStandardCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
+            var comp1 = CreateEmptyCompilation(src1, new[] { TestMetadata.Net40.mscorlib });
+            var comp2 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
             var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");
             var idxSymbol = typeSymbol.GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
@@ -2842,7 +2845,7 @@ class C<T>
     int this[int x] { get { return 0; } }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var unsubstitutedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -2867,7 +2870,7 @@ class C<Item, get_Item>
     int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,9): error CS0102: The type 'C<Item, get_Item>' already contains a definition for 'Item'
                 //     int this[int x] { get { return 0; } }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("C<Item, get_Item>", "Item"),
@@ -2888,7 +2891,7 @@ class C<A, get_A>
     int this[int x] { get { return 0; } }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS0102: The type 'C<A, get_A>' already contains a definition for 'A'
                 //     int this[int x] { get { return 0; } }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("C<A, get_A>", "A"),
@@ -2908,7 +2911,7 @@ class C
     [IndexerName(F)]
     object this[object o] { get { return null; } }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,18): error CS0145: A const field requires a value to be provided
                 //     const string F;
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "F").WithLocation(4, 18),

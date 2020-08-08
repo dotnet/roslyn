@@ -1,96 +1,69 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    internal class DiagnosticTaggerWrapper<TProvider> : IDisposable
-        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    internal class DiagnosticTaggerWrapper<TProvider, TTag> : IDisposable
+        where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
+        where TTag : ITag
     {
         private readonly TestWorkspace _workspace;
-        public readonly DiagnosticAnalyzerService AnalyzerService;
-        private readonly ISolutionCrawlerRegistrationService _registrationService;
-        private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
-        private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
-        private readonly AsynchronousOperationListener _asyncListener;
+        public readonly DiagnosticAnalyzerService? AnalyzerService;
+        private readonly SolutionCrawlerRegistrationService _registrationService;
         public readonly DiagnosticService DiagnosticService;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _listeners;
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
-        private ITaggerProvider _taggerProvider;
-
-        public DiagnosticTaggerWrapper(
-            TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null,
-            bool createTaggerProvider = true)
-            : this(workspace, analyzerMap, updateSource: null, createTaggerProvider: createTaggerProvider)
-        {
-        }
+        private ITaggerProvider? _taggerProvider;
 
         public DiagnosticTaggerWrapper(
             TestWorkspace workspace,
-            IDiagnosticUpdateSource updateSource,
+            IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null,
+            IDiagnosticUpdateSource? updateSource = null,
             bool createTaggerProvider = true)
-            : this(workspace, null, updateSource, createTaggerProvider)
         {
-        }
+            _threadingContext = workspace.GetService<IThreadingContext>();
+            _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
-        private static DiagnosticAnalyzerService CreateDiagnosticAnalyzerService(
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap, IAsynchronousOperationListener listener)
-        {
-            return analyzerMap == null || analyzerMap.Count == 0
-                ? new MyDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap(), listener: listener)
-                : new MyDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), listener: listener);
-        }
-
-        private DiagnosticTaggerWrapper(
-            TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap,
-            IDiagnosticUpdateSource updateSource,
-            bool createTaggerProvider)
-        {
-            _asyncListener = new AsynchronousOperationListener();
-            _listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, _asyncListener),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, _asyncListener));
-
-            if (analyzerMap != null || updateSource == null)
-            {
-                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, _asyncListener);
-            }
-
-            if (updateSource == null)
-            {
-                updateSource = AnalyzerService;
-            }
+            var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             _workspace = workspace;
 
-            _registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
-            DiagnosticService = new DiagnosticService(_listeners);
-            DiagnosticService.Register(updateSource);
+            if (!_registrationService.GetTestAccessor().TryGetWorkCoordinator(workspace, out var coordinator))
+                throw new InvalidOperationException();
+
+            AnalyzerService = (DiagnosticAnalyzerService?)_registrationService.GetTestAccessor().AnalyzerProviders.SelectMany(pair => pair.Value).SingleOrDefault(lazyProvider => lazyProvider.Metadata.Name == WellKnownSolutionCrawlerAnalyzers.Diagnostic && lazyProvider.Metadata.HighPriorityForActiveFile)?.Value;
+            DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
+
+            if (updateSource is object)
+            {
+                DiagnosticService.Register(updateSource);
+            }
 
             if (createTaggerProvider)
             {
-                var taggerProvider = this.TaggerProvider;
-            }
-
-            if (AnalyzerService != null)
-            {
-                _incrementalAnalyzers = ImmutableArray.Create(AnalyzerService.CreateIncrementalAnalyzer(workspace));
-                _solutionCrawlerService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+                _ = TaggerProvider;
             }
         }
 
@@ -100,18 +73,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 if (_taggerProvider == null)
                 {
-                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                    WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider, TTag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
-                    if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider))
+                    if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider)
+                        || typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider)
+                        || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider))
                     {
-                        _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
-                            DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listeners);
-                    }
-                    else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
-                    {
-                        _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
-                            DiagnosticService,
-                            _workspace.GetService<IForegroundNotificationService>(), _listeners);
+                        _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
+                            .OfType<TProvider>()
+                            .Single();
                     }
                     else
                     {
@@ -124,29 +94,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public void Dispose()
-        {
-            _registrationService.Unregister(_workspace);
-        }
+            => _registrationService.Unregister(_workspace);
 
         public async Task WaitForTags()
         {
-            if (_solutionCrawlerService != null)
-            {
-                _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
-            }
-
-            await _asyncListener.CreateWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
         {
-            internal MyDiagnosticAnalyzerService(
-                ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
-                IAsynchronousOperationListener listener)
-                : base(new HostAnalyzerManager(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource: null),
-                      hostDiagnosticUpdateSource: null,
-                      registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
-                      listener: listener)
+            internal MyDiagnosticAnalyzerService(IAsynchronousOperationListener listener)
+                : base(new MockDiagnosticUpdateSourceRegistrationService(), listener)
             {
             }
         }

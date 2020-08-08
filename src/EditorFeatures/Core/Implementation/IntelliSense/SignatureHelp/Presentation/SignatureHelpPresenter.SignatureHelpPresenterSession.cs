@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -19,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             private readonly ISignatureHelpBroker _sigHelpBroker;
             private readonly ITextView _textView;
-            private readonly ITextBuffer _subjectBuffer;
 
             public event EventHandler<EventArgs> Dismissed;
             public event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
@@ -35,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             public bool EditorSessionIsActive => _editorSessionOpt?.IsDismissed == false;
 
             public SignatureHelpPresenterSession(
+                IThreadingContext threadingContext,
                 ISignatureHelpBroker sigHelpBroker,
-                ITextView textView,
-                ITextBuffer subjectBuffer)
+                ITextView textView)
+                : base(threadingContext)
             {
                 _sigHelpBroker = sigHelpBroker;
                 _textView = textView;
-                _subjectBuffer = subjectBuffer;
             }
 
             public void PresentItems(
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     _editorSessionOpt.Recalculate();
 
                     // Now let the editor know what the currently selected item is.
-                    Contract.Requires(_signatureMap.ContainsKey(selectedItem));
+                    Debug.Assert(_signatureMap.ContainsKey(selectedItem));
                     Contract.ThrowIfNull(_signatureMap);
 
                     var defaultValue = _signatureMap.GetValueOrDefault(_selectedItem);
@@ -192,14 +194,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
 
             public void SelectPreviousItem()
-            {
-                ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Up);
-            }
+                => ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Up);
 
             public void SelectNextItem()
-            {
-                ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Down);
-            }
+                => ExecuteKeyboardCommand(IntellisenseKeyboardCommand.Down);
 
             // Call backs from our ISignatureHelpSourceProvider.  Used to actually populate the vs
             // session.

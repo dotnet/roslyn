@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -245,6 +247,24 @@ class C
 end class")
         End Function
 
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestMissingWithExistingNullCheckInLambda() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub ([||]s as string)
+                    If s Is Nothing Then
+                        Throw New ArgumentNullException()
+                    End If
+                end sub
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestInMethod() As Task
             Await TestInRegularAndScript1Async(
@@ -267,17 +287,140 @@ class C
 end class")
         End Function
 
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
-        Public Async Function TestNotOnLambdaParameter() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestOnMultiLineSubLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub ([||]s as string)
+                end sub
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub (s as string)
+                    If s Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(s))
+                    End If
+                end sub
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnMultiLineFunctionLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
 "
 Imports System
 
 class C
     public sub new()
         dim f = function ([||]s as string)
+                    return 0
                 end function
     end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = function (s as string)
+                    If s Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(s))
+                    End If
+
+                    return 0
+                end function
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnSingleLineSubLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub ([||]x) console.writeline(x)
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub (x)
+                    If x Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(x))
+                    End If
+
+                    console.writeline(x)
+                End Sub
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnSingleLineFunctionLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = function ([||]x) x
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = function (x)
+                    If x Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(x))
+                    End If
+
+                    Return x
+                End Function
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestNotOnPropertyParameter() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    readonly property P([||]s as string)
+        get
+        end get
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestNotOnIndexerParameter() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    default readonly property I([||]s as string)
+        get
+        end get
+    end property
 end class")
         End Function
 
@@ -291,13 +434,13 @@ class C
     public sub new([||]s as string)
     end sub
 end class",
-"
+$"
 Imports System
 
 class C
     public sub new(s as string)
         If String.IsNullOrEmpty(s) Then
-            Throw New ArgumentException(""message"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}")}"", NameOf(s))
         End If
     end sub
 end class", index:=1)
@@ -313,16 +456,107 @@ class C
     public sub new([||]s as string)
     end sub
 end class",
-"
+$"
 Imports System
 
 class C
     public sub new(s as string)
         If String.IsNullOrWhiteSpace(s) Then
-            Throw New ArgumentException(""message"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{NameOf(s)}")}"", NameOf(s))
         End If
     end sub
 end class", index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestMultiNullableParameters() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new([||]a as string, b as string, c as string)
+    end sub
+end class",
+$"
+Imports System
+
+class C
+    public sub new(a as string, b as string, c as string)
+        If String.IsNullOrEmpty(a) Then
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(a)}")}"", NameOf(a))
+        End If
+
+        If String.IsNullOrEmpty(b) Then
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
+        End If
+
+        If String.IsNullOrEmpty(c) Then
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(c)}")}"", NameOf(c))
+        End If
+    end sub
+end class", index:=3)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestMultiNullableWithCursorOnNonNullable() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new([||]a as boolean, b as string, c as object)
+    end sub
+end class",
+$"
+Imports System
+
+class C
+    public sub new(a as boolean, b as string, c as object)
+        If String.IsNullOrEmpty(b) Then
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
+        End If
+
+        If c Is Nothing Then
+            Throw New ArgumentNullException(NameOf(c))
+        End If
+    end sub
+end class", index:=0)
+        End Function
+
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestSimpleReferenceTypeWithParameterNameSelected1() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new([|s|] as string)
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new(s as string)
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
+    end sub
+end class")
+        End Function
+
+        <WorkItem(29333, "https://github.com/dotnet/roslyn/issues/29333")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestLambdaWithIncorrectNumberOfParameters() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Class C
+    Sub M(a As Action(Of Integer, Integer))
+        M(Sub(x[||]
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

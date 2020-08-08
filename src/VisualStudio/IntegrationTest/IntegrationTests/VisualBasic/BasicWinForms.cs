@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -19,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void TestMyIntelliSense()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -48,33 +52,33 @@ End Class");
             VisualStudio.Editor.Verify.CompletionItemDoNotExist("ToString");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Me.SomeButton.Name = ""SomeButton""", actualText);
             Assert.Contains(@"Friend WithEvents SomeButton As Button", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "NewButtonText");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -84,7 +88,7 @@ End Class");
             var expectedPropertyValue = "ButtonTextGoesHere";
             var actualPropertyValue = VisualStudio.Editor.GetWinFormButtonPropertyValue(buttonName: "SomeButton", propertyName: "Text");
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             //  Change the control's text in designer.vb code
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             //  Verify that the control's property was set correctly. The following text should appear in InitializeComponent().
@@ -93,7 +97,7 @@ End Class");
             //  Replace text property with something else
             VisualStudio.Editor.SelectTextInCurrentDocument(@"Me.SomeButton.Text = ""ButtonTextGoesHere""");
             VisualStudio.Editor.SendKeys(@"Me.SomeButton.Text = ""GibberishText""");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.Designer.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseCodeFile(project, "Form1.Designer.vb", saveFile: true);
             //  Verify that the control text has changed in the designer
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             expectedPropertyValue = "GibberishText";
@@ -101,7 +105,7 @@ End Class");
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -114,7 +118,7 @@ End Class");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -146,7 +150,7 @@ End Class");
             Assert.Contains(@"Private Sub SomeButtonHandler(sender As Object, e As EventArgs) Handles AnotherNewButton.Click", formActualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RemoveEventHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -162,7 +166,7 @@ End Class");
             Assert.DoesNotContain(@"Private Sub GooHandler(sender As Object, e As EventArgs) Handles SomeButton.Click", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeAccessibility()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -179,7 +183,7 @@ End Class");
             Assert.Contains(@"Public WithEvents SomeButton As Button", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);

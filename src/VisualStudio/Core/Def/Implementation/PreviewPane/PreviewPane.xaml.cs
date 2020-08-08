@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
-        private double _heightForThreeLineTitle;
+        private readonly double _heightForThreeLineTitle;
         private DifferenceViewerPreview _differenceViewerPreview;
 
         public PreviewPane(
@@ -44,6 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             Guid optionPageGuid = default)
         {
             InitializeComponent();
+
+            Loaded += PreviewPane_Loaded;
 
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
@@ -82,6 +86,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             // Initialize preview (i.e. diff view) portion.
             InitializePreviewElement(previewContent);
+        }
+
+        public FrameworkElement ParentElement
+        {
+            get { return (FrameworkElement)GetValue(ParentElementProperty); }
+            set { SetValue(ParentElementProperty, value); }
+        }
+
+        public static readonly DependencyProperty ParentElementProperty =
+            DependencyProperty.Register("ParentElement", typeof(FrameworkElement), typeof(PreviewPane), new PropertyMetadata(null));
+
+        private void PreviewPane_Loaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= PreviewPane_Loaded;
+            ParentElement = Parent as FrameworkElement;
         }
 
         public string AutomationName => ServicesVSResources.Preview_pane;
@@ -184,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 Contract.ThrowIfFalse(_differenceViewerPreview == null);
 
                 // cache the diff viewer so that we can close it when panel goes away.
-                // this is a bit wierd since we are mutating state here.
+                // this is a bit weird since we are mutating state here.
                 _differenceViewerPreview = (DifferenceViewerPreview)previewItem;
                 PreviewDockPanel.Background = _differenceViewerPreview.Viewer.InlineView.Background;
 
@@ -208,9 +227,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void InitializeHyperlinks(Uri helpLink, string helpLinkToolTipText)
         {
-            IdHyperlink.SetVSHyperLinkStyle();
-            LearnMoreHyperlink.SetVSHyperLinkStyle();
-
             IdHyperlink.Inlines.Add(_id);
             IdHyperlink.NavigateUri = helpLink;
             IdHyperlink.IsEnabled = true;
@@ -238,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         // worth by default.
         private void AdjustWidthAndHeight(FrameworkElement previewElement)
         {
-            var headerStackPanelWidth = double.PositiveInfinity;
+            double headerStackPanelWidth;
             var titleTextBlockHeight = double.PositiveInfinity;
             if (previewElement == null)
             {
@@ -285,9 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         }
 
         private static bool IsNormal(double size)
-        {
-            return size > 0 && !double.IsNaN(size) && !double.IsInfinity(size);
-        }
+            => size > 0 && !double.IsNaN(size) && !double.IsInfinity(size);
 
         private bool HasDescription
         {
@@ -315,8 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
-            var hyperlink = sender as Hyperlink;
-            if (hyperlink == null)
+            if (!(sender is Hyperlink hyperlink))
             {
                 return;
             }

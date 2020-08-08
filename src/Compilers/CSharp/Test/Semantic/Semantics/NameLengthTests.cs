@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -63,7 +65,7 @@ class Methods
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // Uninteresting
 
@@ -181,7 +183,7 @@ namespace {0}1 {{ }}    // Too long, but not checked.
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
         }
@@ -214,7 +216,7 @@ interface {2}1<T> {{ }} // Too long after appending '`1'
             var substring1 = s_longSymbolName.Substring(1);
             var substring2 = s_longSymbolName.Substring(2);
             var source = string.Format(sourceTemplate, substring0, substring1, substring2);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (3,7):
@@ -263,7 +265,7 @@ class C : I, N.J<C>
             var name0 = s_longSymbolName.Substring(2); // Space for "I."
             var name1 = s_longSymbolName.Substring(7); // Space for "N.J<C>."
             var source = string.Format(sourceTemplate, name0, name1);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (20,12):
@@ -306,7 +308,7 @@ class C3
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (9,24):
@@ -333,7 +335,7 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (5,17): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
@@ -367,7 +369,7 @@ class E
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (2,1034): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
@@ -381,7 +383,7 @@ class E
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(10, 1037));
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Locals()
         {
             var sourceTemplate = @"
@@ -397,15 +399,16 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, s_longLocalName);
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
+                options: TestOptions.NativePdbEmit,
                 // (7,13): warning CS8029: Local name 'LongLocalName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
                 //         int LongSymbolName + 1 = 1;
                 Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, s_longLocalName + 1).WithArguments(s_longLocalName + 1).WithLocation(7, 13));
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ConstantLocals()
         {
             var sourceTemplate = @"
@@ -421,9 +424,10 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, s_longLocalName);
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
+                options: TestOptions.NativePdbEmit,
                 // (7,19): warning CS8029: Local name 'LongSymbolName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
                 //         const int LongSymbolName + 1 = 1;
                 Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, s_longLocalName + 1).WithArguments(s_longLocalName + 1).WithLocation(7, 19));
@@ -451,7 +455,7 @@ class C
             int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0, 0).Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (13,16): error CS7013: Name '<longName + 1>b__3' exceeds the maximum length allowed in metadata.
@@ -474,7 +478,7 @@ class C
             int padding = GeneratedNames.MakeAnonymousTypeBackingFieldName("A").Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             // CONSIDER: Double reporting (once for field def, once for member ref) is not ideal.
@@ -546,7 +550,7 @@ unsafe struct S
             int padding = GeneratedNames.MakeFixedFieldImplementationName("A").Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
             // CONSIDER: Location would light up if synthesized methods had them.
             comp.VerifyEmitDiagnostics(
@@ -558,7 +562,7 @@ unsafe struct S
         public void TestResources()
         {
             var source = "class C { }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             Func<Stream> dataProvider = () => new System.IO.MemoryStream();
             var resources = new[]
             {

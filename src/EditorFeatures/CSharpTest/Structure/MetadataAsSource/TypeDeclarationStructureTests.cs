@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
-using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -13,18 +14,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
     public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new MetadataTypeDeclarationStructureProvider();
+        internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
-class $$C
+{|hint:class $$C{|textspan:
 {
     void M();
-}";
+}|}|}";
 
-            await VerifyNoBlockSpansAsync(code);
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -33,13 +35,14 @@ class $$C
             const string code = @"
 {|hint:{|textspan:[Bar]
 [Baz]
-|}public class $$C|}
+|}{|#0:public class $$C|}{|textspan2:
 {
     void M();
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -49,13 +52,14 @@ class $$C
 {|hint:{|textspan:// Summary:
 //     This is a doc comment.
 [Bar, Baz]
-|}public class $$C|}
+|}{|#0:public class $$C|}{|textspan2:
 {
     void M();
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
-                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }
 }

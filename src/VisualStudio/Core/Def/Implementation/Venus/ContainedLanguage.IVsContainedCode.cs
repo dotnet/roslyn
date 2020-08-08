@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +16,10 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedCode
+    internal partial class ContainedLanguage : IVsContainedCode
     {
         public int HostSpansUpdated()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         /// <summary>
         /// Returns the list of code blocks in the generated .cs file that comes from the ASP.NET
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private IList<TextSpanAndCookie> EnumOriginalCodeBlocksWorker(CancellationToken cancellationToken)
         {
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return SpecializedCollections.EmptyList<TextSpanAndCookie>();

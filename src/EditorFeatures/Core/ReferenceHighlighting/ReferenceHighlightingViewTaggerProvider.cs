@@ -1,17 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -34,22 +37,20 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
-
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReferenceHighlightingViewTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
         {
-            _semanticChangeNotificationService = semanticChangeNotificationService;
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
@@ -58,14 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.OnIdle, _semanticChangeNotificationService),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
         protected override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return textViewOpt.Caret.Position.Point.GetPoint(b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
-        }
+            => textViewOpt.Caret.Position.Point.GetPoint(b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
@@ -84,43 +83,44 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // don't generate all the tags then the user will cycle through an incorrect subset.
             if (context.CaretPosition == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             var caretPosition = context.CaretPosition.Value;
             if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out var workspace))
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // GetSpansToTag may have produced no actual spans to tag.  Be resilient to that.
             var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
             if (document == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // Don't produce tags if the feature is not enabled.
             if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
-            var existingTags = context.GetExistingTags(new SnapshotSpan(caretPosition, 0));
+            // See if the user is just moving their caret around in an existing tag.  If so, we don't
+            // want to actually go recompute things.  Note: this only works for containment.  If the
+            // user moves their caret to the end of a highlighted reference, we do want to recompute
+            // as they may now be at the start of some other reference that should be highlighted instead.
+            var existingTags = context.GetExistingContainingTags(caretPosition);
             if (!existingTags.IsEmpty())
             {
-                // We already have a tag at this position.  So the user is moving from one highlight
-                // tag to another.  In this case we don't want to recompute anything.  Let our caller
-                // know that we should preserve all tags.
                 context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // Otherwise, we need to go produce all tags.
             return ProduceTagsAsync(context, caretPosition, document);
         }
 
-        internal async Task ProduceTagsAsync(
+        internal static async Task ProduceTagsAsync(
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
             Document document)
@@ -133,76 +133,28 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             {
                 if (document != null)
                 {
-                    // As we transition to the new API (defined at the Features layer) we support
-                    // calling into both it and the old API (defined at the EditorFeatures layer).
-                    //
-                    // Once TypeScript and F# can move over, then we can remove the calls to the old
-                    // API.
-                    await TryNewServiceAsync(context, position, document).ConfigureAwait(false);
-                    await TryOldServiceAsync(context, position, document).ConfigureAwait(false);
-                }
-            }
-        }
-
-        private Task TryOldServiceAsync(TaggerContext<NavigableHighlightTag> context, SnapshotPoint position, Document document)
-        {
-            return TryServiceAsync<IDocumentHighlightsService>(
-                context, position, document, 
-                (s, d, p, ds, c) => s.GetDocumentHighlightsAsync(d, p, ds, c));
-        }
-
-        private Task TryNewServiceAsync(
-            TaggerContext<NavigableHighlightTag> context, SnapshotPoint position, Document document)
-        {
-            return TryServiceAsync<DocumentHighlighting.IDocumentHighlightsService>(
-                context, position, document,
-                async (service, doc, point, documents, cancellation) =>
-                {
-                    // Call into the new service.
-                    var newHighlights = await service.GetDocumentHighlightsAsync(doc, point, documents, cancellation).ConfigureAwait(false);
-
-                    // then convert the result to the form the old service would return.
-                    return ConvertHighlights(newHighlights);
-                });
-        }
-
-        private async Task TryServiceAsync<T>(
-            TaggerContext<NavigableHighlightTag> context, SnapshotPoint position, Document document,
-            Func<T, Document, SnapshotPoint, ImmutableHashSet<Document>, CancellationToken, Task<ImmutableArray<DocumentHighlights>>> getDocumentHighlightsAsync)
-            where T : class, ILanguageService
-        {
-            var cancellationToken = context.CancellationToken;
-            var documentHighlightsService = document.GetLanguageService<T>();
-            if (documentHighlightsService != null)
-            {
-                // We only want to search inside documents that correspond to the snapshots
-                // we're looking at
-                var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
-                var documentHighlightsList = await getDocumentHighlightsAsync(
-                    documentHighlightsService, document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
-                if (documentHighlightsList != null)
-                {
-                    foreach (var documentHighlights in documentHighlightsList)
+                    var service = document.GetLanguageService<IDocumentHighlightsService>();
+                    if (service != null)
                     {
-                        await AddTagSpansAsync(
-                            context, document.Project.Solution, documentHighlights).ConfigureAwait(false);
+                        // We only want to search inside documents that correspond to the snapshots
+                        // we're looking at
+                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+                        var documentHighlightsList = await service.GetDocumentHighlightsAsync(
+                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                        if (documentHighlightsList != null)
+                        {
+                            foreach (var documentHighlights in documentHighlightsList)
+                            {
+                                await AddTagSpansAsync(context, documentHighlights).ConfigureAwait(false);
+                            }
+                        }
                     }
                 }
             }
         }
 
-        private ImmutableArray<DocumentHighlights> ConvertHighlights(ImmutableArray<DocumentHighlighting.DocumentHighlights> newHighlights)
-            => newHighlights.SelectAsArray(
-                documentHighlights => new DocumentHighlights(
-                    documentHighlights.Document,
-                    documentHighlights.HighlightSpans.SelectAsArray(
-                        highlightSpan => new HighlightSpan(
-                            highlightSpan.TextSpan,
-                            (HighlightSpanKind)highlightSpan.Kind))));
-
-        private async Task AddTagSpansAsync(
+        private static async Task AddTagSpansAsync(
             TaggerContext<NavigableHighlightTag> context,
-            Solution solution,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;
@@ -217,11 +169,20 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                 return;
             }
 
-            foreach (var span in documentHighlights.HighlightSpans)
+            try
             {
-                var tag = GetTag(span);
-                context.AddTag(new TagSpan<NavigableHighlightTag>(
-                    textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
+                foreach (var span in documentHighlights.HighlightSpans)
+                {
+                    var tag = GetTag(span);
+                    context.AddTag(new TagSpan<NavigableHighlightTag>(
+                        textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // report NFW and continue.
+                // also, rather than return partial results, return nothing
+                context.ClearTags();
             }
         }
 

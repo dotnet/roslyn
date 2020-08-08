@@ -1,27 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.ExtractInterface;
-using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
     internal class ExtractInterfaceTestState : IDisposable
     {
-        private TestHostDocument _testDocument;
+        public static readonly TestComposition Composition = EditorTestCompositions.EditorFeatures.AddParts(
+            typeof(TestExtractInterfaceOptionsService));
+
+        private readonly TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document ExtractFromDocument { get; }
         public AbstractExtractInterfaceService ExtractInterfaceService { get; }
@@ -32,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
             var workspace = languageName == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                : TestWorkspace.CreateVisualBasic(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
+                ? TestWorkspace.CreateCSharp(markup, composition: Composition, compilationOptions: (CSharpCompilationOptions)compilationOptions)
+                : TestWorkspace.CreateVisualBasic(markup, composition: Composition, compilationOptions: compilationOptions);
             return new ExtractInterfaceTestState(workspace);
         }
 
@@ -53,12 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             ExtractInterfaceService = ExtractFromDocument.GetLanguageService<AbstractExtractInterfaceService>();
         }
 
-        public static readonly ExportProvider ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(TestExtractInterfaceOptionsService))
-                .WithPart(typeof(CSharpExtractInterfaceService))
-                .WithPart(typeof(VisualBasicExtractInterfaceService)));
-
         public TestExtractInterfaceOptionsService TestExtractInterfaceOptionsService
         {
             get
@@ -76,9 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 CancellationToken.None);
         }
 
-        public ExtractInterfaceResult ExtractViaCommand()
+        public Task<ExtractInterfaceResult> ExtractViaCommandAsync()
         {
-            return ExtractInterfaceService.ExtractInterface(
+            return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 (errorMessage, severity) =>

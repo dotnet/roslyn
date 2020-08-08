@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -26,7 +29,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(source)
+            CreateCompilationWithMscorlib40AndSystemCore(source)
                 .VerifyDiagnostics(
 // (9,32): error CS0428: Cannot convert method group 'Main' to non-delegate type 'System.Linq.Expressions.Expression<System.Action>'. Did you intend to invoke the method?
 //         Expression<Action> e = Main;
@@ -53,7 +56,7 @@ class C
 }
 
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -75,16 +78,14 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
-            comp.VerifyDiagnostics(
-// (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o1 = (D)(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
-
-// (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o2 = new D(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C")
-                );
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o1 = (D)(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
+                // (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o2 = new D(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -102,7 +103,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0118: 'N' is a namespace but is used like a variable
                 //         int y = (N).D.x;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "N").WithArguments("N", "namespace", "variable").WithLocation(8, 18),
@@ -132,7 +133,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,17): error CS0020: Division by constant zero
                 //         int a = 10 / 0;
                 Diagnostic(ErrorCode.ERR_IntDivByZero, "10 / 0").WithLocation(6, 17),
@@ -156,11 +157,11 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS0103: The name 'x' does not exist in the current context
                 //         x;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 9),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         x;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(6, 9));
         }
@@ -189,7 +190,7 @@ static class D2 { }
 static class D3 { }
 static class D4 { }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS0723: Cannot declare a variable of static type 'D1'
                 //         D1 x1; 
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "D1").WithArguments("D1").WithLocation(7, 9),
@@ -244,7 +245,7 @@ class P // : IEnumerable
 //        // error CS0245: Destructors and object.Finalize cannot be called directly. Consider
 //        // calling IDisposable.Dispose if available.
 //        base.Finalize();
-//        // error CS0250: Do not directly call your base class Finalize method. It is called
+//        // error CS0250: Do not directly call your base type Finalize method. It is called
 //        // automatically from your destructor.
 //    }
     public void GenericConstrained<T>(T t) where T : class { }
@@ -447,13 +448,13 @@ class C
 
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
-                // (84,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
-                //     public static void PExt(this P p) {}
-                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(84, 29),
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (69,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static P Select(this P p, Func<P, P> projection)
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(69, 28),
+                // (84,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void PExt(this P p) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(84, 29),
                 // (80,33): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static object Select(this Q q, object projection)
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(80, 33),
@@ -505,7 +506,7 @@ class C
                 // (190,24): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         p.RefParameter(456);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "456").WithArguments("1", "ref").WithLocation(190, 24),
-                // (195,28): error CS1615: Argument 1 should not be passed with the 'out' keyword
+                // (195,28): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         p.OneParameter(out local);  
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "local").WithArguments("1", "out").WithLocation(195, 28),
                 // (199,28): error CS1620: Argument 1 must be passed with the 'ref' keyword
@@ -519,7 +520,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "P.NoParameter").WithArguments("P.NoParameter()").WithLocation(219, 9),
                 // (223,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod()'
                 //         InstanceMethod(); // Verify that use of 'implicit this' is not legal in a static method.
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod()").WithLocation(223, 9));
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod()").WithLocation(223, 9)
+                );
         }
 
         [WorkItem(538651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538651")]
@@ -585,7 +587,7 @@ class C
         b.W = 0; // CS1656
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (18,16): warning CS0108: 'B.Q' hides inherited member 'A.Q()'. Use the new keyword if hiding was intended.
                 //     public int Q { get; set; } // CS0108
                 Diagnostic(ErrorCode.WRN_NewRequired, "Q").WithArguments("B.Q", "A.Q()").WithLocation(18, 16),
@@ -678,7 +680,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,7): error CS0161: 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)': not all code paths return a value
                 //     S GetS(N.Q<string, double>?[][,][,,] q, int? x) { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "GetS").WithArguments("C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(7, 7),
@@ -703,7 +705,7 @@ class C
                 // (18,9): error CS1612: Cannot modify the return value of 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)' because it is not a variable
                 //         GetS(null, null).z = 123;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS(null, null)").WithArguments("C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(18, 9),
-                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (24,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         instance_readonly = 123;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "instance_readonly").WithLocation(24, 9),
                 // (31,18): error CS0029: Cannot implicitly convert type 'void' to 'int'
@@ -740,7 +742,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,9): error CS1612: Cannot modify the return value of 'C.Property' because it is not a variable
                 //         Property.Field = 0;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "Property").WithArguments("C.Property").WithLocation(8, 9),
@@ -798,7 +800,7 @@ class C
             }
         }
         ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (27,24): error CS1510: A ref or out argument must be an assignable variable
                 //                 N1(ref 123);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123").WithLocation(27, 24),
@@ -839,7 +841,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,17): error CS0120: An object reference is required for the non-static field, method, or property 'C.instanceField'
                 //         int x = instanceField;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "instanceField").WithArguments("C.instanceField").WithLocation(7, 17),
@@ -874,7 +876,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         x = x;
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x = x"),
@@ -903,7 +905,7 @@ class Program
         d = (int)d;
     }
 }";
-            CreateStandardCompilation(source, new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -922,7 +924,7 @@ class C
 }
 static class D { }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,17): error CS0128: A local variable named 'i' is already defined in this scope
                 //         long k, i;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(9, 17),
@@ -999,7 +1001,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,11): error CS1503: Argument 1: cannot convert from 'bool' to 'E'
                 //         M(false); // error
                 Diagnostic(ErrorCode.ERR_BadArgType, "false").WithArguments("1", "bool", "E").WithLocation(10, 11),
@@ -1128,7 +1130,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,13): error CS0029: Cannot implicitly convert type 'bool' to 'E'
                 //         e = false; // error
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "false").WithArguments("bool", "E").WithLocation(11, 13),
@@ -1214,7 +1216,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,13): error CS0139: No enclosing loop out of which to break or continue
                 //             break;
                 Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(8, 13));
@@ -1234,7 +1236,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,13): warning CS0665: Assignment in conditional expression is always constant; did you mean to use == instead of = ?
                 //         if (b = false)
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"),
@@ -1270,7 +1272,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,38): error CS0847: An array initializer of length '2' is expected
                 //         int[] intArray1 = new int[2] { 1, 2, 3 };               // count mismatch
                 Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{ 1, 2, 3 }").WithArguments("2").WithLocation(8, 38),
@@ -1463,7 +1465,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1498,7 +1500,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("String", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("String", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1533,7 +1535,7 @@ class C
             Assert.Equal(1, newExpr.Arguments.Length);
             Assert.Equal(1, newExpr.Constructor.Parameters.Length);
             Assert.Equal("a", newExpr.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
     }
 }

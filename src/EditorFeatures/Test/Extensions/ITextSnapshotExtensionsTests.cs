@@ -1,15 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
+    [UseExportProvider]
     public class ITextSnapshotExtensionsTests
     {
         [Fact]
@@ -132,10 +135,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var span = snapshot.GetSpan(0, 2, 1, 1);
 
             // column 0, index 2 = (0 * 5) + 2 = 2
-            Assert.Equal(span.Start, 2);
+            Assert.Equal(2, span.Start);
 
             // column 1, index 1 = (1 * 5) + 1 = 6
-            Assert.Equal(span.End, 6);
+            Assert.Equal(6, span.End);
         }
 
         [Fact]
@@ -143,45 +146,54 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         {
             // each line of sample code contains 4 characters followed by a newline
             var snapshot = GetSampleCodeSnapshot();
-            var point = new SnapshotPoint();
 
             // valid line, valid column
-            Assert.True(snapshot.TryGetPosition(3, 2, out point));
+            Assert.True(snapshot.TryGetPosition(3, 2, out var point));
             Assert.Equal(17, point.Position);
 
             // valid line, invalid column
-            Assert.False(snapshot.TryGetPosition(1, 8, out point));
-            Assert.False(snapshot.TryGetPosition(3, -2, out point));
+            Assert.False(snapshot.TryGetPosition(1, 8, out _));
+            Assert.False(snapshot.TryGetPosition(3, -2, out _));
 
             // invalid line, valid column
-            Assert.False(snapshot.TryGetPosition(18, 1, out point));
-            Assert.False(snapshot.TryGetPosition(-1, 1, out point));
+            Assert.False(snapshot.TryGetPosition(18, 1, out _));
+            Assert.False(snapshot.TryGetPosition(-1, 1, out _));
         }
 
         [Fact]
-        public void GetPointTest()
+        public void TryGetPointValueTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.GetPoint(3, 0));
+            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.TryGetPoint(3, 0).Value);
         }
 
         [Fact]
-        public void GetLineAndColumnTest()
+        public void TryGetPointNullTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            snapshot.GetLineAndColumn(16, out var line, out var col);
+            Assert.Null(snapshot.TryGetPoint(3000, 0));
+        }
+
+        [Fact]
+        public void GetLineAndCharacterTest()
+        {
+            var snapshot = GetSampleCodeSnapshot();
+            snapshot.GetLineAndCharacter(16, out var line, out var character);
             Assert.Equal(3, line);
-            Assert.Equal(1, col);
+            Assert.Equal(1, character);
         }
 
-        private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
+        private static string GetLeadingWhitespaceOfLineAtPosition(string code, int position)
         {
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code).CurrentSnapshot;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, code).CurrentSnapshot;
             return snapshot.GetLeadingWhitespaceOfLineAtPosition(position);
         }
 
-        private ITextSnapshot GetSampleCodeSnapshot()
+        private static ITextSnapshot GetSampleCodeSnapshot()
         {
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
+
             // to make verification simpler, each line of code is 4 characters and will be joined to other lines
             // with a single newline character making the formula to calculate the offset from a given line and
             // column thus:
@@ -196,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 "bar3",
             };
             var code = string.Join("\n", lines);
-            var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code).CurrentSnapshot;
+            var snapshot = EditorFactory.CreateBuffer(exportProvider, code).CurrentSnapshot;
             return snapshot;
         }
     }

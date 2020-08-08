@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -64,10 +67,10 @@ public class C
 }
 ";
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestSpansPresentInResource()
         {
-            var c = CreateStandardCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -115,7 +118,7 @@ public class C
             VerifySpans(reader, reader.Methods[8]);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void ResourceStatementKinds()
         {
             string source = @"
@@ -211,7 +214,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -263,7 +266,7 @@ public class C
             VerifySpans(reader, reader.Methods[1]);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestMethodSpansWithAttributes()
         {
             string source = @"
@@ -331,7 +334,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -425,7 +428,7 @@ class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -472,7 +475,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -503,7 +506,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -543,7 +546,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -611,7 +614,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -692,7 +695,7 @@ public class C
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -773,7 +776,7 @@ partial struct E
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -867,7 +870,7 @@ public class D
 }
 ";
 
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -900,13 +903,80 @@ public class D
         [Fact]
         public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
         {
-            var c = CreateStandardCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default);
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             Assert.Null(reader);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void EmptyStaticConstructor_WithEnableTestCoverage()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static C()
+    {
+    }
+
+    static object obj = null!;
+}" + InstrumentationHelperSource;
+            var emitOptions = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage));
+            CompileAndVerify(source, emitOptions: emitOptions).VerifyIL("C..cctor()",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""C..cctor()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""C..cctor()""
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0023:  ldtoken    ""C..cctor()""
+  IL_0028:  ldelema    ""bool[]""
+  IL_002d:  ldc.i4.1
+  IL_002e:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SynthesizedStaticConstructor_WithEnableTestCoverage()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static object obj = null!;
+}" + InstrumentationHelperSource;
+            var emitOptions = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage));
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: emitOptions,
+                symbolValidator: validator);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Empty(type.GetMembers(".cctor"));
+            }
         }
 
         private class SpanResult

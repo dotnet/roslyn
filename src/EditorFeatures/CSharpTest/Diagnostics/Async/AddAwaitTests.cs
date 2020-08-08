@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.Async;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.CodeFixes.Async.CSharpAddAwaitCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
-    public partial class AddAwaitTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddAwaitTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task BadAsyncReturnOperand1()
@@ -28,7 +29,7 @@ class Program
 
     async Task<int> Test2()
     {
-        [|return Test();|]
+        return {|CS4016:Test()|};
     }
 }";
 
@@ -48,7 +49,7 @@ class Program
         return await Test();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -69,7 +70,7 @@ class Program
     {
         return
         // Useful comment
-        [|Test()|];
+        {|CS4016:Test()|};
     }
 }";
 
@@ -91,7 +92,7 @@ class Program
         await Test();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -106,9 +107,9 @@ class Program
     async Task<int> Test() => 3;
 
     async Task<int> Test2()
-    {[|
-        return true ? Test() /* true */ : Test() /* false */;
-    |]}
+    {
+        return {|CS4016:true ? Test() /* true */ : Test()|} /* false */;
+    }
 }";
 
             var expected =
@@ -124,7 +125,7 @@ class Program
         return await (true ? Test() /* true */ : Test() /* false */);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -139,11 +140,11 @@ class Program
     async Task<int> Test() => 3;
 
     async Task<int> Test2()
-    {[|
-        return true ? Test() // aaa
-                    : Test() // bbb
+    {
+        return {|CS4016:true ? Test() // aaa
+                    : Test()|} // bbb
                     ;
-    |]}
+    }
 }";
 
             var expected =
@@ -161,7 +162,7 @@ class Program
                     ;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -176,9 +177,9 @@ class Program
     async Task<int> Test() => 3;
 
     async Task<int> Test2()
-    {[|
-        return null /* 0 */ ?? Test() /* 1 */;
-    |]}
+    {
+        return {|CS4016:null /* 0 */ ?? Test()|} /* 1 */;
+    }
 }";
 
             var expected =
@@ -194,7 +195,7 @@ class Program
         return await (null /* 0 */ ?? Test() /* 1 */);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -209,11 +210,11 @@ class Program
     async Task<int> Test() => 3;
 
     async Task<int> Test2()
-    {[|
-        return null   // aaa
-            ?? Test() // bbb
+    {
+        return {|CS4016:null   // aaa
+            ?? Test()|} // bbb
             ;
-    |]}
+    }
 }";
 
             var expected =
@@ -231,7 +232,7 @@ class Program
             ;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -244,9 +245,9 @@ using System.Threading.Tasks;
 class Program
 {
     async Task<int> Test2()
-    {[|
-        return null /* 0 */ as Task<int> /* 1 */;
-    |]}
+    {
+        return {|CS4016:null /* 0 */ as Task<int>|} /* 1 */;
+    }
 }";
 
             var expected =
@@ -260,7 +261,7 @@ class Program
         return await (null /* 0 */ as Task<int> /* 1 */);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -275,11 +276,11 @@ class Program
     async Task<int> Test() => 3;
 
     async Task<int> Test2()
-    {[|
-        return null      // aaa
-            as Task<int> // bbb
+    {
+        return {|CS4016:null      // aaa
+            as Task<int>|} // bbb
             ;
-    |]}
+    }
 }";
 
             var expected =
@@ -297,7 +298,7 @@ class Program
             ;
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -310,7 +311,7 @@ class Program
 {
     async void Test()
     {
-        [|Task.Delay(3);|]
+        {|CS4014:Task.Delay(3)|};
     }
 }";
 
@@ -324,7 +325,7 @@ class Program
         await Task.Delay(3);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -339,7 +340,7 @@ class Program
     {
 
         // Useful comment
-        [|Task.Delay(3);|]
+        {|CS4014:Task.Delay(3)|};
     }
 }";
 
@@ -355,7 +356,7 @@ class Program
         await Task.Delay(3);
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -373,7 +374,7 @@ class Program
 
     async void Test()
     {
-        [|AwaitableFunction();|]
+        {|CS4014:AwaitableFunction()|};
     }
 }";
 
@@ -392,7 +393,7 @@ class Program
         await AwaitableFunction();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -412,7 +413,7 @@ class Program
     {
 
         // Useful comment
-        [|AwaitableFunction();|]
+        {|CS4014:AwaitableFunction()|};
     }
 }";
 
@@ -433,7 +434,7 @@ class Program
         await AwaitableFunction();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -453,7 +454,7 @@ class Program
     {
         var i = 0;
 
-        [|AwaitableFunction();|]
+        {|CS4014:AwaitableFunction()|};
     }
 }";
 
@@ -474,20 +475,20 @@ class Program
         await AwaitableFunction();
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected);
+            await VerifyCS.VerifyCodeFixAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System.Threading.Tasks;
 
 class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        int myInt = [|MyIntMethodAsync()|];
+        int myInt = {|CS0029:MyIntMethodAsync()|};
     }
 
     private Task<int> MyIntMethodAsync()
@@ -514,14 +515,14 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversion()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System.Threading.Tasks;
 
 class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        long myInt = [|MyIntMethodAsync()|];
+        long myInt = {|CS0029:MyIntMethodAsync()|};
     }
 
     private Task<int> MyIntMethodAsync()
@@ -548,34 +549,36 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"using System.Threading.Tasks;
+            var code = @"using System.Threading.Tasks;
 
 class TestClass
 {
     private Task MyTestMethod1Async()
     {
-        long myInt = [|MyIntMethodAsync()|];
+        long myInt = {|CS0029:MyIntMethodAsync()|};
+        return Task.CompletedTask;
     }
 
     private Task<int> MyIntMethodAsync()
     {
         return Task.FromResult(result: 1);
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversionInAsyncFunction()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System.Threading.Tasks;
 
 class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        long myInt = [|MyIntMethodAsync()|];
+        long myInt = {|CS0029:MyIntMethodAsync()|};
     }
 
     private Task<object> MyIntMethodAsync()
@@ -589,7 +592,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        long myInt = await MyIntMethodAsync();
+        long myInt = {|CS0266:await MyIntMethodAsync()|};
     }
 
     private Task<object> MyIntMethodAsync()
@@ -602,7 +605,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -611,7 +614,7 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Action lambda = async () => {
-            int myInt = [|MyIntMethodAsync()|];
+            int myInt = {|CS0029:MyIntMethodAsync()|};
         };
     }
 
@@ -642,7 +645,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -651,7 +654,7 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Func<Task> lambda = async () => {
-            int myInt = [|MyIntMethodAsync()|];
+            int myInt = {|CS0029:MyIntMethodAsync()|};
         };
     }
 
@@ -682,7 +685,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression3()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -691,7 +694,26 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Func<Task> lambda = () => {
-            int myInt = MyInt [||] MethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
+            return Task.CompletedTask;
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> lambda = () => {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
+            return Task.CompletedTask;
         };
     }
 
@@ -705,7 +727,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression4()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -714,7 +736,24 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Action lambda = () => {
-            int myInt = MyIntM [||] ethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action lambda = () => {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
         };
     }
 
@@ -728,7 +767,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression5()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -737,7 +776,7 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Action @delegate = async delegate {
-            int myInt = [|MyIntMethodAsync()|];
+            int myInt = {|CS0029:MyIntMethodAsync()|};
         };
     }
 
@@ -768,7 +807,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression6()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -777,7 +816,7 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Func<Task> @delegate = async delegate {
-            int myInt = [|MyIntMethodAsync()|];
+            int myInt = {|CS0029:MyIntMethodAsync()|};
         };
     }
 
@@ -808,7 +847,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression7()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -817,7 +856,24 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Action @delegate = delegate {
-            int myInt = MyInt [||] MethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action @delegate = delegate {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
         };
     }
 
@@ -831,7 +887,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression8()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -840,7 +896,26 @@ class TestClass
     private async Task MyTestMethod1Async()
     {
         Func<Task> @delegate = delegate {
-            int myInt = MyIntM [||] ethodAsync();
+            int myInt = {|CS0029:MyIntMethodAsync()|};
+            return Task.CompletedTask;
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> @delegate = delegate {
+            int myInt = {|CS4034:await MyIntMethodAsync()|};
+            return Task.CompletedTask;
         };
     }
 
@@ -854,7 +929,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestTernaryOperator()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -862,7 +937,7 @@ class Program
 {
     async Task<int> A()
     {
-        return [|true ? Task.FromResult(0) : Task.FromResult(1)|];
+        return {|CS4016:true ? Task.FromResult(0) : Task.FromResult(1)|};
     }
 }",
 @"using System;
@@ -880,7 +955,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestNullCoalescingOperator()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -888,7 +963,7 @@ class Program
 {
     async Task<int> A()
     {
-        return [|null ?? Task.FromResult(1)|] }
+        return {|CS4016:null ?? Task.FromResult(1)|}; }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -897,14 +972,14 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null ?? Task.FromResult(1))}
+        return await (null ?? Task.FromResult(1)); }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAsExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -912,7 +987,7 @@ class Program
 {
     async Task<int> A()
     {
-        return [|null as Task<int>|] }
+        return {|CS4016:null as Task<int>|}; }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -921,11 +996,8 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null as Task<int>)}
+        return await (null as Task<int>); }
 }");
         }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpAddAwaitCodeFixProvider());
     }
 }

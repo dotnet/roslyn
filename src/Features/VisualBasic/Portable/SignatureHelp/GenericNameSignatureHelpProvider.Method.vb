@@ -1,10 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class GenericNameSignatureHelpProvider
 
-        Private Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
 
             AddExtensionPreamble(method, result)
@@ -23,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetContainingType(method As IMethodSymbol) As ITypeSymbol
+        Private Shared Function GetContainingType(method As IMethodSymbol) As ITypeSymbol
             Dim result = method.ReceiverType
 
             If result.Kind <> SymbolKind.NamedType OrElse Not DirectCast(result, INamedTypeSymbol).IsScriptClass Then
@@ -33,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
         End Function
 
-        Private Function GetPostambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetPostambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.Add(Punctuation(SyntaxKind.CloseParenToken))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))

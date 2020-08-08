@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -28,12 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string error;
                 Evaluate(runtime, "C.M", "$v", out error);
-                Assert.Equal(error, "error CS0103: The name '$v' does not exist in the current context");
+                Assert.Equal("error CS0103: The name '$v' does not exist in the current context", error);
             });
         }
 
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 expr: "global::$exception",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal(error, "error CS0400: The type or namespace name '$exception' could not be found in the global namespace (are you missing an assembly reference?)");
+            Assert.Equal("error CS0400: The type or namespace name '$exception' could not be found in the global namespace (are you missing an assembly reference?)", error);
         }
 
         [Fact]
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData: null);
                 AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
-                Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS1061: 'C' does not contain a definition for '$exception' and no accessible extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)", error);
             });
         }
 
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     out error,
                     testData);
                 Assert.Null(error);
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       22 (0x16)
@@ -221,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string error;
@@ -259,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -267,11 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 context.CompileExpression(
                     "23#",
                     out error);
-                Assert.Equal(error, "error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.");
+                Assert.Equal("error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.", error);
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ObjectId()
         {
             var source =
@@ -281,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -298,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       40 (0x28)
@@ -318,8 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(1101017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101017")]
-        [Fact]
         public void NestedGenericValueType()
         {
             var source =
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -369,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ArrayType()
         {
             var source =
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -442,7 +444,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 string error;
@@ -460,7 +462,7 @@ class C
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
+                Assert.Equal("error CS0648: '' is a type not supported by the language", error);
 
                 // Unrecognized array element type.
                 aliases = ImmutableArray.Create(
@@ -471,7 +473,7 @@ class C
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
+                Assert.Equal("error CS0648: '' is a type not supported by the language", error);
 
                 // Unrecognized generic type argument.
                 aliases = ImmutableArray.Create(
@@ -482,11 +484,11 @@ class C
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
+                Assert.Equal("error CS0648: '' is a type not supported by the language", error);
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void Variables()
         {
             var source =
@@ -496,7 +498,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 CheckVariable(runtime, "$exception", ExceptionAlias(), valid: true);
@@ -544,7 +546,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string error;
@@ -555,7 +557,7 @@ class C
                     out error,
                     ReturnValueAlias(1));
 
-                Assert.Equal(error, "error CS0307: The variable '$ReturnValue1' cannot be used with type arguments");
+                Assert.Equal("error CS0307: The variable '$ReturnValue1' cannot be used with type arguments", error);
 
                 testData = Evaluate(
                     runtime,
@@ -564,7 +566,7 @@ class C
                     out error,
                     ReturnValueAlias(2));
 
-                Assert.Equal(error, "error CS0149: Method name expected");
+                Assert.Equal("error CS0149: Method name expected", error);
             });
         }
 
@@ -586,7 +588,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string error;
@@ -621,7 +623,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -667,17 +669,17 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string error;
                 Evaluate(runtime, "C.M", "$exception = null", out error, ExceptionAlias());
-                Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
+                Assert.Equal("error CS0131: The left-hand side of an assignment must be a variable, property or indexer", error);
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(1100849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100849")]
-        [Fact]
         public void PassByRef()
         {
             var source =
@@ -689,7 +691,7 @@ class C
         return t;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.F");
@@ -700,61 +702,61 @@ class C
                     VariableAlias("x", typeof(int)));
                 string error;
 
-            // $exception
-            context.CompileExpression(
-                "$exception = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref $exception)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
+                // $exception
+                context.CompileExpression(
+                    "$exception = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS0131: The left-hand side of an assignment must be a variable, property or indexer", error);
+                context.CompileExpression(
+                    "F(ref $exception)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS1510: A ref or out value must be an assignable variable", error);
 
-            // Object at address
-            context.CompileExpression(
-                "@0x123 = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref @0x123)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
+                // Object at address
+                context.CompileExpression(
+                    "@0x123 = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS0131: The left-hand side of an assignment must be a variable, property or indexer", error);
+                context.CompileExpression(
+                    "F(ref @0x123)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS1510: A ref or out value must be an assignable variable", error);
 
-            // $ReturnValue
-            context.CompileExpression(
-                "$ReturnValue = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref $ReturnValue)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
+                // $ReturnValue
+                context.CompileExpression(
+                    "$ReturnValue = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS0131: The left-hand side of an assignment must be a variable, property or indexer", error);
+                context.CompileExpression(
+                    "F(ref $ReturnValue)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS1510: A ref or out value must be an assignable variable", error);
 
-            // Object id
-            context.CompileExpression(
-                "$1 = null",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            context.CompileExpression(
-                "F(ref $1)",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error);
-            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
+                // Object id
+                context.CompileExpression(
+                    "$1 = null",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS0131: The left-hand side of an assignment must be a variable, property or indexer", error);
+                context.CompileExpression(
+                    "F(ref $1)",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error);
+                Assert.Equal("error CS1510: A ref or out value must be an assignable variable", error);
 
                 // Declared variable
                 var testData = new CompilationTestData();
@@ -801,7 +803,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void ValueType()
         {
             var source =
@@ -815,7 +817,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -849,7 +851,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void CompoundAssignment()
         {
             var source =
@@ -863,7 +865,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -903,7 +905,7 @@ class C
         /// which may be different versions than the assembly references in metadata.
         /// </summary>
         [WorkItem(1087458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087458")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DifferentAssemblyVersion()
         {
             var sourceA =
@@ -990,7 +992,7 @@ class C
         /// outside of the current module and its references.
         /// </summary>
         [WorkItem(1092680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092680")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void TypeOutsideModule()
         {
             var sourceA =
@@ -1023,11 +1025,11 @@ class B
     }
 }";
             var assemblyNameA = "0A93FF0B-31A2-47C8-B24D-16A2D77AB5C5";
-            var compilationA = CreateStandardCompilation(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
+            var compilationA = CreateCompilation(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
             var moduleA = compilationA.ToModuleInstance();
 
             var assemblyNameB = "9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9";
-            var compilationB = CreateStandardCompilation(sourceB, options: TestOptions.DebugExe, references: new[] { moduleA.GetReference() }, assemblyName: assemblyNameB);
+            var compilationB = CreateCompilation(sourceB, options: TestOptions.DebugExe, references: new[] { moduleA.GetReference() }, assemblyName: assemblyNameB);
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[]
@@ -1101,7 +1103,7 @@ IL_0010:  ret
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1116,7 +1118,7 @@ IL_0010:  ret
                     out error,
                     testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)((MethodSymbol)methodData.Method).ReturnType).PointedAtType.SpecialType);
                 methodData.VerifyIL(
     @"{
   // Code size       17 (0x11)
@@ -1130,8 +1132,8 @@ IL_0010:  ret
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(1140387, "DevDiv")]
-        [Fact]
         public void UserVariableOfPointerType()
         {
             var source =
@@ -1141,7 +1143,7 @@ IL_0010:  ret
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1156,7 +1158,7 @@ IL_0010:  ret
                     out error,
                     testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)((MethodSymbol)methodData.Method).ReturnType).PointedAtType.SpecialType);
                 methodData.VerifyIL(
     @"{
   // Code size       21 (0x15)

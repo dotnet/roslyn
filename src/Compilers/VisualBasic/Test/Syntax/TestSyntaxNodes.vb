@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -589,7 +591,7 @@ End Class
             Assert.Equal("( ) ", arglist.ToFullString)
         End Sub
 
-        'helper to check an singleton separated list of one type name "goo"
+        'helper to check a singleton separated list of one type name "goo"
         Private Sub CheckSingletonSeparatedList(seplist As SeparatedSyntaxList(Of TypeSyntax), start As Integer)
             Assert.NotNull(seplist)
             Assert.Equal(1, seplist.Count)
@@ -1621,6 +1623,52 @@ End Class</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestParseTrailingTrivia_SingleNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia(vbCrLf)
+            Assert.True(trivia.Count = 1)
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(0).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_MultipleNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia(vbCrLf & vbCrLf)
+            Assert.True(trivia.Count = 1)
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(0).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf)
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndMultipleNewLine()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & vbCrLf)
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLineAndDocComment()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & "''' <summary/>")
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
+        Public Sub TestParseTrailingTrivia_CommentAndNewLineAndDirective()
+            Dim trivia = SyntaxFactory.ParseTrailingTrivia("'c" & vbCrLf & "#If True Then")
+            Assert.True(trivia.Count = 2)
+            Assert.Equal(SyntaxKind.CommentTrivia, trivia(0).Kind())
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia(1).Kind())
+        End Sub
+
+        <Fact>
         Public Sub TestReplaceSingleTriviaInToken()
             Dim id = SyntaxFactory.ParseToken("a ")
             Dim trivia = id.TrailingTrivia(0)
@@ -2081,7 +2129,7 @@ End Class
             Dim node As VisualBasicSyntaxNode = Nothing
             ' This should not throw - it should convert to a 'null' (default) struct 
             Dim sn As SyntaxNodeOrToken = node
-            Assert.True(sn.IsNode)
+            Assert.True(sn.IsToken)
 
         End Sub
 
@@ -2429,8 +2477,37 @@ a + b
         End Sub
 
         <Fact>
+        Public Sub TestRemoveNodeInSeparatedList_KeepExteriorTrivia_2()
+            Dim expr = SyntaxFactory.ParseExpression("m(a, b, ' comment
+c)")
+
+            Dim n = expr.DescendantTokens().Where(Function(t) t.ToString() = "b").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of ArgumentSyntax)()).FirstOrDefault()
+            Assert.NotNull(n)
+
+            Dim expr2 = expr.RemoveNode(n, SyntaxRemoveOptions.KeepExteriorTrivia)
+
+            Dim text = expr2.ToFullString()
+            Assert.Equal("m(a,  ' comment
+c)", text)
+        End Sub
+
+        <Fact>
         Public Sub TestRemoveNodeInSeparatedList_KeepNoTrivia()
             Dim expr = SyntaxFactory.ParseExpression("m(a, b, c)")
+
+            Dim b = expr.DescendantTokens().Where(Function(t) t.ToString() = "b").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of ArgumentSyntax)()).FirstOrDefault()
+            Assert.NotNull(b)
+
+            Dim expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia)
+
+            Dim text = expr2.ToFullString()
+            Assert.Equal("m(a, c)", text)
+        End Sub
+
+        <Fact>
+        Public Sub TestRemoveNodeInSeparatedList_KeepNoTrivia_2()
+            Dim expr = SyntaxFactory.ParseExpression("m(a, b, ' comment
+c)")
 
             Dim b = expr.DescendantTokens().Where(Function(t) t.ToString() = "b").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of ArgumentSyntax)()).FirstOrDefault()
             Assert.NotNull(b)
@@ -2837,7 +2914,7 @@ Public Module Module1
 End Module    </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -3004,7 +3081,7 @@ End Module
 </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -3054,7 +3131,7 @@ End Module
 </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30487: Operator '-' is not defined for type 'Char'.
@@ -3159,7 +3236,7 @@ End Interface
 </compilation>
 
             'Verify Compile Errors when try to use
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 compilationDef,
                 New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
 
@@ -3325,7 +3402,7 @@ End Module
 
         <Fact>
         Public Sub Test_CompilationOptions_Equals()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
     <file name="allon.vb">
 Option Strict On
@@ -3335,7 +3412,7 @@ Option Compare Text
     </file>
 </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
     <file name="allon.vb">
 Option Strict On
@@ -3345,7 +3422,7 @@ Option Compare Text
     </file>
 </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(False).WithOptionCompareText(False))
 
-            Dim Compilation3 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation3 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
     <file name="allon.vb">
 Option Strict On
@@ -3367,7 +3444,7 @@ Option Compare Text
             Dim Objvbpo1 As Object = vbpo3
             Assert.Equal(vbpo1, Objvbpo1)
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation4 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CompileOptions">
     <file name="allon.vb">
 Option Strict Off
@@ -3390,7 +3467,7 @@ End Module
             Dim po2 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic9)
             Dim po3 = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic10)
 
-            Dim POcompilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim POcompilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compile1">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3413,7 +3490,7 @@ End Module
 #Region "SyntaxWalker Verification Tests For Specific Node Types"
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyGroupByClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LinqQueryGroupBy">
     <file name="Test.vb">
 Module Module1
@@ -3438,7 +3515,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyCatchFilterClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
 Module Module1
@@ -3461,7 +3538,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyDistinctClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
 Module Module1
@@ -3482,7 +3559,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyCaseRange()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
 Module Module1
@@ -3506,7 +3583,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyHandlesClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
             Imports System
@@ -3548,7 +3625,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyKeywordEventContainerSyntax()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
 Imports System
@@ -3582,7 +3659,7 @@ End Class
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyOmittedArgument()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
             Imports System
@@ -3607,7 +3684,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyMidExpressionClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
         Module Module1
@@ -3631,7 +3708,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyAggregateClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
                 Module Module1
@@ -3654,7 +3731,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyDirectives()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
 Imports System
@@ -3701,7 +3778,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyPartitionClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
         Module Module1
@@ -3723,7 +3800,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyPartitionWhileClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
                 Module Module1
@@ -3746,7 +3823,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyRangeArgument()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
         Imports System
@@ -3767,7 +3844,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyXMLBracketName()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
         Imports System
@@ -3792,7 +3869,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyIncompleteSyntaxClause()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
                  &lt;Dim:clscompliant(true)&gt;
@@ -3810,7 +3887,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifySkippedTokenTrivia()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">                
                     OptImports System
@@ -3830,7 +3907,7 @@ End Module
 
         <Fact>
         Public Sub SyntaxWalkerMethod_VerifyInferredFieldName()
-            Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">                
 Imports System

@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -479,7 +482,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,7): error CS0411: The type arguments for method 'C.Apply<T>(C.F<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //       Apply(delegate { while (true) { } });
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Apply").WithArguments("C.Apply<T>(C.F<T>)").WithLocation(8, 7));
@@ -502,7 +505,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, new[] { CSharpRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef }).VerifyEmitDiagnostics(
                 // (7,9): error CS0411: The type arguments for method 'C.Goo<T>(ref T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Goo(ref d);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("C.Goo<T>(ref T[])"));
@@ -563,7 +566,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -622,7 +625,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,17): error CS0305: Using the generic method 'Program.Goo<T, U>(T, U)' requires 2 type arguments
                 //         var s = Goo<>(123, 345);
                 Diagnostic(ErrorCode.ERR_BadArity, "Goo<>").WithArguments("Program.Goo<T, U>(T, U)", "method", "2"));
@@ -648,7 +651,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,26): error CS1031: Type expected
                 //         var s = Goo<int, >(123, 345);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">"),
@@ -674,7 +677,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,11): error CS0103: The name 'E' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E"));
         }
@@ -733,7 +736,7 @@ class Program
 }
 
 ";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
         }
 
 
@@ -755,7 +758,7 @@ class Program
 }
 
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(649800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649800")]
@@ -776,7 +779,7 @@ public class Test
  
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,9): error CS0411: The type arguments for method 'Test.M<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(Main());
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Test.M<T>(T)"),
@@ -803,7 +806,7 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -811,7 +814,7 @@ public class C<T>
 
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
-            var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+            var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2)", method.ToTestDisplayString());
         }
@@ -833,7 +836,7 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -841,7 +844,7 @@ public class C<T>
 
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
-            var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+            var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2, params System.Int32[] a)", method.ToTestDisplayString());
         }

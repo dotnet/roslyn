@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition.Hosting;
 using System.Linq;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
@@ -14,57 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         internal readonly IInteractiveWindow Window;
         internal readonly TestInteractiveEvaluator Evaluator;
 
-        private readonly CompositionContainer _exportProvider;
-
-        private static readonly Lazy<AggregateCatalog> s_lazyCatalog = new Lazy<AggregateCatalog>(() =>
+        internal InteractiveWindowTestHost(IInteractiveWindowFactoryService interactiveWindowFactory)
         {
-            var types = new[] { typeof(TestWaitIndicator), typeof(TestInteractiveEvaluator), typeof(IInteractiveWindow) }.Concat(GetVisualStudioTypes());
-            return new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly)));
-        });
-
-        internal InteractiveWindowTestHost()
-        {
-            _exportProvider = new CompositionContainer(
-                s_lazyCatalog.Value,
-                CompositionOptions.DisableSilentRejection | CompositionOptions.IsThreadSafe);
-
-            var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
             Evaluator = new TestInteractiveEvaluator();
-            Window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
+            Window = interactiveWindowFactory.CreateWindow(Evaluator);
             Window.InitializeAsync().Wait();
-        }
-
-        private static Type[] GetVisualStudioTypes()
-        {
-            var types = new[]
-            {
-                // EDITOR
-
-                // Microsoft.VisualStudio.Platform.VSEditor.dll:
-                typeof(VisualStudio.Platform.VSEditor.EventArgsHelper),
-
-                // Microsoft.VisualStudio.Text.Logic.dll:
-                //   Must include this because several editor options are actually stored as exported information 
-                //   on this DLL.  Including most importantly, the tab size information.
-                typeof(VisualStudio.Text.Editor.DefaultOptions),
-
-                // Microsoft.VisualStudio.Text.UI.dll:
-                //   Include this DLL to get several more EditorOptions including WordWrapStyle.
-                typeof(VisualStudio.Text.Editor.WordWrapStyle),
-
-                // Microsoft.VisualStudio.Text.UI.Wpf.dll:
-                //   Include this DLL to get more EditorOptions values.
-                typeof(VisualStudio.Text.Editor.HighlightCurrentLineOption),
-
-                // BasicUndo.dll:
-                //   Include this DLL to satisfy ITextUndoHistoryRegistry
-                typeof(BasicUndo.IBasicUndoHistory),
-
-                // Microsoft.VisualStudio.Language.StandardClassification.dll:
-                typeof(VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames)
-            };
-
-            return types;
         }
 
         public void Dispose()

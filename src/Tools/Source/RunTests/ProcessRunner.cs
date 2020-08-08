@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -9,17 +12,35 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
-    public sealed class ProcessOutput
+    public readonly struct ProcessResult
     {
+        public Process Process { get; }
         public int ExitCode { get; }
-        public IList<string> OutputLines { get; }
-        public IList<string> ErrorLines { get; }
+        public ReadOnlyCollection<string> OutputLines { get; }
+        public ReadOnlyCollection<string> ErrorLines { get; }
 
-        public ProcessOutput(int exitCode, IList<string> outputLines, IList<string> errorLines)
+        public ProcessResult(Process process, int exitCode, ReadOnlyCollection<string> outputLines, ReadOnlyCollection<string> errorLines)
         {
+            Process = process;
             ExitCode = exitCode;
             OutputLines = outputLines;
             ErrorLines = errorLines;
+        }
+    }
+
+    public readonly struct ProcessInfo
+    {
+        public Process Process { get; }
+        public ProcessStartInfo StartInfo { get; }
+        public Task<ProcessResult> Result { get; }
+
+        public int Id => Process.Id;
+
+        public ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result)
+        {
+            Process = process;
+            StartInfo = startInfo;
+            Result = result;
         }
     }
 
@@ -33,34 +54,32 @@ namespace RunTests
             }
         }
 
-        public static Task<ProcessOutput> RunProcessAsync(
+        public static ProcessInfo CreateProcess(
             string executable,
             string arguments,
-            CancellationToken cancellationToken,
             bool lowPriority = false,
             string workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
             Dictionary<string, string> environmentVariables = null,
-            Action<Process> onProcessStartHandler = null)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+            Action<Process> onProcessStartHandler = null,
+            CancellationToken cancellationToken = default) =>
+            CreateProcess(
+                CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
+                lowPriority: lowPriority,
+                onProcessStartHandler: onProcessStartHandler,
+                cancellationToken: cancellationToken);
 
-            var taskCompletionSource = new TaskCompletionSource<ProcessOutput>();
-            var processStartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables);
-            return CreateProcessTask(processStartInfo, lowPriority, taskCompletionSource, onProcessStartHandler, cancellationToken);
-        }
-
-        private static Task<ProcessOutput> CreateProcessTask(
+        public static ProcessInfo CreateProcess(
             ProcessStartInfo processStartInfo,
-            bool lowPriority,
-            TaskCompletionSource<ProcessOutput> taskCompletionSource,
-            Action<Process> onProcessStartHandler,
-            CancellationToken cancellationToken)
+            bool lowPriority = false,
+            Action<Process> onProcessStartHandler = null,
+            CancellationToken cancellationToken = default)
         {
             var errorLines = new List<string>();
             var outputLines = new List<string>();
             var process = new Process();
+            var tcs = new TaskCompletionSource<ProcessResult>();
 
             process.EnableRaisingEvents = true;
             process.StartInfo = processStartInfo;
@@ -89,14 +108,18 @@ namespace RunTests
                     Task.Run(() =>
                     {
                         process.WaitForExit();
-                        var processOutput = new ProcessOutput(process.ExitCode, outputLines, errorLines);
-                        taskCompletionSource.TrySetResult(processOutput);
-                    });
+                        var result = new ProcessResult(
+                            process,
+                            process.ExitCode,
+                            new ReadOnlyCollection<string>(outputLines),
+                            new ReadOnlyCollection<string>(errorLines));
+                        tcs.TrySetResult(result);
+                    }, cancellationToken);
                 };
 
             var registration = cancellationToken.Register(() =>
                 {
-                    if (taskCompletionSource.TrySetCanceled())
+                    if (tcs.TrySetCanceled())
                     {
                         // If the underlying process is still running, we should kill it
                         if (!process.HasExited)
@@ -131,15 +154,15 @@ namespace RunTests
                 process.BeginErrorReadLine();
             }
 
-            return taskCompletionSource.Task;
+            return new ProcessInfo(process, processStartInfo, tcs.Task);
         }
 
-        private static ProcessStartInfo CreateProcessStartInfo(
+        public static ProcessStartInfo CreateProcessStartInfo(
             string executable,
             string arguments,
-            string workingDirectory,
-            bool captureOutput,
-            bool displayWindow,
+            string workingDirectory = null,
+            bool captureOutput = false,
+            bool displayWindow = true,
             Dictionary<string, string> environmentVariables = null)
         {
             var processStartInfo = new ProcessStartInfo(executable, arguments);

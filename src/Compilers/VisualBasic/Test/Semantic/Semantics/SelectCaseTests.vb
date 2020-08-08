@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -9,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
         <Fact()>
         Public Sub SelectCaseExpression_NothingLiteral()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -42,7 +45,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Literal()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -76,7 +79,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Local_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -111,7 +114,7 @@ Ehd Module
 
         <Fact()>
         Public Sub SelectCaseExpression_MethodCall_InvocationExpressionSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -150,7 +153,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_MethodCall_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -189,7 +192,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Lambda()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -221,7 +224,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_ParenthesizedLambda()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Public Module M
@@ -254,7 +257,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Error_NotAValue_InvocationExpressionSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -294,7 +297,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Error_NotAValue_IdentifierNameSyntax()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -334,7 +337,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCaseExpression_Error_OverloadResolutionFailure()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -375,7 +378,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCase_RelationalCaseClauseExpression_Literal()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -465,7 +468,7 @@ IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null
 
         <Fact()>
         Public Sub SelectCase_RangeCaseClauseExpression_MethodCall()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -504,7 +507,7 @@ End Module
 
         <Fact()>
         Public Sub SelectCase_SimpleCaseClauseExpression_DateTime()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
         <compilation>
             <file name="a.vb"><![CDATA[
 Imports System
@@ -545,7 +548,7 @@ End Module
         <WorkItem(543098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543098")>
         <Fact()>
         Public Sub SelectCase_BoundLocal()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -588,7 +591,7 @@ End Class
         <WorkItem(543387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543387")>
         <Fact()>
         Public Sub SelectCase_AnonymousLambda()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -636,7 +639,7 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ISwitchOperation (2 cases) (OperationKind.Switch, Type: null) (Syntax: 'Select Case ... End Select')
+ISwitchOperation (2 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) (Syntax: 'Select Case ... End Select')
   Switch expression: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -701,7 +704,7 @@ ISwitchOperation (2 cases) (OperationKind.Switch, Type: null) (Syntax: 'Select C
         <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -738,7 +741,7 @@ End Class
         <WorkItem(948019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948019")>
         <Fact()>
         Public Sub Bug948019_02()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C

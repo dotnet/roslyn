@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class SymbolMatcherTests : EditAndContinueTestBase
     {
+        private static PEAssemblySymbol CreatePEAssemblySymbol(string source)
+        {
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            var reference = compilation.EmitToImageReference();
+            return (PEAssemblySymbol)CreateCompilation("", new[] { reference }).GetReferencedAssemblySymbol(reference);
+        }
+
         [Fact]
         public void ConcurrentAccess()
         {
@@ -43,7 +52,7 @@ class B
     interface I { }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var builder = new List<Symbol>();
@@ -61,9 +70,9 @@ class B
                 var matcher = new CSharpSymbolMatcher(
                     null,
                     compilation1.SourceAssembly,
-                    default(EmitContext),
+                    default,
                     compilation0.SourceAssembly,
-                    default(EmitContext),
+                    default,
                     null);
 
                 var tasks = new Task[10];
@@ -112,18 +121,18 @@ class B
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var members = compilation1.GetMember<NamedTypeSymbol>("A.B").GetMembers("M");
-            Assert.Equal(members.Length, 2);
+            Assert.Equal(2, members.Length);
             foreach (var member in members)
             {
                 var other = matcher.MapDefinition((Cci.IMethodDefinition)member);
@@ -144,15 +153,15 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var member = compilation1.GetMember<MethodSymbol>("C.M");
             var other = matcher.MapDefinition(member);
@@ -169,32 +178,129 @@ class C
   .method public abstract virtual instance object modopt(A) [] F(int32 modopt(object) *p) { }
 }";
             var metadataRef = CompileIL(ilSource);
-            const string source =
+            var source =
 @"unsafe class B : A
 {
     public override object[] F(int* p) { return null; }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { metadataRef });
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { metadataRef });
             var compilation1 = compilation0.WithSource(source);
 
             var member1 = compilation1.GetMember<MethodSymbol>("B.F");
-            Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type).CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)member1.ReturnType).CustomModifiers.Length, 1);
+            Assert.Equal(1, ((PointerTypeSymbol)member1.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length);
+            Assert.Equal(1, ((ArrayTypeSymbol)member1.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
-            var other = (MethodSymbol)matcher.MapDefinition((Cci.IMethodDefinition)member1);
+
+            var other = (MethodSymbol)matcher.MapDefinition(member1);
             Assert.NotNull(other);
-            Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)other.ReturnType).CustomModifiers.Length, 1);
+            Assert.Equal(1, ((PointerTypeSymbol)other.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length);
+            Assert.Equal(1, ((ArrayTypeSymbol)other.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length);
         }
 
         [Fact]
+        public void CustomModifiers_InAttribute_Source()
+        {
+            // The parameter is emitted as
+            // int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
+
+            var source0 = @"
+abstract class C
+{  
+    // matching
+    public abstract void F(in int x);
+    public virtual void G(in int x) => throw null;
+
+    // non-matching
+    public void H(in int x) => throw null;
+}";
+            var source1 = @"
+abstract class C
+{
+    // matching
+    public abstract void F(in int x);
+    public virtual void G(in int x) => throw null;
+
+    // non-matching
+    public void H(int x) => throw null;
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var h1 = compilation1.GetMember<MethodSymbol>("C.H");
+
+            Assert.Same(f0, (MethodSymbol)matcher.MapDefinition(f1));
+            Assert.Same(g0, (MethodSymbol)matcher.MapDefinition(g1));
+            Assert.Null(matcher.MapDefinition(h1));
+        }
+
+        [Fact]
+        public void CustomModifiers_InAttribute_Metadata()
+        {
+            // The parameter is emitted as
+            // int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
+
+            var source0 = @"
+abstract class C
+{  
+    // matching
+    public abstract void F(in int x);
+    public virtual void G(in int x) => throw null;
+
+    // non-matching
+    public void H(in int x) => throw null;
+}";
+            var source1 = @"
+abstract class C
+{
+    // matching
+    public abstract void F(in int x);
+    public virtual void G(in int x) => throw null;
+
+    // non-matching
+    public void H(int x) => throw null;
+}";
+
+            var peAssemblySymbol = CreatePEAssemblySymbol(source0);
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll).WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                peAssemblySymbol);
+
+            var f0 = peAssemblySymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("F");
+            var g0 = peAssemblySymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("G");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var h1 = compilation1.GetMember<MethodSymbol>("C.H");
+
+            Assert.Equal(f0, (MethodSymbol)matcher.MapDefinition(f1));
+            Assert.Equal(g0, (MethodSymbol)matcher.MapDefinition(g1));
+            Assert.Null(matcher.MapDefinition(h1));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VaryingCompilationReferences()
         {
             string libSource = @"
@@ -207,18 +313,18 @@ public class C
     public void F(D a) {}
 }
 ";
-            var lib0 = CreateStandardCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
-            var lib1 = CreateStandardCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
+            var lib0 = CreateCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
+            var lib1 = CreateCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
 
-            var compilation0 = CreateStandardCompilation(source, new[] { lib0.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, new[] { lib0.ToMetadataReference() }, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference());
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -250,19 +356,19 @@ class C
     }
     class D {}
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
-            var other = matcher.MapReference((Cci.ITypeReference)member);
+            var other = matcher.MapReference(member);
             Assert.NotNull(other);
         }
 
@@ -287,19 +393,19 @@ class C
     }
     class D {}
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
-            var other = matcher.MapReference((Cci.ITypeReference)member);
+            var other = matcher.MapReference(member);
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }
@@ -325,19 +431,19 @@ class C
     }
     struct D {}
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreatePointerTypeSymbol(elementType);
-            var other = matcher.MapReference((Cci.ITypeReference)member);
+            var other = matcher.MapReference(member);
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }
@@ -366,15 +472,15 @@ class C
     class D {}
     List<D> y;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
             var member = compilation1.GetMember<FieldSymbol>("C.y");
             var other = matcher.MapReference((Cci.ITypeReference)member.Type);
@@ -410,10 +516,8 @@ class C
         var y = new Func<int>(() => x1.A + x2.b);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
 
-            var peRef0 = compilation0.EmitToImageReference();
-            var peAssemblySymbol0 = (PEAssemblySymbol)CreateStandardCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peAssemblySymbol0 = CreatePEAssemblySymbol(source0);
             var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
 
             var reader0 = peModule0.Module.MetadataReader;
@@ -424,7 +528,7 @@ class C
             Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("B", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal(2, anonymousTypeMap0.Count);
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);
@@ -479,10 +583,10 @@ class C
         var y = new Func<int>(() => x1[0].A.X + x2[0].A.Z);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
 
             var peRef0 = compilation0.EmitToImageReference();
-            var peAssemblySymbol0 = (PEAssemblySymbol)CreateStandardCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
             var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
 
             var reader0 = peModule0.Module.MetadataReader;
@@ -494,7 +598,7 @@ class C
             Assert.Equal("<>f__AnonymousType2", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("Y", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal(3, anonymousTypeMap0.Count);
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);
@@ -533,15 +637,15 @@ class C
 {
     public (int a, bool b) x;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
@@ -563,15 +667,15 @@ class C
 {
     public (int a, int c) x;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
@@ -593,15 +697,15 @@ class C
 {
     public (int a, bool b) X() { return null };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
@@ -623,15 +727,15 @@ class C
 {
     public (int a, int c) X() { return null };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
@@ -653,15 +757,15 @@ class C
 {
     public (int a, bool b) X { get { return null; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
@@ -683,15 +787,15 @@ class C
 {
     public (int a, int c) X { get { return null; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
@@ -713,15 +817,15 @@ public struct Vector
 {
     public (int x, int y, int z) Coordinates;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
@@ -743,15 +847,15 @@ public struct Vector
 {
     public (int x, int z) Coordinates;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
@@ -773,15 +877,15 @@ public class C
 {
     public delegate (int, bool) F();
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
@@ -803,15 +907,15 @@ public class C
 {
     public delegate (int x, int y) F();
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
@@ -821,129 +925,111 @@ public class C
         }
 
         [Fact]
-        public void RefMethod_TypeChange()
+        public void RefReturn_Method()
         {
             var source0 = @"
-class C
-{  
-    public ref int GetFirst(int[] numbers, bool[] bools) { return ref numbers[0]; } };
+struct C
+{
+    // non-matching
+    public ref int P() => throw null;
+    public ref readonly int Q() => throw null;
+    public int R() => throw null;
+
+    // matching
+    public ref readonly int S() => throw null;
+    public ref int T() => throw null;
 }";
             var source1 = @"
-class C
+struct C
 {
-    public ref bool GetFirst(int[] numbers, bool[] bools) { return ref bools[0]; } };
+    // non-matching
+    public ref bool P() => throw null;
+    public ref int Q() => throw null;
+    public ref int R() => throw null;
+
+    // matching
+    public ref readonly int S() => throw null;
+    public ref int T() => throw null;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
-            var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
-            var other = matcher.MapDefinition(member);
-            // If a type changes, we do not expect types to match.
-            Assert.Null(other);
+            var s0 = compilation0.GetMember<MethodSymbol>("C.S");
+            var t0 = compilation0.GetMember<MethodSymbol>("C.T");
+            var p1 = compilation1.GetMember<MethodSymbol>("C.P");
+            var q1 = compilation1.GetMember<MethodSymbol>("C.Q");
+            var r1 = compilation1.GetMember<MethodSymbol>("C.R");
+            var s1 = compilation1.GetMember<MethodSymbol>("C.S");
+            var t1 = compilation1.GetMember<MethodSymbol>("C.T");
+
+            Assert.Null(matcher.MapDefinition(p1));
+            Assert.Null(matcher.MapDefinition(q1));
+            Assert.Null(matcher.MapDefinition(r1));
+
+            Assert.Same(s0, matcher.MapDefinition(s1));
+            Assert.Same(t0, matcher.MapDefinition(t1));
         }
 
         [Fact]
-        public void RefMethod_RefChange()
+        public void RefReturn_Property()
         {
             var source0 = @"
-class C
-{  
-    public ref bool GetFirst(bool[] bools) { return ref bools[0]; } };
+struct C
+{
+    // non-matching
+    public ref int P => throw null;
+    public ref readonly int Q => throw null;
+    public int R => throw null;
+
+    // matching
+    public ref readonly int S => throw null;
+    public ref int T => throw null;
 }";
             var source1 = @"
-class C
+struct C
 {
-    public bool GetFirst(bool[] bools) { return bools[0]; } };
+    // non-matching
+    public ref bool P => throw null;
+    public ref int Q => throw null;
+    public ref int R => throw null;
+
+    // matching
+    public ref readonly int S => throw null;
+    public ref int T => throw null;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
                 compilation1.SourceAssembly,
-                default(EmitContext),
+                default,
                 compilation0.SourceAssembly,
-                default(EmitContext),
+                default,
                 null);
 
-            var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
-            var other = matcher.MapDefinition(member);
-            // If a type changes, we do not expect types to match.
-            Assert.Null(other);
-        }
+            var s0 = compilation0.GetMember<PropertySymbol>("C.S");
+            var t0 = compilation0.GetMember<PropertySymbol>("C.T");
+            var p1 = compilation1.GetMember<PropertySymbol>("C.P");
+            var q1 = compilation1.GetMember<PropertySymbol>("C.Q");
+            var r1 = compilation1.GetMember<PropertySymbol>("C.R");
+            var s1 = compilation1.GetMember<PropertySymbol>("C.S");
+            var t1 = compilation1.GetMember<PropertySymbol>("C.T");
 
-        [Fact]
-        public void RefProperty_TypeChange()
-        {
-            var source0 = @"
-struct S
-{
-    int[] ints;
-    bool[] bools;
-    public ref int X { get => ref ints[0]; }
-}";
-            var source1 = @"
-struct S
-{
-    int[] ints;
-    bool[] bools;
-    public ref bool X { get => ref bools[0]; }
-}";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            Assert.Null(matcher.MapDefinition(p1));
+            Assert.Null(matcher.MapDefinition(q1));
+            Assert.Null(matcher.MapDefinition(r1));
 
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                compilation1.SourceAssembly,
-                default(EmitContext),
-                compilation0.SourceAssembly,
-                default(EmitContext),
-                null);
-
-            var member = compilation1.GetMember<PropertySymbol>("S.X");
-            var other = matcher.MapDefinition(member);
-            // If a type changes, we do not expect types to match.
-            Assert.Null(other);
-        }
-
-        [Fact]
-        public void RefProperty_RefChange()
-        {
-            var source0 = @"
-struct S
-{
-    int[] ints;
-    public ref int X { get => ref ints[0]; }
-}";
-            var source1 = @"
-struct S
-{
-    int[] ints;
-    public int X { get => ints[0]; }
-}";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-
-            var matcher = new CSharpSymbolMatcher(
-                null,
-                compilation1.SourceAssembly,
-                default(EmitContext),
-                compilation0.SourceAssembly,
-                default(EmitContext),
-                null);
-
-            var member = compilation1.GetMember<PropertySymbol>("S.X");
-            var other = matcher.MapDefinition(member);
-            // If a type changes, we do not expect types to match.
-            Assert.Null(other);
+            Assert.Same(s0, matcher.MapDefinition(s1));
+            Assert.Same(t0, matcher.MapDefinition(t1));
         }
 
         [Fact]
@@ -966,12 +1052,12 @@ class C : I<int, bool>
 	}
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var peRef0 = compilation0.EmitToImageReference();
-            var peAssemblySymbol0 = (PEAssemblySymbol)CreateStandardCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
 
-            var compilation1 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);
@@ -989,6 +1075,332 @@ class C : I<int, bool>
             var mappedProperty = (Cci.IPropertyDefinition)matcher.MapDefinition(property);
 
             Assert.Equal("I<System.Int32,System.Boolean>.Item", ((PropertySymbol)mappedProperty).MetadataName);
+        }
+
+        [Fact]
+        public void Method_ParameterNullableChange()
+        {
+            var source0 = @"
+using System.Collections.Generic;
+class C
+{
+    string c;
+    ref string M(string? s, (string a, dynamic? b) tuple, List<string?> list) => ref c;
+}";
+            var source1 = @"
+using System.Collections.Generic;
+class C
+{
+    string c;
+    ref string? M(string s, (string? a, dynamic b) tuple, List<string> list) => ref c;
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.M");
+            var other = matcher.MapDefinition(member);
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void Field_NullableChange()
+        {
+            var source0 = @"
+class C
+{
+    string S;
+}";
+            var source1 = @"
+class C
+{
+    string? S;
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member = compilation1.GetMember<FieldSymbol>("C.S");
+            var other = matcher.MapDefinition(member);
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void AnonymousTypesWithNullables()
+        {
+            var source0 = @"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T F<T>(Func<T> f) => f();
+
+    static void M(string? x)
+    {
+        var y1 = new { A = id(x) };
+        var y2 = F(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}";
+            var source1 = @"
+using System;
+
+class C
+{
+    static T id<T>(T t) => t;
+    static T F<T>(Func<T> f) => f();
+
+    static void M(string? x)
+    {
+        if (x is null) throw new Exception();
+        var y1 = new { A = id(x) };
+        var y2 = F(() => new { B = id(x) });
+        var z = new Func<string>(() => y1.A + y2.B);
+    }
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+
+            var peRef0 = compilation0.EmitToImageReference();
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
+
+            var reader0 = peModule0.Module.MetadataReader;
+            var decoder0 = new MetadataDecoder(peModule0);
+
+            var anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0);
+            Assert.Equal("<>f__AnonymousType0", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("A", isKey: false, ignoreCase: false)))].Name);
+            Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("B", isKey: false, ignoreCase: false)))].Name);
+            Assert.Equal(2, anonymousTypeMap0.Count);
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+
+            var testData = new CompilationTestData();
+            compilation1.EmitToArray(testData: testData);
+            var peAssemblyBuilder = (PEAssemblyBuilder)testData.Module;
+
+            var c = compilation1.GetMember<NamedTypeSymbol>("C");
+            var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
+            Assert.Equal("<>c__DisplayClass2_0", displayClass.Name);
+
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+
+            var fields = displayClass.GetFields(emitContext).ToArray();
+            AssertEx.SetEqual(fields.Select(f => f.Name), new[] { "x", "y1", "y2" });
+            var y1 = fields.Where(f => f.Name == "y1").Single();
+            var y2 = fields.Where(f => f.Name == "y2").Single();
+
+            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+
+            var mappedY1 = (Cci.IFieldDefinition)matcher.MapDefinition(y1);
+            var mappedY2 = (Cci.IFieldDefinition)matcher.MapDefinition(y2);
+
+            Assert.Equal("y1", mappedY1.Name);
+            Assert.Equal("y2", mappedY2.Name);
+        }
+
+        [Fact]
+        public void InterfaceMembers()
+        {
+            var source = @"
+using System;
+
+interface I
+{
+    static int X = 1;
+    static event Action Y;
+
+    static void M() { }
+    void N() { }
+
+    static int P { get => 1; set { } }
+    int Q { get => 1; set { } }
+
+    static event Action E { add { } remove { } }
+    event Action F { add { } remove { } }
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var x0 = compilation0.GetMember<FieldSymbol>("I.X");
+            var y0 = compilation0.GetMember<EventSymbol>("I.Y");
+            var m0 = compilation0.GetMember<MethodSymbol>("I.M");
+            var n0 = compilation0.GetMember<MethodSymbol>("I.N");
+            var p0 = compilation0.GetMember<PropertySymbol>("I.P");
+            var q0 = compilation0.GetMember<PropertySymbol>("I.Q");
+            var e0 = compilation0.GetMember<EventSymbol>("I.E");
+            var f0 = compilation0.GetMember<EventSymbol>("I.F");
+
+            var x1 = compilation1.GetMember<FieldSymbol>("I.X");
+            var y1 = compilation1.GetMember<EventSymbol>("I.Y");
+            var m1 = compilation1.GetMember<MethodSymbol>("I.M");
+            var n1 = compilation1.GetMember<MethodSymbol>("I.N");
+            var p1 = compilation1.GetMember<PropertySymbol>("I.P");
+            var q1 = compilation1.GetMember<PropertySymbol>("I.Q");
+            var e1 = compilation1.GetMember<EventSymbol>("I.E");
+            var f1 = compilation1.GetMember<EventSymbol>("I.F");
+
+            Assert.Same(x0, matcher.MapDefinition(x1));
+            Assert.Same(y0, matcher.MapDefinition(y1));
+            Assert.Same(m0, matcher.MapDefinition(m1));
+            Assert.Same(n0, matcher.MapDefinition(n1));
+            Assert.Same(p0, matcher.MapDefinition(p1));
+            Assert.Same(q0, matcher.MapDefinition(q1));
+            Assert.Same(e0, matcher.MapDefinition(e1));
+            Assert.Same(f0, matcher.MapDefinition(f1));
+        }
+
+        [Fact]
+        public void FunctionPointerMembersTranslated()
+        {
+            var source = @"
+unsafe class C
+{
+    delegate*<void> f1;
+    delegate*<C, C, C> f2;
+    delegate*<ref C> f3;
+    delegate*<ref readonly C> f4;
+    delegate*<ref C, void> f5;
+    delegate*<in C, void> f6;
+    delegate*<out C, void> f7;
+}
+";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation1 = compilation0.WithSource(source);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            for (int i = 1; i <= 7; i++)
+            {
+                var f_0 = compilation0.GetMember<FieldSymbol>($"C.f{i}");
+                var f_1 = compilation1.GetMember<FieldSymbol>($"C.f{i}");
+
+                Assert.Same(f_0, matcher.MapDefinition(f_1));
+            }
+        }
+
+        [Theory]
+        [InlineData("C", "void")]
+        [InlineData("C", "object")]
+        [InlineData("C", "ref C")]
+        [InlineData("C", "ref readonly C")]
+        [InlineData("ref C", "ref readonly C")]
+        public void FunctionPointerMembers_ReturnMismatch(string return1, string return2)
+        {
+            var source1 = $@"
+unsafe class C
+{{
+    delegate*<C, {return1}> f1;
+}}";
+
+            var source2 = $@"
+unsafe class C
+{{
+    delegate*<C, {return2}> f1;
+}}";
+
+            var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation1 = compilation0.WithSource(source2);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
+
+            Assert.Null(matcher.MapDefinition(f_1));
+        }
+
+        [Theory]
+        [InlineData("C", "object")]
+        [InlineData("C", "ref C")]
+        [InlineData("C", "out C")]
+        [InlineData("C", "in C")]
+        [InlineData("ref C", "out C")]
+        [InlineData("ref C", "in C")]
+        [InlineData("out C", "in C")]
+        [InlineData("C, C", "C")]
+        public void FunctionPointerMembers_ParamMismatch(string param1, string param2)
+        {
+            var source1 = $@"
+unsafe class C
+{{
+    delegate*<{param1}, C, void>* f1;
+}}";
+
+            var source2 = $@"
+unsafe class C
+{{
+    delegate*<{param2}, C, void>* f1;
+}}";
+
+            verify(source1, source2);
+
+            source1 = $@"
+unsafe class C
+{{
+    delegate*<C, {param1}, void> f1;
+}}";
+
+            source2 = $@"
+unsafe class C
+{{
+    delegate*<C, {param2}, void> f1;
+}}";
+
+            verify(source1, source2);
+
+            static void verify(string source1, string source2)
+            {
+                var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+                var compilation1 = compilation0.WithSource(source2);
+
+                var matcher = new CSharpSymbolMatcher(
+                    null,
+                    compilation1.SourceAssembly,
+                    default,
+                    compilation0.SourceAssembly,
+                    default,
+                    null);
+
+                var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
+
+                Assert.Null(matcher.MapDefinition(f_1));
+            }
         }
     }
 }

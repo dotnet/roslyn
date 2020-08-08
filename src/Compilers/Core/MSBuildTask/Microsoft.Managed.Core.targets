@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Common targets for managed compilers.
+  -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+
+  <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
+          BeforeTargets="CoreCompile"
+          Condition="'@(ReferencePathWithRefAssemblies)' == ''">
+    <!-- 
+      FindReferenceAssembliesForReferences target in Common targets populate this item 
+      since dev15.3. The compiler targets may be used (via NuGet package) on earlier MSBuilds. 
+      If the ReferencePathWithRefAssemblies item is not populated, just use ReferencePaths 
+      (implementation assemblies) as they are.
+      
+      Since XAML inner build runs CoreCompile directly (instead of Compile target),
+      it also doesn't invoke FindReferenceAssembliesForReferences listed in CompileDependsOn.
+      In that case we also populate ReferencePathWithRefAssemblies with implementation assemblies.
+    -->
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Include="@(ReferencePath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_BeforeVBCSCoreCompile"
+          DependsOnTargets="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies">
+    
+    <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
+      <ReferencePathWithRefAssemblies>
+        <EmbedInteropTypes />
+      </ReferencePathWithRefAssemblies>
+    </ItemGroup>
+
+    <!-- Prefer32Bit was introduced in .NET 4.5. Set it to false if we are targeting 4.0 -->
+    <PropertyGroup Condition="('$(TargetFrameworkVersion)' == 'v4.0')">
+      <Prefer32Bit>false</Prefer32Bit>
+    </PropertyGroup>
+
+    <!-- TODO: Remove this ItemGroup once it has been moved to "_GenerateCompileInputs" target in Microsoft.Common.CurrentVersion.targets.
+         https://github.com/dotnet/roslyn/issues/12223 -->
+    <ItemGroup Condition="('$(AdditionalFileItemNames)' != '')">
+      <AdditionalFileItems Include="$(AdditionalFileItemNames)" />
+      <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
+      <UseSharedCompilation>true</UseSharedCompilation>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    ========================
+    .editorconfig Support
+    ========================
+    
+    -->
+  <ItemGroup>
+    <_AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <!-- Work around a GetPathsOfAllDirectoriesAbove() bug where it can return multiple equivalent paths when the 
+         compilation includes linked files with relative paths - https://github.com/microsoft/msbuild/issues/4392 -->
+    <PotentialEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+  </ItemGroup>
+
+  <!--
+    ========================
+    Property/metadata global .editorconfig Support
+    ========================
+    
+    Generates a global editor config that contains the evaluation of requested MSBuild properties and item metadata
+    
+    Requested properties/items are requested via item groups like:
+   
+      <CompilerVisibleProperty Include="PropertyNameToEval" />
+      <CompilerVisibleItemMetadata Include="ItemType" MetadataName="MetadataToRetrieve" />
+    -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+
+  <PropertyGroup>
+    <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
+    <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
+  </PropertyGroup>
+
+  <Target Name="GenerateMSBuildEditorConfigFile"
+          BeforeTargets="BeforeCompile;CoreCompile"
+          DependsOnTargets="PrepareForBuild;GenerateMSBuildEditorConfigFileShouldRun;GenerateMSBuildEditorConfigFileCore" />
+
+  <Target Name="GenerateMSBuildEditorConfigFileShouldRun">
+    <PropertyGroup>
+      <_GeneratedEditorConfigHasItems Condition="'@(CompilerVisibleItemMetadata->Count())' != '0'">true</_GeneratedEditorConfigHasItems>
+      <_GeneratedEditorConfigShouldRun Condition="'$(GenerateMSBuildEditorConfigFile)' == 'true' and ('$(_GeneratedEditorConfigHasItems)' == 'true' or '@(CompilerVisibleProperty->Count())' != '0')">true</_GeneratedEditorConfigShouldRun>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="GenerateMSBuildEditorConfigFileCore"
+          Condition="'$(_GeneratedEditorConfigShouldRun)' == 'true'"
+          Outputs="$(GeneratedMSBuildEditorConfigFile)">
+
+    <ItemGroup>
+      <!-- Collect requested properties, and eval their value -->
+      <_GeneratedEditorConfigProperty Include="@(CompilerVisibleProperty)">
+        <Value>$(%(CompilerVisibleProperty.Identity))</Value>
+      </_GeneratedEditorConfigProperty>
+
+      <!-- Collect the requested items and remember which metadata is wanted -->
+      <_GeneratedEditorConfigMetadata Include="@(%(CompilerVisibleItemMetadata.Identity))" Condition="'$(_GeneratedEditorConfigHasItems)' == 'true'">
+        <ItemType>%(Identity)</ItemType>
+        <MetadataName>%(CompilerVisibleItemMetadata.MetadataName)</MetadataName>
+      </_GeneratedEditorConfigMetadata>
+
+      <!-- Record that we'll write a file, and add it to the analyzerconfig inputs -->
+      <FileWrites Include="$(GeneratedMSBuildEditorConfigFile)" />
+      <EditorConfigFiles Include="$(GeneratedMSBuildEditorConfigFile)" />
+    </ItemGroup>
+
+    <!-- Transform the collected properties and items into an editor config file -->
+    <GenerateMSBuildEditorConfig
+      PropertyItems="@(_GeneratedEditorConfigProperty)"
+      MetadataItems="@(_GeneratedEditorConfigMetadata)">
+
+      <Output TaskParameter="ConfigFileContents"
+          PropertyName="_GeneratedEditorConfigFileContent" />
+    </GenerateMSBuildEditorConfig>
+
+    <!-- Write the output to the generated file, if it's changed -->
+    <WriteLinesToFile Lines="$(_GeneratedEditorConfigFileContent)" File="$(GeneratedMSBuildEditorConfigFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
+  </Target>
+
+  <!--
+    ========================
+    DeterministicSourcePaths
+    ========================
+    
+    Unless specified otherwise enable deterministic source root (PathMap) when building deterministically on CI server, but not for local builds.
+    In order for the debugger to find source files when debugging a locally built binary the PDB must contain original, unmapped local paths.
+  -->
+  <PropertyGroup>
+    <DeterministicSourcePaths Condition="'$(DeterministicSourcePaths)' == '' and '$(Deterministic)' == 'true' and '$(ContinuousIntegrationBuild)' == 'true'">true</DeterministicSourcePaths>
+  </PropertyGroup>
+
+  <!--
+    ==========
+    SourceRoot
+    ==========
+
+    All source files of the project are expected to be located under one of the directories specified by SourceRoot item group.
+    This target collects all SourceRoots from various sources.
+
+    This target calculates final local path for each SourceRoot and sets SourceRoot.MappedPath metadata accordingly.
+    The final path is a path with deterministic prefix when DeterministicSourcePaths is true, and the original path otherwise.
+    In addition, the target validates and deduplicates the SourceRoot items.
+
+    InitializeSourceControlInformation is an msbuild target that ensures the SourceRoot items are populated from source control.
+    The target is available only if SourceControlInformationFeatureSupported is true.
+
+    A consumer of SourceRoot.MappedPath metadata, such as Source Link generator, shall depend on this target. 
+  -->
+
+  <Target Name="InitializeSourceRootMappedPaths"
+          DependsOnTargets="_InitializeSourceRootMappedPathsFromSourceControl"
+          Returns="@(SourceRoot)">
+
+    <ItemGroup Condition="'@(_MappedSourceRoot)' != ''">
+      <_MappedSourceRoot Remove="@(_MappedSourceRoot)" />
+    </ItemGroup>
+
+    <Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots SourceRoots="@(SourceRoot)" Deterministic="$(DeterministicSourcePaths)">
+      <Output TaskParameter="MappedSourceRoots" ItemName="_MappedSourceRoot" />
+    </Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots>
+
+    <ItemGroup>
+      <SourceRoot Remove="@(SourceRoot)" />
+      <SourceRoot Include="@(_MappedSourceRoot)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+    Declare that target InitializeSourceRootMappedPaths that populates MappedPaths metadata on SourceRoot items is available.
+  -->
+  <PropertyGroup>
+    <SourceRootMappedPathsFeatureSupported>true</SourceRootMappedPathsFeatureSupported>
+  </PropertyGroup>
+
+  <!-- 
+    If InitializeSourceControlInformation target isn't supported, we just continue without invoking that synchronization target. 
+    We'll proceed with SourceRoot (and other source control properties) provided by the user (or blank).
+  -->
+  <Target Name="_InitializeSourceRootMappedPathsFromSourceControl"
+          DependsOnTargets="InitializeSourceControlInformation"
+          Condition="'$(SourceControlInformationFeatureSupported)' == 'true'" />
+
+  <!-- 
+    =======
+    PathMap
+    =======
+
+    If DeterministicSourcePaths is true sets PathMap based on SourceRoot.MappedPaths.
+
+    This target requires SourceRoot to be initialized in order to calculate the PathMap.
+    If SourceRoot doesn't contain any top-level roots an error is reported.
+  -->
+
+  <Target Name="_SetPathMapFromSourceRoots"
+          DependsOnTargets="InitializeSourceRootMappedPaths"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DeterministicSourcePaths)' == 'true'">
+
+    <ItemGroup>
+      <_TopLevelSourceRoot Include="@(SourceRoot)" Condition="'%(SourceRoot.NestedRoot)' == ''">
+        <EscapedKey>$([MSBuild]::ValueOrDefault('%(Identity)', '').Replace(',', ',,').Replace('=', '=='))</EscapedKey>
+        <EscapedValue>$([MSBuild]::ValueOrDefault('%(MappedPath)', '').Replace(',', ',,').Replace('=', '=='))</EscapedValue>
+      </_TopLevelSourceRoot>
+    </ItemGroup>
+
+    <PropertyGroup Condition="'@(_TopLevelSourceRoot)' != ''">
+      <!--
+        Prepend the SourceRoot.MappedPath values to PathMap, if it already has a value.
+        For each emitted source path the compiler applies the first mapping that matches the path.
+        PathMap values set previously will thus only be applied if the mapping provided by 
+        SourceRoot.MappedPath doesn't match. Since SourceRoot.MappedPath is also used by SourceLink 
+        preferring it over manually set PathMap ensures that PathMap is consistent with SourceLink.
+      -->
+      <PathMap>@(_TopLevelSourceRoot->'%(EscapedKey)=%(EscapedValue)', ','),$(PathMap)</PathMap>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    =======
+    CopyAdditionalFiles
+    =======
+
+    If a user requests that any @(AdditionalFiles) items are copied to the output directory
+    we add them to the @(None) group to ensure they will be copied.
+ -->
+ 
+   <Target Name="CopyAdditionalFiles" 
+           BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <None Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.CopyToOutputDirectory)' != ''" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -1,14 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -22,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Highlighting()
         {
             var markup = @"
@@ -41,7 +45,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void WrittenReference()
         {
             var markup = @"
@@ -61,7 +65,7 @@ class C
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Navigation()
         {
             var text = @"
@@ -75,20 +79,22 @@ class C
 }";
             VisualStudio.Editor.SetText(text);
             VisualStudio.Editor.PlaceCaret("x");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
             VisualStudio.ExecuteCommand("Edit.NextHighlightedReference");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ReferenceHighlighting);
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
 
         private void Verify(string marker, IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
-               FeatureAttribute.SolutionCrawler,
-               FeatureAttribute.DiagnosticService,
-               FeatureAttribute.Classification,
-               FeatureAttribute.ReferenceHighlighting));
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification,
+                FeatureAttribute.ReferenceHighlighting);
 
             AssertEx.SetEqual(spans["definition"], VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId), message: "Testing 'definition'\r\n");
 
@@ -106,11 +112,13 @@ class C
         private void VerifyNone(string marker)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
-               FeatureAttribute.SolutionCrawler,
-               FeatureAttribute.DiagnosticService,
-               FeatureAttribute.Classification,
-               FeatureAttribute.ReferenceHighlighting));
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification,
+                FeatureAttribute.ReferenceHighlighting);
 
             Assert.Empty(VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
             Assert.Empty(VisualStudio.Editor.GetTagSpans(DefinitionHighlightTag.TagId));

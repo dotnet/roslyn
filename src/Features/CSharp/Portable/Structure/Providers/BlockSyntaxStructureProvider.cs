@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             BlockSyntax node,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             //          
             //          }
             //
-            // We don't want to consider the block parented by teh case, because 
+            // We don't want to consider the block parented by the case, because 
             // that would cause us to draw the following:
             // 
             //      case 0:
@@ -70,18 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         private static bool IsNonBlockStatement(SyntaxNode node)
-        {
-            return node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
-        }
+            => node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
 
-        private TextSpan GetHintSpan(BlockSyntax node)
+        private static TextSpan GetHintSpan(BlockSyntax node)
         {
             var start = node.Parent.Span.Start;
             var end = GetEnd(node);
             return TextSpan.FromBounds(start, end);
         }
 
-        private TextSpan GetTextSpan(BlockSyntax node)
+        private static TextSpan GetTextSpan(BlockSyntax node)
         {
             var previousToken = node.GetFirstToken().GetPreviousToken();
             if (previousToken.IsKind(SyntaxKind.None))
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
         }
 
-        private string GetType(SyntaxNode parent)
+        private static string GetType(SyntaxNode parent)
         {
             switch (parent.Kind())
             {

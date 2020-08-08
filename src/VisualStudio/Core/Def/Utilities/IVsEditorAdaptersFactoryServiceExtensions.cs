@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -15,13 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
     internal static class IVsEditorAdaptersFactoryServiceExtensions
     {
         public static IOleUndoManager TryGetUndoManager(
-            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService, 
+            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             Microsoft.CodeAnalysis.Workspace workspace,
-            DocumentId contextDocumentId, 
+            DocumentId contextDocumentId,
             CancellationToken cancellationToken)
         {
             // https://github.com/dotnet/roslyn/issues/17898
-            // We have a report of a null ref occuring in this method. The only place we believe 
+            // We have a report of a null ref occurring in this method. The only place we believe 
             // this could be would be if 'document' was null. Try to catch a reasonable 
             // non -fatal-watson dump to help track down what the root cause of this might be.
             var document = workspace.CurrentSolution.GetDocument(contextDocumentId);
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 return null;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             var textBuffer = textSnapshot?.TextBuffer;
             return editorAdaptersFactoryService.TryGetUndoManager(textBuffer);

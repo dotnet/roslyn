@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -81,9 +84,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new FaultyAssemblyLoader());
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, TestAnalyzerAssemblyLoader.LoadNotImplemented);
 
             Assert.False(result);
+        }
+
+        [Fact]
+        public void NetstandardIgnored()
+        {
+            var directory = Temp.CreateDirectory();
+            const string name = "netstandardRef";
+            var comp = CSharpCompilation.Create(
+                name,
+                new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetStandard20.netstandard) },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compFile = directory.CreateFile(name);
+            comp.Emit(compFile.Path);
+
+
+            var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(name));
+
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
+
+            Assert.True(result);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
@@ -105,18 +129,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
 
                 return assembly;
-            }
-        }
-
-        private class FaultyAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                throw new InvalidOperationException();
             }
         }
     }

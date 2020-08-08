@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,10 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new PartialMethodCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(PartialMethodCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoPartialMethods1()
@@ -473,6 +476,36 @@ partial class Bar
 }
 ";
             await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
+        }
+
+        [WorkItem(26388, "https://github.com/dotnet/roslyn/issues/26388")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExpressionBodyMethod()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
+                new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent))));
+
+            var text = @"using System;
+partial class Bar
+{
+    partial void Foo();
+    partial $$
+}
+"
+;
+
+            var expected = @"using System;
+partial class Bar
+{
+    partial void Foo();
+    partial void Foo() => throw new NotImplementedException();$$
+}
+"
+;
+
+            await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
         }
     }
 }

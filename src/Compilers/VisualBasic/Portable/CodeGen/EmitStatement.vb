@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -657,7 +659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitCondBranchCore(condition, lazyDest, sense)
                 Debug.Assert(_recursionDepth = 1)
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition))
                 Throw New EmitCancelledException()
@@ -800,7 +802,7 @@ OtherExpressions:
                     EmitExpression(condition, True)
 
                     Dim conditionType = condition.Type
-                    If conditionType.IsReferenceType AndAlso Not IsVerifierReference(conditionType) Then
+                    If Not conditionType.IsValueType AndAlso Not IsVerifierReference(conditionType) Then
                         EmitBox(conditionType, condition.Syntax)
                     End If
 
@@ -1003,10 +1005,10 @@ OtherExpressions:
                                 Dim relationalCaseClause = DirectCast(caseClause, BoundRelationalCaseClause)
 
                                 Debug.Assert(relationalCaseClause.OperatorKind = BinaryOperatorKind.Equals)
-                                Debug.Assert(relationalCaseClause.OperandOpt IsNot Nothing)
+                                Debug.Assert(relationalCaseClause.ValueOpt IsNot Nothing)
                                 Debug.Assert(relationalCaseClause.ConditionOpt Is Nothing)
 
-                                constant = relationalCaseClause.OperandOpt.ConstantValueOpt
+                                constant = relationalCaseClause.ValueOpt.ConstantValueOpt
 
                             Case BoundKind.RangeCaseClause
                                 ' TODO: For now we use IF lists if we encounter

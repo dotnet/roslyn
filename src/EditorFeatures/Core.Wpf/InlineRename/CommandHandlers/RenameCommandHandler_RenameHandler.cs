@@ -1,66 +1,49 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler : ICommandHandler<RenameCommandArgs>
     {
-        public CommandState GetCommandState(RenameCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(RenameCommandArgs args)
         {
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
-            var textContainer = args.SubjectBuffer.AsTextContainer();
-            if (!Workspace.TryGetWorkspace(textContainer, out var workspace))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                !args.SubjectBuffer.SupportsRename())
             {
-                return nextHandler();
-            }
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return nextHandler();
-            }
-
-            var documents = textContainer.GetRelatedDocuments();
-            var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!documents.All(d => supportsFeatureService.SupportsRename(d)))
-            {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(RenameCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(RenameCommandArgs args, CommandExecutionContext context)
         {
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Rename,
-                message: EditorFeaturesResources.Finding_token_to_rename,
-                allowCancel: true,
-                action: waitContext =>
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
             {
-                ExecuteRenameWorker(args, waitContext.CancellationToken);
-            });
+                ExecuteRenameWorker(args, context);
+            }
+
+            return true;
         }
 
-        private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)
+        private void ExecuteRenameWorker(RenameCommandArgs args, CommandExecutionContext context)
         {
-            var snapshot = args.SubjectBuffer.CurrentSnapshot;
-            if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out var workspace))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace))
             {
                 return;
             }
@@ -77,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var editableSpan))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
                 {
                     var dashboard = GetDashboard(args.TextView);
                     dashboard.Focus();
@@ -90,8 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var position = caretPoint.Value;
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+                context.OperationContext, _threadingContext);
             if (document == null)
             {
                 ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);

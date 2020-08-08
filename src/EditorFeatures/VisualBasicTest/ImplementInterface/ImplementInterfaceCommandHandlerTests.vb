@@ -1,25 +1,29 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
+    <[UseExportProvider]>
     Public Class ImplementInterfaceCommandHandlerTests
 
-        Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))
+        Private Shared Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))
             Using workspace = GetWorkspace(code.NormalizedValue)
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
                 Dim view = workspace.Documents.Single().GetTextView()
 
-                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandler(view, workspace))
+                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandler(view, workspace), TestCommandExecutionContext.Create())
 
                 Dim text = view.TextBuffer.CurrentSnapshot.AsText().ToString()
 
@@ -36,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
         End Function
 
-        Private Function GetWorkspace(code As String) As TestWorkspace
+        Private Shared Function GetWorkspace(code As String) As TestWorkspace
             Return TestWorkspace.Create(
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -60,11 +64,12 @@ Interface IGoo
 End Interface")
 
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
-                workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False)))
 
                 Dim nextHandlerCalled = False
                 Dim view = workspace.Documents.Single().GetTextView()
-                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandlerCalled = True)
+                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandlerCalled = True, TestCommandExecutionContext.Create())
                 Assert.True(nextHandlerCalled, "Next handler wasn't called, which means the feature did run")
             End Using
         End Sub
@@ -260,7 +265,6 @@ Interface IGoo
     Sub TestSub()
 End Interface</text>
 
-
             Dim expectedText = <text>   
     Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
@@ -280,7 +284,6 @@ Class Goo
 End Class
 Interface IGoo
 End Interface</text>
-
 
             Dim expectedText = <text>   
 Class Goo

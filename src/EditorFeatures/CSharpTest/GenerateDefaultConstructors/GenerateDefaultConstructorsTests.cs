@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -872,6 +875,397 @@ class Derived : Base
             await TestMissingInRegularAndScriptAsync(
 @"enum [||]E
 {
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C : [||]B
+{
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"abstract class C : B
+{
+    protected C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructor2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : [||]B
+{
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")]
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C : [||]B
+{
+}
+
+abstract class B
+{
+    public B(int x)
+    {
+    }
+}",
+@"abstract class C : B
+{
+    protected C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    public B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromPublicConstructor2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : [||]B
+{
+}
+
+abstract class B
+{
+    public B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    public B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromInternalConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C : [||]B
+{
+}
+
+abstract class B
+{
+    internal B(int x)
+    {
+    }
+}",
+@"abstract class C : B
+{
+    internal C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    internal B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromInternalConstructor2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : [||]B
+{
+}
+
+abstract class B
+{
+    internal B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    internal B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedInternalConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C : [||]B
+{
+}
+
+abstract class B
+{
+    protected internal B(int x)
+    {
+    }
+}",
+@"abstract class C : B
+{
+    protected internal C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected internal B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedInternalConstructor2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : [||]B
+{
+}
+
+abstract class B
+{
+    protected internal B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected internal B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromPrivateProtectedConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C : [||]B
+{
+}
+
+abstract class B
+{
+    private protected B(int x)
+    {
+    }
+}",
+@"abstract class C : B
+{
+    private protected C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    private protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromPrivateProtectedConstructor2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : [||]B
+{
+}
+
+abstract class B
+{
+    private protected internal B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    private protected internal B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    public Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
+    {
+    }
 }");
         }
     }

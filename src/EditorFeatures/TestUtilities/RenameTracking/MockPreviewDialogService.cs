@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
@@ -7,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
-    [ExportWorkspaceService(typeof(IPreviewDialogService), "Test"), Shared]
+    [ExportWorkspaceService(typeof(IPreviewDialogService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class MockPreviewDialogService : IPreviewDialogService, IWorkspaceServiceFactory
     {
         public bool ReturnsNull;
@@ -18,6 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public string TopLevelName;
         public Glyph TopLevelGlyph;
         public bool ShowCheckBoxes;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MockPreviewDialogService()
+        {
+        }
 
         public Solution PreviewChanges(string title, string helpString, string description, string topLevelName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, bool showCheckBoxes = true)
         {
@@ -33,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
     }
 }

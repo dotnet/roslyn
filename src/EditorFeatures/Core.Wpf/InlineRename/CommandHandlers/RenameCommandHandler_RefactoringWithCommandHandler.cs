@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -11,44 +13,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         ICommandHandler<ExtractInterfaceCommandArgs>,
         ICommandHandler<EncapsulateFieldCommandArgs>
     {
-        public CommandState GetCommandState(ReorderParametersCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(ReorderParametersCommandArgs args)
+            => CommandState.Unspecified;
+
+        public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
         {
-            return nextHandler();
+            CommitIfActive(args);
+            return false;
         }
 
-        public void ExecuteCommand(ReorderParametersCommandArgs args, Action nextHandler)
+        public CommandState GetCommandState(RemoveParametersCommandArgs args)
+            => CommandState.Unspecified;
+
+        public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
         {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
+            CommitIfActive(args);
+            return false;
         }
 
-        public CommandState GetCommandState(RemoveParametersCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(ExtractInterfaceCommandArgs args)
+            => CommandState.Unspecified;
+
+        public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
-            return nextHandler();
+            CommitIfActive(args);
+            return false;
         }
 
-        public void ExecuteCommand(RemoveParametersCommandArgs args, Action nextHandler)
-        {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
-        }
+        public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
+            => CommandState.Unspecified;
 
-        public CommandState GetCommandState(ExtractInterfaceCommandArgs args, Func<CommandState> nextHandler)
+        public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
         {
-            return nextHandler();
-        }
-
-        public void ExecuteCommand(ExtractInterfaceCommandArgs args, Action nextHandler)
-        {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
-        }
-
-        public CommandState GetCommandState(EncapsulateFieldCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
-
-        public void ExecuteCommand(EncapsulateFieldCommandArgs args, Action nextHandler)
-        {
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
+            CommitIfActive(args);
+            return false;
         }
     }
 }

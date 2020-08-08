@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -10,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -26,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestResources.General.MDTestLib2,
                     TestResources.SymbolsTests.Methods.CSMethods,
                     TestResources.SymbolsTests.Methods.VBMethods,
-                    TestResources.NetFX.v4_0_21006.mscorlib,
+                    ResourcesNet40.mscorlib,
                     TestResources.SymbolsTests.Methods.ByRefReturn
                 }, importInternals:=True)
 
@@ -431,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationGeneric()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -463,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationConstructed()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -526,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationOfUnrelatedGenericInterfaceMethod()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
 
@@ -555,7 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestTypeParameterPositions()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {TestReferences.NetFx.v4_0_30319.mscorlib,
+                {Net451.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -914,7 +917,7 @@ End Class
 </compilation>
 
             Dim longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull())
-            Dim c = CreateCompilationWithMscorlibAndReferences(source, {longFormRef})
+            Dim c = CreateCompilationWithMscorlib40AndReferences(source, {longFormRef})
             c.AssertTheseDiagnostics(<![CDATA[
 BC30657: 'RT' has a return type that is not supported or parameter types that are not supported.
         Dim s As String = C.RT()
@@ -945,7 +948,7 @@ End Class
 
             Dim references = {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags)}
 
-            Dim comp = CreateCompilationWithMscorlib(source, references:=references)
+            Dim comp = CreateCompilationWithMscorlib40(source, references:=references)
             comp.AssertTheseDiagnostics(
                 <expected><![CDATA[
 BC30390: 'C.Private Overloads Sub M()' is not accessible in this context because it is 'Private'.

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable enable
+
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -65,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.LoadDirectiveTrivia:
                     ClassifyLoadDirective((LoadDirectiveTriviaSyntax)node);
                     break;
+                case SyntaxKind.NullableDirectiveTrivia:
+                    ClassifyNullableDirective((NullableDirectiveTriviaSyntax)node);
+                    break;
             }
         }
 
@@ -101,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyPreprocessorExpression(ExpressionSyntax node)
+        private void ClassifyPreprocessorExpression(ExpressionSyntax? node)
         {
             if (node == null)
             {
@@ -267,6 +273,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 ClassifyNodeOrToken(nodeOrToken);
             }
+
+            if (node.ErrorCodes.Count == 0)
+            {
+                // When there are no error codes, we need to classify the directive's trivia.
+                // (When there are error codes, ClassifyNodeOrToken above takes care of that.)
+                ClassifyDirectiveTrivia(node);
+            }
         }
 
         private void ClassifyReferenceDirective(ReferenceDirectiveTriviaSyntax node)
@@ -282,6 +295,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+            ClassifyDirectiveTrivia(node);
+        }
+
+        private void ClassifyNullableDirective(NullableDirectiveTriviaSyntax node)
+        {
+            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.NullableKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.SettingToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.TargetToken, ClassificationTypeNames.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
     }

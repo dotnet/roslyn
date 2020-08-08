@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -36,7 +38,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -64,7 +65,6 @@ namespace Test
 
             CompileAndVerify(
               source,
-              additionalRefs: new[] { LinqAssemblyRef },
               expectedOutput: "True");
         }
 
@@ -92,7 +92,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -123,7 +122,7 @@ namespace Test
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { LinqAssemblyRef });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40Extended);
             comp.VerifyDiagnostics(
     // (15,54): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
     //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
@@ -191,7 +190,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -223,7 +221,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -254,7 +251,6 @@ namespace Test
 ";
             var compilation = CompileAndVerify(
                 testSrc,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -283,11 +279,8 @@ namespace Test
     }
 }
 ";
-            // The version of mscorlib checked in to the test resources in v4_0_30316 does not have
-            // the IReadOnlyList<T> and IReadOnlyCollection<T> interfaces. Use the one in v4_0_30316_17626.
-
-            var mscorlib17626 = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib);
-            CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1");
+            var mscorlib17626 = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
+            CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1", targetFramework: TargetFramework.Empty);
         }
 
         [Fact]
@@ -333,7 +326,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -361,7 +353,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -405,7 +396,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -442,7 +432,6 @@ namespace Test
 ";
             var compilation = CompileAndVerify(
                 testSrc,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -486,7 +475,7 @@ namespace Test
             // NYI: error checking below with:
             // var compilation = CompileAndVerify(testSrc, emitOptions: EmitOptions.CCI, 
             //    additionalRefs: GetReferences(), expectedOutput: "");
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(testSrc);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(testSrc);
             compilation.VerifyDiagnostics();
         }
 
@@ -528,7 +517,7 @@ namespace Test
             // var compilation = CompileAndVerify(testSrc, emitOptions: EmitOptions.CCI, 
             //     additionalRefs: GetReferences(), expectedOutput: "");
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(testSrc);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(testSrc);
             compilation.VerifyDiagnostics();
         }
 
@@ -561,7 +550,7 @@ namespace Test
             // var compilation = CompileAndVerify(testSrc, emitOptions: EmitOptions.CCI,
             //     additionalRefs: GetReferences(), expectedOutput: "");
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(testSrc);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(testSrc);
             compilation.VerifyDiagnostics();
         }
 
@@ -593,7 +582,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -627,7 +615,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -655,7 +642,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -683,7 +669,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -725,7 +710,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -762,7 +746,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -854,7 +837,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -888,7 +870,6 @@ public class Program
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -928,7 +909,6 @@ public class Program
 
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "TrueTrueTrueTrueTrueTrueTrueTrueTrue");
         }
 
@@ -951,7 +931,7 @@ namespace Test
     }
 }
 ";
-            var comp = CreateStandardCompilation(testSrc);
+            var comp = CreateCompilation(testSrc);
             comp.VerifyDiagnostics(
                 // (8,46): error CS0846: A nested array initializer is expected
                 //             var a3 = new[,,] { { { 3, 4 } }, 3, 4 };
@@ -976,7 +956,7 @@ namespace Test
     }
 }
 ";
-            var comp = CreateStandardCompilation(testSrc);
+            var comp = CreateCompilation(testSrc);
             comp.VerifyDiagnostics(
                 // (8,46): error CS0103: The name 'x' does not exist in the current context
                 //             var a3 = new[,,] { { { 3, 4 } }, x, 4 };
@@ -1011,7 +991,7 @@ namespace Test
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (16,21): error CS0826: No best type found for implicitly-typed array
                 //             E[] a = new[] { E.FortyTwo, 0 }; // Dev10 error CS0826
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { E.FortyTwo, 0 }").WithLocation(16, 21));

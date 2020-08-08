@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -6,15 +8,14 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFunctions
     Friend NotInheritable Class SnippetFunctionClassName
         Inherits AbstractSnippetFunctionClassName
 
-        Public Sub New(snippetExpansionClient As SnippetExpansionClient, textView As ITextView, subjectBuffer As ITextBuffer, fieldName As String)
-            MyBase.New(snippetExpansionClient, textView, subjectBuffer, fieldName)
+        Public Sub New(snippetExpansionClient As SnippetExpansionClient, subjectBuffer As ITextBuffer, fieldName As String)
+            MyBase.New(snippetExpansionClient, subjectBuffer, fieldName)
         End Sub
 
         Protected Overrides Function GetContainingClassName(document As Document, subjectBufferFieldSpan As SnapshotSpan, cancellationToken As CancellationToken, ByRef value As String, ByRef hasDefaultValue As Integer) As Integer

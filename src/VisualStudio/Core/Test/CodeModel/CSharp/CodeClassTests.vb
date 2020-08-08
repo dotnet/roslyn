@@ -1,13 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class CodeClassTests
@@ -1022,7 +1024,6 @@ class $$C { void M() { } }
 
             TestChildren(code, IsElement("Obsolete"), IsElement("M"))
         End Sub
-
 
 #End Region
 
@@ -2160,7 +2161,7 @@ class C
 {
     string Name
     {
-        get => default(string);
+        get => default;
         set
         {
         }
@@ -2186,11 +2187,7 @@ class C
 {
     string Name
     {
-        get
-        {
-            return default(string);
-        }
-
+        get =&gt; default;
         set
         {
         }
@@ -2201,10 +2198,11 @@ class C
             Await TestAddProperty(
                 code, expected,
                 New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
-                New Dictionary(Of OptionKey, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement}
-                })
+editorConfig:="
+[*]
+csharp_style_expression_bodied_accessors=false:silent
+csharp_style_expression_bodied_properties=false:silent
+")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2220,7 +2218,7 @@ class C$$
 <Code>
 class C
 {
-    string Name => default(string);
+    string Name => default;
 }
 </Code>
 
@@ -2240,22 +2238,17 @@ class C$$
 <Code>
 class C
 {
-    string Name
-    {
-        get
-        {
-            return default(string);
-        }
-    }
+    string Name =&gt; default;
 }
 </Code>
 
             Await TestAddProperty(
                 code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
-                New Dictionary(Of OptionKey, Object) From {
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement},
-                    {CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement}
-                })
+editorConfig:="
+[*]
+csharp_style_expression_bodied_accessors=false:silent
+csharp_style_expression_bodied_properties=false:silent
+")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

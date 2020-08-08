@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DllImport("clr", EntryPoint = "CreateAssemblyNameObject", CharSet = CharSet.Unicode, PreserveSig = true)]
-        private static extern int RealCreateAssemblyNameObject(out IAssemblyName ppEnum, [MarshalAs(UnmanagedType.LPWStr)]string szAssemblyName, uint dwFlags, IntPtr pvReserved);
+        private static extern int RealCreateAssemblyNameObject(out IAssemblyName ppEnum, [MarshalAs(UnmanagedType.LPWStr)] string szAssemblyName, uint dwFlags, IntPtr pvReserved);
 
         private const int ERROR_INSUFFICIENT_BUFFER = unchecked((int)0x8007007A);
         private const int FUSION_E_INVALID_NAME = unchecked((int)0x80131047);
@@ -438,15 +440,10 @@ namespace Microsoft.CodeAnalysis
                 if (assemblyName.IndexOf('\0') >= 0)
                 {
 #if SCRIPTING
-
                     throw new ArgumentException(Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
-
-#elif WORKSPACE_DESKTOP
-
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
-
+#elif EDITOR_FEATURES
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Editor.EditorFeaturesResources.Invalid_characters_in_assembly_name, nameof(name));
 #else
-
                     throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, nameof(name));
 #endif
                 }
@@ -468,15 +465,10 @@ namespace Microsoft.CodeAnalysis
                 if (cultureName.IndexOf('\0') >= 0)
                 {
 #if SCRIPTING
-
                     throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
-
-#elif WORKSPACE_DESKTOP
-
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
-
+#elif EDITOR_FEATURES
+                    throw new ArgumentException(Microsoft.CodeAnalysis.Editor.EditorFeaturesResources.Invalid_characters_in_assembly_name, nameof(name));
 #else
-
                     throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, nameof(name));
 #endif
                 }

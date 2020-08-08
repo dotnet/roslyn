@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -121,19 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CollectLabel(node.Label);
             return base.VisitLabelStatement(node);
-        }
-
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            CollectLabel(node.ConstantTargetOpt);
-            CollectLabel(node.BreakLabel);
-            return base.VisitSwitchStatement(node);
-        }
-
-        public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
-        {
-            CollectLabel(node.Label);
-            return base.VisitSwitchLabel(node);
         }
 
         private void CollectLabel(LabelSymbol label)

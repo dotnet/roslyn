@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
 
@@ -28,20 +28,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> originationParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
                 ImmutableDictionary<string, string> properties,
+                ImmutableDictionary<string, string> displayableProperties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, nameDisplayParts, originationParts,
-                       sourceSpans, properties, displayIfNoReferences)
+                       sourceSpans, properties, displayableProperties, displayIfNoReferences)
             {
             }
 
             public override bool CanNavigateTo(Workspace workspace)
             {
-                if (this.Properties.ContainsKey(NonNavigable))
+                if (Properties.ContainsKey(NonNavigable))
                 {
                     return false;
                 }
 
-                if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
                 }
@@ -49,19 +50,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return SourceSpans[0].CanNavigateTo();
             }
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
             {
-                if (this.Properties.ContainsKey(NonNavigable))
+                if (Properties.ContainsKey(NonNavigable))
                 {
                     return false;
                 }
 
-                if (this.Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
-                return SourceSpans[0].TryNavigateTo(isPreview);
+                return SourceSpans[0].TryNavigateTo(showInPreviewTab, activateTab);
             }
 
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
@@ -101,8 +102,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             private (Project project, ISymbol symbol) TryResolveSymbolInCurrentSolution(
                 Workspace workspace, string symbolKey)
             {
-                if (!this.Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
-                    !this.Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
+                if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
+                    !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
                 {
                     return (null, null);
                 }
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 var compilation = project.GetCompilationAsync(CancellationToken.None)
                                          .WaitAndGetResult(CancellationToken.None);
 
-                var symbol = SymbolKey.Resolve(symbolKey, compilation).Symbol;
+                var symbol = SymbolKey.ResolveString(symbolKey, compilation).Symbol;
                 return (project, symbol);
             }
         }

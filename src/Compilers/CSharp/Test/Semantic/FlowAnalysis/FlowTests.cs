@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,6 +92,90 @@ public class DATest : DATestBase {
 }";
 
         [Fact]
+        [WorkItem(35011, "https://github.com/dotnet/roslyn/issues/35011")]
+        public void SwitchConstantUnreachable()
+        {
+            var src = @"
+class C
+{
+    const string S = ""abc"";
+
+    public static string M1()
+    {
+        switch (S)
+        {
+            case ""abc"":
+                return S;
+        }
+    }
+
+    public static string M2()
+    {
+        const string S2 = S + """";
+        switch (S)
+        {
+            case S2:
+                return S;
+        }
+    }
+
+    public static string M3()
+    {
+        const int I = 11;
+        switch (I)
+        {
+            case 11:
+                return S;
+        }
+    }
+
+    public static string M4()
+    {
+        switch (S)
+        {
+            case ""def"":
+                return S; // 1
+            default:
+                return S;
+        }
+    }
+
+    public static string M5()
+    {
+        switch (S)
+        {
+            case ""def"":
+                return S; // 2
+        }
+        // error
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (40,17): warning CS0162: Unreachable code detected
+                //                 return S; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
+                // (46,26): error CS0161: 'C.M5()': not all code paths return a value
+                //     public static string M5()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
+                // (51,17): warning CS0162: Unreachable code detected
+                //                 return S; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (40,17): warning CS0162: Unreachable code detected
+                //                 return S; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
+                // (46,26): error CS0161: 'C.M5()': not all code paths return a value
+                //     public static string M5()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
+                // (51,17): warning CS0162: Unreachable code detected
+                //                 return S; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
+        }
+
+        [Fact]
         public void General()
         {
             var source = prefix + @"
@@ -115,7 +201,7 @@ public class DATest : DATestBase {
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (52,37): error CS0269: Use of unassigned out parameter 'a'
                 //     public void T002(out int a) { F(a); G(out a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "a").WithArguments("a"),
@@ -254,7 +340,7 @@ public class DATest : DATestBase {
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (83,30): warning CS0162: Unreachable code detected
                 //         { int a; if (fFalse) F(a); } // Unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "F"),
@@ -450,7 +536,7 @@ public class DATest : DATestBase {
         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
 
         // Exhaust cases
-        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
+        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: goto default; default: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto case 0; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto LSkip; } F(a); LSkip: No(); }
@@ -479,14 +565,14 @@ public class DATest : DATestBase {
                 G(out a);
                 break;
             }
-            F(a); // Error - BUG? The cases are exhaustive.
+            F(a); // OK - we consider enumerating values for integral types to be exhaustive
         }
 
         if (f) { int a; switch (val) { default: goto case 0; case 0: goto default; } F(a); } // Unreachable
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (121,86): warning CS0162: Unreachable code detected
                 //         if (f) { int a; switch (val) { default: goto case 0; case 0: goto default; } F(a); } // Unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "F").WithLocation(121, 86),
@@ -504,13 +590,7 @@ public class DATest : DATestBase {
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(83, 64),
                 // (86,88): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88),
-                // (89,99): error CS0165: Use of unassigned local variable 'a'
-                //         if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(89, 99),
-                // (118,15): error CS0165: Use of unassigned local variable 'a'
-                //             F(a); // Error - BUG? The cases are exhaustive.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(118, 15)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88)
                 );
         }
 
@@ -578,7 +658,7 @@ public class DATest : DATestBase {
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (56,40): warning CS0162: Unreachable code detected
                 //         if (f) { int a; while (fFalse) F(a); } // Unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "F"),
@@ -708,7 +788,7 @@ public class DATest : DATestBase {
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (57,49): warning CS0162: Unreachable code detected
                 //         if (f) { int a; do No(); while (fTrue); F(a); } // Unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "F"),
@@ -776,7 +856,7 @@ class C
             // NOTE: By design, we will not match dev10's report of 
             // warning CS0162: Unreachable code detected
             // See DevDiv #13696.
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -844,7 +924,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (55,40): warning CS0162: Unreachable code detected
                 //         if (f) { int a; for (;;) No(); F(a); } // Unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "F"),
@@ -930,7 +1010,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (52,51): warning CS0162: Unreachable code detected
                 //         if (f) { int a; throw new Exception("x"); F(a); } // Unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "F"),
@@ -953,7 +1033,7 @@ class C
     public bool T166(out int a) { try { return G(out a); } finally { F(a); } } // Error
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (50,42): error CS0165: Use of unassigned local variable 'a'
                 //     public bool T160() { int a; return F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
@@ -1008,7 +1088,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (67,63): warning CS0162: Unreachable code detected
                 //         if (f) { int a; try { G(out a); goto L; } finally { } return; L: F(a); }
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return"),
@@ -1100,7 +1180,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (51,47): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; foreach (char ch in F(a).ToString()) No(); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
@@ -1137,7 +1217,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (51,31): error CS0165: Use of unassigned local variable 'a'
                 //         { int a; using (Res(F(a))) No(); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
@@ -1331,7 +1411,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (57,48): error CS0165: Use of unassigned local variable 'a'
                 //         { int a; Q((f && G(out a)) && No()); F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
@@ -1518,7 +1598,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (78,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
                 //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
                 Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "DI").WithLocation(78, 15),
@@ -1553,10 +1633,33 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (62,18): error CS0165: Use of unassigned local variable 'a'
                 //             prgs[a].arr[0] = 5; // Error: a
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a")
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void WhidbeyBug467493_WithSuppression()
+        {
+            var source = prefix + @"
+    // Whidbey bug #467493
+    public static void M4() {
+        int x;
+        throw new Exception();
+        ((DI)(delegate { if (x == 1) return 1; Console.WriteLine(""Bug""); } !))();
+    }
+" + suffix;
+
+            // Covers GenerateExplicitConversionErrors
+            CreateCompilation(source).VerifyDiagnostics(
+                // (78,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "DI").WithLocation(78, 15),
+                // (78,9): warning CS0162: Unreachable code detected
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(78, 9)
                 );
         }
 
@@ -1578,7 +1681,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
@@ -1718,7 +1821,7 @@ class C
     }
 " + suffix;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (61,58): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA --> NDA */       { int a; if (x               ? F(a) : F(b)) b = c; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
@@ -1992,7 +2095,7 @@ class C
 }
 ";
             // Bug#529603: Won't Fix (Native no error)
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,21): error CS0165: Use of unassigned local variable 'x'
                 //             int y = x; // x is definitely assigned if we reach this point
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
@@ -2019,7 +2122,7 @@ public class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,31): warning CS0162: Unreachable code detected
                 //                 System.Action a = delegate { int b; int c = b; }; // Error on b.
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System"),
@@ -2045,7 +2148,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,27): warning CS0162: Unreachable code detected
                 //             System.Action a = () => { int x; int y = x; };
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System"),
@@ -2071,7 +2174,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2093,7 +2196,7 @@ class C
     static bool F() { return true; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,33): warning CS0168: The variable 'e' is declared but never used
                 //         catch (System.Exception e) when (true)
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(9, 33));
@@ -2120,7 +2223,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2143,7 +2246,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,33): error CS0165: Use of unassigned local variable 'f'
                 //         catch (Exception e) when (f == e)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f"));
@@ -2173,7 +2276,7 @@ class C
 }
 ";
             // TODO (tomat): f is always gonna be assigned in subsequent filter expressions.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (15,33): error CS0165: Use of unassigned local variable 'f'
                 //         catch (Exception e) when (f == e)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f"));
@@ -2201,7 +2304,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (15,31): error CS0165: Use of unassigned local variable 'g'
                 //             Console.WriteLine(g);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "g").WithArguments("g"));
@@ -2350,6 +2453,64 @@ class C
 }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void OutVarConversion()
+        {
+            var source =
+@"class C
+{
+    static object F(bool b)
+    {
+        return ((bool)(b && G(out var o))) ? o : null;
+    }
+    static bool G(out object o)
+    {
+        o = null;
+        return true;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void IsPatternConversion()
+        {
+            var source =
+@"class C
+{
+    static object F(object o)
+    {
+        return ((bool)(o is C c)) ? c: null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void IsPatternBadValueConversion()
+        {
+            // C#7.0 does not support this particular pattern so the pattern
+            // expression is bound as a BadExpression with a conversion.
+            var source =
+@"class C
+{
+    static T F<T>(System.ValueType o)
+    {
+        return o is T t ? t : default(T);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (5,21): error CS8314: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //         return o is T t ? t : default(T);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(5, 21));
         }
 
         [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]

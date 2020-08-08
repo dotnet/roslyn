@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -25,12 +27,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Private Class MyCodeRefactoringProvider : Inherits CodeRefactoringProvider
             Public NotOverridable Overrides Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
                 Dim codeAction = New MyCodeAction(context.Document)
-                context.RegisterRefactoring(codeAction)
-                Return SpecializedTasks.EmptyTask
+                context.RegisterRefactoring(codeAction, context.Span)
+                Return Task.CompletedTask
             End Function
 
             Private Class MyCodeAction : Inherits CodeAction
-                Private _oldDocument As Document
+                Private ReadOnly _oldDocument As Document
 
                 Public Sub New(oldDocument As Document)
                     Me._oldDocument = oldDocument
@@ -79,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile("Class D : End Class", parameters)
+            Using workspace = CreateWorkspaceFromOptions("Class D : End Class", parameters)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
                 GetMainDocumentAndPreviews(parameters, workspace, document, previews)

@@ -1,25 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 {
+    [UseExportProvider]
     public abstract class AbstractQuickInfoSourceTests
     {
         [System.Diagnostics.DebuggerStepThrough]
-        protected string ExpectedContent(params string[] expectedContent)
-        {
-            return expectedContent.Join("\r\n");
-        }
+        protected static string ExpectedContent(params string[] expectedContent)
+            => expectedContent.Join("\r\n");
 
-        protected string FormatCodeWithDocComments(params string[] code)
+        protected static string FormatCodeWithDocComments(params string[] code)
         {
             var formattedCode = code.Join("\r\n");
             return string.Concat(System.Environment.NewLine, formattedCode);

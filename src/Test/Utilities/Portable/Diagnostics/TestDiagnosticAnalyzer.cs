@@ -1,14 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -19,19 +16,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected static readonly ImmutableArray<TLanguageKindEnum> AllSyntaxKinds = GetAllEnumValues<TLanguageKindEnum>();
 
-        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
-        // protected static readonly ImmutableArray<string> AllAbstractMemberNames = ImmutableArray<string>.Empty.AddRange(GetAbstractMemberNames(typeof(CompilationStartAnalysisScope)).Distinct());
+        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "AnalyzeAdditionalFile", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
 
         protected static readonly DiagnosticDescriptor DefaultDiagnostic =
+#pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
             new DiagnosticDescriptor("CA7777", "CA7777_AnalyzerTestDiagnostic", "I'm here for test purposes", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+#pragma warning restore RS1029 // Do not use reserved diagnostic IDs.
 
         private static ImmutableArray<T> GetAllEnumValues<T>()
         {
             return ImmutableArray.CreateRange(Enum.GetValues(typeof(T)).Cast<T>());
         }
 
-        protected abstract void OnAbstractMember(string abstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null);
-        protected virtual void OnOptions(AnalyzerOptions options, [CallerMemberName]string callerName = null) { }
+        protected abstract void OnAbstractMember(string abstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName] string callerName = null);
+        protected virtual void OnOptions(AnalyzerOptions options, [CallerMemberName] string callerName = null) { }
 
         #region Implementation
 
@@ -46,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterCodeBlockAction(this.AnalyzeCodeBlock);
             context.RegisterSymbolAction(this.AnalyzeSymbol, AllSymbolKinds.ToArray());
             context.RegisterSyntaxTreeAction(this.AnalyzeSyntaxTree);
+            context.RegisterAdditionalFileAction(this.AnalyzeAdditionalFile);
             context.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.AnalyzeNode, AllSyntaxKinds.ToArray());
         }
 
@@ -85,6 +84,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             OnAbstractMember("SyntaxTree");
+            OnOptions(context.Options);
+        }
+
+        private void AnalyzeAdditionalFile(AdditionalFileAnalysisContext context)
+        {
+            OnAbstractMember("AdditionalFile");
             OnOptions(context.Options);
         }
 

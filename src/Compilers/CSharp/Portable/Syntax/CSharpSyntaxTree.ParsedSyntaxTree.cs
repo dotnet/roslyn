@@ -1,10 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,11 +25,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly string _path;
             private readonly CSharpSyntaxNode _root;
             private readonly bool _hasCompilationUnitRoot;
-            private readonly Encoding _encodingOpt;
+            private readonly Encoding? _encodingOpt;
             private readonly SourceHashAlgorithm _checksumAlgorithm;
-            private SourceText _lazyText;
+            private readonly ImmutableDictionary<string, ReportDiagnostic> _diagnosticOptions;
+            private SourceText? _lazyText;
 
-            internal ParsedSyntaxTree(SourceText textOpt, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm, string path, CSharpParseOptions options, CSharpSyntaxNode root, Syntax.InternalSyntax.DirectiveStack directives, bool cloneRoot = true)
+            internal ParsedSyntaxTree(
+                SourceText? textOpt,
+                Encoding? encodingOpt,
+                SourceHashAlgorithm checksumAlgorithm,
+                string path,
+                CSharpParseOptions options,
+                CSharpSyntaxNode root,
+                Syntax.InternalSyntax.DirectiveStack directives,
+                ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+                bool cloneRoot)
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
@@ -33,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _path = path ?? string.Empty;
                 _root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
                 _hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
+                _diagnosticOptions = diagnosticOptions ?? EmptyDiagnosticOptions;
+
                 this.SetDirectiveStack(directives);
             }
 
@@ -51,13 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _lazyText;
             }
 
-            public override bool TryGetText(out SourceText text)
+            public override bool TryGetText([NotNullWhen(true)] out SourceText? text)
             {
                 text = _lazyText;
                 return text != null;
             }
 
-            public override Encoding Encoding
+            public override Encoding? Encoding
             {
                 get { return _encodingOpt; }
             }
@@ -94,6 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+            public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => _diagnosticOptions;
+
             public override SyntaxReference GetReference(SyntaxNode node)
             {
                 return new SimpleSyntaxReference(node);
@@ -107,13 +131,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new ParsedSyntaxTree(
-                    null,
+                    textOpt: null,
                     _encodingOpt,
                     _checksumAlgorithm,
                     _path,
                     (CSharpParseOptions)options,
                     (CSharpSyntaxNode)root,
-                    _directives);
+                    _directives,
+                    _diagnosticOptions,
+                    cloneRoot: true);
             }
 
             public override SyntaxTree WithFilePath(string path)
@@ -130,7 +156,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     path,
                     _options,
                     _root,
-                    _directives);
+                    _directives,
+                    _diagnosticOptions,
+                    cloneRoot: true);
+            }
+
+            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+            {
+                if (options is null)
+                {
+                    options = EmptyDiagnosticOptions;
+                }
+
+                if (ReferenceEquals(_diagnosticOptions, options))
+                {
+                    return this;
+                }
+
+                return new ParsedSyntaxTree(
+                    _lazyText,
+                    _encodingOpt,
+                    _checksumAlgorithm,
+                    _path,
+                    _options,
+                    _root,
+                    _directives,
+                    options,
+                    cloneRoot: true);
             }
         }
     }

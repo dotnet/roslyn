@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public BloomFilter(
-            double falsePositiveProbability, 
+            double falsePositiveProbability,
             ICollection<string> stringValues,
             ICollection<long> longValues)
             : this(stringValues.Count + longValues.Count, falsePositiveProbability, isCaseSensitive: false)
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// This is needed over the normal 'string.GetHashCode()' because we need to be able to generate
         /// 'k' different well distributed hashes for any given string s.  Also, we want to be able to
         /// generate these hashes without allocating any memory.  My ideal solution would be to use an
-        /// MD5 hash.  However, there appears to be no way to do MD5 in .Net where you can:
+        /// MD5 hash.  However, there appears to be no way to do MD5 in .NET where you can:
         /// 
         /// a) feed it individual values instead of a byte[]
         /// 
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private int ComputeHash(long key, int seed)
+        private static int ComputeHash(long key, int seed)
         {
             // This is a duplicate of ComputeHash(string key, int seed).  However, because
             // we only have 64bits to encode we just unroll that function here.  See
@@ -229,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return _isCaseSensitive ? c : char.ToLowerInvariant(c);
         }
 
-        private char GetCharacter(long key, int index)
+        private static char GetCharacter(long key, int index)
         {
             Debug.Assert(index <= 3);
             return (char)(key >> (16 * index));
@@ -324,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private int GetBitArrayIndex(string value, int i)
         {
             var hash = ComputeHash(value, i);
-            hash = hash % _bitArray.Length;
+            hash %= _bitArray.Length;
             return Math.Abs(hash);
         }
 
@@ -339,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private int GetBitArrayIndex(long value, int i)
         {
             var hash = ComputeHash(value, i);
-            hash = hash % _bitArray.Length;
+            hash %= _bitArray.Length;
             return Math.Abs(hash);
         }
 
@@ -376,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 && _isCaseSensitive == filter._isCaseSensitive;
         }
 
-        private bool IsEquivalent(BitArray array1, BitArray array2)
+        private static bool IsEquivalent(BitArray array1, BitArray array2)
         {
             if (array1.Length != array2.Length)
             {

@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -37,9 +40,18 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
+        End Sub
+
+        <Fact, WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")>
+        Public Sub DefaultAwaitExpressionInfo()
+            Dim awaitInfo As AwaitExpressionInfo = Nothing
+
+            Assert.Null(awaitInfo.GetAwaiterMethod)
+            Assert.Null(awaitInfo.IsCompletedProperty)
+            Assert.Null(awaitInfo.GetResultMethod)
         End Sub
 
         <Fact()>
@@ -88,7 +100,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -151,7 +163,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36930: 'Await' requires that the type 'MyTask(Of Integer)' have a suitable GetAwaiter method.
             AssertTheseDiagnostics(compilation,
@@ -218,7 +230,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36949: Expression is of type 'MyTask(Of Integer)', which is not awaitable.
             AssertTheseDiagnostics(compilation,
@@ -279,7 +291,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36930: 'Await' requires that the type 'MyTask(Of Integer)' have a suitable GetAwaiter method.
             AssertTheseDiagnostics(compilation,
@@ -342,7 +354,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36930: 'Await' requires that the type 'MyTask(Of Integer)' have a suitable GetAwaiter method.
             AssertTheseDiagnostics(compilation,
@@ -403,7 +415,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36949: Expression is of type 'MyTask(Of Integer)', which is not awaitable.
             AssertTheseDiagnostics(compilation,
@@ -464,7 +476,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36949: Expression is of type 'MyTask(Of Integer)', which is not awaitable.
             AssertTheseDiagnostics(compilation,
@@ -520,7 +532,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36949: Expression is of type 'MyTask(Of Integer)', which is not awaitable.
             AssertTheseDiagnostics(compilation,
@@ -581,7 +593,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36930: 'Await' requires that the type 'MyTask(Of Integer)' have a suitable GetAwaiter method.
             AssertTheseDiagnostics(compilation,
@@ -622,7 +634,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30002: Type 'MyTaskAwaiter' is not defined. 
             ' error BC36949: Expression is of type 'MyTask(Of Integer)', which is not awaitable.
@@ -683,7 +695,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
@@ -737,7 +749,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36930: 'Await' requires that the type 'MyTask(Of Integer)' have a suitable GetAwaiter method.
             AssertTheseDiagnostics(compilation,
@@ -801,7 +813,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -855,7 +867,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30491: Expression does not produce a value.
             AssertTheseDiagnostics(compilation,
@@ -908,7 +920,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30456: 'IsCompleted' is not a member of 'MyTaskAwaiter(Of Integer)'.
             AssertTheseDiagnostics(compilation,
@@ -974,7 +986,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' BC30390: 'MyTaskAwaiter(Of T).Private ReadOnly Property IsCompleted As Boolean' is not accessible in this context because it is 'Private'.
             AssertTheseDiagnostics(compilation,
@@ -1032,7 +1044,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
             AssertTheseDiagnostics(compilation,
@@ -1091,7 +1103,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
             AssertTheseDiagnostics(compilation,
@@ -1150,7 +1162,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property IsCompleted(x As Integer) As Boolean'.
             AssertTheseDiagnostics(compilation,
@@ -1210,7 +1222,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
             AssertTheseDiagnostics(compilation,
@@ -1270,7 +1282,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' warning BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
@@ -1330,7 +1342,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30002: Type 'DoesntExist' is not defined.
             AssertTheseDiagnostics(compilation,
@@ -1389,7 +1401,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30456: 'GetResult' is not a member of 'MyTaskAwaiter(Of Integer)'.
             AssertTheseDiagnostics(compilation,
@@ -1456,7 +1468,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30390: 'MyTaskAwaiter(Of T).Private Function GetResult() As T' is not accessible in this context because it is 'Private'.
             AssertTheseDiagnostics(compilation,
@@ -1515,7 +1527,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30455: Argument not specified for parameter 'x' of 'Public Function GetResult(x As Integer) As T'.
             AssertTheseDiagnostics(compilation,
@@ -1574,7 +1586,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
             AssertTheseDiagnostics(compilation,
@@ -1633,7 +1645,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' warning BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
@@ -1696,7 +1708,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
             AssertTheseDiagnostics(compilation,
@@ -1758,7 +1770,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC37053: 'Await' requires that the return type 'MyTaskAwaiter(Of Integer)' of 'MyTask(Of Integer).GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
             AssertTheseDiagnostics(compilation,
@@ -1817,7 +1829,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30002: Type 'DoesntExist' is not defined.
             AssertTheseDiagnostics(compilation,
@@ -1877,7 +1889,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30491: Expression does not produce a value.
             AssertTheseDiagnostics(compilation,
@@ -1931,7 +1943,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC37056: 'MyTaskAwaiter(Of Integer)' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'.
             AssertTheseDiagnostics(compilation,
@@ -1992,7 +2004,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef, MsvbRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib, TestMetadata.Net40.MicrosoftVisualBasic}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2029,7 +2041,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2090,7 +2102,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2152,7 +2164,7 @@ End Module
     ]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929})
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929})
             compilation.AssertTheseDiagnostics(
 <expected>
 BC37056: 'T1' does not implement 'INotifyCompletion'.
@@ -2213,7 +2225,7 @@ End Module
     ]]>
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929})
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929})
             Dim verifier = CompileAndVerify(compilation)
             Dim actualIL = verifier.VisualizeIL("M.VB$StateMachine_0_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6).MoveNext()")
             Dim calls = actualIL.Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(s) s.Contains("OnCompleted")).ToArray()
@@ -2273,7 +2285,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC30205: End of statement expected.
             AssertTheseDiagnostics(compilation,
@@ -2306,7 +2318,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36933: Cannot await Nothing. Consider awaiting 'Task.Yield()' instead.
             AssertTheseDiagnostics(compilation,
@@ -2368,7 +2380,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             ' error BC36929: 'Await' may only be used in a query expression within the first collection expression of the initial 'From' clause or within the collection expression of a 'Join' clause.
             AssertTheseDiagnostics(compilation,
@@ -2448,7 +2460,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2543,7 +2555,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2627,7 +2639,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2820,7 +2832,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -2935,7 +2947,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 CandidateMethod(f As Func(Of Task)) As Object
@@ -2966,7 +2978,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v20}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v20}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3007,7 +3019,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3291,7 +3303,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3431,7 +3443,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3496,7 +3508,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3630,7 +3642,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3729,7 +3741,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3773,7 +3785,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3815,7 +3827,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3871,7 +3883,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -3976,7 +3988,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4039,7 +4051,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4163,7 +4175,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4229,7 +4241,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4279,7 +4291,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4336,7 +4348,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4422,7 +4434,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4496,7 +4508,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4532,7 +4544,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4581,7 +4593,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4659,7 +4671,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4761,7 +4773,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4836,7 +4848,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -4959,7 +4971,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5020,7 +5032,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -5091,7 +5103,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -5167,7 +5179,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -5252,7 +5264,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, LatestVbReferences, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, LatestVbReferences, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -5302,7 +5314,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -5361,7 +5373,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -5418,7 +5430,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -5472,7 +5484,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
@@ -5482,13 +5494,13 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.Async_Overload_Change_3_vb %>
+        <%= SemanticResourceUtil.Async_Overload_Change_3_vb %>
     </file>
 </compilation>
 
             Dim warnings = New Dictionary(Of String, ReportDiagnostic)()
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode(42356), ReportDiagnostic.Suppress)
-            Dim compilation = CreateCompilationWithReferences(source,
+            Dim compilation = CreateEmptyCompilationWithReferences(source,
                                     {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
                                     TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(New ReadOnlyDictionary(Of String, ReportDiagnostic)(warnings)))
 
@@ -5550,7 +5562,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -5585,7 +5597,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll)
 
             AssertTheseEmitDiagnostics(compilation,
 <expected>
@@ -5651,7 +5663,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -5691,7 +5703,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
 
             Dim expected As Xml.Linq.XCData = <![CDATA[
 0

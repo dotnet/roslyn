@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,16 +16,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Types identified by the algorithm in the spec (8.8.4).
         public readonly TypeSymbol CollectionType;
         // public readonly TypeSymbol EnumeratorType; // redundant - return type of GetEnumeratorMethod
-        public readonly TypeSymbol ElementType;
+        public readonly TypeWithAnnotations ElementTypeWithAnnotations;
+        public TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
 
         // Members required by the "pattern" based approach.  Also populated for other approaches.
         public readonly MethodSymbol GetEnumeratorMethod;
         public readonly MethodSymbol CurrentPropertyGetter;
         public readonly MethodSymbol MoveNextMethod;
 
-        // Dispose method to be called on the enumerator (may be null).
+        // True if the enumerator needs disposal once used. 
+        // Will be either IDisposable/IAsyncDisposable, or use DisposeMethod below if set
         // Computed during initial binding so that we can expose it in the semantic model.
-        public readonly bool NeedsDisposeMethod;
+        public readonly bool NeedsDisposal;
+
+        public readonly bool IsAsync;
+
+        // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
+        public readonly BoundAwaitableInfo DisposeAwaitableInfo;
+
+        // When using pattern-based Dispose, this stores the method to invoke to Dispose
+        public readonly MethodSymbol DisposeMethod;
 
         // Conversions that will be required when the foreach is lowered.
         public readonly Conversion CollectionConversion; //collection expression to collection type
@@ -35,66 +45,98 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly BinderFlags Location;
 
+        public readonly Binder Binder;
+
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
-            TypeSymbol elementType,
+            TypeWithAnnotations elementType,
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
-            bool needsDisposeMethod,
+            bool isAsync,
+            bool needsDisposal,
+            BoundAwaitableInfo disposeAwaitableInfo,
+            MethodSymbol disposeMethod,
             Conversion collectionConversion,
             Conversion currentConversion,
             Conversion enumeratorConversion,
-            BinderFlags location)
+            BinderFlags location,
+            Binder binder)
         {
             Debug.Assert((object)collectionType != null, "Field 'collectionType' cannot be null");
-            Debug.Assert((object)elementType != null, "Field 'elementType' cannot be null");
+            Debug.Assert(elementType.HasType, "Field 'elementType' cannot be null");
             Debug.Assert((object)getEnumeratorMethod != null, "Field 'getEnumeratorMethod' cannot be null");
             Debug.Assert((object)currentPropertyGetter != null, "Field 'currentPropertyGetter' cannot be null");
             Debug.Assert((object)moveNextMethod != null, "Field 'moveNextMethod' cannot be null");
+            Debug.Assert(binder != null, "Field 'binder' cannot be null");
 
             this.CollectionType = collectionType;
-            this.ElementType = elementType;
+            this.ElementTypeWithAnnotations = elementType;
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
-            this.NeedsDisposeMethod = needsDisposeMethod;
+            this.IsAsync = isAsync;
+            this.NeedsDisposal = needsDisposal;
+            this.DisposeAwaitableInfo = disposeAwaitableInfo;
+            this.DisposeMethod = disposeMethod;
             this.CollectionConversion = collectionConversion;
             this.CurrentConversion = currentConversion;
             this.EnumeratorConversion = enumeratorConversion;
             this.Location = location;
+            this.Binder = binder;
         }
 
         // Mutable version of ForEachEnumeratorInfo.  Convert to immutable using Build.
         internal struct Builder
         {
             public TypeSymbol CollectionType;
-            public TypeSymbol ElementType;
+            public TypeWithAnnotations ElementTypeWithAnnotations;
+            public TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
 
             public MethodSymbol GetEnumeratorMethod;
             public MethodSymbol CurrentPropertyGetter;
             public MethodSymbol MoveNextMethod;
 
-            public bool NeedsDisposeMethod;
+            public bool IsAsync;
+            public bool NeedsDisposal;
+            public BoundAwaitableInfo DisposeAwaitableInfo;
+            public MethodSymbol DisposeMethod;
 
             public Conversion CollectionConversion;
             public Conversion CurrentConversion;
             public Conversion EnumeratorConversion;
 
+            public Binder Binder;
+
             public ForEachEnumeratorInfo Build(BinderFlags location)
             {
+                Debug.Assert((object)CollectionType != null, "'CollectionType' cannot be null");
+                Debug.Assert((object)ElementType != null, "'ElementType' cannot be null");
+                Debug.Assert((object)GetEnumeratorMethod != null, "'GetEnumeratorMethod' cannot be null");
+
+                Debug.Assert(MoveNextMethod != null);
+                Debug.Assert(CurrentPropertyGetter != null);
+                Debug.Assert(Binder != null);
+
                 return new ForEachEnumeratorInfo(
                     CollectionType,
-                    ElementType,
+                    ElementTypeWithAnnotations,
                     GetEnumeratorMethod,
                     CurrentPropertyGetter,
                     MoveNextMethod,
-                    NeedsDisposeMethod,
+                    IsAsync,
+                    NeedsDisposal,
+                    DisposeAwaitableInfo,
+                    DisposeMethod,
                     CollectionConversion,
                     CurrentConversion,
                     EnumeratorConversion,
-                    location);
+                    location,
+                    Binder);
             }
+
+            public bool IsIncomplete
+                => GetEnumeratorMethod is null || MoveNextMethod is null || CurrentPropertyGetter is null;
         }
     }
 }

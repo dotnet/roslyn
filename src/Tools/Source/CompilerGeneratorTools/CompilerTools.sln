@@ -1,17 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26014.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29323.36
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualBasicSyntaxGenerator", "Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj", "{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicSyntaxGenerator", "Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj", "{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpSyntaxGenerator", "Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj", "{288089C5-8721-458E-BE3E-78990DAB5E2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpSyntaxGenerator", "Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj", "{288089C5-8721-458E-BE3E-78990DAB5E2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompilersBoundTreeGenerator", "Source\BoundTreeGenerator\CompilersBoundTreeGenerator.csproj", "{02459936-CD2C-4F61-B671-5C518F2A3DDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilersBoundTreeGenerator", "Source\BoundTreeGenerator\CompilersBoundTreeGenerator.csproj", "{02459936-CD2C-4F61-B671-5C518F2A3DDC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpErrorFactsGenerator", "Source\CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj", "{288089C5-8721-458E-BE3E-78990DAB5E2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpErrorFactsGenerator", "Source\CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj", "{288089C5-8721-458E-BE3E-78990DAB5E2E}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VisualBasicErrorFactsGenerator", "Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj", "{909B656F-6095-4AC2-A5AB-C3F032315C45}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicErrorFactsGenerator", "Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj", "{909B656F-6095-4AC2-A5AB-C3F032315C45}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilersIOperationGenerator", "Source\IOperationGenerator\CompilersIOperationGenerator.csproj", "{78B6E516-9909-4B10-B831-577F28C469DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,8 +41,15 @@ Global
 		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Debug|Any CPU.Build.0 = Debug|x64
 		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.ActiveCfg = Release|x64
 		{909B656F-6095-4AC2-A5AB-C3F032315C45}.Release|Any CPU.Build.0 = Release|x64
+		{78B6E516-9909-4B10-B831-577F28C469DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78B6E516-9909-4B10-B831-577F28C469DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78B6E516-9909-4B10-B831-577F28C469DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78B6E516-9909-4B10-B831-577F28C469DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {111669A5-6F61-4184-AAA6-EE639B755D1F}
 	EndGlobalSection
 EndGlobal

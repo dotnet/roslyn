@@ -1,21 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Progression
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 Imports <xmlns="http://schemas.microsoft.com/vs/2009/dgml">
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Friend Module ProgressionTestHelpers
-        Public ReadOnly CompositionCatalog As ComposableCatalog =
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
-                GetType(CSharpProgressionLanguageService),
-                GetType(VisualBasicProgressionLanguageService))
-
         <Extension>
         Public Function ToSimplifiedXDocument(graph As Graph) As XDocument
             Dim document = XDocument.Parse(graph.ToXml(graphNodeIdAliasThreshold:=1000000))

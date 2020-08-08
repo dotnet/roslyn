@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Common diagnostic rules to run during build for all shipping Roslyn projects" Description="This file contains diagnostic settings used by all Roslyn projects. Projects that need specific settings should have their own rule set files that Include this one, and then make the necessary adjustments." ToolsVersion="14.0">
+  <IncludeAll Action="Hidden" />
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
+    <Rule Id="CA1067" Action="Warning" />
+    <Rule Id="CA1068" Action="Warning" />
+    <Rule Id="CA1200" Action="Warning" />
+    <Rule Id="CA1802" Action="Warning" />
+    <Rule Id="CA1821" Action="Warning" />
+    <Rule Id="CA2007" Action="Warning" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.CodeStyle" RuleNamespace="Microsoft.CodeAnalysis.CodeStyle">
+    <Rule Id="IDE0055" Action="Warning" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">
+    <Rule Id="RS1001" Action="None" />
+    <Rule Id="RS1002" Action="None" />
+    <Rule Id="RS1003" Action="None" />
+    <Rule Id="RS1004" Action="None" />
+    <Rule Id="RS1005" Action="None" />
+    <Rule Id="RS1006" Action="None" />
+    <Rule Id="RS1008" Action="None" />
+    <Rule Id="RS1009" Action="None" />
+    <Rule Id="RS1010" Action="None" />
+    <Rule Id="RS1011" Action="None" />
+    <Rule Id="RS1012" Action="None" />
+    <Rule Id="RS1013" Action="None" />
+    <Rule Id="RS1014" Action="Warning" />
+    <Rule Id="RS1022" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26420: Enable rule RS1022 for Roslyn.sln -->
+    <Rule Id="RS1024" Action="Hidden" /> <!-- Compare symbols correctly -->
+  </Rules>
+  <Rules AnalyzerId="Roslyn.Core" RuleNamespace="Roslyn.Core">
+    <Rule Id="AD0001" Action="Error" />
+  </Rules>
+  <Rules AnalyzerId="Roslyn.Diagnostic.Analyzers" RuleNamespace="Roslyn.Diagnostics.Analyzers">
+    <Rule Id="RS0001" Action="Warning" />
+    <Rule Id="RS0002" Action="Warning" />
+    <Rule Id="RS0005" Action="Warning" />
+    <Rule Id="RS0006" Action="Error" />
+    <Rule Id="RS0012" Action="Warning" />
+    <Rule Id="RS0014" Action="Warning" />
+    <Rule Id="RS0015" Action="Warning" />
+    <Rule Id="RS0016" Action="Error" />
+    <Rule Id="RS0017" Action="Error" />
+    <Rule Id="RS0018" Action="Warning" />
+    <Rule Id="RS0022" Action="Error" />
+    <Rule Id="RS0023" Action="Error" />
+    <Rule Id="RS0024" Action="Error" />
+    <Rule Id="RS0025" Action="Error" />
+    <Rule Id="RS0026" Action="Error" />
+    <Rule Id="RS0027" Action="Error" />
+    <Rule Id="RS0040" Action="None" /> <!-- Defaultable types should have defaultable fields -->
+    <Rule Id="RS0046" Action="Info" /> <!-- Avoid the 'Opt' suffix in nullable-enabled code (too noisy right now) -->
+    <Rule Id="RS0047" Action="None" /> <!-- (Suppressor) The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName' -->
+  </Rules>
+  <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
+    <Rule Id="xUnit1004" Action="Hidden" /> <!-- allow skipped tests, with a code fix to unskip them -->
+    <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2012" Action="None" /> <!-- "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2013" Action="None" /> <!-- "do not use Assert.Equal() to check for collection size" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2017" Action="None" /> <!-- "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
+    <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
+    <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
+    <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
+    <Rule Id="VSSDK006" Action="None" /> <!-- Remove suppression. https://github.com/dotnet/roslyn/issues/38471 -->
+  </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
+    <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->
+    <Rule Id="VSTHRD003" Action="None" /> <!-- Avoid awaiting foreign Tasks https://github.com/dotnet/roslyn/issues/34331 -->
+    <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
+    <Rule Id="VSTHRD010" Action="None" /> <!-- Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275 -->
+    <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
+  </Rules>
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers">
+    <Rule Id="HAA0101" Action="None" />
+    <Rule Id="HAA0102" Action="None" />
+    <Rule Id="HAA0201" Action="None" />
+    <Rule Id="HAA0202" Action="None" />
+    <Rule Id="HAA0301" Action="None" />
+    <Rule Id="HAA0302" Action="None" />
+    <Rule Id="HAA0303" Action="None" />
+    <Rule Id="HAA0401" Action="None" />
+    <Rule Id="HAA0501" Action="None" />
+    <Rule Id="HAA0502" Action="None" />
+    <Rule Id="HAA0503" Action="None" />
+    <Rule Id="HAA0506" Action="None" />
+    <Rule Id="HAA0601" Action="None" />
+    <Rule Id="HAA0602" Action="None" />
+    <Rule Id="HAA0603" Action="None" />
+    <Rule Id="HeapAnalyzerReadonlyMethodGroupAllocationRule" Action="None" />
+  </Rules>
+</RuleSet>

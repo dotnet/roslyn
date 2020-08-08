@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -33,7 +37,13 @@ struct S
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public override async Task DisposeAsync()
+        {
+            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
+            await base.DisposeAsync();
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
@@ -53,7 +63,7 @@ struct S
             VisualStudio.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar2()
         {
             SetUpEditor(TestSource);
@@ -62,20 +72,15 @@ struct S
             VerifyRightSelected("this[int index]");
 
             VisualStudio.Editor.ExpandTypeNavBar();
-            var expectedItems = new[]
-            {
-                "C",
-                "S",
-            };
 
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 
             VerifyLeftSelected("S");
             VerifyRightSelected("Goo()");
-            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+            VisualStudio.Editor.Verify.CurrentLineText("struct $$S", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar3()
         {
             SetUpEditor(@"
@@ -98,7 +103,7 @@ struct S$$
             VerifyRightSelected("Goo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void TestSplitWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -123,7 +128,7 @@ struct S
             VerifyRightSelected("Goo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
             VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");

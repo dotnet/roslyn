@@ -1,14 +1,16 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Reflection
+Imports System.Globalization
 Imports System.IO
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
@@ -17,7 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
         Inherits TestBase
 
         Private Shared ReadOnly s_compilerVersion As String =
-            GetType(VisualBasicInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
+            CommonCompiler.GetProductVersion(GetType(VisualBasicInteractiveCompiler))
+
+        Private Shared ReadOnly s_logoAndHelpPrompt As String =
+            String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine + VBScriptingResources.LogoLine2 + "
+
+" + ScriptingResources.HelpPrompt
 
         Private Shared ReadOnly s_defaultArgs As String() = {"/R:System"}
 
@@ -54,11 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > ? 10
 10
 >", runner.Console.Out.ToString())
@@ -70,11 +73,7 @@ Type ""#help"" for more information.
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 >", runner.Console.Out.ToString())
         End Sub
 
@@ -91,11 +90,7 @@ End Class", "1").EmitToArray())
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > #r """ & file1.Path & """
 > ? New C1().Goo()
 ""Bar""
@@ -105,14 +100,10 @@ Type ""#help"" for more information.
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > ? New C1().Goo()
 «Red»
-(1) : error BC30002: Type 'C1' is not defined.
+(1) : error BC30002: " + String.Format(VBResources.ERR_UndefinedType1, "C1") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub
@@ -123,34 +114,33 @@ Type ""#help"" for more information.
 
             runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_logoAndHelpPrompt + "
 > #r ""://invalidfilepath""
 «Red»
-(1) : error BC2017: could not find library '://invalidfilepath'
+(1) : error BC2017: " + String.Format(VBResources.ERR_LibNotFound, "://invalidfilepath") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub
 
         <Fact()>
         <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
-        Public Sub TestDisplayResultsWithCurrentUICulture()
-            Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
+        Public Sub TestDisplayResultsWithCurrentUICulture1()
+            ' Save the current thread culture as it is changed in the test.
+            ' If the culture is not restored after the test all following tests
+            ' would run in the en-GB culture.
+            Dim currentCulture = CultureInfo.DefaultThreadCurrentCulture
+            Dim currentUICulture = CultureInfo.DefaultThreadCurrentUICulture
+            Try
+                Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
 ? System.Math.PI")
 
-            runner.RunInteractive()
+                runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
+    s_logoAndHelpPrompt + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > ? System.Math.PI
@@ -159,22 +149,33 @@ Type ""#help"" for more information.
 > ? System.Math.PI
 3,1415926535897931
 >", runner.Console.Out.ToString())
+            Finally
+                CultureInfo.DefaultThreadCurrentCulture = currentCulture
+                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
+            End Try
+        End Sub
 
-            ' Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
-            runner = CreateRunner(args:={}, input:="Imports System.Globalization
+        <Fact()>
+        <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
+        Public Sub TestDisplayResultsWithCurrentUICulture2()
+            ' Save the current thread culture as it is changed in the test.
+            ' If the culture is not restored after the test all following tests
+            ' would run in the en-GB culture.
+            Dim currentCulture = CultureInfo.DefaultThreadCurrentCulture
+            Dim currentUICulture = CultureInfo.DefaultThreadCurrentUICulture
+            Try
+                ' Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
+                Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
 ? System.Math.PI")
 
-            runner.RunInteractive()
+                runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic – interaktive Compilerversion " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. Alle Rechte vorbehalten.
-
-Weitere Informationen erhalten Sie nach der Eingabe von ""#help"".
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
+s_logoAndHelpPrompt + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
@@ -184,6 +185,10 @@ Weitere Informationen erhalten Sie nach der Eingabe von ""#help"".
 > ? System.Math.PI
 3.1415926535897931
 >", runner.Console.Out.ToString())
+            Finally
+                CultureInfo.DefaultThreadCurrentCulture = currentCulture
+                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
+            End Try
         End Sub
 
         <Fact>

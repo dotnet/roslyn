@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -2212,8 +2214,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlCrefAttribute(node As XmlCrefAttributeSyntax) As VisualBasicSyntaxNode
@@ -2231,8 +2231,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlAttribute(node As XmlAttributeSyntax) As VisualBasicSyntaxNode
@@ -2250,8 +2248,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlBracketedName(node As XmlBracketedNameSyntax) As VisualBasicSyntaxNode
@@ -2278,8 +2274,6 @@ TryResync:
             Else
                 Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlName(node As XmlNameSyntax) As VisualBasicSyntaxNode

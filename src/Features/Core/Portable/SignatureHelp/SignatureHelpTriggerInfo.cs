@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal struct SignatureHelpTriggerInfo
+    internal readonly struct SignatureHelpTriggerInfo
     {
         public SignatureHelpTriggerReason TriggerReason { get; }
         public char? TriggerCharacter { get; }
@@ -13,8 +15,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             : this()
         {
             Contract.ThrowIfTrue(triggerReason == SignatureHelpTriggerReason.TypeCharCommand && triggerCharacter == null);
-            this.TriggerReason = triggerReason;
-            this.TriggerCharacter = triggerCharacter;
+            TriggerReason = triggerReason;
+            TriggerCharacter = triggerCharacter;
         }
     }
 }

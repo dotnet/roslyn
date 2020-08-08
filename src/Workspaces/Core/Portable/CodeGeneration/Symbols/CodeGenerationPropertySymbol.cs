@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -7,8 +9,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
-        private RefKind _refKind;
+        private readonly RefKind _refKind;
         public ITypeSymbol Type { get; }
+        public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
         public bool IsIndexer { get; }
 
         public ImmutableArray<IParameterSymbol> Parameters { get; }
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
             IMethodSymbol setMethod)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
             this._refKind = refKind;

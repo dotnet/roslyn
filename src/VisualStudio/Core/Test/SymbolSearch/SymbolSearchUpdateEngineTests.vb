@@ -1,18 +1,19 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.IO.Compression
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.SymbolSearch
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
+    <[UseExportProvider]>
     Public Class SymbolSearchUpdateEngineTests
         Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, Boolean) =
             Function(e) TypeOf e IsNot MockException
@@ -32,20 +33,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo))).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IRemoteControlService)
+                Dim remoteControlService = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
                 Dim service = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlService.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlService.Verify()
             End Using
@@ -63,20 +62,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of DirectoryInfo))).Returns(True).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IRemoteControlService)
+                Dim remoteControlService = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
                 Dim service = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlService.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlService.Verify()
             End Using
@@ -87,12 +84,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
-                ' Simlute the local database being missing.
+                ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
-                Dim clientMock = New Mock(Of IRemoteControlClient)
+                Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
+                clientMock.Setup(Sub(s) s.Dispose())
 
                 Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
@@ -105,16 +104,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 clientMock.Verify()
@@ -126,10 +123,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
-                ' Simlute the local database being missing.
+                ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 Dim clientMock = CreateClientMock(CreateStream(New XElement("Database",
                     New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, ""),
@@ -149,16 +147,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 clientMock.Verify()
@@ -171,8 +167,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
                 clientMock.Setup(Sub(c) c.Dispose())
@@ -185,16 +182,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 clientMock.Verify()
@@ -206,10 +201,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
@@ -234,16 +230,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=Nothing,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -256,9 +250,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 'Simulate the database file not existing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 ' Get a client that will download the latest database.
                 Dim clientMock = CreateFullDatabaseClientMock()
@@ -278,16 +273,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=factoryMock.Object,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -301,9 +294,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
                 ' Simulate the local database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
+                ioMock.Setup(Sub(s) s.Move(It.IsAny(Of String), It.IsAny(Of String)))
 
                 ' Create a client that will download the latest database.
                 Dim clientMock = CreateFullDatabaseClientMock()
@@ -326,16 +322,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=factoryMock.Object,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -349,12 +343,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
+                ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
+                ioMock.Setup(Sub(s) s.Move(It.IsAny(Of String), It.IsAny(Of String)))
 
-                ' Create a client that will download the latest databsae
+                ' Create a client that will download the latest database
                 Dim clientMock = CreateFullDatabaseClientMock()
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
 
@@ -385,16 +382,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=factoryMock.Object,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -408,10 +403,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -431,16 +427,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=databaseFactoryMock.Object,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -454,10 +448,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -485,16 +481,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=databaseFactoryMock.Object,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -509,10 +503,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -545,16 +541,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
                     databaseFactoryService:=databaseFactoryMock.Object,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -570,10 +564,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IIOService)()
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
+                ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).Returns({})
+                ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo)))
 
                 ' We'll successfully read in the local database.
                 Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -601,16 +597,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
-                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=patchMock.Object,
                     databaseFactoryService:=databaseFactoryMock.Object,
-                    reportAndSwallowException:=s_allButMoqExceptions,
-                    updateCancellationToken:=cancellationTokenSource.Token)
+                    reportAndSwallowException:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -751,36 +745,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Sub
 
             Public Function LogExceptionAsync(exception As String, text As String) As Task Implements ISymbolSearchLogService.LogExceptionAsync
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Function LogInfoAsync(text As String) As Task Implements ISymbolSearchLogService.LogInfoAsync
-                Return SpecializedTasks.EmptyTask
-            End Function
-        End Class
-
-        Private Class TestProgressService
-            Implements ISymbolSearchProgressService
-
-            Public Shared ReadOnly Instance As TestProgressService = New TestProgressService()
-
-            Private Sub New()
-            End Sub
-
-            Public Function OnDownloadFullDatabaseStartedAsync(title As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseStartedAsync
-                Return SpecializedTasks.EmptyTask
-            End Function
-
-            Public Function OnDownloadFullDatabaseSucceededAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseSucceededAsync
-                Return SpecializedTasks.EmptyTask
-            End Function
-
-            Public Function OnDownloadFullDatabaseCanceledAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseCanceledAsync
-                Return SpecializedTasks.EmptyTask
-            End Function
-
-            Public Function OnDownloadFullDatabaseFailedAsync(message As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseFailedAsync
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
         End Class
     End Class

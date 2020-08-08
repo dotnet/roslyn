@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helper class for "Fix all occurrences" code fix providers.
     /// </summary>
-    internal partial class BatchFixAllProvider : FixAllProvider, IIntervalIntrospector<TextChange>
+    internal partial class BatchFixAllProvider : FixAllProvider
     {
         public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #endregion
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
 
-                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActions(
+                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActionsAsync(
                     documentsAndDiagnosticsToFixMap, fixAllState, cancellationToken).ConfigureAwait(false);
 
                 if (diagnosticsAndCodeActions.Length > 0)
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActions(
+        private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixesBag.ToImmutableArray();
         }
 
-        protected async virtual Task AddDocumentFixesAsync(
+        protected virtual async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
@@ -122,14 +124,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
-                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
-                }));
+                    return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+                }, cancellationToken));
             }
 
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
-        internal override async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -169,14 +171,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static Action<CodeAction, ImmutableArray<Diagnostic>> GetRegisterCodeFixAction(
             FixAllState fixAllState,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> result)
-            => (action, diagnostics) =>
-               {
-                   if (action != null && action.EquivalenceKey == fixAllState.CodeActionEquivalenceKey)
-                   {
-                       result.Add((diagnostics.First(), action));
-                   }
-               };
+        {
+            return (action, diagnostics) =>
+            {
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
+                builder.Push(action);
+                while (builder.Count > 0)
+                {
+                    var currentAction = builder.Pop();
+                    if (currentAction is { EquivalenceKey: var equivalenceKey }
+                        && equivalenceKey == fixAllState.CodeActionEquivalenceKey)
+                    {
+                        result.Add((diagnostics.First(), currentAction));
+                    }
 
+                    foreach (var nestedAction in currentAction.NestedCodeActions)
+                    {
+                        builder.Push(nestedAction);
+                    }
+                }
+            };
+        }
 
         protected virtual Task AddProjectFixesAsync(
             Project project, ImmutableArray<Diagnostic> diagnostics,
@@ -192,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
             // a buggy extension that throws can't bring down the host?
-            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
         }
 
         public virtual async Task<CodeAction> TryGetMergedFixAsync(
@@ -214,16 +229,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public virtual string GetFixAllTitle(FixAllState fixAllState)
-        {
-            return fixAllState.GetDefaultFixAllTitle();
-        }
+            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
 
         public virtual async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
-            var documentIdToChangedDocuments = await GetDocumentIdToChangedDocuments(
+            var documentIdToChangedDocuments = await GetDocumentIdToChangedDocumentsAsync(
                 oldSolution, diagnosticsAndCodeActions, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -245,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
-        private async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocuments(
+        private static async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             CancellationToken cancellationToken)
@@ -256,18 +269,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // For each changed document, also keep track of the associated code action that
             // produced it.
             var getChangedDocumentsTasks = new List<Task>();
-            foreach (var diagnosticAndCodeAction in diagnosticsAndCodeActions)
+            foreach (var (_, action) in diagnosticsAndCodeActions)
             {
                 getChangedDocumentsTasks.Add(GetChangedDocumentsAsync(
                     oldSolution, documentIdToChangedDocuments,
-                    diagnosticAndCodeAction.action, cancellationToken));
+                    action, cancellationToken));
             }
 
             await Task.WhenAll(getChangedDocumentsTasks).ConfigureAwait(false);
             return documentIdToChangedDocuments;
         }
 
-        private async Task<IReadOnlyDictionary<DocumentId, SourceText>> GetDocumentIdToFinalTextAsync(
+        private static async Task<IReadOnlyDictionary<DocumentId, SourceText>> GetDocumentIdToFinalTextAsync(
             Solution oldSolution,
             IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
@@ -293,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return documentIdToFinalText;
         }
 
-        private async Task GetFinalDocumentTextAsync(
+        private static async Task GetFinalDocumentTextAsync(
             Solution oldSolution,
             Dictionary<CodeAction, int> codeActionToDiagnosticLocation,
             ConcurrentDictionary<DocumentId, SourceText> documentIdToFinalText,
@@ -322,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // More complex case.  We have multiple changes to the document.  Apply them in order
             // to get the final document.
 
-            var totalChangesIntervalTree = SimpleIntervalTree.Create(this);
+            var totalChangesIntervalTree = SimpleIntervalTree.Create(new TextChangeIntervalIntrospector(), Array.Empty<TextChange>());
 
             var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
             var differenceService = oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
@@ -349,13 +362,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
 
-        int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
-        int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
+        private readonly struct TextChangeIntervalIntrospector : IIntervalIntrospector<TextChange>
+        {
+            int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
+            int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
+        }
 
-        private static Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
+        private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
 
-        private async Task GetChangedDocumentsAsync(
+        private static async Task GetChangedDocumentsAsync(
             Solution oldSolution,
             ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             CodeAction codeAction,
@@ -394,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IDocumentTextDifferencingService differenceService,
             Document oldDocument,
             Document newDocument,
-            SimpleIntervalTree<TextChange> cumulativeChanges,
+            SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             CancellationToken cancellationToken)
         {
             var currentChanges = await differenceService.GetTextChangesAsync(
@@ -410,25 +426,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static bool AllChangesCanBeApplied(
-            SimpleIntervalTree<TextChange> cumulativeChanges,
+            SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges)
         {
-            var overlappingSpans = ArrayBuilder<TextChange>.GetInstance();
-            var intersectingSpans = ArrayBuilder<TextChange>.GetInstance();
+            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var overlappingSpans);
+            using var _2 = ArrayBuilder<TextChange>.GetInstance(out var intersectingSpans);
 
-            var result = AllChangesCanBeApplied(
+            return AllChangesCanBeApplied(
                 cumulativeChanges, currentChanges,
                 overlappingSpans: overlappingSpans,
                 intersectingSpans: intersectingSpans);
-
-            overlappingSpans.Free();
-            intersectingSpans.Free();
-
-            return result;
         }
 
         private static bool AllChangesCanBeApplied(
-            SimpleIntervalTree<TextChange> cumulativeChanges,
+            SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges,
             ArrayBuilder<TextChange> overlappingSpans,
             ArrayBuilder<TextChange> intersectingSpans)

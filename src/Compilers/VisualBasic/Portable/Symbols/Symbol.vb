@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -6,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
@@ -18,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend MustInherit Class Symbol
-        Implements ISymbol, IMessageSerializable
+        Implements ISymbol, ISymbolInternal, IFormattable
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -52,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' namespace symbols this property may return incorrect information if multiple declarations
         ''' with different casing were found.
         ''' </summary>
-        Public Overridable ReadOnly Property MetadataName As String Implements ISymbol.MetadataName
+        Public Overridable ReadOnly Property MetadataName As String Implements ISymbol.MetadataName, ISymbolInternal.MetadataName
             Get
                 Return Name
             End Get
@@ -187,6 +190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim sourceModuleSymbol = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 Return If(sourceModuleSymbol Is Nothing, Nothing, sourceModuleSymbol.DeclaringCompilation)
+            End Get
+        End Property
+
+        ReadOnly Property ISymbolInternal_DeclaringCompilation As Compilation Implements ISymbolInternal.DeclaringCompilation
+            Get
+                Return DeclaringCompilation
             End Get
         End Property
 
@@ -754,8 +763,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me Is obj
         End Function
 
-        Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
-            Return Me.[Equals](CObj(other))
+        Private Overloads Function IEquatable_Equals(other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
+            Return Me.[Equals](TryCast(other, Symbol), SymbolEqualityComparer.Default.CompareKind)
+        End Function
+
+        Private Overloads Function ISymbol_Equals(other As ISymbol, equalityComparer As SymbolEqualityComparer) As Boolean Implements ISymbol.Equals
+            Return Me.[Equals](TryCast(other, Symbol), equalityComparer.CompareKind)
+        End Function
+
+        Overloads Function Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+            Return Me.Equals(TryCast(other, Symbol), compareKind)
+        End Function
+
+        ' By default we don't consider the compareKind. This can be overridden.
+        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+            Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.
@@ -879,16 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case errorInfo.Code
                     Case ERRID.ERR_UnsupportedType1
 
-                        Select Case Me.Kind
-                            Case SymbolKind.Field
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-
-                            Case SymbolKind.Method
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-
-                            Case SymbolKind.Property
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-                        End Select
+                        errorInfo = If(GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(), errorInfo)
 
                     Case Else
                         ' Nothing to do, simply use the same error info.
@@ -896,6 +909,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return errorInfo
+        End Function
+
+        Private Function GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo() As DiagnosticInfo
+            Select Case Me.Kind
+                Case SymbolKind.Field
+                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+
+                Case SymbolKind.Method
+                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+
+                Case SymbolKind.Property
+                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+
+                Case Else
+                    Return Nothing
+            End Select
         End Function
 
         ''' <summary>
@@ -969,7 +998,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
 
             For Each modifier As CustomModifier In customModifiers
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
+
+                Dim errorInfo As DiagnosticInfo
+
+                If modifier.IsOptional Then
+                    errorInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
+                Else
+                    errorInfo = If(GetSymbolSpecificUnsupprtedMetadataUseSiteErrorInfo(), ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
+                End If
 
                 If errorInfo IsNot Nothing Then
                     If errorInfo.Code = highestPriorityUseSiteError Then
@@ -1050,7 +1086,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property ISymbolInternal_ContainingAssembly As IAssemblySymbolInternal Implements ISymbolInternal.ContainingAssembly
+            Get
+                Return Me.ContainingAssembly
+            End Get
+        End Property
+
         Private ReadOnly Property ISymbol_ContainingModule As IModuleSymbol Implements ISymbol.ContainingModule
+            Get
+                Return Me.ContainingModule
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbolInternal_ContainingModule As IModuleSymbolInternal Implements ISymbolInternal.ContainingModule
             Get
                 Return Me.ContainingModule
             End Get
@@ -1062,7 +1110,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property ISymbolInternal_ContainingNamespace As INamespaceSymbolInternal Implements ISymbolInternal.ContainingNamespace
+            Get
+                Return Me.ContainingNamespace
+            End Get
+        End Property
+
         Private ReadOnly Property ISymbol_ContainingSymbol As ISymbol Implements ISymbol.ContainingSymbol
+            Get
+                Return Me.ContainingSymbol
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbolInternal_ContainingSymbol As ISymbolInternal Implements ISymbolInternal.ContainingSymbol
             Get
                 Return Me.ContainingSymbol
             End Get
@@ -1074,25 +1134,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_DeclaredAccessibility As Accessibility Implements ISymbol.DeclaredAccessibility
+        Private ReadOnly Property ISymbolInternal_ContainingType As INamedTypeSymbolInternal Implements ISymbolInternal.ContainingType
+            Get
+                Return Me.ContainingType
+            End Get
+        End Property
+
+        Private ReadOnly Property ISymbol_DeclaredAccessibility As Accessibility Implements ISymbol.DeclaredAccessibility, ISymbolInternal.DeclaredAccessibility
             Get
                 Return Me.DeclaredAccessibility
             End Get
         End Property
 
-        Protected Overridable ReadOnly Property ISymbol_IsAbstract As Boolean Implements ISymbol.IsAbstract
+        Protected Overridable ReadOnly Property ISymbol_IsAbstract As Boolean Implements ISymbol.IsAbstract, ISymbolInternal.IsAbstract
             Get
                 Return Me.IsMustOverride
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsDefinition As Boolean Implements ISymbol.IsDefinition
+        Private ReadOnly Property ISymbol_IsDefinition As Boolean Implements ISymbol.IsDefinition, ISymbolInternal.IsDefinition
             Get
                 Return Me.IsDefinition
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsOverride As Boolean Implements ISymbol.IsOverride
+        Private ReadOnly Property ISymbol_IsOverride As Boolean Implements ISymbol.IsOverride, ISymbolInternal.IsOverride
             Get
                 Return Me.IsOverrides
             End Get
@@ -1104,19 +1170,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overridable ReadOnly Property ISymbol_IsStatic As Boolean Implements ISymbol.IsStatic
+        Protected Overridable ReadOnly Property ISymbol_IsStatic As Boolean Implements ISymbol.IsStatic, ISymbolInternal.IsStatic
             Get
                 Return Me.IsShared
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsImplicitlyDeclared As Boolean Implements ISymbol.IsImplicitlyDeclared
+        Private ReadOnly Property ISymbol_IsImplicitlyDeclared As Boolean Implements ISymbol.IsImplicitlyDeclared, ISymbolInternal.IsImplicitlyDeclared
             Get
                 Return Me.IsImplicitlyDeclared
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_IsVirtual As Boolean Implements ISymbol.IsVirtual
+        Private ReadOnly Property ISymbol_IsVirtual As Boolean Implements ISymbol.IsVirtual, ISymbolInternal.IsVirtual
             Get
                 Return Me.IsOverridable
             End Get
@@ -1134,7 +1200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_Locations As ImmutableArray(Of Location) Implements ISymbol.Locations
+        Private ReadOnly Property ISymbol_Locations As ImmutableArray(Of Location) Implements ISymbol.Locations, ISymbolInternal.Locations
             Get
                 Return Me.Locations
             End Get
@@ -1146,7 +1212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_Name As String Implements ISymbol.Name
+        Private ReadOnly Property ISymbol_Name As String Implements ISymbol.Name, ISymbolInternal.Name
             Get
                 Return Me.Name
             End Get
@@ -1158,7 +1224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_Kind As SymbolKind Implements ISymbol.Kind
+        Private ReadOnly Property ISymbol_Kind As SymbolKind Implements ISymbol.Kind, ISymbolInternal.Kind
             Get
                 Return Me.Kind
             End Get
@@ -1191,5 +1257,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 #End Region
+
+        Protected Shared Function ConstructTypeArguments(ParamArray typeArguments() As ITypeSymbol) As ImmutableArray(Of TypeSymbol)
+            Dim builder = ArrayBuilder(Of TypeSymbol).GetInstance(typeArguments.Length)
+            For Each typeArg In typeArguments
+                builder.Add(typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments)))
+            Next
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Protected Shared Function ConstructTypeArguments(typeArguments As ImmutableArray(Of ITypeSymbol), typeArgumentNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As ImmutableArray(Of TypeSymbol)
+            If typeArguments.IsDefault Then
+                Throw New ArgumentException(NameOf(typeArguments))
+            End If
+
+            Dim n = typeArguments.Length
+            If Not typeArgumentNullableAnnotations.IsDefault AndAlso typeArgumentNullableAnnotations.Length <> n Then
+                Throw New ArgumentException(NameOf(typeArgumentNullableAnnotations))
+            End If
+
+            Return typeArguments.SelectAsArray(Function(typeArg) typeArg.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(typeArguments)))
+        End Function
+
+        Private Overloads Function IFormattable_ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
+            Return ToString()
+        End Function
+
+        Private Function ISymbolInternal_GetISymbol() As ISymbol Implements ISymbolInternal.GetISymbol
+            Return Me
+        End Function
+
     End Class
 End Namespace

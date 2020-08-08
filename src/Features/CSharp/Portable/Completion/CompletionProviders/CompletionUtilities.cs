@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -13,24 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal static class CompletionUtilities
     {
         internal static TextSpan GetCompletionItemSpan(SourceText text, int position)
-        {
-            return CommonCompletionUtilities.GetWordSpan(text, position, IsCompletionItemStartCharacter, IsWordCharacter);
-        }
+            => CommonCompletionUtilities.GetWordSpan(text, position, IsCompletionItemStartCharacter, IsWordCharacter);
 
         public static bool IsWordStartCharacter(char ch)
-        {
-            return SyntaxFacts.IsIdentifierStartCharacter(ch);
-        }
+            => SyntaxFacts.IsIdentifierStartCharacter(ch);
 
         public static bool IsWordCharacter(char ch)
-        {
-            return SyntaxFacts.IsIdentifierStartCharacter(ch) || SyntaxFacts.IsIdentifierPartCharacter(ch);
-        }
+            => SyntaxFacts.IsIdentifierStartCharacter(ch) || SyntaxFacts.IsIdentifierPartCharacter(ch);
 
         public static bool IsCompletionItemStartCharacter(char ch)
-        {
-            return ch == '@' || IsWordCharacter(ch);
-        }
+            => ch == '@' || IsWordCharacter(ch);
 
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -58,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return true;
             }
 
-            if (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && IsStartingNewWord(text, characterPosition))
+            if (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && IsStartingNewWord(text, characterPosition))
             {
                 return true;
             }
@@ -66,18 +61,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
+        internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');
+
+        internal static ImmutableHashSet<char> CommonTriggerCharactersWithArgumentList { get; } = ImmutableHashSet.Create('.', '#', '>', ':', '(', '[', ' ');
+
+        internal static bool IsTriggerCharacterOrArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
+            => IsTriggerCharacter(text, characterPosition, options) || IsArgumentListCharacter(text, characterPosition);
+
+        private static bool IsArgumentListCharacter(SourceText text, int characterPosition)
+            => IsArgumentListCharacter(text[characterPosition]);
+
+        internal static bool IsArgumentListCharacter(char ch)
+            => ch == '(' || ch == '[' || ch == ' ';
+
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             // Bring up on space or at the start of a word.
             var ch = text[characterPosition];
             return SpaceTypedNotBeforeWord(ch, text, characterPosition) ||
-                (IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
+                (IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
+        internal static ImmutableHashSet<char> SpaceTriggerCharacter => ImmutableHashSet.Create(' ');
+
         private static bool SpaceTypedNotBeforeWord(char ch, SourceText text, int characterPosition)
-        {
-            return ch == ' ' && (characterPosition == text.Length - 1 || !IsWordStartCharacter(text[characterPosition + 1]));
-        }
+            => ch == ' ' && (characterPosition == text.Length - 1 || !IsWordStartCharacter(text[characterPosition + 1]));
 
         public static bool IsStartingNewWord(SourceText text, int characterPosition)
         {
@@ -85,14 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 text, characterPosition, IsWordStartCharacter, IsWordCharacter);
         }
 
-        public static (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
+        public static (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
+            ISymbol symbol, SyntaxContext context)
         {
             var insertionText = GetInsertionText(symbol, context);
-            var displayText = symbol.GetArity() == 0 
-                ? insertionText 
-                : string.Format("{0}<>", insertionText);
+            var suffix = symbol.GetArity() == 0 ? "" : "<>";
 
-            return (displayText, insertionText);
+            return (insertionText, suffix, insertionText);
         }
 
         public static string GetInsertionText(ISymbol symbol, SyntaxContext context)
@@ -114,6 +121,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
+        }
+
+        public static int GetTargetCaretPositionForMethod(MethodDeclarationSyntax methodDeclaration)
+        {
+            if (methodDeclaration.Body == null)
+            {
+                return methodDeclaration.GetLocation().SourceSpan.End;
+            }
+            else
+            {
+                // move to the end of the last statement in the method
+                var lastStatement = methodDeclaration.Body.Statements.Last();
+                return lastStatement.GetLocation().SourceSpan.End;
+            }
         }
     }
 }

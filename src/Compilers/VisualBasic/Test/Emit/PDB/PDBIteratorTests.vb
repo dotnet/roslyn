@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -11,7 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBIteratorTests
         Inherits BasicTestBase
 
-        <Fact, WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
+        <WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SimpleIterator()
             Dim source =
 <compilation>
@@ -75,7 +78,8 @@ End Class
 ", sequencePoints:="C+VB$StateMachine_1_F.MoveNext")
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IteratorLambdaWithForEach()
             Dim source =
 <compilation>
@@ -102,11 +106,11 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-0.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
@@ -133,7 +137,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IteratorWithLiftedMultipleSameNameLocals()
             Dim source =
 <compilation>
@@ -169,14 +174,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             ' VERY IMPORTANT!!!! We must have locals named $VB$ResumableLocal_x$1 and $VB$ResumableLocal_x$2 here
             '                    Even though they do not really exist in IL, EE will rely on them for scoping     
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
@@ -238,7 +243,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -261,7 +267,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.ReleaseDll)
 
@@ -269,7 +275,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext">
@@ -300,7 +306,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -321,7 +328,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.ReleaseDll)
 
@@ -329,7 +336,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext">
@@ -352,7 +359,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
@@ -372,13 +380,13 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_Hoisted" name="MoveNext">
@@ -411,7 +419,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>
@@ -429,13 +438,13 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the unmangled names "x" and "y".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted" name="MoveNext">
@@ -464,7 +473,8 @@ End Class
         ''' Sequence points of MoveNext method shall not be affected by DebuggerHidden attribute. 
         ''' The method contains user code that can be edited during debugging and might need remapping.
         ''' </summary>
-        <Fact, WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")>
+        <WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DebuggerHiddenIterator()
             Dim source =
 <compilation>
@@ -490,11 +500,11 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
@@ -520,7 +530,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
+        <Fact>
+        <WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
         Public Sub PortableStateMachineDebugInfo()
             Dim src = "
 Imports System.Collections.Generic
@@ -529,7 +540,7 @@ Public Class C
        Yield 1
     End Function
 End Class"
-            Dim compilation = CreateCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim peStream = New MemoryStream()
@@ -540,7 +551,7 @@ End Class"
             Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
                 Dim mdReader = provider.GetMetadataReader()
                 Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                Dim visualizer = New MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences)
                 visualizer.WriteMethodDebugInformation()
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
@@ -550,7 +561,7 @@ MethodDebugInformation (index: 0x31, size: 40):
 2: nil
 3: nil
 4: nil
-5: #22
+5:
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)

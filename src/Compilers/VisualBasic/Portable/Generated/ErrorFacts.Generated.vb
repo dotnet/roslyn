@@ -169,7 +169,8 @@
                      ERRID.WRN_NoAnalyzerInAssembly,
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
-                     ERRID.WRN_Experimental
+                     ERRID.WRN_Experimental,
+                     ERRID.WRN_AttributeNotSupportedInVB
                     Return True
                 Case Else
                     Return False
@@ -178,7 +179,7 @@
 
         Public Function IsFatal(code as ERRID) As Boolean
             Select Case code
-                Case ERRID.FTL_InputFileNameTooLong
+                Case ERRID.FTL_InvalidInputFileName
                     Return True
                 Case Else
                     Return False

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -70,15 +72,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Throws<ArgumentNullException>(() => SourceText.From((Stream)null, Encoding.UTF8));
             Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: false, canSeek: true), Encoding.UTF8));
-            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
+            Assert.Throws<NotImplementedException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
         }
 
         [Fact]
         public void Indexer1()
         {
             var data = SourceText.From(string.Empty, Encoding.UTF8);
-            Assert.Throws(
-                typeof(IndexOutOfRangeException),
+            Assert.Throws<IndexOutOfRangeException>(
                 () => { var value = data[-1]; });
         }
 
@@ -145,10 +146,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void NewLines1()
         {
-            var data = SourceText.From("goo" + Environment.NewLine + " bar");
+            string newLine = Environment.NewLine;
+            var data = SourceText.From("goo" + newLine + " bar");
             Assert.Equal(2, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
-            CheckLine(data, lineNumber: 1, start: 5, length: 4, newlineLength: 0, lineText: " bar");
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: newLine.Length, lineText: "goo");
+            CheckLine(data, lineNumber: 1, start: 3 + newLine.Length, length: 4, newlineLength: 0, lineText: " bar");
         }
 
         [Fact]
@@ -160,9 +162,10 @@ bar
 baz";
             var data = SourceText.From(text);
             Assert.Equal(3, data.Lines.Count);
-            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
-            CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 2, lineText: "bar");
-            CheckLine(data, lineNumber: 2, start: 10, length: 3, newlineLength: 0, lineText: "baz");
+            var newlineLength = Environment.NewLine.Length;
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: newlineLength, lineText: "goo");
+            CheckLine(data, lineNumber: 1, start: 3 + newlineLength, length: 3, newlineLength: newlineLength, lineText: "bar");
+            CheckLine(data, lineNumber: 2, start: 2 * (3 + newlineLength), length: 3, newlineLength: 0, lineText: "baz");
         }
 
         [Fact]

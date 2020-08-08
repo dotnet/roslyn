@@ -1,10 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
-    Friend Partial Class MemberDeclarationsOrganizer
+    Partial Friend Class MemberDeclarationsOrganizer
         Private Sub New()
         End Sub
 
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
         Private Shared Sub TransferTrivia(Of TSyntaxNode As SyntaxNode)(
             originalList As IList(Of TSyntaxNode),
             finalList As IList(Of TSyntaxNode))
-            Contract.Requires(originalList.Count = finalList.Count)
+            Debug.Assert(originalList.Count = finalList.Count)
 
             If originalList.Count >= 2 Then
                 ' Ok, we wanted to reorder the list.  But we're definitely not done right now. While

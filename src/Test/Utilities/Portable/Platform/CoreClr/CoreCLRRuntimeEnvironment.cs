@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NETCOREAPP2_0
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#if NETCOREAPP
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.CoreClr
@@ -94,19 +98,17 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public ImmutableArray<byte> GetMainPdb() => GetEmitData().MainModulePdb;
 
-        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
-        {
-            throw new NotImplementedException();
-        }
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) =>
+            GetEmitData().GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
 
-        public void PeVerify()
+        public void Verify(Verification verification)
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.PeverifyRequested = true;
             // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
         }
 
-        public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
+        public string[] VerifyModules(string[] modulesToVerify)
         {
             // TODO(https://github.com/dotnet/coreclr/issues/295): Implement peverify
             return null;
@@ -154,6 +156,11 @@ namespace Roslyn.Test.Utilities.CoreClr
             internal ImmutableArray<byte> MainModulePdb;
 
             internal ImmutableArray<Diagnostic> Diagnostics;
+
+            public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
+            {
+                return LoadContext.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, AllModuleData.Select(x => x.Id));
+            }
         }
     }
 }

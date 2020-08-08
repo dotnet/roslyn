@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Context for "Fix all occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
+    /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
     /// </summary>
     public partial class FixAllContext
     {
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), 
+            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider),
                   new ProgressTracker(), cancellationToken)
         {
             if (document == null)
@@ -172,28 +174,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets all the project-level diagnostics, i.e. diagnostics with no source location, in the given project filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
+        public Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false).ConfigureAwait(false);
+            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false);
         }
 
         /// <summary>
         /// Gets all the diagnostics in the given project filtered by <see cref="DiagnosticIds"/>.
         /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
+        public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true).ConfigureAwait(false);
+            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true);
         }
 
         /// <summary>
@@ -231,13 +233,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
-        {
-            return State.DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
-        }
+            => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
 
         internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
-        {
-            return State.DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
-        }
+            => State.DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
     }
 }

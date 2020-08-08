@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -18,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub Methods1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -166,7 +169,7 @@ BC30284: sub 'm5' cannot be declared 'Overrides' because it does not override a 
 
         <Fact>
         Public Sub Methods2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -207,7 +210,7 @@ End Module
 
         <Fact>
         Public Sub Constructors1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -280,7 +283,7 @@ End Class
 
         <Fact>
         Public Sub SharedConstructors1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -350,7 +353,7 @@ End Module
 
         <Fact>
         Public Sub DefaultConstructors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -440,7 +443,7 @@ End Interface
 
         <Fact>
         Public Sub MethodParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -549,7 +552,7 @@ End Class
 
         <Fact>
         Public Sub MethodByRefParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -591,7 +594,7 @@ End Structure
 
         <Fact>
         Public Sub MethodTypeParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -651,7 +654,7 @@ End Class
 
         <Fact>
         Public Sub ConstructGenericMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -802,7 +805,7 @@ End Class
 
         <Fact>
         Public Sub InterfaceImplements01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -894,7 +897,7 @@ End Namespace
         <WorkItem(537444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537444")>
         <Fact>
         Public Sub DeclareFunction01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Option Explicit
@@ -933,7 +936,7 @@ End Namespace
 
         <Fact>
         Public Sub CodepageOptionUnicodeMembers01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Imports System
@@ -996,7 +999,7 @@ End Structure
         <WorkItem(537466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537466")>
         <Fact>
         Public Sub DefaultAccessibility01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Imports System
@@ -1144,7 +1147,7 @@ End Namespace
 
         <Fact>
         Public Sub OverloadsAndOverrides01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Imports System
@@ -1249,7 +1252,7 @@ End Namespace
 
         <Fact>
         Public Sub Bug2820()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Class Class1
@@ -1268,7 +1271,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Class Base
@@ -1313,7 +1316,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Class Base
@@ -1355,7 +1358,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Class Base
@@ -1397,7 +1400,7 @@ End Class
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Interface Base1
@@ -1439,7 +1442,7 @@ End Interface
 
         <Fact>
         Public Sub MultipleOverloadsMetadataName5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="b.vb">
 Interface Base1
@@ -1481,7 +1484,7 @@ End Interface
 
         <Fact>
         Public Sub ProbableExtensionMethod()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="C">
     <file name="a.vb">
 Option Strict On
@@ -1589,7 +1592,7 @@ Module M2
 
 End Module
 ]]></file>
-</compilation>, additionalRefs:={SystemCoreRef, SystemRef}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
+</compilation>, references:={TestMetadata.Net40.SystemCore, TestMetadata.Net40.System}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim sourceMod = DirectCast(compilation.SourceModule, SourceModuleSymbol)
@@ -1694,7 +1697,7 @@ End Class
             Dim operatorPos = source.IndexOf("+"c)
             Dim parenPos = source.IndexOf("("c)
 
-            Dim comp = CreateCompilationWithMscorlib({Parse(source)})
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source)})
             Dim Symbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single()
             Dim span = Symbol.Locations.Single().SourceSpan
             Assert.Equal(operatorPos, span.Start)
@@ -1713,7 +1716,7 @@ End Class
 ]]>.Value
 
             ' Used to raise an exception.
-            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, options:=TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source)}, options:=TestOptions.ReleaseDll)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC33016: Operator '+' must have either one or two parameters.
     Public Shared Operator +(Of T)

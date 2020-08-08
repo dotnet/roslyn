@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 
@@ -15,13 +19,37 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         bool InProgress { get; }
 
         /// <summary>
-        /// Raised when there is pending work in solution crawler.
+        /// Raised when solution crawler progress changed
+        /// 
+        /// Notifications for this event are serialized to preserve order. 
+        /// However, individual event notifications may occur on any thread.
         /// </summary>
-        event EventHandler Started;
+        event EventHandler<ProgressData> ProgressChanged;
+    }
+
+    internal readonly struct ProgressData
+    {
+        public ProgressStatus Status { get; }
 
         /// <summary>
-        /// Raised when there is no more pending work in solution crawler.
+        /// number of pending work item in the queue. 
+        /// null means N/A for the associated <see cref="Status"/>
         /// </summary>
-        event EventHandler Stopped;
+        public int? PendingItemCount { get; }
+
+        public ProgressData(ProgressStatus type, int? pendingItemCount)
+        {
+            Status = type;
+            PendingItemCount = pendingItemCount;
+        }
+    }
+
+    internal enum ProgressStatus
+    {
+        Started,
+        Paused,
+        PendingItemCountUpdated,
+        Evaluating,
+        Stopped
     }
 }

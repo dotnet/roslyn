@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,17 +19,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
     {
         private partial class GenerateVariableCodeAction : CodeAction
         {
-            private readonly TService _service;
             private readonly State _state;
             private readonly bool _generateProperty;
             private readonly bool _isReadonly;
             private readonly bool _isConstant;
             private readonly RefKind _refKind;
-            private readonly SemanticDocument _document;
+            private readonly SemanticDocument _semanticDocument;
             private readonly string _equivalenceKey;
 
             public GenerateVariableCodeAction(
-                TService service,
                 SemanticDocument document,
                 State state,
                 bool generateProperty,
@@ -36,8 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 bool isConstant,
                 RefKind refKind)
             {
-                _service = service;
-                _document = document;
+                _semanticDocument = document;
                 _state = state;
                 _generateProperty = generateProperty;
                 _isReadonly = isReadonly;
@@ -46,24 +44,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _equivalenceKey = Title;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var solution = _document.Project.Solution;
-                var syntaxTree = _document.SyntaxTree;
-                var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
+                var solution = _semanticDocument.Project.Solution;
+                var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
-                var otions = new CodeGenerationOptions(
+                var options = new CodeGenerationOptions(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation());
+                    contextLocation: _state.IdentifierToken.GetLocation(),
+                    options: await _semanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
                 if (_generateProperty)
                 {
-                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state), cancellationToken);
+                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state));
                     var setAccessor = _isReadonly || _refKind != RefKind.None
-                        ? null 
-                        : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
+                        ? null
+                        : CreateAccessor(DetermineMinimalAccessibility(_state));
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
@@ -78,8 +76,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         getMethod: getAccessor,
                         setMethod: setAccessor);
 
-                    return CodeGenerator.AddPropertyDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, propertySymbol, otions, cancellationToken);
+                    return await CodeGenerator.AddPropertyDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, propertySymbol, options, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -92,34 +90,32 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         type: _state.TypeMemberType,
                         name: _state.IdentifierToken.ValueText);
 
-                    return CodeGenerator.AddFieldDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, fieldSymbol, otions, cancellationToken);
+                    return await CodeGenerator.AddFieldDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, fieldSymbol, options, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            private IMethodSymbol CreateAccessor(
-                Accessibility accessibility, CancellationToken cancellationToken)
+            private IMethodSymbol CreateAccessor(Accessibility accessibility)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     attributes: default,
                     accessibility: accessibility,
-                    statements: GenerateStatements(cancellationToken));
+                    statements: GenerateStatements());
             }
 
-            private ImmutableArray<SyntaxNode> GenerateStatements(
-                CancellationToken cancellationToken)
+            private ImmutableArray<SyntaxNode> GenerateStatements()
             {
-                var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
+                var syntaxFactory = _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
-                    syntaxFactory, this._document, "System.NotImplementedException", cancellationToken);
+                    syntaxFactory, _semanticDocument, "System.NotImplementedException");
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)
                     : default;
             }
 
-            private Accessibility DetermineMaximalAccessibility(State state)
+            private static Accessibility DetermineMaximalAccessibility(State state)
             {
                 if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface)
                 {
@@ -153,7 +149,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // Otherwise, figure out what accessibility modifier to use and optionally mark
                 // it as static.
-                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return Accessibility.Public;
@@ -193,7 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private bool DerivesFrom(State state, INamedTypeSymbol containingType)
+            private static bool DerivesFrom(State state, INamedTypeSymbol containingType)
             {
                 return containingType.GetBaseTypes().Select(t => t.OriginalDefinition)
                                                     .Contains(state.TypeToGenerateIn);

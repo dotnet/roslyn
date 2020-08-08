@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -596,7 +599,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 Left: 
                   IFieldReferenceOperation: D1 C.Deconstruct (OperationKind.FieldReference, Type: D1, IsInvalid) (Syntax: 'Deconstruct')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
                 Right: 
                   IDelegateCreationOperation (OperationKind.DelegateCreation, Type: D1, IsInvalid, IsImplicit) (Syntax: 'DeconstructMethod')
                     Target: 
@@ -655,11 +658,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                     Children(1):
                         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Deconstruct')
                           Children(1):
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
                 Right: 
                   IOperation:  (OperationKind.None, Type: null) (Syntax: 'DeconstructMethod')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0102: The type 'C' already contains a definition for 'Deconstruct'
@@ -792,7 +795,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "System.ValueTuple`2[System.Int32,System.Int32]");
         }
@@ -850,9 +853,9 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (a) => a;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9)
                 );
@@ -876,7 +879,7 @@ IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.Anonymous
   IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         /*<bind>*/(a, b) => { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 19)
             };
@@ -949,7 +952,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source, expectedOutput: "M M 43");
             comp.VerifyDiagnostics(
                 );
         }
@@ -1277,7 +1280,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2");
@@ -1368,12 +1371,9 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
+                // file.cs(12,28): error CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(12, 28)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1482,7 +1482,7 @@ class C
 
             var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple);
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
@@ -1599,13 +1599,13 @@ class C1
     }
 }
 ";
-            var libMissingComp = CreateStandardCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
+            var libMissingComp = CreateCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
             var libMissingRef = libMissingComp.EmitToImageReference();
 
-            var libComp = CreateStandardCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            var libComp = CreateCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
             var libRef = libComp.EmitToImageReference();
 
-            var comp = CreateStandardCompilation(new string[] { source }, references: new[] { libRef });
+            var comp = CreateCompilation(new string[] { source }, references: new[] { libRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C();
@@ -1684,7 +1684,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)");
             comp.VerifyDiagnostics();
         }
 
@@ -1755,7 +1755,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)");
             comp.VerifyDiagnostics();
         }
 
@@ -1830,7 +1830,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)");
             comp.VerifyDiagnostics();
 
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -1913,7 +1913,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
@@ -1940,7 +1940,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
@@ -2219,7 +2219,7 @@ class C
 }
 " + commonSource;
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
@@ -3019,10 +3019,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         /*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 38)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3063,10 +3060,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         /*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 35)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 35)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3157,7 +3151,7 @@ class C
 ";
             // The correct expectation is for the code to compile and execute
             //var comp = CompileAndVerify(source, expectedOutput: "42 43 44");
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,9): error CS8134: Deconstruction must contain at least two variables.
                 //         (var(x, y)) = 43; // parsed as invocation
@@ -3388,10 +3382,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x1' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43),
-                // CS0165: Use of unassigned local variable 'x1'
-                //         for (/*<bind>*/var (x1, x2) = (1, x1)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 43)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3432,10 +3423,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0841: Cannot use local variable 'x2' before it is declared
                 //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40),
-                // CS0165: Use of unassigned local variable 'x2'
-                //         for (/*<bind>*/var (x1, x2) = (x2, 2)/*</bind>*/; ;) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 40)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 40)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3458,7 +3446,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... in M()) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... in M()) { }')
   Locals: Local_1: System.Int32 x1
     Local_2: System.Int32 x2
   LoopControlVariable: 
@@ -3505,7 +3493,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... nt x1)) { }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach ((i ... nt x1)) { }')
   Locals: Local_1: System.Int32 x1
     Local_2: System.Int32 x2
   LoopControlVariable: 
@@ -3560,7 +3548,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,17): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int x1 = 1;
@@ -3582,7 +3570,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,40): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach ((int x1, int x2) in M(x1))
@@ -3605,7 +3593,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0103: The name 'x1' does not exist in the current context
                 //         System.Console.Write(x1);
@@ -3712,11 +3700,14 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36),
+                // (6,34): error CS1579: foreach statement cannot operate on variables of type '(int, int)' because '(int, int)' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (var (x1, x2) in M(x1)) { }
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "M(x1)").WithArguments("(int, int)", "GetEnumerator").WithLocation(6, 34),
                 // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 23),
@@ -3746,7 +3737,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3779,7 +3770,7 @@ class C
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3796,7 +3787,7 @@ class C
     static T M<T>(out T x) { x = default(T); return x; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,31): error CS0841: Cannot use local variable 'x2' before it is declared
                 //         var (x1, x2) = (M(out x2), M(out x1));
@@ -3821,7 +3812,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
@@ -3849,7 +3840,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // this is no longer considered a declaration statement,
                 // but rather is an assignment expression. So no error.
@@ -3870,7 +3861,7 @@ class C1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3888,7 +3879,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): warning CS0612: 'C.Deconstruct(out int, out int)' is obsolete
                 //        (int y1, int y2) = new C();
@@ -3910,7 +3901,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS0619: 'C.Deconstruct(out int, out int)' is obsolete: 'Deprecated'
                 //        (int y1, int y2) = new C();
@@ -3943,7 +3934,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -3958,7 +3949,7 @@ class Program
                     if (node is DeclarationExpressionSyntax)
                     {
                         Assert.Equal(SymbolKind.Local, symbol.Kind);
-                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
                     }
                     else
                     {
@@ -3972,7 +3963,7 @@ class Program
                     if (node is SingleVariableDesignationSyntax)
                     {
                         Assert.Equal(SymbolKind.Local, symbol.Kind);
-                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
                     }
                     else
                     {
@@ -4038,7 +4029,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0106: The modifier 'const' is not valid for this item
                 //         const var (x, y) = (1, 2);
@@ -4092,7 +4083,7 @@ unsafe class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source,
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.UnsafeDebugDll);
 
@@ -4158,7 +4149,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         string s = nameof((int x1, var x2) = (1, 2)).ToString();
@@ -4188,12 +4179,12 @@ class Program
 
             var x1 = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("x1", x1.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x1).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)x1).Type.ToTestDisplayString());
             Assert.Same(x1, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x1").Single()).Symbol);
 
             var x2 = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("x2", x2.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x2).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)x2).Type.ToTestDisplayString());
             Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
         }
 
@@ -4210,7 +4201,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
@@ -4221,7 +4212,7 @@ class C
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 28),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(6, 9),
                 // (6,28): error CS0165: Use of unassigned local variable 'd'
@@ -4241,7 +4232,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_01_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -4255,19 +4246,19 @@ class C
 
             var a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
+            Assert.Equal(localDeclarationKind, a.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
+            Assert.Equal(localDeclarationKind, b.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
+            Assert.Equal(localDeclarationKind, c.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
+            Assert.Equal(localDeclarationKind, d.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
@@ -4341,7 +4332,7 @@ class C
 (var (a,b), var c, int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,7): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var (a,b), var c, int d);
@@ -4361,7 +4352,7 @@ class C
                 // (2,20): error CS8185: A declaration is not allowed in this context.
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 20),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(2, 1)
                 );
@@ -4372,7 +4363,7 @@ class C
 (var (a,b), var c, int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_02_VerifySemanticModel(comp2);
         }
@@ -4478,7 +4469,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
@@ -4489,7 +4480,7 @@ class C
                 // (6,29): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 29),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(6, 9)
                 );
@@ -4506,7 +4497,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
@@ -4602,7 +4593,7 @@ class C
 (var (_, _), var _, int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
@@ -4613,7 +4604,7 @@ class C
                 // (2,21): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 21),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(2, 1)
                 );
@@ -4624,7 +4615,7 @@ class C
 (var (_, _), var _, int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
@@ -4644,7 +4635,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_05_VerifySemanticModel(comp1);
 
@@ -4660,7 +4651,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_05_VerifySemanticModel(comp2);
         }
@@ -4723,7 +4714,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             var tree = comp1.SyntaxTrees.Single();
             var model = comp1.GetSemanticModel(tree);
@@ -4731,7 +4722,7 @@ class C
 
             var aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
             Assert.Equal("var (a, a)", aa.ToString());
-            var aaType = (TypeSymbol)model.GetTypeInfo(aa).Type;
+            var aaType = model.GetTypeInfo(aa).Type.GetSymbol();
             Assert.True(aaType.TupleElementNames.IsDefault);
         }
 
@@ -4744,7 +4735,7 @@ using var = System.Int32;
 (var (a,b), var c);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp1);
 
@@ -4754,7 +4745,7 @@ using var = System.Int32;
 (var (a,b), var c) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp2);
         }
@@ -4816,7 +4807,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4832,7 +4823,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
@@ -4891,7 +4882,7 @@ using var = System.Int32;
 (var (_, _), var _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4901,7 +4892,7 @@ using var = System.Int32;
 (var (_, _), var _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
@@ -4921,7 +4912,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_09_VerifySemanticModel(comp1);
 
@@ -4937,7 +4928,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_09_VerifySemanticModel(comp2);
         }
@@ -4973,7 +4964,7 @@ using al = System.Int32;
 (al (a,b), al c);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp1);
 
@@ -4983,7 +4974,7 @@ using al = System.Int32;
 (al (a,b), al c) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp2);
         }
@@ -5025,7 +5016,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -5041,7 +5032,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
@@ -5080,7 +5071,7 @@ using al = System.Int32;
 (al (_, _), al _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -5090,7 +5081,7 @@ using al = System.Int32;
 (al (_, _), al _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
@@ -5109,7 +5100,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (7,19): error CS1002: ; expected
                 //         var (c, d)
@@ -5151,7 +5142,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
@@ -5162,7 +5153,7 @@ class C
                 // (6,30): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 30),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(6, 9),
                 // (6,30): error CS0165: Use of unassigned local variable 'd'
@@ -5182,7 +5173,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_14_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -5196,19 +5187,19 @@ class C
 
             var a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
+            Assert.Equal(localDeclarationKind, a.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
+            Assert.Equal(localDeclarationKind, b.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
+            Assert.Equal(localDeclarationKind, c.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
+            Assert.Equal(localDeclarationKind, d.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
@@ -5296,7 +5287,7 @@ class C
 ((var (a,b), var c), int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // ((var (a,b), var c), int d);
@@ -5316,7 +5307,7 @@ class C
                 // (2,22): error CS8185: A declaration is not allowed in this context.
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 22),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(2, 1)
                 );
@@ -5327,7 +5318,7 @@ class C
 ((var (a,b), var c), int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_15_VerifySemanticModel(comp2);
         }
@@ -5446,7 +5437,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
@@ -5457,7 +5448,7 @@ class C
                 // (6,31): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 31),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(6, 9)
                 );
@@ -5474,7 +5465,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
@@ -5583,7 +5574,7 @@ class C
 ((var (_, _), var _), int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,3): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
@@ -5594,7 +5585,7 @@ class C
                 // (2,23): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 23),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(2, 1)
                 );
@@ -5605,7 +5596,7 @@ class C
 ((var (_, _), var _), int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
@@ -5623,7 +5614,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
@@ -5631,7 +5622,7 @@ class C
                 // (6,26): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 26),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(6, 9),
                 // (6,26): error CS0165: Use of unassigned local variable 'd'
@@ -5651,7 +5642,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_18_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
@@ -5665,19 +5656,19 @@ class C
 
             var a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
+            Assert.Equal(localDeclarationKind, a.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
+            Assert.Equal(localDeclarationKind, b.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
+            Assert.Equal(localDeclarationKind, c.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
+            Assert.Equal(localDeclarationKind, d.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
@@ -5733,7 +5724,7 @@ class C
 (var ((a,b), c), int d);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var ((a,b), c), int d);
@@ -5750,7 +5741,7 @@ class C
                 // (2,18): error CS8185: A declaration is not allowed in this context.
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 18),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(2, 1)
                 );
@@ -5761,7 +5752,7 @@ class C
 (var ((a,b), c), int d) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_19_VerifySemanticModel(comp2);
         }
@@ -5849,7 +5840,7 @@ class C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
@@ -5857,7 +5848,7 @@ class C
                 // (6,27): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 27),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(6, 9)
                 );
@@ -5874,7 +5865,7 @@ class C
 }
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp2 = CreateCompilation(source2);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
@@ -5949,7 +5940,7 @@ class C
 (var ((_, _), _), int _);
 ";
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
@@ -5957,7 +5948,7 @@ class C
                 // (2,19): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 19),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(2, 1)
                 );
@@ -5968,7 +5959,7 @@ class C
 (var ((_, _), _), int _) = D;
 ";
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
@@ -5983,7 +5974,7 @@ class C
         (_, _) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,22): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (_, _) = (1, Main());
@@ -5998,7 +5989,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 
@@ -6023,17 +6014,14 @@ class C
         (int x, void y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, Main());
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
                 // (5,31): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, void y) = (1, Main());
-                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31),
-                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
-                //         (int x, void y) = (1, Main());
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31)
                 );
             var main = comp.GetMember<MethodSymbol>("C.Main");
             var tree = comp.SyntaxTrees[0];
@@ -6044,7 +6032,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 
@@ -6069,7 +6057,7 @@ class C
         var (x, y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,26): error CS8210: A tuple may not contain a value of type 'void'.
                 //         var (x, y) = (1, Main());
@@ -6084,7 +6072,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 
@@ -6109,17 +6097,14 @@ class C
         (int x, void y) = (1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
                 // (5,31): error CS0029: Cannot implicitly convert type 'int' to 'void'
                 //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "void").WithLocation(5, 31),
-                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
-                //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "void").WithLocation(5, 31)
                 );
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -6154,7 +6139,7 @@ class C
         (int x, int y) = (1, Main());
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,30): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, int y) = (1, Main());
@@ -6169,7 +6154,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 
@@ -6204,8 +6189,8 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(_, _)')
         NaturalType: (System.Int32, System.Int32)
         Elements(2):
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
       NaturalType: (System.Int32, System.Int32)
@@ -6239,7 +6224,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       NaturalType: (System.Int32 x, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
-          IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+          IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
       NaturalType: (System.Int32, System.Int32)
@@ -6271,7 +6256,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'var _')
+IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: 'var _')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

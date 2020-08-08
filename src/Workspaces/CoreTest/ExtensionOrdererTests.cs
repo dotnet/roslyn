@@ -1,31 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class ExtensionOrdererTests : TestBase
+    public class ExtensionOrdererTests
     {
         private class Extension { }
-
-        private class ExtensionMetadata : IOrderableMetadata
-        {
-            public string Name { get; }
-            public IEnumerable<string> Before { get; }
-            public IEnumerable<string> After { get; }
-
-            public ExtensionMetadata(string name = null, IEnumerable<string> before = null, IEnumerable<string> after = null)
-            {
-                this.Name = name;
-                this.Before = before;
-                this.After = after;
-            }
-        }
 
         [Fact]
         public void TestNoCycle1()
@@ -36,10 +25,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var d = CreateExtension(name: "d", before: new[] { "e" });
             var e = CreateExtension(name: "e");
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { d, b, a, c, e };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { d, b, a, c, e };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            ExtensionOrderer.CheckForCycles(extensions);
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException if cycle is detected.
+            ExtensionOrderer.TestAccessor.CheckForCycles(extensions);
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("abcde", order);
         }
@@ -53,10 +42,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var d = CreateExtension(name: "d", after: new[] { "e" });
             var e = CreateExtension(name: "e");
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { d, b, a, c, e };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { d, b, a, c, e };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            ExtensionOrderer.CheckForCycles(extensions);
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException if cycle is detected.
+            ExtensionOrderer.TestAccessor.CheckForCycles(extensions);
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("edcba", order);
         }
@@ -70,10 +59,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var d = CreateExtension(name: "d", before: new[] { "e" }, after: new[] { "c", "b", "a" });
             var e = CreateExtension(name: "e", after: new[] { "d", "c", "b", "a" });
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { d, b, a, c, e };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { d, b, a, c, e };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            ExtensionOrderer.CheckForCycles(extensions);
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException if cycle is detected.
+            ExtensionOrderer.TestAccessor.CheckForCycles(extensions);
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("abcde", order);
         }
@@ -87,10 +76,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var d = CreateExtension(name: "d", before: new[] { "e" });
             var e = CreateExtension(name: "e", before: new[] { "a" });
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c, d, e };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("bcdea", order);
         }
@@ -104,10 +93,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var d = CreateExtension(name: "d", after: new[] { "e" });
             var e = CreateExtension(name: "e", after: new[] { "a" });
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c, d, e };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("edcba", order);
         }
@@ -119,10 +108,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var b = CreateExtension(name: "b", before: new[] { "a" }, after: new[] { "a" });
             var c = CreateExtension(name: "c");
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("bac", order);
         }
@@ -134,10 +123,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var b = CreateExtension(name: "b", before: new[] { "b" }, after: new[] { "b" });
             var c = CreateExtension(name: "c");
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("abc", order);
         }
@@ -153,10 +142,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f = CreateExtension(name: "f", before: new[] { "g" });
             var g = CreateExtension(name: "g");
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c, d, e, f, g };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f, g };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("abdecfg", order);
         }
@@ -172,10 +161,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f = CreateExtension(name: "f", before: new[] { "g" });
             var g = CreateExtension(name: "g");
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c, d, e, f, g };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f, g };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("bcdeafg", order);
         }
@@ -190,10 +179,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var e = CreateExtension(name: "e", before: new[] { "f" });
             var f = CreateExtension(name: "f", before: new[] { "d" });
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c, d, e, f };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("bcaefd", order);
         }
@@ -208,37 +197,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var e = CreateExtension(name: "e", before: new[] { "f" });
             var f = CreateExtension(name: "f", before: new[] { "a" });
 
-            var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { a, b, c, d, e, f };
+            var extensions = new List<Lazy<Extension, OrderableMetadata>>() { a, b, c, d, e, f };
 
-            // ExtensionOrderer.CheckForCycles() will throw ArgumentException when cycle is detected.
-            Assert.Throws<ArgumentException>(() => ExtensionOrderer.CheckForCycles(extensions));
+            // ExtensionOrderer.TestAccessor.CheckForCycles() will throw ArgumentException when cycle is detected.
+            Assert.Throws<ArgumentException>(() => ExtensionOrderer.TestAccessor.CheckForCycles(extensions));
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("bcdefa", order);
         }
 
         #region Helpers
-        private Lazy<Extension, ExtensionMetadata> CreateExtension(string name = null, IEnumerable<string> before = null, IEnumerable<string> after = null)
-        {
-            return new Lazy<Extension, ExtensionMetadata>(new ExtensionMetadata(name, before, after));
-        }
 
-        private IEnumerable<string> GetNames(IEnumerable<Lazy<Extension, ExtensionMetadata>> actual)
-        {
-            return actual.Select(i => i.Metadata.Name);
-        }
+        private static Lazy<Extension, OrderableMetadata> CreateExtension(string? name = null, IEnumerable<string>? before = null, IEnumerable<string>? after = null)
+            => new Lazy<Extension, OrderableMetadata>(new OrderableMetadata(name, before: before, after: after));
 
-        private void VerifyOrder(IEnumerable<string> expected, IEnumerable<Lazy<Extension, ExtensionMetadata>> actual)
-        {
-            var expectedOrder = string.Join(string.Empty, expected);
-            var actualOrder = string.Join(string.Empty, GetNames(actual));
-            Assert.Equal(expectedOrder, actualOrder);
-        }
+        private static IEnumerable<string?> GetNames(IEnumerable<Lazy<Extension, OrderableMetadata>> actual)
+            => actual.Select(i => i.Metadata.Name);
 
-        private void VerifyOrder(string expected, IEnumerable<Lazy<Extension, ExtensionMetadata>> actual)
+        private static void VerifyOrder(string expected, IEnumerable<Lazy<Extension, OrderableMetadata>> actual)
         {
             var actualOrder = string.Join(string.Empty, GetNames(actual));
             Assert.Equal(expected, actualOrder);
         }
+
         #endregion
     }
 }

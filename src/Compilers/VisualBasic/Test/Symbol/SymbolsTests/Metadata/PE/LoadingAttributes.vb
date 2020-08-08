@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
@@ -10,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -30,7 +33,7 @@ End Interface
 ]]>
                            </file>
                        </compilation>
-            Dim comp1 = CreateCompilationWithReferences(text, references:={MscorlibRef_v20})
+            Dim comp1 = CreateEmptyCompilationWithReferences(text, references:={MscorlibRef_v20})
             Dim ref1 = comp1.EmitToImageReference()
             Dim text2 =
 <compilation>
@@ -44,13 +47,13 @@ End Class]]>
     </file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
+            Dim comp2 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
 
             Dim it = comp2.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.False(it.CoClassType.IsErrorType())
 
             ' Test retargeting symbols by using the compilation itself as a reference
-            Dim comp3 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
+            Dim comp3 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
             Dim it2 = comp3.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.Same(comp3.SourceModule.GetReferencedAssemblySymbols()(0), it2.CoClassType.ContainingAssembly)
             Assert.False(it2.CoClassType.IsErrorType())
@@ -63,7 +66,7 @@ End Class]]>
                                     {
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                                        TestResources.NetFX.v4_0_21006.mscorlib
+                                        ResourcesNet40.mscorlib
                                     })
 
             Dim assembly0 = assemblies(0)
@@ -135,7 +138,7 @@ End Class]]>
                 {
                     TestResources.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                     TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                    TestResources.NetFX.v4_0_21006.mscorlib
+                    ResourcesNet40.mscorlib
                 })
 
             Dim assembly1 = assemblies(1)
@@ -208,7 +211,7 @@ End Class]]>
                                     {
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                                        TestResources.NetFX.v4_0_21006.mscorlib
+                                        ResourcesNet40.mscorlib
                                     })
 
             '<AString("C1")>
@@ -279,7 +282,7 @@ End Class]]>
                                     {
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                                        TestResources.NetFX.v4_0_21006.mscorlib
+                                        ResourcesNet40.mscorlib
                                     })
 
             Dim aBoolClass = TryCast(assemblies(1).Modules(0).GlobalNamespace.GetMember("ABooleanAttribute"), NamedTypeSymbol)
@@ -365,7 +368,7 @@ End Class]]>
             {
                 TestResources.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestResources.NetFX.v4_0_21006.mscorlib
+                ResourcesNet40.mscorlib
             })
 
             Dim aBoolClass = TryCast(assemblies(1).Modules(0).GlobalNamespace.GetMember("ABooleanAttribute"), NamedTypeSymbol)
@@ -415,7 +418,7 @@ End Class]]>
                                     {
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                                        TestResources.NetFX.v4_0_21006.mscorlib
+                                        ResourcesNet40.mscorlib
                                     })
 
             '<AString("C1")>
@@ -466,7 +469,7 @@ End Class]]>
                                     {
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                                         TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                                        TestResources.NetFX.v4_0_21006.mscorlib
+                                        ResourcesNet40.mscorlib
                                     })
 
             'Public Class C2(Of T1)
@@ -656,7 +659,7 @@ End Class]]>
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {
                                         TestResources.SymbolsTests.Metadata.AttributeInterop01,
-                                        TestResources.NetFX.v4_0_21006.mscorlib
+                                        ResourcesNet40.mscorlib
                                     })
 
             '[assembly: ImportedFromTypeLib("InteropAttributes")]
@@ -748,7 +751,7 @@ End Class]]>
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
                                        TestResources.SymbolsTests.Metadata.AttributeInterop01,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet40.mscorlib
                                    })
 
             '[ComImport, Guid("ABCDEF5D-2448-447A-B786-64682CBEF123")]
@@ -815,7 +818,7 @@ End Class]]>
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
                                        TestResources.SymbolsTests.Metadata.AttributeInterop01,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet40.mscorlib
                                    })
 
             ' [Serializable, ComVisible(false)]
@@ -858,7 +861,7 @@ End Class]]>
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
                                        TestResources.SymbolsTests.Metadata.AttributeInterop02,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet40.mscorlib
                                    })
 
             ' [Guid("31230DD5-2448-447A-B786-64682CBEFEEE"), Flags]
@@ -898,7 +901,7 @@ End Class]]>
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
                                        TestResources.SymbolsTests.Metadata.AttributeInterop01,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet40.mscorlib
                                    })
 
             '[ComImport, TypeLibType(TypeLibTypeFlags.FAggregatable)]
@@ -999,7 +1002,7 @@ End Class]]>
                                    {
                                        TestResources.SymbolsTests.Metadata.AttributeTestLib01,
                                        TestResources.SymbolsTests.Metadata.AttributeTestDef01,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet40.mscorlib
                                    })
 
             Dim caNS = DirectCast(assemblies(1).GlobalNamespace.GetMember("CustomAttribute"), NamespaceSymbol)
@@ -1040,7 +1043,7 @@ End Class]]>
                                    {
                                        TestResources.SymbolsTests.Metadata.AttributeTestLib01,
                                        TestResources.SymbolsTests.Metadata.AttributeTestDef01,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet40.mscorlib
                                    })
 
             Dim caNS = DirectCast(assemblies(1).GlobalNamespace.GetMember("CustomAttribute"), NamespaceSymbol)
@@ -1137,7 +1140,7 @@ End Class]]>
                                    {
                                        TestResources.SymbolsTests.Metadata.AttributeTestLib01,
                                        TestResources.SymbolsTests.Metadata.AttributeTestDef01,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet40.mscorlib
                                    })
 
             Dim caNS = DirectCast(assemblies(1).GlobalNamespace.GetMember("CustomAttribute"), NamespaceSymbol)
@@ -1246,9 +1249,9 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
-                                       TestResources.NetFX.v4_0_30319.System_Core,
-                                       TestResources.NetFX.v4_0_30319.System,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet451.SystemCore,
+                                       ResourcesNet451.System,
+                                       ResourcesNet40.mscorlib
                                    })
 
             Dim sysNS = DirectCast(assemblies(2).GlobalNamespace.GetMember("System"), NamespaceSymbol)
@@ -1257,16 +1260,11 @@ End Class]]>
 
             Dim asmFileAttr = DirectCast(refNS.GetTypeMembers("AssemblyFileVersionAttribute").Single(), NamedTypeSymbol)
             Dim attr1 = assemblies(0).GetAttribute(asmFileAttr)
-            Assert.Equal("4.0.30319.1", attr1.CommonConstructorArguments(0).Value)
+            Assert.Equal("4.0.30319.18408", attr1.CommonConstructorArguments(0).Value)
 
             Dim asmInfoAttr = DirectCast(refNS.GetTypeMembers("AssemblyInformationalVersionAttribute").Single(), NamedTypeSymbol)
             attr1 = assemblies(0).GetAttribute(asmInfoAttr)
-            Assert.Equal("4.0.30319.1", attr1.CommonConstructorArguments(0).Value)
-
-            Dim asmTgtAttr = DirectCast(rtNS.GetTypeMembers("AssemblyTargetedPatchBandAttribute").Single(), NamedTypeSymbol)
-            attr1 = assemblies(0).GetAttribute(asmTgtAttr)
-            Assert.Equal("1.0.21-0", attr1.CommonConstructorArguments(0).Value)
-
+            Assert.Equal("4.0.30319.18408", attr1.CommonConstructorArguments(0).Value)
         End Sub
 
         <WorkItem(539996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539996")>
@@ -1275,9 +1273,9 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
-                                       TestResources.NetFX.v4_0_30319.System_Core,
-                                       TestResources.NetFX.v4_0_30319.System,
-                                       TestResources.NetFX.v4_0_21006.mscorlib
+                                       ResourcesNet451.SystemCore,
+                                       ResourcesNet451.System,
+                                       ResourcesNet40.mscorlib
                                    })
 
             Dim corsysNS = TryCast(assemblies(2).GlobalNamespace.GetMembers("System").Single, NamespaceSymbol)
@@ -1307,9 +1305,9 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 {
-                    TestResources.NetFX.v4_0_30319.System,
-                    TestResources.NetFX.v4_0_21006.mscorlib,
-                    TestResources.NetFX.v4_0_30319.System_Configuration
+                    ResourcesNet451.System,
+                    ResourcesNet40.mscorlib,
+                    ResourcesNet451.SystemConfiguration
                 })
 
             Dim sysNS = DirectCast(assemblies(0).GlobalNamespace.GetMember("System"), NamespaceSymbol)
@@ -1340,10 +1338,10 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                  {
-                                     TestResources.NetFX.v4_0_30319.System_Data,
-                                     TestResources.NetFX.v4_0_30319.System_Core,
-                                     TestResources.NetFX.v4_0_30319.System,
-                                     TestResources.NetFX.v4_0_30319.mscorlib
+                                     ResourcesNet451.SystemData,
+                                     ResourcesNet451.SystemCore,
+                                     ResourcesNet451.System,
+                                     ResourcesNet451.mscorlib
                                  })
 
             Dim sysNS = DirectCast(assemblies(0).GlobalNamespace.GetMember("System"), NamespaceSymbol)
@@ -1378,7 +1376,51 @@ End Class]]>
 
         <WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
         <Fact>
-        Public Sub Bug530209()
+        Public Sub Bug530209_DecimalConstant()
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40(
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Public Class Class1
+    Public Const d1 as Decimal = -7
+
+    Public Const d2 as Date = #1/1/2013#
+
+    Public Sub M1(Optional d1 as Decimal = -7, 
+                  Optional d2 as Date = #1/1/2013#)
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>)
+
+            CompileAndVerify(c1, symbolValidator:=Sub(m As ModuleSymbol)
+                                                      Dim peModule = DirectCast(m, PEModuleSymbol)
+                                                      Dim class1 = peModule.ContainingAssembly.GetTypeByMetadataName("Class1")
+                                                      Dim d1 = class1.GetMember(Of PEFieldSymbol)("d1")
+                                                      Dim d2 = class1.GetMember(Of PEFieldSymbol)("d2")
+                                                      Dim m1Parameters = class1.GetMethod("M1").Parameters.Cast(Of PEParameterSymbol)
+
+                                                      Assert.Empty(d1.GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(d1.Handle).Single().ToString())
+                                                      Assert.Equal(d1.ConstantValue, CDec(-7))
+                                                      Assert.Empty(d2.GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", peModule.GetCustomAttributesForToken(d2.Handle).Single().ToString())
+                                                      Assert.Equal(d2.ConstantValue, #1/1/2013#)
+
+                                                      Assert.Empty(m1Parameters(0).GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(m1Parameters(0).Handle).Single().ToString())
+                                                      Assert.Equal(m1Parameters(0).ExplicitDefaultValue, CDec(-7))
+
+                                                      Assert.Empty(m1Parameters(1).GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", peModule.GetCustomAttributesForToken(m1Parameters(1).Handle).Single().ToString())
+                                                      Assert.Equal(m1Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                  End Sub)
+        End Sub
+
+        <WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
+        <Fact>
+        Public Sub Bug530209_DecimalConstant_FromIL()
 
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit Class1
@@ -1472,90 +1514,66 @@ End Class]]>
 } // end of class Class1
 ]]>.Value
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c1 = CompilationUtils.CreateCompilationWithCustomILSource(
                 <compilation>
                     <file name="a.vb">
-                        <![CDATA[
-Public Class Class1
-    Public Const d1 as Decimal = -7
-
-    Public Const d2 as Date = #1/1/2013#
-
-    Public Sub M1(Optional d1 as Decimal = -7, 
-                  Optional d2 as Date = #1/1/2013#)
-    End Sub
+Class Class2
+    Inherits Class1
 End Class
-]]>
                     </file>
-                </compilation>)
+                </compilation>, ilSource)
 
 
-            Dim class1 = c1.GetTypeByMetadataName("Class1")
-            Dim d1 = class1.GetMember(Of FieldSymbol)("d1")
-            Dim d2 = class1.GetMember(Of FieldSymbol)("d2")
-            Dim m1 = class1.GetMember(Of MethodSymbol)("M1")
-            Dim context = New ModuleCompilationState()
+            CompileAndVerify(c1, symbolValidator:=Sub(m As ModuleSymbol)
+                                                      Dim peModule = DirectCast(m, PEModuleSymbol)
+                                                      Dim class1 = peModule.ContainingAssembly.GetTypeByMetadataName("Class2").BaseType()
+                                                      Dim d1 = class1.GetMember(Of PEFieldSymbol)("d1")
+                                                      Dim d2 = class1.GetMember(Of PEFieldSymbol)("d2")
+                                                      Dim m1Parameters = class1.GetMethod("M1").Parameters.Cast(Of PEParameterSymbol)
 
-            Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d1.ConstantValue, CDec(-7))
-            Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d2.ConstantValue, #1/1/2013#)
-            Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
-            Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                      Assert.Empty(d1.GetAttributes())
+                                                      Assert.Equal(d1.ConstantValue, CDec(-7))
+
+                                                      Assert.Empty(d2.GetAttributes())
+                                                      Assert.Equal(d2.ConstantValue, #1/1/2013#)
+
+                                                      Assert.Empty(m1Parameters(0).GetAttributes())
+                                                      Assert.Equal(m1Parameters(0).ExplicitDefaultValue, CDec(-7))
+
+                                                      Assert.Empty(m1Parameters(1).GetAttributes())
+                                                      Assert.Equal(m1Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                  End Sub)
 
             Dim c2 = CompilationUtils.CreateCompilationWithCustomILSource(
                 <compilation>
                     <file name="a.vb">
+Class Class2
+    Inherits Class1
+End Class
                     </file>
                 </compilation>, ilSource)
 
-            class1 = c2.GetTypeByMetadataName("Class1")
-            d1 = class1.GetMember(Of FieldSymbol)("d1")
-            d2 = class1.GetMember(Of FieldSymbol)("d2")
-            m1 = class1.GetMember(Of MethodSymbol)("M1")
+            ' Switch order of API calls
 
-            Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d1.ConstantValue, CDec(-7))
-            Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d2.ConstantValue, #1/1/2013#)
-            Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
-            Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+            CompileAndVerify(c2, symbolValidator:=Sub(m As ModuleSymbol)
+                                                      Dim peModule = DirectCast(m, PEModuleSymbol)
+                                                      Dim class1 = peModule.ContainingAssembly.GetTypeByMetadataName("Class2").BaseType()
+                                                      Dim d1 = class1.GetMember(Of PEFieldSymbol)("d1")
+                                                      Dim d2 = class1.GetMember(Of PEFieldSymbol)("d2")
+                                                      Dim m1Parameters = class1.GetMethod("M1").Parameters.Cast(Of PEParameterSymbol)
 
-            Dim c3 = CompilationUtils.CreateCompilationWithCustomILSource(
-                <compilation>
-                    <file name="a.vb">
-                    </file>
-                </compilation>, ilSource)
+                                                      Assert.Equal(d1.ConstantValue, CDec(-7))
+                                                      Assert.Empty(d1.GetAttributes())
 
-            class1 = c3.GetTypeByMetadataName("Class1")
-            d1 = class1.GetMember(Of FieldSymbol)("d1")
-            d2 = class1.GetMember(Of FieldSymbol)("d2")
-            m1 = class1.GetMember(Of MethodSymbol)("M1")
+                                                      Assert.Equal(d2.ConstantValue, #1/1/2013#)
+                                                      Assert.Empty(d2.GetAttributes())
 
-            Assert.Equal(d1.ConstantValue, CDec(-7))
-            Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d2.ConstantValue, #1/1/2013#)
-            Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
-            Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
-            Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
+                                                      Assert.Equal(m1Parameters(0).ExplicitDefaultValue, CDec(-7))
+                                                      Assert.Empty(m1Parameters(0).GetAttributes())
+
+                                                      Assert.Equal(m1Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                      Assert.Empty(m1Parameters(1).GetAttributes())
+                                                  End Sub)
         End Sub
 
         <Fact>

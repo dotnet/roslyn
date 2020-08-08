@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Substitute for a type declaration.  May use alpha renaming if the container is substituted.
         /// </summary>
-        private NamedTypeSymbol SubstituteMemberType(NamedTypeSymbol previous)
+        internal virtual NamedTypeSymbol SubstituteTypeDeclaration(NamedTypeSymbol previous)
         {
             Debug.Assert((object)previous.ConstructedFrom == (object)previous);
 
@@ -43,37 +45,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (previous.IsAnonymousType)
             {
-                ImmutableArray<TypeSymbol> oldFieldTypes = AnonymousTypeManager.GetAnonymousTypePropertyTypes(previous);
-                ImmutableArray<TypeSymbol> newFieldTypes = SubstituteTypesWithoutModifiers(oldFieldTypes);
+                ImmutableArray<TypeWithAnnotations> oldFieldTypes = AnonymousTypeManager.GetAnonymousTypePropertyTypesWithAnnotations(previous);
+                ImmutableArray<TypeWithAnnotations> newFieldTypes = SubstituteTypes(oldFieldTypes);
                 return (oldFieldTypes == newFieldTypes) ? previous : AnonymousTypeManager.ConstructAnonymousTypeSymbol(previous, newFieldTypes);
-            }
-
-            if (previous.IsTupleType)
-            {
-                var previousTuple = (TupleTypeSymbol)previous;
-                NamedTypeSymbol oldUnderlyingType = previousTuple.TupleUnderlyingType;
-                NamedTypeSymbol newUnderlyingType = (NamedTypeSymbol)SubstituteType(oldUnderlyingType).Type;
-
-                return ((object)newUnderlyingType == (object)oldUnderlyingType) ? previous : previousTuple.WithUnderlyingType(newUnderlyingType);
             }
 
             // TODO: we could construct the result's ConstructedFrom lazily by using a "deep"
             // construct operation here (as VB does), thereby avoiding alpha renaming in most cases.
             // Aleksey has shown that would reduce GC pressure if substitutions of deeply nested generics are common.
             NamedTypeSymbol oldConstructedFrom = previous.ConstructedFrom;
-            NamedTypeSymbol newConstructedFrom = SubstituteMemberType(oldConstructedFrom);
+            NamedTypeSymbol newConstructedFrom = SubstituteTypeDeclaration(oldConstructedFrom);
 
-            ImmutableArray<TypeSymbol> oldTypeArguments = previous.TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeWithAnnotations> oldTypeArguments = previous.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             bool changed = !ReferenceEquals(oldConstructedFrom, newConstructedFrom);
-            bool hasModifiers = previous.HasTypeArgumentsCustomModifiers;
-            var newTypeArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(oldTypeArguments.Length);
+            var newTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(oldTypeArguments.Length);
 
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
-                var oldArgument = hasModifiers ? new TypeWithModifiers(oldTypeArguments[i], previous.GetTypeArgumentCustomModifiers(i)) : new TypeWithModifiers(oldTypeArguments[i]);
-                var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
+                var oldArgument = oldTypeArguments[i];
+                var newArgument = oldArgument.SubstituteType(this);
 
-                if (!changed && oldArgument != newArgument)
+                if (!changed && !oldArgument.IsSameAs(newArgument))
                 {
                     changed = true;
                 }
@@ -87,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return previous;
             }
 
-            return newConstructedFrom.ConstructIfGeneric(newTypeArguments.ToImmutableAndFree());
+            return newConstructedFrom.ConstructIfGeneric(newTypeArguments.ToImmutableAndFree()).WithTupleDataFrom(previous);
         }
 
         /// <summary>
@@ -96,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="previous">The type to be rewritten.</param>
         /// <returns>The type with type parameters replaced with the type arguments.</returns>
-        internal TypeWithModifiers SubstituteType(TypeSymbol previous)
+        internal TypeWithAnnotations SubstituteType(TypeSymbol previous)
         {
             if (ReferenceEquals(previous, null))
-                return default(TypeWithModifiers);
+                return default(TypeWithAnnotations);
 
             TypeSymbol result;
 
@@ -116,6 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.PointerType:
                     result = SubstitutePointerType((PointerTypeSymbol)previous);
                     break;
+                case SymbolKind.FunctionPointerType:
+                    result = SubstituteFunctionPointerType((FunctionPointerTypeSymbol)previous);
+                    break;
                 case SymbolKind.DynamicType:
                     result = SubstituteDynamicType();
                     break;
@@ -126,41 +121,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return new TypeWithModifiers(result);
+            return TypeWithAnnotations.Create(result);
         }
 
-        /// <summary>
-        /// Same as <see cref="SubstituteType"/>, but with special behavior around tuples.
-        /// In particular, if substitution makes type tuple compatible, transform it into a tuple type.
-        /// </summary>
-        internal TypeWithModifiers SubstituteTypeWithTupleUnification(TypeSymbol previous)
+        internal TypeWithAnnotations SubstituteType(TypeWithAnnotations previous)
         {
-            TypeWithModifiers result = SubstituteType(previous);
-
-            // Make it a tuple if it became compatible with one.
-            if ((object)result.Type != null && !previous.IsTupleCompatible())
-            {
-                var possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(result.Type);
-                if ((object)result.Type != possiblyTuple)
-                {
-                    result = new TypeWithModifiers(possiblyTuple, result.CustomModifiers);
-                }
-            }
-
-            return result;
+            return previous.SubstituteType(this);
         }
 
-        internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(TypeSymbol type, ImmutableArray<CustomModifier> customModifiers)
-        {
-            if (type.IsTypeParameter())
-            {
-                return new TypeWithModifiers(type, customModifiers).SubstituteType(this).CustomModifiers;
-            }
-
-            return SubstituteCustomModifiers(customModifiers);
-        }
-
-        internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
+        internal virtual ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
         {
             if (customModifiers.IsDefaultOrEmpty)
             {
@@ -169,10 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < customModifiers.Length; i++)
             {
-                var modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
+                NamedTypeSymbol modifier = ((CSharpCustomModifier)customModifiers[i]).ModifierSymbol;
                 var substituted = SubstituteNamedType(modifier);
 
-                if (modifier != substituted)
+                if (!TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything2))
                 {
                     var builder = ArrayBuilder<CustomModifier>.GetInstance(customModifiers.Length);
                     builder.AddRange(customModifiers, i);
@@ -180,10 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(customModifiers[i].IsOptional ? CSharpCustomModifier.CreateOptional(substituted) : CSharpCustomModifier.CreateRequired(substituted));
                     for (i++; i < customModifiers.Length; i++)
                     {
-                        modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
+                        modifier = ((CSharpCustomModifier)customModifiers[i]).ModifierSymbol;
                         substituted = SubstituteNamedType(modifier);
 
-                        if (modifier != substituted)
+                        if (!TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything2))
                         {
                             builder.Add(customModifiers[i].IsOptional ? CSharpCustomModifier.CreateOptional(substituted) : CSharpCustomModifier.CreateRequired(substituted));
                         }
@@ -206,16 +175,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return DynamicTypeSymbol.Instance;
         }
 
-        protected virtual TypeWithModifiers SubstituteTypeParameter(TypeParameterSymbol typeParameter)
+        protected virtual TypeWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
         {
-            return new TypeWithModifiers(typeParameter);
+            return TypeWithAnnotations.Create(typeParameter);
         }
 
         private ArrayTypeSymbol SubstituteArrayType(ArrayTypeSymbol t)
         {
-            var oldElement = new TypeWithModifiers(t.ElementType, t.CustomModifiers);
-            TypeWithModifiers element = oldElement.SubstituteTypeWithTupleUnification(this);
-            if (element == oldElement)
+            var oldElement = t.ElementTypeWithAnnotations;
+            TypeWithAnnotations element = oldElement.SubstituteType(this);
+            if (element.IsSameAs(oldElement))
             {
                 return t;
             }
@@ -228,12 +197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (interfaces.Length == 1)
                 {
                     Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
-                    interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly());
+                    interfaces = ImmutableArray.Create<NamedTypeSymbol>(SubstituteNamedType(interfaces[0]));
                 }
                 else if (interfaces.Length == 2)
                 {
                     Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
-                    interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly(), (NamedTypeSymbol)SubstituteType(interfaces[1]).AsTypeSymbolOnly());
+                    interfaces = ImmutableArray.Create<NamedTypeSymbol>(SubstituteNamedType(interfaces[0]), SubstituteNamedType(interfaces[1]));
                 }
                 else if (interfaces.Length != 0)
                 {
@@ -241,31 +210,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return ArrayTypeSymbol.CreateSZArray(
-                    element.Type,
+                    element,
                     t.BaseTypeNoUseSiteDiagnostics,
-                    interfaces,
-                    element.CustomModifiers);
+                    interfaces);
             }
 
             return ArrayTypeSymbol.CreateMDArray(
-                element.Type,
+                element,
                 t.Rank,
                 t.Sizes,
                 t.LowerBounds,
-                t.BaseTypeNoUseSiteDiagnostics,
-                element.CustomModifiers);
+                t.BaseTypeNoUseSiteDiagnostics);
         }
 
         private PointerTypeSymbol SubstitutePointerType(PointerTypeSymbol t)
         {
-            var oldPointedAtType = new TypeWithModifiers(t.PointedAtType, t.CustomModifiers);
-            TypeWithModifiers pointedAtType = oldPointedAtType.SubstituteTypeWithTupleUnification(this);
-            if (pointedAtType == oldPointedAtType)
+            var oldPointedAtType = t.PointedAtTypeWithAnnotations;
+            var pointedAtType = oldPointedAtType.SubstituteType(this);
+            if (pointedAtType.IsSameAs(oldPointedAtType))
             {
                 return t;
             }
 
-            return new PointerTypeSymbol(pointedAtType.Type, pointedAtType.CustomModifiers);
+            return new PointerTypeSymbol(pointedAtType);
+        }
+
+        private FunctionPointerTypeSymbol SubstituteFunctionPointerType(FunctionPointerTypeSymbol f)
+        {
+            var substitutedReturnType = f.Signature.ReturnTypeWithAnnotations.SubstituteType(this);
+            var refCustomModifiers = f.Signature.RefCustomModifiers;
+            var substitutedRefCustomModifiers = SubstituteCustomModifiers(refCustomModifiers);
+
+            var parameterTypesWithAnnotations = f.Signature.ParameterTypesWithAnnotations;
+            ImmutableArray<TypeWithAnnotations> substitutedParamTypes = SubstituteTypes(parameterTypesWithAnnotations);
+
+            ImmutableArray<ImmutableArray<CustomModifier>> substitutedParamModifiers = default;
+
+            var paramCount = f.Signature.Parameters.Length;
+            if (paramCount > 0)
+            {
+                var builder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(paramCount);
+                bool didSubstitute = false;
+                foreach (var param in f.Signature.Parameters)
+                {
+                    var substituted = SubstituteCustomModifiers(param.RefCustomModifiers);
+                    builder.Add(substituted);
+                    if (substituted != param.RefCustomModifiers)
+                    {
+                        didSubstitute = true;
+                    }
+                }
+
+                if (didSubstitute)
+                {
+                    substitutedParamModifiers = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    builder.Free();
+                }
+            }
+
+            if (substitutedParamTypes != parameterTypesWithAnnotations
+                || !substitutedParamModifiers.IsDefault
+                || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType)
+                || substitutedRefCustomModifiers != refCustomModifiers)
+            {
+                f = f.SubstituteTypeSymbol(substitutedReturnType, substitutedParamTypes, refCustomModifiers, substitutedParamModifiers);
+            }
+
+            return f;
         }
 
         internal ImmutableArray<TypeSymbol> SubstituteTypesWithoutModifiers(ImmutableArray<TypeSymbol> original)
@@ -302,16 +316,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result != null ? result.AsImmutableOrNull() : original;
         }
 
-        internal ImmutableArray<TypeWithModifiers> SubstituteTypes(ImmutableArray<TypeSymbol> original)
+        internal ImmutableArray<TypeWithAnnotations> SubstituteTypes(ImmutableArray<TypeWithAnnotations> original)
         {
             if (original.IsDefault)
             {
-                return default(ImmutableArray<TypeWithModifiers>);
+                return default(ImmutableArray<TypeWithAnnotations>);
             }
 
-            var result = ArrayBuilder<TypeWithModifiers>.GetInstance(original.Length);
+            var result = ArrayBuilder<TypeWithAnnotations>.GetInstance(original.Length);
 
-            foreach (TypeSymbol t in original)
+            foreach (TypeWithAnnotations t in original)
             {
                 result.Add(SubstituteType(t));
             }
@@ -319,15 +333,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-
         /// <summary>
         /// Substitute types, and return the results without duplicates, preserving the original order.
+        /// Note, all occurrences of 'dynamic' in resulting types will be replaced with 'object'.
         /// </summary>
-        internal void SubstituteTypesDistinctWithoutModifiers(
-            ImmutableArray<TypeSymbol> original, 
-            ArrayBuilder<TypeSymbol> result, 
+        internal void SubstituteConstraintTypesDistinctWithoutModifiers(
+            TypeParameterSymbol owner,
+            ImmutableArray<TypeWithAnnotations> original,
+            ArrayBuilder<TypeWithAnnotations> result,
             HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
         {
+            DynamicTypeEraser dynamicEraser = null;
+
             if (original.Length == 0)
             {
                 return;
@@ -335,25 +352,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (original.Length == 1)
             {
                 var type = original[0];
-                if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
+                if (ignoreTypesDependentOnTypeParametersOpt == null ||
+                    !type.Type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                 {
-                    result.Add(SubstituteType(type).Type);
+                    result.Add(substituteConstraintType(type));
                 }
             }
             else
             {
-                var set = new HashSet<TypeSymbol>();
+                var map = PooledDictionary<TypeSymbol, int>.GetInstance();
                 foreach (var type in original)
                 {
-                    if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
+                    if (ignoreTypesDependentOnTypeParametersOpt == null ||
+                        !type.Type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                     {
-                        var substituted = SubstituteType(type).Type;
-                        if (set.Add(substituted))
+                        var substituted = substituteConstraintType(type);
+
+                        if (!map.TryGetValue(substituted.Type, out int mergeWith))
                         {
+                            map.Add(substituted.Type, result.Count);
                             result.Add(substituted);
+                        }
+                        else
+                        {
+                            result[mergeWith] = ConstraintsHelper.ConstraintWithMostSignificantNullability(result[mergeWith], substituted);
                         }
                     }
                 }
+
+                map.Free();
+            }
+
+            TypeWithAnnotations substituteConstraintType(TypeWithAnnotations type)
+            {
+                if (dynamicEraser == null)
+                {
+                    dynamicEraser = new DynamicTypeEraser(owner.ContainingAssembly.CorLibrary.GetSpecialType(SpecialType.System_Object));
+                }
+
+                TypeWithAnnotations substituted = SubstituteType(type);
+
+                return substituted.WithTypeAndModifiers(dynamicEraser.EraseDynamic(substituted.Type), substituted.CustomModifiers);
             }
         }
 

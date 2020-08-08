@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -12,13 +16,11 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static class ExpressionEvaluatorFatalError
+    internal static class RegistryHelpers
     {
         private const string RegistryKey = @"Software\Microsoft\ExpressionEvaluator";
-        private const string RegistryValue = "EnableFailFast";
-        internal static bool IsFailFastEnabled;
 
-        static ExpressionEvaluatorFatalError()
+        internal static object? GetRegistryValue(string name)
         {
             try
             {
@@ -30,21 +32,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var hKeyCurrentUserField = registryType.GetTypeInfo().GetDeclaredField("CurrentUser");
                     if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
                     {
-                        using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
+                        using var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null);
+                        var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
+
+                        using var eeKey = (IDisposable?)openSubKeyMethod?.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false });
+                        if (eeKey != null)
                         {
-                            var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
-                            using (var eeKey = (IDisposable)openSubKeyMethod.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false }))
-                            {
-                                if (eeKey != null)
-                                {
-                                    var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
-                                    var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
-                                    if ((value != null) && (value is int))
-                                    {
-                                        IsFailFastEnabled = ((int)value == 1);
-                                    }
-                                }
-                            }
+                            var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
+                            return getValueMethod?.Invoke(eeKey, new object[] { name });
                         }
                     }
                 }
@@ -53,7 +48,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 Debug.Assert(false, "Failure checking registry key: " + ex.ToString());
             }
+            return null;
         }
+
+        internal static bool GetBoolRegistryValue(string name)
+        {
+            var value = RegistryHelpers.GetRegistryValue(name);
+            return value is int i && i == 1;
+        }
+    }
+
+    internal static class ExpressionEvaluatorFatalError
+    {
+        private const string RegistryValue = "EnableFailFast";
+        internal static bool IsFailFastEnabled = RegistryHelpers.GetBoolRegistryValue(RegistryValue);
 
         internal static bool CrashIfFailFastEnabled(Exception exception)
         {

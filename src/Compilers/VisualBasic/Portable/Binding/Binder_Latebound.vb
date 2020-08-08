@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -70,10 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result = New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
 
-            If receiver IsNot Nothing AndAlso Not receiver.WasCompilerGenerated AndAlso result.Syntax Is receiver.Syntax Then
-                result.SetWasCompilerGenerated()
-            End If
-
             Return result
         End Function
 
@@ -109,6 +107,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lateMember = BindLateBoundMemberAccess(memberSyntax, memberName, typeArguments, receiver, containingType, diagnostics,
                                                        suppressLateBindingResolutionDiagnostics:=True) ' BindLateBoundInvocation will take care of the diagnostics.
+
+            If group.WasCompilerGenerated Then
+                lateMember.SetWasCompilerGenerated()
+            End If
 
             If receiver IsNot Nothing AndAlso receiver.Type IsNot Nothing AndAlso receiver.Type.IsInterfaceType Then
                 ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, group), ERRID.ERR_LateBoundOverloadInterfaceCall1, memberName)
@@ -233,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not arguments.IsDefault)
 
-            If argumentNames.IsDefault OrElse argumentNames.Count = 0 Then
+            If argumentNames.IsDefault OrElse argumentNames.Length = 0 Then
                 Return
             End If
 
@@ -242,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim seenName As Boolean = False
-            For i As Integer = 0 To argumentNames.Count - 1
+            For i As Integer = 0 To argumentNames.Length - 1
 
                 If argumentNames(i) IsNot Nothing Then
                     seenName = True

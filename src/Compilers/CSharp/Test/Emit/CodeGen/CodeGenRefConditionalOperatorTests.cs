@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -521,8 +523,8 @@ class C
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib45(source,options: TestOptions.ReleaseExe);
-  
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+
             comp.VerifyEmitDiagnostics(
                 // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) += await One();
@@ -569,9 +571,9 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (16,35): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
+                // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) = await One();
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "await One()").WithLocation(16, 35)
+                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
                );
         }
 
@@ -633,6 +635,37 @@ class C
                 // (10,46): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         ref var local = ref b? ref val1: ref 42;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(10, 46)
+               );
+        }
+
+        [Fact]
+        [WorkItem(24306, "https://github.com/dotnet/roslyn/issues/24306")]
+        public void TestRefConditional_71()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+
+    }
+
+    void Test()
+    {
+        int local1 = 1;
+        int local2 = 2;
+        bool b = true;
+
+        ref int r = ref b? ref local1: ref local2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+
+            comp.VerifyEmitDiagnostics(
+                // (15,25): error CS8302: Feature 'ref conditional expression' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         ref int r = ref b? ref local1: ref local2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "b? ref local1: ref local2").WithArguments("ref conditional expression", "7.2").WithLocation(15, 25)
                );
         }
 
@@ -961,7 +994,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "1");
+            var comp = CompileAndVerify(source, expectedOutput: "1");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -970,9 +1003,9 @@ class C
   .maxstack  1
   IL_0000:  ldc.i4.1
   IL_0001:  brtrue.s   IL_000a
-  IL_0003:  ldsflda    ""(int Alice, int Bob) C.val2""
+  IL_0003:  ldsflda    ""System.ValueTuple<int, int> C.val2""
   IL_0008:  br.s       IL_000f
-  IL_000a:  ldsflda    ""(int Alice, int) C.val1""
+  IL_000a:  ldsflda    ""System.ValueTuple<int, int> C.val1""
   IL_000f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0014:  call       ""void System.Console.Write(int)""
   IL_0019:  ret
@@ -1025,7 +1058,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { TestMetadata.Net40.System, ValueTupleRef, TestMetadata.Net40.SystemCore }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
@@ -1113,7 +1146,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Test", @"

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -19,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
 {
     internal sealed class SnippetFunctionGenerateSwitchCases : AbstractSnippetFunctionGenerateSwitchCases
     {
-        public SnippetFunctionGenerateSwitchCases(SnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
-            : base(snippetExpansionClient, textView, subjectBuffer, caseGenerationLocationField, switchExpressionField)
+        public SnippetFunctionGenerateSwitchCases(SnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
+            : base(snippetExpansionClient, subjectBuffer, caseGenerationLocationField, switchExpressionField)
         {
         }
 
@@ -73,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
                 return false;
             }
 
-            SemanticModel model = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var model = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             typeSymbol = model.GetTypeInfo(expressionNode, cancellationToken).Type;
 
             return typeSymbol != null;
@@ -88,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var textChange = new TextChange(new TextSpan(startPosition, endPosition - startPosition), str);
             var typeSpanToAnnotate = new TextSpan(startPosition + "case ".Length, fullyQualifiedTypeName.Length);
 
-            var textWithCaseAdded = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
+            var textWithCaseAdded = document.GetTextSynchronously(cancellationToken).WithChanges(textChange);
             var documentWithCaseAdded = document.WithText(textWithCaseAdded);
 
             var syntaxRoot = documentWithCaseAdded.GetSyntaxRootSynchronously(cancellationToken);

@@ -1,32 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <summary>
-    /// Description of a TODO comment type to find in a user's comments.
-    /// </summary>
-    internal struct TodoCommentDescriptor
-    {
-        public string Text { get; }
-        public int Priority { get; }
-
-        public TodoCommentDescriptor(string text, int priority) : this()
-        {
-            this.Text = text;
-            this.Priority = priority;
-        }
-    }
-
-    /// <summary>
     /// A TODO comment that has been found within the user's code.
     /// </summary>
-    internal struct TodoComment
+    internal readonly struct TodoComment
     {
         public TodoCommentDescriptor Descriptor { get; }
         public string Message { get; }
@@ -34,14 +25,40 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public TodoComment(TodoCommentDescriptor descriptor, string message, int position) : this()
         {
-            this.Descriptor = descriptor;
-            this.Message = message;
-            this.Position = position;
+            Descriptor = descriptor;
+            Message = message;
+            Position = position;
+        }
+
+        internal TodoCommentData CreateSerializableData(
+            Document document, SourceText text, SyntaxTree? tree)
+        {
+            // make sure given position is within valid text range.
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, Position)), 0);
+
+            var location = tree == null
+                ? Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan))
+                : tree.GetLocation(textSpan);
+            var originalLineInfo = location.GetLineSpan();
+            var mappedLineInfo = location.GetMappedLineSpan();
+
+            return new TodoCommentData
+            {
+                Priority = Descriptor.Priority,
+                Message = Message,
+                DocumentId = document.Id,
+                OriginalLine = originalLineInfo.StartLinePosition.Line,
+                OriginalColumn = originalLineInfo.StartLinePosition.Character,
+                OriginalFilePath = document.FilePath,
+                MappedLine = mappedLineInfo.StartLinePosition.Line,
+                MappedColumn = mappedLineInfo.StartLinePosition.Character,
+                MappedFilePath = mappedLineInfo.GetMappedFilePathIfExist(),
+            };
         }
     }
 
     internal interface ITodoCommentService : ILanguageService
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<ImmutableArray<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

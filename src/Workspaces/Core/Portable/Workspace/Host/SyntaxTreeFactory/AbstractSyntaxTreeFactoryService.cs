@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Text;
@@ -28,11 +30,10 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
         public abstract SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root);
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
+        public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 
         public virtual bool CanCreateRecoverableTree(SyntaxNode root)
-        {
-            return _hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
-        }
+            => _hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
 
         protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)
         {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -2622,8 +2624,8 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task 
-            await TestInRegularAndScriptAsync(
+        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task
+            Await TestInRegularAndScriptAsync(
 "class C
     private readonly _goo as integer
 
@@ -2667,7 +2669,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestPlaceFieldBasedOnSurroundingStatements() As Task
-            await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScriptAsync(
 "class Class
     private _goo as integer
     private _quux as integer
@@ -2770,6 +2772,210 @@ class C
         me.y = 0
     end sub
 end class", index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateSimplePropertyInSyncLock() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        SyncLock [|Bar|]
+        End SyncLock
+    End Sub
+End Module",
+"Module Program
+    Public Property Bar As Object
+
+    Sub Main(args As String())
+        SyncLock Bar
+        End SyncLock
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateSimpleFieldInSyncLock() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        SyncLock [|Bar|]
+        End SyncLock
+    End Sub
+End Module",
+"Module Program
+    Private Bar As Object
+
+    Sub Main(args As String())
+        SyncLock Bar
+        End SyncLock
+    End Sub
+End Module",
+index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateReadOnlyFieldInSyncLock() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        SyncLock [|Bar|]
+        End SyncLock
+    End Sub
+End Module",
+"Module Program
+    Private ReadOnly Bar As Object
+
+    Sub Main(args As String())
+        SyncLock Bar
+        End SyncLock
+    End Sub
+End Module",
+index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestAddParameter() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        Goo([|bar|])
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String(), bar As Object)
+        Goo(bar)
+    End Sub
+End Module",
+index:=4)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestAddParameterDoesntAddToOverride() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Base
+    Public Overridable Sub Method(args As String())
+    End Sub
+End Class
+Class Program
+    Public Overrides Sub Main(args As String())
+        Goo([|bar|])
+    End Sub
+End Class",
+"Class Base
+    Public Overridable Sub Method(args As String())
+    End Sub
+End Class
+Class Program
+    Public Overrides Sub Main(args As String(), bar As Object)
+        Goo(bar)
+    End Sub
+End Class",
+index:=4)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestAddParameterAndOverridesAddsToOverrides() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Base
+    Public Overridable Sub Method(args As String())
+    End Sub
+End Class
+Class Program
+    Inherits Base
+    Public Overrides Sub Method(args As String())
+        Goo([|bar|])
+    End Sub
+End Class",
+"Class Base
+    Public Overridable Sub Method(args As String(), bar As Object)
+    End Sub
+End Class
+Class Program
+    Inherits Base
+    Public Overrides Sub Method(args As String(), bar As Object)
+        Goo(bar)
+    End Sub
+End Class",
+index:=5)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestAddParameterIsOfCorrectType() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        Goo([|bar|])
+    End Sub
+    Sub Goo(arg As Integer)
+    End Sub
+End Module",
+"Module Program
+    Sub Main(args As String(), bar As Integer)
+        Goo(bar)
+    End Sub
+    Sub Goo(arg As Integer)
+    End Sub
+End Module",
+index:=4)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestAddParameterAndOverridesIsOfCorrectType() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Base
+    Public Overridable Sub Method(args As String())
+    End Sub
+End Class
+Class Program
+    Inherits Base
+    Public Overrides Sub Method(args As String())
+        Goo([|bar|])
+    End Sub
+    Sub Goo(arg As Integer)
+    End Sub
+End Class",
+"Class Base
+    Public Overridable Sub Method(args As String(), bar As Integer)
+    End Sub
+End Class
+Class Program
+    Inherits Base
+    Public Overrides Sub Method(args As String(), bar As Integer)
+        Goo(bar)
+    End Sub
+    Sub Goo(arg As Integer)
+    End Sub
+End Class",
+index:=5)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestAddParameterAndOverridesNotOfferedToNonOverride1() As Task
+            Await TestActionCountAsync(
+"Module Program
+    Sub Main(args As String())
+        Goo([|bar|])
+    End Sub
+End Module",
+count:=5)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestAddParameterAndOverridesNotOfferedToNonOverride2() As Task
+            Await TestActionCountAsync(
+"Class Base
+    Public Overridable Sub Method(args As String())
+    End Sub
+End Class
+Class Program
+    Inherits Base
+    Public Sub Method(args As String())
+        Goo([|bar|])
+    End Sub
+    Sub Goo(arg As Integer)
+    End Sub
+End Class",
+count:=5)
         End Function
     End Class
 End Namespace

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' associated symbol).
     ''' </summary>
     Public Structure Conversion
-        Implements IEquatable(Of Conversion)
+        Implements IEquatable(Of Conversion), IConvertibleConversion
 
         Private ReadOnly _convKind As ConversionKind
         Private ReadOnly _method As MethodSymbol
@@ -236,8 +238,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
         ''' from the <see cref="CommonConversion"/> struct.
         ''' </remarks>
-        Public Function ToCommonConversion() As CommonConversion
-            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, MethodSymbol)
+        Public Function ToCommonConversion() As CommonConversion Implements IConvertibleConversion.ToCommonConversion
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol)
         End Function
 
         ''' <summary>
@@ -1231,7 +1233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function ClassifyTupleConversion(source As BoundTupleLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
-            If source.Type = destination Then
+            If TypeSymbol.Equals(source.Type, destination, TypeCompareKind.ConsiderEverything) Then
                 Return ConversionKind.Identity
             End If
 
@@ -1260,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
-            Debug.Assert(arguments.Count = targetElementTypes.Length)
+            Debug.Assert(arguments.Length = targetElementTypes.Length)
 
             ' check arguments against flattened list of target element types 
             Dim result As ConversionKind = wideningConversion
@@ -3576,7 +3578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
-            Debug.Assert(sourceElementTypes.Count = targetElementTypes.Length)
+            Debug.Assert(sourceElementTypes.Length = targetElementTypes.Length)
 
             ' check arguments against flattened list of target element types 
             Dim result As ConversionKind = ConversionKind.WideningTuple

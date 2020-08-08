@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Inherits BasicTestBase
 
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SimpleAsyncMethod()
             Dim source =
 <compilation>
@@ -129,7 +131,7 @@ End Class
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
@@ -169,7 +171,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestAsync()
             Dim source =
 <compilation>
@@ -206,12 +209,12 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
@@ -225,7 +228,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
@@ -266,7 +269,7 @@ End Module
             compilation.VerifyPdb("Module1.Test",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Test">
@@ -280,7 +283,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
@@ -343,7 +346,7 @@ End Module
             compilation.VerifyPdb("Module1.S",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="S">
@@ -357,7 +360,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
@@ -395,7 +398,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -418,7 +422,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
@@ -427,7 +431,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
@@ -476,7 +480,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -499,7 +503,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.ReleaseDll)
@@ -508,7 +512,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
@@ -546,7 +550,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -567,7 +572,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
@@ -576,7 +581,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
@@ -625,7 +630,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -646,7 +651,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.ReleaseDll)
@@ -655,7 +660,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
@@ -697,7 +702,7 @@ End Class
         End Sub
 
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AsyncReturnVariable()
             Dim source =
 <compilation>
@@ -713,14 +718,14 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim c = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             c.AssertNoErrors()
 
             ' NOTE: No <local> for the return variable "M".
             c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
@@ -754,7 +759,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AsyncAndClosure()
             Dim source =
 <compilation>
@@ -778,7 +783,7 @@ End Module
 
             v.VerifyIL("M.VB$StateMachine_0_F.MoveNext", "
 {
-  // Code size      266 (0x10a)
+  // Code size      254 (0xfe)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -795,7 +800,7 @@ End Module
    ~IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_006f
+    IL_000c:  br.s       IL_0063
    -IL_000e:  nop
    ~IL_000f:  ldarg.0
     IL_0010:  newobj     ""Sub M._Closure$__0-0..ctor()""
@@ -804,95 +809,91 @@ End Module
     IL_001b:  ldarg.0
     IL_001c:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
     IL_0021:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-    IL_0026:  ldarg.0
-    IL_0027:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-    IL_002c:  ldfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
-    IL_0031:  pop
-    IL_0032:  ldc.i4.1
-    IL_0033:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0038:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_003d:  stloc.3
-   ~IL_003e:  ldloca.s   V_3
-    IL_0040:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0045:  brtrue.s   IL_008d
-    IL_0047:  ldarg.0
-    IL_0048:  ldc.i4.0
-    IL_0049:  dup
-    IL_004a:  stloc.1
-    IL_004b:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
-   <IL_0050:  ldarg.0
-    IL_0051:  ldloc.3
-    IL_0052:  stfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0057:  ldarg.0
-    IL_0058:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
-    IL_005d:  ldloca.s   V_3
-    IL_005f:  ldarg.0
-    IL_0060:  stloc.s    V_4
-    IL_0062:  ldloca.s   V_4
-    IL_0064:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), M.VB$StateMachine_0_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef M.VB$StateMachine_0_F)""
-    IL_0069:  nop
-    IL_006a:  leave      IL_0109
-   >IL_006f:  ldarg.0
-    IL_0070:  ldc.i4.m1
-    IL_0071:  dup
-    IL_0072:  stloc.1
-    IL_0073:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
-    IL_0078:  ldarg.0
-    IL_0079:  ldfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_007e:  stloc.3
-    IL_007f:  ldarg.0
-    IL_0080:  ldflda     ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0085:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_008b:  br.s       IL_008d
-    IL_008d:  ldarg.0
-    IL_008e:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-    IL_0093:  ldloca.s   V_3
-    IL_0095:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_009a:  stloc.s    V_5
-    IL_009c:  ldloca.s   V_3
-    IL_009e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00a4:  ldloc.s    V_5
-    IL_00a6:  stfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
-    IL_00ab:  ldarg.0
-    IL_00ac:  ldnull
-    IL_00ad:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
-   -IL_00b2:  ldarg.0
-    IL_00b3:  ldarg.0
-    IL_00b4:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
-    IL_00b9:  ldftn      ""Sub M._Closure$__0-0._Lambda$__0()""
-    IL_00bf:  newobj     ""Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)""
-    IL_00c4:  stfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_x$1 As <generated method>""
-   -IL_00c9:  ldc.i4.0
-    IL_00ca:  stloc.0
-    IL_00cb:  leave.s    IL_00f2
+    IL_0026:  ldc.i4.1
+    IL_0027:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_002c:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0031:  stloc.3
+   ~IL_0032:  ldloca.s   V_3
+    IL_0034:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0039:  brtrue.s   IL_0081
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  dup
+    IL_003e:  stloc.1
+    IL_003f:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+   <IL_0044:  ldarg.0
+    IL_0045:  ldloc.3
+    IL_0046:  stfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_004b:  ldarg.0
+    IL_004c:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+    IL_0051:  ldloca.s   V_3
+    IL_0053:  ldarg.0
+    IL_0054:  stloc.s    V_4
+    IL_0056:  ldloca.s   V_4
+    IL_0058:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), M.VB$StateMachine_0_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef M.VB$StateMachine_0_F)""
+    IL_005d:  nop
+    IL_005e:  leave      IL_00fd
+   >IL_0063:  ldarg.0
+    IL_0064:  ldc.i4.m1
+    IL_0065:  dup
+    IL_0066:  stloc.1
+    IL_0067:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+    IL_006c:  ldarg.0
+    IL_006d:  ldfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0072:  stloc.3
+    IL_0073:  ldarg.0
+    IL_0074:  ldflda     ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_007f:  br.s       IL_0081
+    IL_0081:  ldarg.0
+    IL_0082:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+    IL_0087:  ldloca.s   V_3
+    IL_0089:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_008e:  stloc.s    V_5
+    IL_0090:  ldloca.s   V_3
+    IL_0092:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0098:  ldloc.s    V_5
+    IL_009a:  stfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldnull
+    IL_00a1:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+   -IL_00a6:  ldarg.0
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
+    IL_00ad:  ldftn      ""Sub M._Closure$__0-0._Lambda$__0()""
+    IL_00b3:  newobj     ""Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)""
+    IL_00b8:  stfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_x$1 As <generated method>""
+   -IL_00bd:  ldc.i4.0
+    IL_00be:  stloc.0
+    IL_00bf:  leave.s    IL_00e6
   }
   catch System.Exception
   {
-   ~IL_00cd:  dup
-    IL_00ce:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_00d3:  stloc.s    V_6
-   ~IL_00d5:  ldarg.0
-    IL_00d6:  ldc.i4.s   -2
-    IL_00d8:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
-    IL_00dd:  ldarg.0
-    IL_00de:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
-    IL_00e3:  ldloc.s    V_6
-    IL_00e5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetException(System.Exception)""
-    IL_00ea:  nop
-    IL_00eb:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00f0:  leave.s    IL_0109
+   ~IL_00c1:  dup
+    IL_00c2:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00c7:  stloc.s    V_6
+   ~IL_00c9:  ldarg.0
+    IL_00ca:  ldc.i4.s   -2
+    IL_00cc:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+    IL_00d1:  ldarg.0
+    IL_00d2:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+    IL_00d7:  ldloc.s    V_6
+    IL_00d9:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetException(System.Exception)""
+    IL_00de:  nop
+    IL_00df:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00e4:  leave.s    IL_00fd
   }
- -IL_00f2:  ldarg.0
-  IL_00f3:  ldc.i4.s   -2
-  IL_00f5:  dup
-  IL_00f6:  stloc.1
-  IL_00f7:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
- ~IL_00fc:  ldarg.0
-  IL_00fd:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
-  IL_0102:  ldloc.0
-  IL_0103:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetResult(Boolean)""
-  IL_0108:  nop
-  IL_0109:  ret
+ -IL_00e6:  ldarg.0
+  IL_00e7:  ldc.i4.s   -2
+  IL_00e9:  dup
+  IL_00ea:  stloc.1
+  IL_00eb:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+ ~IL_00f0:  ldarg.0
+  IL_00f1:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+  IL_00f6:  ldloc.0
+  IL_00f7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetResult(Boolean)""
+  IL_00fc:  nop
+  IL_00fd:  ret
 }
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
@@ -908,12 +909,12 @@ Public Partial Class C
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
             Dim v = CompileAndVerify(compilation)
             v.VerifyPdb("C.M", "
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""VB"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -933,7 +934,7 @@ End Class
             Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
                 Dim mdReader = provider.GetMetadataReader()
                 Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                Dim visualizer = New MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences)
                 visualizer.WriteMethodDebugInformation()
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
@@ -942,7 +943,7 @@ MethodDebugInformation (index: 0x31, size: 20):
 1: nil
 2: nil
 3: nil
-4: #4
+4:
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
@@ -960,7 +961,7 @@ MethodDebugInformation (index: 0x31, size: 20):
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CatchInAsyncStateMachine()
             Dim src = "
 Imports System
@@ -977,12 +978,12 @@ Class C
         End Try
     End Function
 End Class"
-            Dim v = CompileAndVerify(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerifyEx(src, references:=LatestVbReferences, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.Empty)
 
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="test" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="test" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">

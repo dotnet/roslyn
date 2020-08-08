@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -65,85 +65,14 @@ namespace Microsoft.CodeAnalysis.Structure
         private void ProvideBlockStructureWorker(
             BlockStructureContext context, SyntaxNode syntaxRoot)
         {
-            var spans = ArrayBuilder<BlockSpan>.GetInstance();
+            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var spans);
             BlockSpanCollector.CollectBlockSpans(
                 context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
-            UpdateAndAddSpans(context, spans);
-
-            spans.Free();
-        }
-
-        internal static void UpdateAndAddSpans(BlockStructureContext context, ArrayBuilder<BlockSpan> spans)
-        {
-            var options = context.Document.Project.Solution.Workspace.Options;
-            var language = context.Document.Project.Language;
-
-            var showIndentGuidesForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, language);
-            var showIndentGuidesForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, language);
-            var showIndentGuidesForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language);
-            var showOutliningForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, language);
-            var showOutliningForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, language);
-            var showOutliningForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, language);
-
             foreach (var span in spans)
             {
-                var updatedSpan = UpdateBlockSpan(span,
-                        showIndentGuidesForCodeLevelConstructs,
-                        showIndentGuidesForDeclarationLevelConstructs,
-                        showIndentGuidesForCommentsAndPreprocessorRegions,
-                        showOutliningForCodeLevelConstructs,
-                        showOutliningForDeclarationLevelConstructs,
-                        showOutliningForCommentsAndPreprocessorRegions);
-                context.AddBlockSpan(updatedSpan);
+                context.AddBlockSpan(span);
             }
-        }
-
-        internal static BlockSpan UpdateBlockSpan(BlockSpan blockSpan,
-            bool showIndentGuidesForCodeLevelConstructs,
-            bool showIndentGuidesForDeclarationLevelConstructs,
-            bool showIndentGuidesForCommentsAndPreprocessorRegions,
-            bool showOutliningForCodeLevelConstructs,
-            bool showOutliningForDeclarationLevelConstructs,
-            bool showOutliningForCommentsAndPreprocessorRegions)
-        {
-            var type = blockSpan.Type;
-
-            var isTopLevel = BlockTypes.IsDeclarationLevelConstruct(type);
-            var isMemberLevel = BlockTypes.IsCodeLevelConstruct(type);
-            var isComment = BlockTypes.IsCommentOrPreprocessorRegion(type);
-
-            if (!showIndentGuidesForDeclarationLevelConstructs && isTopLevel)
-            {
-                type = BlockTypes.Nonstructural;
-            }
-            else if (!showIndentGuidesForCodeLevelConstructs && isMemberLevel)
-            {
-                type = BlockTypes.Nonstructural;
-            }
-            else if (!showIndentGuidesForCommentsAndPreprocessorRegions && isComment)
-            {
-                type = BlockTypes.Nonstructural;
-            }
-
-            var isCollapsible = blockSpan.IsCollapsible;
-            if (isCollapsible)
-            {
-                if (!showOutliningForDeclarationLevelConstructs && isTopLevel)
-                {
-                    isCollapsible = false;
-                }
-                else if (!showOutliningForCodeLevelConstructs && isMemberLevel)
-                {
-                    isCollapsible = false;
-                }
-                else if (!showOutliningForCommentsAndPreprocessorRegions && isComment)
-                {
-                    isCollapsible = false;
-                }
-            }
-
-            return blockSpan.With(type: type, isCollapsible: isCollapsible);
         }
     }
 }

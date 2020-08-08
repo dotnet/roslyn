@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -7,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -15,142 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsParams(this MethodSymbol method)
         {
             return method.ParameterCount != 0 && method.Parameters[method.ParameterCount - 1].IsParams;
-        }
-
-        /// <summary>
-        /// If the extension method is applicable based on the "this" argument type, return
-        /// the method constructed with the inferred type arguments. If the method is not an
-        /// unconstructed generic method, type inference is skipped. If the method is not
-        /// applicable, or if constraints when inferring type parameters from the "this" type
-        /// are not satisfied, the return value is null.
-        /// </summary>
-        public static MethodSymbol InferExtensionMethodTypeArguments(this MethodSymbol method, TypeSymbol thisType, Compilation compilation, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert(method.IsExtensionMethod);
-            Debug.Assert((object)thisType != null);
-
-            if (!method.IsGenericMethod || method != method.ConstructedFrom)
-            {
-                return method;
-            }
-
-            // We never resolve extension methods on a dynamic receiver.
-            if (thisType.IsDynamic())
-            {
-                return null;
-            }
-
-            var containingAssembly = method.ContainingAssembly;
-            var errorNamespace = containingAssembly.GlobalNamespace;
-            var conversions = new TypeConversions(containingAssembly.CorLibrary);
-
-            // There is absolutely no plausible syntax/tree that we could use for these
-            // synthesized literals.  We could be speculatively binding a call to a PE method.
-            var syntaxTree = CSharpSyntaxTree.Dummy;
-            var syntax = (CSharpSyntaxNode)syntaxTree.GetRoot();
-
-            // Create an argument value for the "this" argument of specific type,
-            // and pass the same bad argument value for all other arguments.
-            var thisArgumentValue = new BoundLiteral(syntax, ConstantValue.Bad, thisType) { WasCompilerGenerated = true };
-            var otherArgumentType = new ExtendedErrorTypeSymbol(errorNamespace, name: string.Empty, arity: 0, errorInfo: null, unreported: false);
-            var otherArgumentValue = new BoundLiteral(syntax, ConstantValue.Bad, otherArgumentType) { WasCompilerGenerated = true };
-
-            var paramCount = method.ParameterCount;
-            var arguments = new BoundExpression[paramCount];
-            for (int i = 0; i < paramCount; i++)
-            {
-                var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
-                arguments[i] = argument;
-            }
-
-            var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
-                conversions,
-                method,
-                arguments.AsImmutable(),
-                ref useSiteDiagnostics);
-
-            if (typeArgs.IsDefault)
-            {
-                return null;
-            }
-
-            int firstNullInTypeArgs = -1;
-
-            // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
-            // This prevents constraint checking from failing for corresponding type parameters. 
-            var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            var typeParams = method.TypeParameters;
-            var typeArgsForConstraintsCheck = typeArgs;
-            for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
-            {
-                if ((object)typeArgsForConstraintsCheck[i] == null)
-                {
-                    firstNullInTypeArgs = i;
-                    var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-                    builder.AddRange(typeArgs, firstNullInTypeArgs);
-
-                    for (; i < typeArgsForConstraintsCheck.Length; i++)
-                    {
-                        var typeArg = typeArgsForConstraintsCheck[i];
-                        if ((object)typeArg == null)
-                        {
-                            notInferredTypeParameters.Add(typeParams[i]);
-                            builder.Add(ErrorTypeSymbol.UnknownResultType);
-                        }
-                        else
-                        {
-                            builder.Add(typeArg);
-                        }
-                    }
-
-                    typeArgsForConstraintsCheck = builder.ToImmutableAndFree();
-                    break;
-                }
-            }
-
-            // Check constraints.
-            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
-            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder, 
-                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
-            diagnosticsBuilder.Free();
-            notInferredTypeParameters.Free();
-
-            if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
-            {
-                if (useSiteDiagnostics == null)
-                {
-                    useSiteDiagnostics = new HashSet<DiagnosticInfo>();
-                }
-
-                foreach (var diag in useSiteDiagnosticsBuilder)
-                {
-                    useSiteDiagnostics.Add(diag.DiagnosticInfo);
-                }
-            }
-
-            if (!success)
-            {
-                return null;
-            }
-
-            // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
-            var typeArgsForConstruct = typeArgs;
-            if (firstNullInTypeArgs != -1)
-            {
-                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-                builder.AddRange(typeArgs, firstNullInTypeArgs);
-
-                for (int i = firstNullInTypeArgs; i < typeArgsForConstruct.Length; i++)
-                {
-                    builder.Add(typeArgsForConstruct[i] ?? typeParams[i]);
-                }
-
-                typeArgsForConstruct = builder.ToImmutableAndFree();
-            }
-
-            return method.Construct(typeArgsForConstruct);
         }
 
         internal static bool IsSynthesizedLambda(this MethodSymbol method)
@@ -206,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // At this point, we know method originated with a DestructorDeclarationSyntax in source,
                 // so it can't have the "new" modifier.
                 // First is fine, since there should only be one, since there are no parameters.
-                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(out _);
                 skipFirstMethodKindCheck = false;
             }
 
@@ -216,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns a constructed method symbol if 'method' is generic, otherwise just returns 'method'
         /// </summary>
-        public static MethodSymbol ConstructIfGeneric(this MethodSymbol method, ImmutableArray<TypeSymbol> typeArguments)
+        public static MethodSymbol ConstructIfGeneric(this MethodSymbol method, ImmutableArray<TypeWithAnnotations> typeArguments)
         {
             Debug.Assert(method.IsGenericMethod == (typeArguments.Length > 0));
             return method.IsGenericMethod ? method.Construct(typeArguments) : method;
@@ -280,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
-        public static bool IsVoidReturningAsync(this MethodSymbol method)
+        public static bool IsAsyncReturningVoid(this MethodSymbol method)
         {
             return method.IsAsync && method.ReturnsVoid;
         }
@@ -288,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns a task.
         /// </summary>
-        public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.IsNonGenericTaskType(compilation);
@@ -297,20 +164,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns a generic task.
         /// </summary>
-        public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
                 && method.ReturnType.IsGenericTaskType(compilation);
         }
 
+        /// <summary>
+        /// Returns whether this method is async and returns an IAsyncEnumerable`1.
+        /// </summary>
+        public static bool IsAsyncReturningIAsyncEnumerable(this MethodSymbol method, CSharpCompilation compilation)
+        {
+            return method.IsAsync
+                && method.ReturnType.IsIAsyncEnumerableType(compilation);
+        }
+
+        /// <summary>
+        /// Returns whether this method is async and returns an IAsyncEnumerator`1.
+        /// </summary>
+        public static bool IsAsyncReturningIAsyncEnumerator(this MethodSymbol method, CSharpCompilation compilation)
+        {
+            return method.IsAsync
+                && method.ReturnType.IsIAsyncEnumeratorType(compilation);
+        }
+
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
+            if (method is SynthesizedSimpleProgramEntryPointSymbol synthesized)
+            {
+                return (CSharpSyntaxNode)synthesized.ReturnTypeSyntax;
+            }
+
             method = method.PartialDefinitionPart ?? method;
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
-                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
+                SyntaxNode node = reference.GetSyntax();
+                if (node is MethodDeclarationSyntax methodDeclaration)
                 {
                     return methodDeclaration.ReturnType;
+                }
+                else if (node is LocalFunctionStatementSyntax statement)
+                {
+                    return statement.ReturnType;
                 }
             }
 

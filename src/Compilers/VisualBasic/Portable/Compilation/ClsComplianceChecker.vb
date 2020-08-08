@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -17,8 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ClsComplianceChecker
         Inherits VisualBasicSymbolVisitor
 
-        Private Shared ReadOnly s_defaultParallelOptions As New ParallelOptions
-
         Private ReadOnly _compilation As VisualBasicCompilation
 
         ' if not null, limit analysis to types residing in this tree.
@@ -33,6 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _declaredOrInheritedCompliance As ConcurrentDictionary(Of Symbol, Compliance)
 
+        ''' <seealso cref="MethodCompiler._compilerTasks"/>
+        Private ReadOnly _compilerTasks As ConcurrentStack(Of Task)
+
         Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As ConcurrentQueue(Of Diagnostic), cancellationToken As CancellationToken)
             Me._compilation = compilation
             Me._filterTree = filterTree
@@ -40,7 +43,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._diagnostics = diagnostics
             Me._cancellationToken = cancellationToken
             Me._declaredOrInheritedCompliance = New ConcurrentDictionary(Of Symbol, Compliance)()
+
+            If ConcurrentAnalysis Then
+                Me._compilerTasks = New ConcurrentStack(Of Task)()
+            End If
         End Sub
+
+        ''' <summary>
+        ''' Gets a value indicating whether <see cref="ClsComplianceChecker"/> Is allowed to analyze in parallel.
+        ''' </summary>
+        Private ReadOnly Property ConcurrentAnalysis As Boolean
+            Get
+                Return _filterTree Is Nothing AndAlso _compilation.Options.ConcurrentBuild
+            End Get
+        End Property
 
         ''' <summary>
         ''' Traverses the symbol table checking for CLS compliance.
@@ -54,10 +70,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim queue = New ConcurrentQueue(Of Diagnostic)()
             Dim checker = New ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken)
             checker.Visit(compilation.Assembly)
+            checker.WaitForWorkers()
 
             For Each diag In queue
                 diagnostics.Add(diag)
             Next
+        End Sub
+
+        Private Sub WaitForWorkers()
+            Dim tasks As ConcurrentStack(Of Task) = Me._compilerTasks
+            If tasks Is Nothing Then
+                Return
+            End If
+
+            Dim curTask As Task = Nothing
+            While tasks.TryPop(curTask)
+                curTask.GetAwaiter().GetResult()
+            End While
         End Sub
 
         Public Overrides Sub VisitAssembly(symbol As AssemblySymbol)
@@ -68,15 +97,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The regular attribute code handles conflicting attributes from included netmodules.
 
-            If symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
-                Parallel.ForEach(symbol.Modules, options, UICultureUtilities.WithCurrentUICulture(Of ModuleSymbol)(AddressOf VisitModule))
+            If symbol.Modules.Length > 1 AndAlso ConcurrentAnalysis Then
+                VisitAssemblyMembersAsTasks(symbol)
             Else
-                For Each m In symbol.Modules
-                    VisitModule(m)
-                Next
+                VisitAssemblyMembers(symbol)
             End If
+        End Sub
 
+        Private Sub VisitAssemblyMembersAsTasks(symbol As AssemblySymbol)
+            For Each m In symbol.Modules
+                _compilerTasks.Push(
+                    Task.Run(
+                        UICultureUtilities.WithCurrentUICulture(
+                            Sub()
+                                Try
+                                    VisitModule(m)
+                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                    Throw ExceptionUtilities.Unreachable
+                                End Try
+                            End Sub),
+                        Me._cancellationToken))
+            Next
+        End Sub
+
+        Private Sub VisitAssemblyMembers(symbol As AssemblySymbol)
+            For Each m In symbol.Modules
+                VisitModule(m)
+            Next
         End Sub
 
         Public Overrides Sub VisitModule(symbol As ModuleSymbol)
@@ -94,16 +141,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CheckMemberDistinctness(symbol)
             End If
 
-            If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
+            If ConcurrentAnalysis Then
+                VisitNamespaceMembersAsTasks(symbol)
             Else
-                For Each m In symbol.GetMembersUnordered()
-                    Visit(m)
-                Next
+                VisitNamespaceMembers(symbol)
             End If
         End Sub
 
+        Private Sub VisitNamespaceMembersAsTasks(symbol As NamespaceSymbol)
+            For Each m In symbol.GetMembersUnordered()
+                _compilerTasks.Push(
+                    Task.Run(
+                        UICultureUtilities.WithCurrentUICulture(
+                            Sub()
+                                Try
+                                    Visit(m)
+                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                    Throw ExceptionUtilities.Unreachable
+                                End Try
+                            End Sub),
+                        Me._cancellationToken))
+            Next
+        End Sub
+
+        Private Sub VisitNamespaceMembers(symbol As NamespaceSymbol)
+            For Each m In symbol.GetMembersUnordered()
+                Visit(m)
+            Next
+        End Sub
+
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry:=False)>
         Public Overrides Sub VisitNamedType(symbol As NamedTypeSymbol)
             Me._cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
@@ -121,14 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
-            Else
-                For Each m In symbol.GetMembersUnordered()
-                    Visit(m)
-                Next
-            End If
+            For Each m In symbol.GetMembersUnordered()
+                Visit(m)
+            Next
         End Sub
 
         Private Function HasAcceptableAttributeConstructor(attributeType As NamedTypeSymbol) As Boolean
@@ -427,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If symbol.Kind <> SymbolKind.Namespace Then
                 Dim type As NamedTypeSymbol = DirectCast(symbol, NamedTypeSymbol)
-                For Each [interface] In type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+                For Each [interface] In type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys
                     If Not IsAccessibleOutsideAssembly([interface]) Then
                         Continue For
                     End If
@@ -717,10 +779,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetDeclaredComplianceHelper(symbol As Symbol, <Out> ByRef attributeLocation As Location, <Out> ByRef isAttributeInherited As Boolean) As Boolean?
             attributeLocation = Nothing
             isAttributeInherited = False
-            For Each data In symbol.GetAttributes()
+            For Each attributeData In symbol.GetAttributes()
                 ' Check signature before HasErrors to avoid realizing symbols for other attributes.
-                If data.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
-                    Dim attributeClass = data.AttributeClass
+                If attributeData.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
+                    Dim attributeClass = attributeData.AttributeClass
                     If attributeClass IsNot Nothing Then
                         Dim info = attributeClass.GetUseSiteErrorInfo()
                         If info IsNot Nothing Then
@@ -730,19 +792,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
 
-                    If Not data.HasErrors Then
-                        If Not TryGetAttributeWarningLocation(data, attributeLocation) Then
+                    If Not attributeData.HasErrors Then
+                        If Not TryGetAttributeWarningLocation(attributeData, attributeLocation) Then
                             attributeLocation = Nothing
                         End If
 
-                        Debug.Assert(Not data.AttributeClass.IsErrorType(), "Already checked HasErrors.")
-                        isAttributeInherited = data.AttributeClass.GetAttributeUsageInfo().Inherited
+                        Debug.Assert(Not attributeData.AttributeClass.IsErrorType(), "Already checked HasErrors.")
+                        isAttributeInherited = attributeData.AttributeClass.GetAttributeUsageInfo().Inherited
 
-                        Dim args As ImmutableArray(Of TypedConstant) = data.CommonConstructorArguments
+                        Dim args As ImmutableArray(Of TypedConstant) = attributeData.CommonConstructorArguments
                         Debug.Assert(args.Length = 1, "We already checked the signature and HasErrors.")
 
                         ' Duplicates are reported elsewhere - we only care about the first (error-free) occurrence.
-                        Return DirectCast(args(0).Value, Boolean)
+                        Return DirectCast(args(0).ValueInternal, Boolean)
                     End If
                 End If
             Next
@@ -873,13 +935,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim xArrayType As ArrayTypeSymbol = DirectCast(xType, ArrayTypeSymbol)
                     Dim yArrayType As ArrayTypeSymbol = DirectCast(yType, ArrayTypeSymbol)
                     sawArrayRankDifference = sawArrayRankDifference OrElse xArrayType.Rank <> yArrayType.Rank
-                    Dim elementTypesDiffer As Boolean = xArrayType.ElementType <> yArrayType.ElementType
+                    Dim elementTypesDiffer As Boolean = Not TypeSymbol.Equals(xArrayType.ElementType, yArrayType.ElementType, TypeCompareKind.ConsiderEverything)
                     If IsArrayOfArrays(xArrayType) AndAlso IsArrayOfArrays(yArrayType) Then ' NOTE: C# uses OrElse
                         sawArrayOfArraysDifference = sawArrayOfArraysDifference OrElse elementTypesDiffer
                     ElseIf elementTypesDiffer Then
                         Return False
                     End If
-                ElseIf xType <> yType Then
+                ElseIf Not TypeSymbol.Equals(xType, yType, TypeCompareKind.ConsiderEverything) Then
                     Return False
                 End If
             Next

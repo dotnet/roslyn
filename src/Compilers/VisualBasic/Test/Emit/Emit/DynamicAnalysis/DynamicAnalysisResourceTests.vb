@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
@@ -70,7 +72,7 @@ End Class
             source.Add(ExampleSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -187,7 +189,7 @@ End Module
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -287,7 +289,7 @@ End Module
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -355,7 +357,7 @@ End Module
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -449,7 +451,7 @@ End Class
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -554,7 +556,7 @@ End Class
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -644,7 +646,7 @@ End Class
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -742,7 +744,7 @@ End Module
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
 
             Dim PEReader As New PEReader(peImage)
@@ -803,7 +805,7 @@ End Module
             source.Add(ExampleSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim peImage = c.EmitToArray(EmitOptions.Default)
 
             Dim PEReader As New PEReader(peImage)

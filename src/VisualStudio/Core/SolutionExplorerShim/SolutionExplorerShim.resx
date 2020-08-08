@@ -135,9 +135,6 @@
   <data name="Diagnostic_Properties" xml:space="preserve">
     <value>Diagnostic Properties</value>
   </data>
-  <data name="Could_not_find_project_0" xml:space="preserve">
-    <value>Could not find project {0}.</value>
-  </data>
   <data name="No_rule_set_file_is_specified_or_the_file_does_not_exist" xml:space="preserve">
     <value>No rule set file is specified, or the file does not exist.</value>
   </data>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,60 +13,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioRuleSetManager
     {
-        private sealed class RuleSetFile : IRuleSetFile
+        private sealed class RuleSetFile : IRuleSetFile, IDisposable
         {
-            private readonly string _filePath;
-            private readonly List<FileChangeTracker> _trackers;
             private readonly VisualStudioRuleSetManager _ruleSetManager;
+            private readonly object _gate = new object();
+
+            private FileChangeWatcher.IContext _fileChangeContext;
 
             private ReportDiagnostic _generalDiagnosticOption;
             private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
             private bool _subscribed = false;
             private bool _optionsRead = false;
+            private bool _removedFromRuleSetManager = false;
 
             private Exception _exception;
 
-            public RuleSetFile(string filePath, IVsFileChangeEx fileChangeService, VisualStudioRuleSetManager ruleSetManager)
+            public RuleSetFile(string filePath, VisualStudioRuleSetManager ruleSetManager)
             {
-                _filePath = filePath;
+                FilePath = filePath;
                 _ruleSetManager = ruleSetManager;
+            }
 
-                ImmutableArray<string> includes;
-
-                try
+            public void InitializeFileTracking(FileChangeWatcher fileChangeWatcher)
+            {
+                lock (_gate)
                 {
-                    includes = RuleSet.GetEffectiveIncludesFromFile(filePath);
-                }
-                catch (Exception e)
-                {
-                    // We couldn't read the rule set for whatever reason. Capture the exception
-                    // so we can surface the error later, and subscribe to file change notifications
-                    // so that we'll automatically reload the file if the user can fix the issue.
-                    _optionsRead = true;
-                    _specificDiagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty;
-                    _exception = e;
+                    if (_fileChangeContext == null)
+                    {
+                        ImmutableArray<string> includes;
 
-                    includes = ImmutableArray.Create(filePath);
-                }
+                        try
+                        {
+                            includes = RuleSet.GetEffectiveIncludesFromFile(FilePath);
+                        }
+                        catch (Exception e)
+                        {
+                            // We couldn't read the rule set for whatever reason. Capture the exception
+                            // so we can surface the error later, and subscribe to file change notifications
+                            // so that we'll automatically reload the file if the user can fix the issue.
+                            _optionsRead = true;
+                            _specificDiagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty;
+                            _exception = e;
 
-                _trackers = new List<FileChangeTracker>(capacity: includes.Length);
+                            includes = ImmutableArray.Create(FilePath);
+                        }
 
-                foreach (var include in includes)
-                {
-                    var tracker = new FileChangeTracker(fileChangeService, include);
-                    tracker.UpdatedOnDisk += IncludeUpdated;
-                    tracker.StartFileChangeListeningAsync();
+                        _fileChangeContext = fileChangeWatcher.CreateContext();
+                        _fileChangeContext.FileChanged += IncludeUpdated;
 
-                    _trackers.Add(tracker);
+                        foreach (var include in includes)
+                        {
+                            _fileChangeContext.EnqueueWatchingFile(include);
+                        }
+                    }
                 }
             }
 
             public event EventHandler UpdatedOnDisk;
 
-            public string FilePath
-            {
-                get { return _filePath; }
-            }
+            public string FilePath { get; }
 
             public Exception GetException()
             {
@@ -92,54 +99,66 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void EnsureSubscriptions()
             {
-                if (!_subscribed)
+                lock (_gate)
                 {
-                    foreach (var tracker in _trackers)
+                    if (!_subscribed)
                     {
-                        tracker.EnsureSubscription();
+                        // TODO: ensure subscriptions now
+                        _subscribed = true;
                     }
-
-                    _subscribed = true;
                 }
             }
 
             private void EnsureDiagnosticOptionsRead()
             {
-                if (!_optionsRead)
+                lock (_gate)
                 {
-                    _optionsRead = true;
-                    var specificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
-
-                    try
+                    if (!_optionsRead)
                     {
-                        var effectiveRuleset = RuleSet.LoadEffectiveRuleSetFromFile(_filePath);
-                        _generalDiagnosticOption = effectiveRuleset.GeneralDiagnosticOption;
-                        foreach (var rule in effectiveRuleset.SpecificDiagnosticOptions)
+                        _optionsRead = true;
+                        var specificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
+
+                        try
                         {
-                            specificDiagnosticOptions.Add(rule.Key, rule.Value);
+                            var effectiveRuleset = RuleSet.LoadEffectiveRuleSetFromFile(FilePath);
+                            _generalDiagnosticOption = effectiveRuleset.GeneralDiagnosticOption;
+                            foreach (var rule in effectiveRuleset.SpecificDiagnosticOptions)
+                            {
+                                specificDiagnosticOptions.Add(rule.Key, rule.Value);
+                            }
+
+                            _specificDiagnosticOptions = specificDiagnosticOptions.ToImmutableDictionary();
                         }
-
-                        _specificDiagnosticOptions = specificDiagnosticOptions.ToImmutableDictionary();
-                    }
-                    catch (Exception e)
-                    {
-                        _exception = e;
+                        catch (Exception e)
+                        {
+                            _exception = e;
+                        }
                     }
                 }
             }
 
-            public void UnsubscribeFromFileTrackers()
+            public void Dispose()
+                => RemoveFromRuleSetManagerAndDisconnectFileTrackers();
+
+            private void RemoveFromRuleSetManagerAndDisconnectFileTrackers()
             {
-                foreach (var tracker in _trackers)
+                lock (_gate)
                 {
-                    tracker.UpdatedOnDisk -= IncludeUpdated;
-                    tracker.Dispose();
+                    _fileChangeContext.Dispose();
+
+                    if (_removedFromRuleSetManager)
+                    {
+                        return;
+                    }
+
+                    _removedFromRuleSetManager = true;
                 }
 
-                _trackers.Clear();
+                // Call outside of lock to avoid general surprises; we skip this with the return above inside the lock.
+                _ruleSetManager.StopTrackingRuleSetFile(this);
             }
 
-            private void IncludeUpdated(object sender, EventArgs e)
+            private void IncludeUpdated(object sender, string fileChanged)
             {
                 // The file change service is going to notify us of updates on the foreground thread.
                 // This is going to cause us to drop our existing subscriptions and create new ones.
@@ -154,8 +173,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void IncludeUpdateCore()
             {
-                _ruleSetManager.StopTrackingRuleSetFile(this);
-                UnsubscribeFromFileTrackers();
+                // It's critical that RemoveFromRuleSetManagerAndDisconnectFileTrackers() is called first prior to raising the event
+                // -- this way any callers who call the RuleSetManager asking for the new file are guaranteed to get the new snapshot first.
+                // idempotent.
+                RemoveFromRuleSetManagerAndDisconnectFileTrackers();
                 UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
             }
         }

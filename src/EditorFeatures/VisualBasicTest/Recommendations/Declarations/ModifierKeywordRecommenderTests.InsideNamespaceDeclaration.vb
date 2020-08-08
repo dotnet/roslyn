@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations.ModifierKeywordRecommenderTests
     Public Class InsideNamespaceDeclaration
@@ -6,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         ''' <summary>
         ''' Declarations outside of any namespace in the file are considered to be in the project's root namespace
         ''' </summary>
-        Private Async Function VerifyContainsAsync(ParamArray recommendations As String()) As Task
+        Private Shared Async Function VerifyContainsAsync(ParamArray recommendations As String()) As Task
             Await VerifyRecommendationsContainAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
             Await VerifyRecommendationsContainAsync(<File>|</File>, recommendations)
             Await VerifyRecommendationsContainAsync(
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         ''' <summary>
         ''' Declarations outside of any namespace in the file are considered to be in the project's root namespace
         ''' </summary>
-        Private Async Function VerifyMissingAsync(ParamArray recommendations As String()) As Task
+        Private Shared Async Function VerifyMissingAsync(ParamArray recommendations As String()) As Task
             Await VerifyRecommendationsMissingAsync(<NamespaceDeclaration>|</NamespaceDeclaration>, recommendations)
             Await VerifyRecommendationsMissingAsync(<File>|</File>, recommendations)
             Await VerifyRecommendationsMissingAsync(

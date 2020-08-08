@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static SymbolInfo BindFirstConstructorInitializer(string source)
         {
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var constructorInitializer = GetFirstConstructorInitializer(tree.GetCompilationUnitRoot());
@@ -109,7 +111,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
         {
-            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            var compilation = CreateCompilation(testSrc, parseOptions: parseOptions);
+            return GetSemanticInfoForTest<TNode>(compilation);
+        }
+
+        internal CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc, MessageID feature, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
+        {
+            var compilation = CreateExperimentalCompilationWithMscorlib45(testSrc, feature, parseOptions: parseOptions);
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
@@ -124,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal PreprocessingSymbolInfo GetPreprocessingSymbolInfoForTest(string testSrc, string subStrForPreprocessNameIndex)
         {
-            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateCompilation(testSrc);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
@@ -135,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal AliasSymbol GetAliasInfoForTest(string testSrc)
         {
-            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateCompilation(testSrc);
             return GetAliasInfoForTest(compilation);
         }
 
@@ -145,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var model = compilation.GetSemanticModel(tree);
             IdentifierNameSyntax syntaxToBind = GetSyntaxNodeOfTypeForBinding<IdentifierNameSyntax>(GetSyntaxNodeList(tree));
 
-            return (AliasSymbol)model.GetAliasInfo(syntaxToBind);
+            return model.GetAliasInfo(syntaxToBind).GetSymbol();
         }
 
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest(string testSrc)

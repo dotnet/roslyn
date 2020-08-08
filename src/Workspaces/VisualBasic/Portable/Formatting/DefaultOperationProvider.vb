@@ -1,55 +1,83 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ' the default provider that will be called by the engine at the end of provider's chain.
     ' there is no way for a user to be remove this provider.
     '
     ' to reduce number of unnecessary heap allocations, most of them just return null.
-    Friend Class DefaultOperationProvider
-        Implements IFormattingRule
+    Friend NotInheritable Class DefaultOperationProvider
+        Inherits CompatAbstractFormattingRule
 
-        Public Sub New()
+        Public Shared ReadOnly Instance As New DefaultOperationProvider()
+
+        Private ReadOnly _options As CachedOptions
+
+        Private Sub New()
+            MyClass.New(New CachedOptions(Nothing))
         End Sub
 
-        Public Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextAction As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
+        Private Sub New(options As CachedOptions)
+            _options = options
         End Sub
 
-        Public Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AnchorIndentationOperation)) Implements IFormattingRule.AddAnchorIndentationOperations
+        Public Overrides Function WithOptions(options As AnalyzerConfigOptions) As AbstractFormattingRule
+            Dim cachedOptions = New CachedOptions(options)
+
+            If cachedOptions = _options Then
+                Return Me
+            End If
+
+            Return New DefaultOperationProvider(cachedOptions)
+        End Function
+
+        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
-        Public Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of IndentBlockOperation)) Implements IFormattingRule.AddIndentBlockOperations
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextAction As NextAnchorIndentationOperationAction)
         End Sub
 
-        Public Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AlignTokensOperation)) Implements IFormattingRule.AddAlignTokensOperations
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextAction As NextIndentBlockOperationAction)
         End Sub
 
-        Public Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation Implements IFormattingRule.GetAdjustNewLinesOperation
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, ByRef nextAction As NextAlignTokensOperationAction)
+        End Sub
+
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
+                ByRef previousToken As SyntaxToken,
+                ByRef currentToken As SyntaxToken,
+                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
             End If
 
-            Dim combinedTrivia = previousToken.TrailingTrivia.Concat(currentToken.LeadingTrivia)
+            Dim combinedTrivia = (previousToken.TrailingTrivia, currentToken.LeadingTrivia)
 
-            If ColonTriviaFollowedByLineContinuation(combinedTrivia) Then
-                Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
-            End If
+            Dim lastTrivia = LastOrDefaultTrivia(
+                combinedTrivia,
+                Function(trivia As SyntaxTrivia) ColonOrLineContinuationTrivia(trivia))
 
-            Dim lastTrivia = combinedTrivia.LastOrDefault(AddressOf ColonOrLineContinuationTrivia)
             If lastTrivia.RawKind = SyntaxKind.ColonTrivia Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
-            ElseIf lastTrivia.RawKind = SyntaxKind.LineContinuationTrivia AndAlso previousToken.Parent.GetAncestorsOrThis(Of SyntaxNode)().Any(AddressOf IsSingleLineIfOrElseClauseSyntax) Then
+            ElseIf lastTrivia.RawKind = SyntaxKind.LineContinuationTrivia AndAlso previousToken.Parent.GetAncestorsOrThis(Of SyntaxNode)().Any(Function(node As SyntaxNode) IsSingleLineIfOrElseClauseSyntax(node)) Then
                 Return Nothing
             End If
 
-            ' return line break operation after statement terminator token so that we can enforce indentation for the line
-            If previousToken.IsLastTokenOfStatement() AndAlso ContainEndOfLine(previousToken, currentToken) AndAlso currentToken.Kind <> SyntaxKind.EmptyToken Then
-                Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)
+            ' return line break operation after statement terminator token so that we can enforce
+            ' indentation for the line
+            Dim previousStatement As StatementSyntax = Nothing
+            If previousToken.IsLastTokenOfStatement(statement:=previousStatement) AndAlso ContainEndOfLine(previousToken, currentToken) AndAlso currentToken.Kind <> SyntaxKind.EmptyToken Then
+                Return AdjustNewLinesBetweenStatements(previousStatement, currentToken)
             End If
 
             If previousToken.Kind = SyntaxKind.GreaterThanToken AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
@@ -92,34 +120,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function IsSingleLineIfOrElseClauseSyntax(node As SyntaxNode) As Boolean
+        Private Function AdjustNewLinesBetweenStatements(
+                previousStatement As StatementSyntax,
+                currentToken As SyntaxToken) As AdjustNewLinesOperation
+
+            ' if the user is separating import-groups, And we're between two imports, and these
+            ' imports *should* be separated, then do so (if the imports were already properly
+            ' sorted).
+            If currentToken.Kind() = SyntaxKind.ImportsKeyword AndAlso
+               TypeOf currentToken.Parent Is ImportsStatementSyntax AndAlso
+               TypeOf previousStatement Is ImportsStatementSyntax Then
+
+                Dim previousImports = DirectCast(previousStatement, ImportsStatementSyntax)
+                Dim currentImports = DirectCast(currentToken.Parent, ImportsStatementSyntax)
+
+                If _options.SeparateImportDirectiveGroups AndAlso
+                   ImportsOrganizer.NeedsGrouping(previousImports, currentImports) Then
+
+                    Dim [imports] = DirectCast(previousImports.Parent, CompilationUnitSyntax).Imports
+                    If [imports].IsSorted(ImportsStatementComparer.SystemFirstInstance) OrElse
+                       [imports].IsSorted(ImportsStatementComparer.NormalInstance) Then
+
+                        ' Force at least one blank line here.
+                        Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines)
+                    End If
+                End If
+            End If
+
+            ' For any other two statements we will normally ensure at least one new-line between
+            ' them.
+            Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)
+        End Function
+
+        Private Shared Function IsSingleLineIfOrElseClauseSyntax(node As SyntaxNode) As Boolean
             Return TypeOf node Is SingleLineIfStatementSyntax OrElse TypeOf node Is SingleLineElseClauseSyntax
         End Function
 
-        Private Function ColonOrLineContinuationTrivia(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function ColonOrLineContinuationTrivia(trivia As SyntaxTrivia) As Boolean
             Return trivia.RawKind = SyntaxKind.ColonTrivia OrElse trivia.RawKind = SyntaxKind.LineContinuationTrivia
         End Function
 
-        Private Function ColonTriviaFollowedByLineContinuation(triviaList As IEnumerable(Of SyntaxTrivia)) As Boolean
-            Dim previousTrivia As SyntaxTrivia = Nothing
-            For Each trivia In triviaList
-                If previousTrivia.RawKind = SyntaxKind.None OrElse trivia.RawKind = SyntaxKind.None Then
-                    Continue For
-                End If
-
-                If previousTrivia.RawKind = SyntaxKind.ColonTrivia AndAlso trivia.RawKind = SyntaxKind.LineContinuationTrivia Then
-                    Return True
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
+        Private Shared Function LastOrDefaultTrivia(triviaListPair As (SyntaxTriviaList, SyntaxTriviaList), predicate As Func(Of SyntaxTrivia, Boolean)) As SyntaxTrivia
+            For Each trivia In triviaListPair.Item2.Reverse()
+                If predicate(trivia) Then
+                    Return trivia
                 End If
             Next
 
-            Return False
+            For Each trivia In triviaListPair.Item1.Reverse()
+                If predicate(trivia) Then
+                    Return trivia
+                End If
+            Next
+
+            Return Nothing
         End Function
 
-        Private Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
             Return previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) OrElse nextToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia)
         End Function
 
-        Private Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
+        Private Shared Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
             Dim xmlDeclaration = TryCast(currentToken.Parent, XmlDeclarationSyntax)
             If xmlDeclaration IsNot Nothing AndAlso
                xmlDeclaration.LessThanQuestionToken = currentToken AndAlso
@@ -147,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         ' return 1 space for every token pairs as a default operation
-        Public Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation Implements IFormattingRule.GetAdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.Kind <> SyntaxKind.EndOfFileToken Then
@@ -157,5 +219,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim space As Integer = If(currentToken.Kind = SyntaxKind.EndOfFileToken, 0, 1)
             Return FormattingOperations.CreateAdjustSpacesOperation(space, AdjustSpacesOption.DefaultSpacesIfOnSingleLine)
         End Function
+
+        Private Structure CachedOptions
+            Implements IEquatable(Of CachedOptions)
+
+            Public ReadOnly SeparateImportDirectiveGroups As Boolean
+
+            Public Sub New(options As AnalyzerConfigOptions)
+                SeparateImportDirectiveGroups = GetOptionOrDefault(options, GenerationOptions.SeparateImportDirectiveGroups)
+            End Sub
+
+            Public Shared Operator =(left As CachedOptions, right As CachedOptions) As Boolean
+                Return left.Equals(right)
+            End Operator
+
+            Public Shared Operator <>(left As CachedOptions, right As CachedOptions) As Boolean
+                Return Not left = right
+            End Operator
+
+            Private Shared Function GetOptionOrDefault(Of T)(options As AnalyzerConfigOptions, [option] As PerLanguageOption2(Of T)) As T
+                If options Is Nothing Then
+                    Return [option].DefaultValue
+                End If
+
+                Return options.GetOption([option])
+            End Function
+
+            Public Overrides Function Equals(obj As Object) As Boolean
+                Return (TypeOf obj Is CachedOptions) AndAlso Equals(DirectCast(obj, CachedOptions))
+            End Function
+
+            Public Overloads Function Equals(other As CachedOptions) As Boolean Implements IEquatable(Of CachedOptions).Equals
+                Return SeparateImportDirectiveGroups = other.SeparateImportDirectiveGroups
+            End Function
+
+            Public Overrides Function GetHashCode() As Integer
+                Dim hashCode = 0
+                hashCode = (hashCode << 1) + If(SeparateImportDirectiveGroups, 1, 0)
+                Return hashCode
+            End Function
+        End Structure
     End Class
 End Namespace

@@ -1,27 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-extern alias VBCSCompiler;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using VBCSCompiler.Microsoft.CodeAnalysis.CompilerServer;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using System.Reflection;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public class TouchedFileLoggingTests : CSharpTestBase
+    public class TouchedFileLoggingTests : CommandLineTestBase
     {
         private static readonly string s_libDirectory = Environment.GetEnvironmentVariable("LIB");
-        private readonly string _baseDirectory = TempRoot.Root;
         private const string helloWorldCS = @"using System;
 
 class C
@@ -39,7 +38,7 @@ class C
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
+            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello,
                string.Format(@"/touchedfiles:""{0}""", touchedBase) });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -76,11 +75,11 @@ class C
   </runtime>
 </configuration>").Path;
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, _baseDirectory,
+            var cmd = CreateCSharpCompiler(
                 new[] { "/nologo",
                         "/r:" + silverlight,
                         "/r:" + net4_0dll,
@@ -115,7 +114,7 @@ class C
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, _baseDirectory,
+            var cmd = CreateCSharpCompiler(
                 new[] { "/nologo",
                         "/touchedfiles:" + touchedBase,
                         "/keyfile:" + snkPath,
@@ -153,7 +152,7 @@ public class C { }").Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[]
+            var cmd = CreateCSharpCompiler(new[]
             {
                 "/nologo",
                 "/target:library",
@@ -198,53 +197,6 @@ public class C { }").Path;
             CleanupAllGeneratedFiles(sourcePath);
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
-        public void TrivialMetadataCaching()
-        {
-            List<String> filelist = new List<string>();
-
-            // Do the following compilation twice.
-            // The compiler server API should hold on to the mscorlib bits
-            // in memory, but the file tracker should still map that it was
-            // touched.
-            for (int i = 0; i < 2; i++)
-            {
-                var source1 = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-                var touchedDir = Temp.CreateDirectory();
-                var touchedBase = Path.Combine(touchedDir.Path, "touched");
-
-                filelist.Add(source1);
-                var outWriter = new StringWriter();
-                var cmd = new CSharpCompilerServer(
-                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
-                    new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    new BuildPaths(null, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
-                    s_libDirectory,
-                    new TestAnalyzerAssemblyLoader());
-
-                List<string> expectedReads;
-                List<string> expectedWrites;
-                BuildTouchedFiles(cmd,
-                                  Path.ChangeExtension(source1, "exe"),
-                                  out expectedReads,
-                                  out expectedWrites);
-
-                var exitCode = cmd.Run(outWriter);
-
-                Assert.Equal(string.Empty, outWriter.ToString().Trim());
-                Assert.Equal(0, exitCode);
-
-                AssertTouchedFilesEqual(expectedReads,
-                                        expectedWrites,
-                                        touchedBase);
-            }
-
-            foreach (String f in filelist)
-            {
-                CleanupAllGeneratedFiles(f);
-            }
-        }
-
         /// <summary>
         /// Builds the expected base of touched files.
         /// Adds a hook for temporary file creation as well,
@@ -285,19 +237,6 @@ public class C { }").Path;
             expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
-        }
-
-        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

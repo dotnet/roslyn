@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports System.Xml.Linq
 Imports System.Text
@@ -36,9 +39,9 @@ End Class
 ]]>
     </file>
 </compilation>
-            Using(new EnsureEnglishUICulture()) 
-            
-                Dim comp = CreateCompilationWithMscorlib(sources)
+            Using (new EnsureEnglishUICulture())
+
+                Dim comp = CreateCompilationWithMscorlib40(sources)
                 Dim diags = New DiagnosticBag()
                 Dim badStream = New BrokenStream()
                 badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
@@ -51,7 +54,7 @@ End Class
                     cancellationToken:=Nothing)
 
                 AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
-									   <errors><![CDATA[
+                                       <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
             End Using
@@ -70,7 +73,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
                 sources,
                 options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing),
                 parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
@@ -113,7 +116,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 sources, parseOptions:=(New VisualBasicParseOptions()).WithDocumentationMode(DocumentationMode.None))
 
             Dim tree = compilation.SyntaxTrees(0)
@@ -144,7 +147,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 sources, parseOptions:=(New VisualBasicParseOptions()).WithDocumentationMode(DocumentationMode.Parse))
 
             Dim tree = compilation.SyntaxTrees(0)
@@ -175,7 +178,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 sources, parseOptions:=s_optionsDiagnoseDocComments)
 
             Dim tree = compilation.SyntaxTrees(0)
@@ -1114,7 +1117,7 @@ BC42024: Unused local variable: 'x'.
         End Sub
 
         <WorkItem(685473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685473")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub Bug685473()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -1943,7 +1946,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/18610")>
         Public Sub IllegalXmlInDocComment()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -1993,7 +1996,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/18610")>
         Public Sub IllegalXmlInDocComment_Schema()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -3043,7 +3046,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub Tags_Summary_Permission_See_SeeAlso_List_Para()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -4318,7 +4321,7 @@ AssemblyName
 withDiagnostics:=False)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub BC42305WRN_XMLDocDuplicateXMLNode()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -4512,7 +4515,7 @@ AssemblyName
 </xml>, ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub BC42305WRN_XMLDocDuplicateXMLNode_NoError()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -8441,7 +8444,7 @@ AssemblyName
     </xml>, ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub Include_Value()
             Dim xmlText =
             <![CDATA[
@@ -8700,7 +8703,7 @@ AssemblyName
     </xml>, ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub Include_TypeParamAndTypeParamRef()
             Dim xmlText =
             <![CDATA[
@@ -9435,7 +9438,7 @@ AssemblyName
 Imports System
 
 Public Structure TestStruct(Of X)
-    ''' <see cref="Global.TestStruct(Of KKK).  operator+(integer, TestStruct(Of kkk))"/>
+    ''' <see cref="Global.TestStruct(Of ZZZ).  operator+(integer, TestStruct(Of zzz))"/>
     Public Shared field As Integer
 
     Public Shared Operator +(a As Integer, b As TestStruct(Of X)) As String
@@ -9472,17 +9475,17 @@ AssemblyName
 
             Dim info = model.GetSymbolInfo(crefNodes(0))
             Assert.NotNull(info.Symbol)
-            Assert.Equal("Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String", info.Symbol.ToTestDisplayString())
+            Assert.Equal("Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String", info.Symbol.ToTestDisplayString())
 
             CheckAllNames(model, crefNodes(0),
-                          New NameSyntaxInfo("Global.TestStruct(Of KKK).  operator+", {"Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String"}, {}),
-                          New NameSyntaxInfo("Global.TestStruct(Of KKK)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
+                          New NameSyntaxInfo("Global.TestStruct(Of ZZZ).  operator+", {"Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String"}, {}),
+                          New NameSyntaxInfo("Global.TestStruct(Of ZZZ)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
                           New NameSyntaxInfo("Global", {"Global"}, {}),
-                          New NameSyntaxInfo("TestStruct(Of KKK)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
-                          New NameSyntaxInfo("KKK", {"KKK"}, {"KKK"}),
-                          New NameSyntaxInfo("operator+", {"Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String"}, {}),
-                          New NameSyntaxInfo("TestStruct(Of kkk)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
-                          New NameSyntaxInfo("kkk", {"KKK"}, {"KKK"}))
+                          New NameSyntaxInfo("TestStruct(Of ZZZ)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
+                          New NameSyntaxInfo("ZZZ", {"ZZZ"}, {"ZZZ"}),
+                          New NameSyntaxInfo("operator+", {"Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String"}, {}),
+                          New NameSyntaxInfo("TestStruct(Of zzz)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
+                          New NameSyntaxInfo("zzz", {"ZZZ"}, {"ZZZ"}))
         End Sub
 
         <Fact>
@@ -11170,7 +11173,7 @@ AssemblyName
         <WorkItem(757110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757110")>
         <Fact>
         Public Sub NoAssemblyElementForNetModule()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="EmptyCref">
                     <file name="a.vb">
                         <![CDATA[
@@ -11422,7 +11425,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
             compilation.AssertNoDiagnostics()
@@ -11451,7 +11454,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
             compilation.AssertNoDiagnostics()
@@ -11489,10 +11492,10 @@ End Class
 </compilation>
 
 
-            Dim lib1Ref = CreateCompilationWithMscorlib(lib1Source).EmitToImageReference()
-            Dim lib2Ref = CreateCompilationWithMscorlib(lib2Source).EmitToImageReference()
+            Dim lib1Ref = CreateCompilationWithMscorlib40(lib1Source).EmitToImageReference()
+            Dim lib2Ref = CreateCompilationWithMscorlib40(lib2Source).EmitToImageReference()
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {lib1Ref, lib2Ref}, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {lib1Ref, lib2Ref}, parseOptions:=s_optionsDiagnoseDocComments)
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -11530,7 +11533,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11566,7 +11569,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11595,7 +11598,7 @@ Delegate Sub D(Of T)(p As T)
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'T' that could not be resolved.
 ''' <see cref="T"/>
@@ -11632,7 +11635,7 @@ Delegate Sub D(Of V)()
 </compilation>
 
             ' NOTE: Unlike C#, VB allows crefs to type parameters.
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC42375: XML comment has a tag with a 'cref' attribute 'T' that bound to a type parameter.  Use the <typeparamref> tag instead.
 ''' <see cref='T'/>
@@ -11697,7 +11700,7 @@ End Enum
 </compilation>
 
             ' None of these work in dev11.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11730,7 +11733,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11815,7 +11818,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             comp.VerifyDiagnostics()
 
             Dim expectedXmlText = <![CDATA[
@@ -11825,13 +11828,13 @@ End Class
  </summary>
  <remarks>nothing</remarks>
 </member>
-]]>.Value.Replace(vbLf, vbCrLf).Trim
+]]>.Value.Replace(vbLf, Environment.NewLine).Trim
 
             Dim sourceSymbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
             Assert.Equal(expectedXmlText, sourceSymbol.GetDocumentationCommentXml())
 
             Dim metadataRef = comp.EmitToImageReference()
-            Dim comp2 = CreateCompilationWithReferences(<source/>, {metadataRef})
+            Dim comp2 = CreateEmptyCompilationWithReferences(<source/>, {metadataRef})
 
             Dim metadataSymbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
             Assert.Equal(expectedXmlText, metadataSymbol.GetDocumentationCommentXml())
@@ -12122,10 +12125,10 @@ xmlDoc)
                        DocumentationMode.Diagnose,
                        DocumentationMode.Parse))
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(sources,
-                                                                        additionalRefs,
-                                                                        TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
-                                                                        parseOptions)
+            Dim compilation = CreateCompilation(sources,
+                                                additionalRefs,
+                                                TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
+                                                parseOptions)
             If errors IsNot Nothing Then
                 Dim diagnostics As Diagnostic()
                 Dim saveUICulture As Globalization.CultureInfo = Nothing
@@ -12197,7 +12200,9 @@ xmlDoc)
                         xmlDoc = CStr(stringMapper(xmlDoc))
                     End If
 
-                    Assert.Equal(expectedDocXml.Value.Replace(vbLf, vbCrLf).Trim(), xmlDoc)
+                    Assert.Equal(
+                        expectedDocXml.Value.Trim(),
+                        xmlDoc.Replace(vbCrLf, vbLf).Trim())
                 End Using
             End Using
         End Sub
@@ -12341,7 +12346,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 sources,
                 options:=TestOptions.ReleaseExe,
                 parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
@@ -12432,7 +12437,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 sources,
                 options:=TestOptions.ReleaseDll)
 
@@ -12443,6 +12448,177 @@ End Class
             Dim name = FindNodesOfTypeFromText(Of NameSyntax)(tree, "U").Single()
             Dim typeParameter = DirectCast(model.GetSymbolInfo(name).Symbol, TypeParameterSymbol)
             Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"))
+        End Sub
+
+        <Fact>
+        Public Sub LookupOnCrefOfTupleType()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+''' <summary>
+''' <see cref="ValueTuple(Of U,U)"/>
+''' </summary>
+Public Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim references = TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime)
+            Dim compilation = CreateEmptyCompilationWithReferences(
+                sources,
+                references)
+
+            Dim cMember = compilation.GetMember(Of NamedTypeSymbol)("Test")
+            Dim xmlDocumentationString = cMember.GetDocumentationCommentXml()
+            Dim xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString)
+            Dim cref = xml.Descendants("see").Single().Attribute("cref").Value
+
+            Assert.Equal("T:System.ValueTuple`2", cref)
+        End Sub
+
+        <Fact>
+        Public Sub LookupOnCrefOfTupleTypeField()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+''' <summary>
+''' <see cref="ValueTuple(Of U,U).Item1"/>
+''' </summary>
+Public Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim references = TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime)
+            Dim compilation = CreateEmptyCompilationWithReferences(
+                sources,
+                references)
+
+            Dim cMember = compilation.GetMember(Of NamedTypeSymbol)("Test")
+            Dim xmlDocumentationString = cMember.GetDocumentationCommentXml()
+            Dim xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString)
+            Dim cref = xml.Descendants("see").Single().Attribute("cref").Value
+
+            Assert.Equal("F:System.ValueTuple`2.Item1", cref)
+        End Sub
+
+        <Fact>
+        <WorkItem(39315, "https://github.com/dotnet/roslyn/issues/39315")>
+        Public Sub WriteDocumentationCommentXml_01()
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+''' <summary> a.vb
+''' </summary>
+]]>
+    </file>
+    <file name="b.vb">
+        <![CDATA[
+''' <summary> b.vb
+''' </summary>
+]]>
+    </file>
+</compilation>
+            Using (New EnsureEnglishUICulture())
+
+                Dim comp = CreateCompilationWithMscorlib40(sources, parseOptions:=s_optionsDiagnoseDocComments)
+                Dim diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(0))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(0),
+                    filterSpanWithinTree:=New Text.TextSpan(0, 0))
+
+                Assert.Empty(diags.ToReadOnlyAndFree())
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=comp.SyntaxTrees(1))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=Nothing)
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+
+                diags = DiagnosticBag.GetInstance()
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=Nothing,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing,
+                    filterTree:=Nothing,
+                    filterSpanWithinTree:=New Text.TextSpan(0, 0))
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+                                       <errors><![CDATA[
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> a.vb
+   ~~~~~~~~~~~~~~~~
+BC42312: XML documentation comments must precede member or type declarations.
+''' <summary> b.vb
+   ~~~~~~~~~~~~~~~~
+                                   ]]></errors>)
+            End Using
         End Sub
 
     End Class

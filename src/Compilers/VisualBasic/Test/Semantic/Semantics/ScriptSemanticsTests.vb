@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -38,7 +41,7 @@ F(Function()
             Dim code = "System.Console.WriteLine(1)"
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             Dim syntaxTree = compilationUnit.SyntaxTree
-            Dim compilation = CreateCompilationWithMscorlib45({syntaxTree}, assemblyName:="Errors_01")
+            Dim compilation = CreateCompilationWithMscorlib45({syntaxTree}, assemblyName:="Errors_01", options:=TestOptions.ReleaseExe)
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             Dim node5 As MemberAccessExpressionSyntax = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
@@ -69,7 +72,7 @@ System.Console.WriteLine(1)
             )
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe)
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())

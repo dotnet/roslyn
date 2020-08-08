@@ -1,11 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -18,10 +14,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_SameDirectory()
         {
-            string baseDirectory = @"C:\Alpha\Beta\Gamma";
-            string fullPath = @"C:\Alpha\Beta\Gamma\Doc.txt";
+            var baseDirectory = @"C:\Alpha\Beta\Gamma";
+            var fullPath = @"C:\Alpha\Beta\Gamma\Doc.txt";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"Doc.txt", actual: result);
         }
@@ -30,10 +26,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_NestedOneLevelDown()
         {
-            string baseDirectory = @"C:\Alpha\Beta\Gamma";
-            string fullPath = @"C:\Alpha\Beta\Gamma\Delta\Doc.txt";
+            var baseDirectory = @"C:\Alpha\Beta\Gamma";
+            var fullPath = @"C:\Alpha\Beta\Gamma\Delta\Doc.txt";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"Delta\Doc.txt", actual: result);
         }
@@ -42,10 +38,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_NestedTwoLevelsDown()
         {
-            string baseDirectory = @"C:\Alpha\Beta\Gamma";
-            string fullPath = @"C:\Alpha\Beta\Gamma\Delta\Epsilon\Doc.txt";
+            var baseDirectory = @"C:\Alpha\Beta\Gamma";
+            var fullPath = @"C:\Alpha\Beta\Gamma\Delta\Epsilon\Doc.txt";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"Delta\Epsilon\Doc.txt", actual: result);
         }
@@ -54,10 +50,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_UpOneLevel()
         {
-            string baseDirectory = @"C:\Alpha\Beta\Gamma";
-            string fullPath = @"C:\Alpha\Beta\Doc.txt";
+            var baseDirectory = @"C:\Alpha\Beta\Gamma";
+            var fullPath = @"C:\Alpha\Beta\Doc.txt";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\Doc.txt", actual: result);
         }
@@ -66,10 +62,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_UpTwoLevels()
         {
-            string baseDirectory = @"C:\Alpha\Beta\Gamma";
-            string fullPath = @"C:\Alpha\Doc.txt";
+            var baseDirectory = @"C:\Alpha\Beta\Gamma";
+            var fullPath = @"C:\Alpha\Doc.txt";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\..\Doc.txt", actual: result);
         }
@@ -78,10 +74,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_UpTwoLevelsAndThenDown()
         {
-            string baseDirectory = @"C:\Alpha\Beta\Gamma";
-            string fullPath = @"C:\Alpha\Phi\Omega\Doc.txt";
+            var baseDirectory = @"C:\Alpha\Beta\Gamma";
+            var fullPath = @"C:\Alpha\Phi\Omega\Doc.txt";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\..\Phi\Omega\Doc.txt", actual: result);
         }
@@ -90,10 +86,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1579, "https://github.com/dotnet/roslyn/issues/1579")]
         public void GetRelativePath_OnADifferentDrive()
         {
-            string baseDirectory = @"C:\Alpha\Beta\Gamma";
-            string fullPath = @"D:\Alpha\Beta\Gamma\Doc.txt";
+            var baseDirectory = @"C:\Alpha\Beta\Gamma";
+            var fullPath = @"D:\Alpha\Beta\Gamma\Doc.txt";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"D:\Alpha\Beta\Gamma\Doc.txt", actual: result);
         }
@@ -102,10 +98,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(4660, "https://github.com/dotnet/roslyn/issues/4660")]
         public void GetRelativePath_WithBaseDirectoryMatchingIncompletePortionOfFullPath()
         {
-            string baseDirectory = @"C:\Alpha\Beta";
-            string fullPath = @"C:\Alpha\Beta2\Gamma";
+            var baseDirectory = @"C:\Alpha\Beta";
+            var fullPath = @"C:\Alpha\Beta2\Gamma";
 
-            string result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
             Assert.Equal(expected: @"..\Beta2\Gamma", actual: result);
         }

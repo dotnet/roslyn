@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -526,7 +528,7 @@ End Module
 
         <Fact>
         Public Sub ParenthesizationPreventsTargetTyping()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1011,7 +1013,7 @@ End Module
         <Fact>
         Public Sub ERR_InterpolationAlignmentOutOfRange()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1048,7 +1050,7 @@ BC30036: Overflow.
         <Fact>
         Public Sub Error_AmbiguousTypeArgumentInferenceWithIFormattable()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1081,7 +1083,7 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Sub M(Of T)(a A
         <Fact>
         Public Sub Error_AmbiguousTypeArgumentInferenceWithFormattableString()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1114,7 +1116,7 @@ BC36657: Data type(s) of the type parameter(s) in method 'Public Sub M(Of T)(a A
         <Fact>
         Public Sub Error_InterpolationExpressionNotAValue()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1141,7 +1143,7 @@ BC30491: Expression does not produce a value.
         <Fact>
         Public Sub FlowAnalysis_Warning_InterpolatedVariableUsedBeforeBeingAssigned()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1170,7 +1172,7 @@ BC42104: Variable 'v' is used before it has been assigned a value. A null refere
         <Fact>
         Public Sub FlowAnalysis_InterpolatedLocalConstNotConsideredUnused()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1194,7 +1196,7 @@ End Module
         <Fact>
         Public Sub FlowAnalysis_AnalyzeDataFlowReportsCorrectResultsForVariablesUsedInInterpolations()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1243,7 +1245,7 @@ End Module
         <Fact>
         Public Sub FlowAnalysis_AnalyzeDataFlowReportsCorrectResultsForVariablesCapturedInInterpolations()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <%= _formattableStringSource %>
     <file name="a.vb">
@@ -1434,7 +1436,7 @@ End Module
         <Fact>
         Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsMissing()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="FormattableString.vb">
 Namespace System
@@ -1508,7 +1510,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         <Fact>
         Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsSub()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="FormattableString.vb">
 Namespace System
@@ -1589,7 +1591,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         <Fact>
         Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsNotAMethod()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="FormattableString.vb">
 Namespace System
@@ -1670,7 +1672,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         <Fact>
         Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateMethodIsShadowedByField()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="FormattableString.vb">
 Namespace System
@@ -1756,7 +1758,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         <Fact>
         Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsInAccessible()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="FormattableString.vb">
 Namespace System
@@ -1838,7 +1840,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         <Fact>
         Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateReturnIsNotConvertible()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="FormattableString.vb">
 Namespace System
@@ -1920,7 +1922,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         <Fact>
         Public Sub Lowering_ERR_InterpolatedStringFactoryError_ArgArrayIsNotConvertible()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="FormattableString.vb">
 Namespace System

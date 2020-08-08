@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="VisualBasicProject_Circular_Target.vbproj" />
+  <PropertyGroup>
+    <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1843}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="VisualBasic_Circular_Target.vbproj">
+      <Project>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</Project>
+      <Name>Target</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

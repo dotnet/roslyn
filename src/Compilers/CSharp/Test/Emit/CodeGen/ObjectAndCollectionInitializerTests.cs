@@ -1,17 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public partial class ObjectAndCollectionInitializerTests : EmitMetadataTestBase
+    public class ObjectAndCollectionInitializerTests : EmitMetadataTestBase
     {
         #region "Object Initializer Tests"
 
@@ -81,7 +79,7 @@ public struct MemberInitializerTest
   // Code size       50 (0x32)
   .maxstack  2
   .locals init (MemberInitializerTest V_0, //i
-  MemberInitializerTest V_1)
+                MemberInitializerTest V_1)
   IL_0000:  ldloca.s   V_1
   IL_0002:  initobj    ""MemberInitializerTest""
   IL_0008:  ldloca.s   V_1
@@ -96,7 +94,7 @@ public struct MemberInitializerTest
   IL_001b:  ldfld      ""int MemberInitializerTest.x""
   IL_0020:  call       ""void System.Console.WriteLine(int)""
   IL_0025:  ldloca.s   V_0
-  IL_0027:  call       ""int MemberInitializerTest.y.get""
+  IL_0027:  call       ""readonly int MemberInitializerTest.y.get""
   IL_002c:  call       ""void System.Console.WriteLine(int)""
   IL_0031:  ret
 }");
@@ -1209,7 +1207,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1253,7 +1251,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1307,7 +1305,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1347,7 +1345,7 @@ struct A
 2
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
@@ -1485,7 +1483,7 @@ get
 get
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      222 (0xde)
@@ -1645,7 +1643,7 @@ get
 get
 3";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1815,7 +1813,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1871,7 +1869,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1927,7 +1925,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
@@ -3362,7 +3360,7 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1");
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
         }
 
         [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
@@ -3404,11 +3402,92 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput:
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
 @"get_Index
 2
 3");
         }
+
+        [Fact]
+        [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
+        public void CollectionInitializerBoxingConversion_01()
+        {
+            var source =
+@"using System;
+using System.Collections;
+
+interface IAppend
+{
+    void Append(object o);
+}
+
+struct S1
+{
+    internal S2 S2;
+}
+
+struct S2 : IEnumerable, IAppend
+{
+    IEnumerator IEnumerable.GetEnumerator() => null;
+    void IAppend.Append(object o) { }
+}
+
+static class Program
+{
+    static void Add(this IAppend x, object y)
+    {
+        x.Append(y);
+        Console.Write(y);
+    }
+    static void Main()
+    {
+        _ = new S2() { 1, 2 };
+        _ = new S1() { S2 = { 3, 4 } };
+    }
+}";
+            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "1234");
+        }
+
+        [Fact]
+        [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
+        public void CollectionInitializerBoxingConversion_02()
+        {
+            var source =
+@"using System;
+using System.Collections;
+
+interface IAppend
+{
+    void Append(object o);
+}
+
+struct S : IEnumerable, IAppend
+{
+    IEnumerator IEnumerable.GetEnumerator() => null;
+    void IAppend.Append(object o) { }
+}
+
+static class Program
+{
+    static void Add(this IAppend x, object y)
+    {
+        x.Append(y);
+        Console.Write(y);
+    }
+    static T F<T>() where T : IEnumerable, IAppend, new()
+    {
+        return new T() { 1, 2 };
+    }
+    static void Main()
+    {
+        _ = F<S>();
+    }
+}";
+            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "12");
+        }
+
         #endregion
     }
 }

@@ -1,7 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -375,26 +377,31 @@ End Class</a>
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
-                Dim options = If(useDebuggerOptions,
-                                 (workspaceFixture.GetWorkspace()).Options.WithDebuggerCompletionOptions(),
-                                 (workspaceFixture.GetWorkspace()).Options)
+                Try
+                    Dim options = If(useDebuggerOptions,
+                                 (workspaceFixture.GetWorkspace(ExportProvider)).Options.WithDebuggerCompletionOptions(),
+                                 (workspaceFixture.GetWorkspace(ExportProvider)).Options)
 
-                Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
-                Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
+                    Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
+                    Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
-                If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
-                    Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
-                    Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
-                End If
+                    If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
+                        Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
+                        Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
+                    End If
+                Finally
+                    workspaceFixture.DisposeAfterTest()
+                End Try
             End Using
         End Function
 
         Private Overloads Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
-            Dim service = GetCompletionService(document.Project.Solution.Workspace)
-            Dim context = Await service.GetContextAsync(
-                service.ExclusiveProviders?(0), document, position, triggerInfo.Value, options, CancellationToken.None)
+            Dim service = GetCompletionService(document.Project)
+            Dim provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty))
+            Dim context = Await service.GetTestAccessor().GetContextAsync(
+                provider, document, position, triggerInfo.Value, options, CancellationToken.None)
 
             If isBuilder Then
                 Assert.NotNull(context)
@@ -406,8 +413,8 @@ End Class</a>
             End If
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New VisualBasicSuggestionModeCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(VisualBasicSuggestionModeCompletionProvider)
         End Function
     End Class
 End Namespace

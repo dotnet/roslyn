@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EventNotDelegate = 66,
         WRN_UnreferencedEvent = 67,
         ERR_InterfaceEventInitializer = 68,
-        ERR_EventPropertyInInterface = 69,
+        //ERR_EventPropertyInInterface = 69,
         ERR_BadEventUsage = 70,
         ERR_ExplicitEventFieldImpl = 71,
         ERR_CantOverrideNonEvent = 72,
@@ -233,11 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InaccessibleSetter = 272,
         ERR_InvalidPropertyAccessMod = 273,
         ERR_DuplicatePropertyAccessMods = 274,
-        ERR_PropertyAccessModInInterface = 275,
+        //ERR_PropertyAccessModInInterface = 275,
         ERR_AccessModMissingAccessor = 276,
         ERR_UnimplementedInterfaceAccessor = 277,
         WRN_PatternIsAmbiguous = 278,
-        WRN_PatternStaticOrInaccessible = 279,
+        WRN_PatternNotPublicOrNotInstance = 279,
         WRN_PatternBadSignature = 280,
         ERR_FriendRefNotEqualToThis = 281,
         WRN_SequentialOnPartialClass = 282,
@@ -301,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AnonMethGrpInForEach = 446,
         //ERR_AttrOnTypeArg = 447,      unused in Roslyn. The scenario for which this error exists should, and does generate a parse error.
         ERR_BadIncDecRetType = 448,
-        ERR_RefValBoundMustBeFirst = 449,
+        ERR_TypeConstraintsMustBeUniqueAndFirst = 449,
         ERR_RefValBoundWithClass = 450,
         ERR_NewBoundWithVal = 451,
         ERR_RefConstraintNotSatisfied = 452,
@@ -345,13 +347,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_PredefinedTypeBadType = 520,
         ERR_StructWithBaseConstructorCall = 522,
         ERR_StructLayoutCycle = 523,
-        ERR_InterfacesCannotContainTypes = 524,
+        //ERR_InterfacesCannotContainTypes = 524,
         ERR_InterfacesCantContainFields = 525,
         ERR_InterfacesCantContainConstructors = 526,
         ERR_NonInterfaceInInterfaceList = 527,
         ERR_DuplicateInterfaceInBaseList = 528,
         ERR_CycleInInterfaceInheritance = 529,
-        ERR_InterfaceMemberHasBody = 531,
+        //ERR_InterfaceMemberHasBody = 531,
         ERR_HidingAbstractMethod = 533,
         ERR_UnimplementedAbstractMethod = 534,
         ERR_UnimplementedInterfaceMember = 535,
@@ -381,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadUnaryOperatorSignature = 562,
         ERR_BadBinaryOperatorSignature = 563,
         ERR_BadShiftOperatorSignature = 564,
-        ERR_InterfacesCantContainOperators = 567,
+        ERR_InterfacesCantContainConversionOrEqualityOperators = 567,
         ERR_StructsCantContainDefaultConstructor = 568,
         ERR_CantOverrideBogusMethod = 569,
         ERR_BindToBogus = 570,
@@ -427,6 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ExternMethodNoImplementation = 626,
         WRN_ProtectedInSealed = 628,
         ERR_InterfaceImplementedByConditional = 629,
+        ERR_InterfaceImplementedImplicitlyByVariadic = 630,
         ERR_IllegalRefParam = 631,
         ERR_BadArgumentToAttribute = 633,
         //ERR_MissingComTypeOrMarshaller = 635,
@@ -528,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InconsistentLambdaParameterUsage = 748,
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
-        ERR_PartialMethodCannotHaveOutParameters = 752,
+        // ERR_PartialMethodCannotHaveOutParameters = 752, Removed as part of 'extended partial methods' feature
         // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
@@ -541,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodStaticDifference = 763,
         ERR_PartialMethodUnsafeDifference = 764,
         ERR_PartialMethodInExpressionTree = 765,
-        ERR_PartialMethodMustReturnVoid = 766,
+        // ERR_PartialMethodMustReturnVoid = 766, Removed as part of 'extended partial methods' feature
         ERR_ExplicitImplCollisionOnRefOut = 767,
         ERR_IndirectRecursiveConstructorCall = 768,
 
@@ -578,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingArgument = 839,
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
-        ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
+        //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
         ERR_UnassignedThisAutoProperty = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,
@@ -1039,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //FTL_NoMessagesDLL = 2018,
         FTL_InvalidTarget = 2019,
         //ERR_BadTargetForSecondInputSet = 2020,    Roslyn doesn't support building two binaries at once!
-        FTL_InputFileNameTooLong = 2021,
+        FTL_InvalidInputFileName = 2021,
         //ERR_NoSourcesInLastInputSet = 2022,       Roslyn doesn't support building two binaries at once!
         WRN_NoConfigNotOnCommandLine = 2023,
         ERR_InvalidFileAlignment = 2024,
@@ -1062,7 +1065,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LegacyObjectIdSyntax = 2043,
         ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
-        // unused 2046-2999
+        ERR_BadSwitchValue = 2046,
+        // unused 2047-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
@@ -1162,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_YieldNotAllowedInScript = 7020,
         ERR_NamespaceNotAllowedInScript = 7021,
         WRN_MainIgnored = 7022,
-        ERR_StaticInAsOrIs = 7023,
+        WRN_StaticInAsOrIs = 7023,
         ERR_InvalidDelegateType = 7024,
         ERR_BadVisEventType = 7025,
         ERR_GlobalAttributesNotAllowed = 7026,
@@ -1243,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidDebugInfo = 7103,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7104-8000
+        // unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1288,17 +1292,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveGetAccessor = 8051,
-        ERR_AutoPropertyInitializerInInterface = 8052,
-
+        // ERR_AutoPropertyInitializerInInterface = 8052,
+        ERR_InstancePropertyInitializerInInterface = 8053,
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
-        //ERR_FeatureIsExperimental = 8058, No experimental feature
+        ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
-        // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
+        // available = 8071,
         ERR_NullPropagatingOpInExpressionTree = 8072,
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
@@ -1353,15 +1357,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         ERR_LocalFunctionMissingBody = 8112,
+        ERR_InvalidHashAlgorithmName = 8113,
 
-        // Available = 8113, 8114, 8115
+        // Unused 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
-        ERR_BadIsPatternExpression = 8117,
+        ERR_BadPatternExpression = 8117,
         ERR_SwitchExpressionValueExpected = 8119,
-        ERR_PatternIsSubsumed = 8120,
+        ERR_SwitchCaseSubsumed = 8120,
         ERR_PatternWrongType = 8121,
         ERR_ExpressionTreeContainsIsMatch = 8122,
         #endregion diagnostics for pattern-matching introduced in C# 7
@@ -1429,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
         #region stragglers for C# 7
-        ERR_PredefinedValueTupleTypeNotFound = 8179,
+        ERR_PredefinedValueTupleTypeNotFound = 8179, // We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget)
         ERR_SemiOrLBraceOrArrowExpected = 8180,
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
@@ -1448,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadLanguageVersion = 8192,
         #endregion
 
-        // Available  = 8193-8195
+        // Unused 8193-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
@@ -1458,8 +1463,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
-        ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        ERR_ExpressionVariableInQueryClause = 8201,
+        //ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
+        //ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
@@ -1484,10 +1489,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
-        ERR_BadOpOnNullOrDefault = 8310,
-        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        ERR_BadOpOnNullOrDefaultOrNew = 8310,
+        // ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        ERR_DefaultInSwitch = 8313,
+        // ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1501,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation = 8324,
         #endregion diagnostics introduced for C# 7.2
 
-        #region diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+        #region diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
         ERR_RefConditionalAndAwait = 8325,
         ERR_RefConditionalNeedsTwoRefs = 8326,
         ERR_RefConditionalDifferentTypes = 8327,
@@ -1517,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1525,7 +1530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
-
         ERR_StackAllocConversionNotPossible = 8346,
 
         ERR_EscapeCall = 8347,
@@ -1537,11 +1541,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
-        #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+        #endregion diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
-
         ERR_AttributeCtorInParameter = 8358,
 
         #region diagnostics for FilterIsConstant warning message fix
@@ -1551,6 +1554,338 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ConditionalInInterpolation = 8361,
         ERR_CantUseVoidInArglist = 8362,
-        ERR_DefaultInPattern = 8363,
+        ERR_InDynamicMethodArg = 8364,
+
+        #region diagnostics introduced for C# 7.3
+        ERR_FeatureNotAvailableInVersion7_3 = 8370,
+        WRN_AttributesOnBackingFieldsNotAvailable = 8371,
+        ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
+        ERR_RefLocalOrParamExpected = 8373,
+        ERR_RefAssignNarrower = 8374,
+
+        ERR_NewBoundWithUnmanaged = 8375,
+        //ERR_UnmanagedConstraintMustBeFirst = 8376,
+        ERR_UnmanagedConstraintNotSatisfied = 8377,
+        ERR_CantUseInOrOutInArglist = 8378,
+        ERR_ConWithUnmanagedCon = 8379,
+        ERR_UnmanagedBoundWithClass = 8380,
+
+        ERR_InvalidStackAllocArray = 8381,
+
+        ERR_ExpressionTreeContainsTupleBinOp = 8382,
+        WRN_TupleBinopLiteralNameMismatch = 8383,
+        ERR_TupleSizesMismatchForBinOps = 8384,
+        ERR_ExprCannotBeFixed = 8385,
+        ERR_InvalidObjectCreation = 8386,
+        #endregion diagnostics introduced for C# 7.3
+
+        WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
+        ERR_OutVariableCannotBeByRef = 8388,
+        ERR_OmittedTypeArgument = 8389,
+
+        #region diagnostics introduced for C# 8.0
+        ERR_FeatureNotAvailableInVersion8 = 8400,
+        ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
+        // Unused 8402
+        ERR_IteratorMustBeAsync = 8403,
+
+        ERR_NoConvToIAsyncDisp = 8410,
+        ERR_AwaitForEachMissingMember = 8411,
+        ERR_BadGetAsyncEnumerator = 8412,
+        ERR_MultipleIAsyncEnumOfT = 8413,
+        ERR_ForEachMissingMemberWrongAsync = 8414,
+        ERR_AwaitForEachMissingMemberWrongAsync = 8415,
+        ERR_BadDynamicAwaitForEach = 8416,
+        ERR_NoConvToIAsyncDispWrongAsync = 8417,
+        ERR_NoConvToIDispWrongAsync = 8418,
+        ERR_PossibleAsyncIteratorWithoutYield = 8419,
+        ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
+        ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
+        ERR_StaticLocalFunctionCannotCaptureThis = 8422,
+        ERR_AttributeNotOnEventAccessor = 8423,
+        WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
+        WRN_UndecoratedCancellationTokenParameter = 8425,
+        ERR_MultipleEnumeratorCancellationAttributes = 8426,
+        ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
+        // available range
+
+        #region diagnostics introduced for recursive patterns
+        ERR_WrongNumberOfSubpatterns = 8502,
+        ERR_PropertyPatternNameMissing = 8503,
+        ERR_MissingPattern = 8504,
+        ERR_DefaultPattern = 8505,
+        ERR_SwitchExpressionNoBestType = 8506,
+        // ERR_SingleElementPositionalPatternRequiresDisambiguation = 8507, // Retired C# 8 diagnostic
+        ERR_VarMayNotBindToType = 8508,
+        WRN_SwitchExpressionNotExhaustive = 8509,
+        ERR_SwitchArmSubsumed = 8510,
+        ERR_ConstantPatternVsOpenType = 8511,
+        WRN_CaseConstantNamedUnderscore = 8512,
+        WRN_IsTypeNamedUnderscore = 8513,
+        ERR_ExpressionTreeContainsSwitchExpression = 8514,
+        ERR_SwitchGoverningExpressionRequiresParens = 8515,
+        ERR_TupleElementNameMismatch = 8516,
+        ERR_DeconstructParameterNameMismatch = 8517,
+        ERR_IsPatternImpossible = 8518,
+        WRN_GivenExpressionNeverMatchesPattern = 8519,
+        WRN_GivenExpressionAlwaysMatchesConstant = 8520,
+        ERR_PointerTypeInPatternMatching = 8521,
+        ERR_ArgumentNameInITuplePattern = 8522,
+        ERR_DiscardPatternInSwitchStatement = 8523,
+        // available 8524-8596
+        #endregion diagnostics introduced for recursive patterns
+
+        WRN_ThrowPossibleNull = 8597,
+        ERR_IllegalSuppression = 8598,
+        // available 8599,
+        WRN_ConvertingNullableToNonNullable = 8600,
+        WRN_NullReferenceAssignment = 8601,
+        WRN_NullReferenceReceiver = 8602,
+        WRN_NullReferenceReturn = 8603,
+        WRN_NullReferenceArgument = 8604,
+        WRN_UnboxPossibleNull = 8605,
+        // WRN_NullReferenceIterationVariable = 8606 (unavailable, may be used in warning suppressions in early C# 8.0 code)
+        WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
+        WRN_NullabilityMismatchInTypeOnOverride = 8608,
+        WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
+        WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
+        WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,
+        WRN_NullabilityMismatchInTypeOnImplicitImplementation = 8612,
+        WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation = 8613,
+        WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation = 8614,
+        WRN_NullabilityMismatchInTypeOnExplicitImplementation = 8615,
+        WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation = 8616,
+        WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation = 8617,
+        WRN_UninitializedNonNullableField = 8618,
+        WRN_NullabilityMismatchInAssignment = 8619,
+        WRN_NullabilityMismatchInArgument = 8620,
+        WRN_NullabilityMismatchInReturnTypeOfTargetDelegate = 8621,
+        WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
+        ERR_ExplicitNullableAttribute = 8623,
+        WRN_NullabilityMismatchInArgumentForOutput = 8624,
+        WRN_NullAsNonNullable = 8625,
+        //WRN_AsOperatorMayReturnNull = 8626,
+        ERR_NullableUnconstrainedTypeParameter = 8627,
+        ERR_AnnotationDisallowedInObjectCreation = 8628,
+        WRN_NullableValueTypeMayBeNull = 8629,
+        ERR_NullableOptionNotAvailable = 8630,
+        WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
+        WRN_MissingNonNullTypesContextForAnnotation = 8632,
+        WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
+        WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
+        ERR_TripleDotNotAllowed = 8635,
+        ERR_BadNullableContextOption = 8636,
+        ERR_NullableDirectiveQualifierExpected = 8637,
+        //WRN_ConditionalAccessMayReturnNull = 8638,
+        ERR_BadNullableTypeof = 8639,
+        ERR_ExpressionTreeCantContainRefStruct = 8640,
+        ERR_ElseCannotStartStatement = 8641,
+        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
+        WRN_NullabilityMismatchInExplicitlyImplementedInterface = 8643,
+        WRN_NullabilityMismatchInInterfaceImplementedByBase = 8644,
+        WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
+        ERR_DuplicateExplicitImpl = 8646,
+        ERR_UsingVarInSwitchCase = 8647,
+        ERR_GoToForwardJumpOverUsingVar = 8648,
+        ERR_GoToBackwardJumpOverUsingVar = 8649,
+        ERR_IsNullableType = 8650,
+        ERR_AsNullableType = 8651,
+        ERR_FeatureInPreview = 8652,
+        //WRN_DefaultExpressionMayIntroduceNullT = 8653,
+        //WRN_NullLiteralMayIntroduceNullT = 8654,
+        WRN_SwitchExpressionNotExhaustiveForNull = 8655,
+
+        WRN_ImplicitCopyInReadOnlyMember = 8656,
+        ERR_StaticMemberCantBeReadOnly = 8657,
+        ERR_AutoSetterCantBeReadOnly = 8658,
+        ERR_AutoPropertyWithSetterCantBeReadOnly = 8659,
+        ERR_InvalidPropertyReadOnlyMods = 8660,
+        ERR_DuplicatePropertyReadOnlyMods = 8661,
+        ERR_FieldLikeEventCantBeReadOnly = 8662,
+        ERR_PartialMethodReadOnlyDifference = 8663,
+        ERR_ReadOnlyModMissingAccessor = 8664,
+        ERR_OverrideRefConstraintNotSatisfied = 8665,
+        ERR_OverrideValConstraintNotSatisfied = 8666,
+
+        WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+        ERR_NullableDirectiveTargetExpected = 8668,
+        WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
+        WRN_NullReferenceInitializer = 8670,
+
+        ERR_MultipleAnalyzerConfigsInSameDir = 8700,
+
+        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
+        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,
+        ERR_DefaultInterfaceImplementationModifier = 8703,
+        ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
+        ERR_MostSpecificImplementationIsNotFound = 8705,
+        ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
+
+        ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
+        //ERR_NotBaseOrImplementedInterface = 8708,
+        //ERR_NotImplementedInBase = 8709,
+        //ERR_NotDeclaredInBase = 8710,
+
+        ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
+        ERR_AbstractEventHasAccessors = 8712,
+        //ERR_NotNullConstraintMustBeFirst = 8713,
+        WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
+
+        ERR_DuplicateNullSuppression = 8715,
+        ERR_DefaultLiteralNoTargetType = 8716,
+
+        ERR_ReAbstractionInNoPIAType = 8750,
+
+        #endregion diagnostics introduced for C# 8.0
+
+        #region diagnostics introduced in C# 9.0
+
+        ERR_InternalError = 8751,
+
+        ERR_TypelessNewIllegalTargetType = 8752,
+        ERR_TypelessNewNotValid = 8753,
+        ERR_TypelessNewNoTargetType = 8754,
+
+        ERR_BadFuncPointerParamModifier = 8755,
+        ERR_BadFuncPointerArgCount = 8756,
+        ERR_MethFuncPtrMismatch = 8757,
+        ERR_FuncPtrRefMismatch = 8758,
+        ERR_FuncPtrMethMustBeStatic = 8759,
+
+        ERR_ExternEventInitializer = 8760,
+        ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
+        WRN_ParameterConditionallyDisallowsNull = 8762,
+        WRN_ShouldNotReturn = 8763,
+
+        WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride = 8764,
+        WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride = 8765,
+
+        WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation = 8766,
+        WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation = 8767,
+        WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation = 8768,
+        WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation = 8769,
+
+        WRN_DoesNotReturnMismatch = 8770,
+        ERR_NoOutputDirectory = 8771,
+        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8772,
+
+        ERR_FeatureNotAvailableInVersion9 = 8773,
+
+        WRN_MemberNotNull = 8774,
+        WRN_MemberNotNullWhen = 8775,
+        WRN_MemberNotNullBadMember = 8776,
+        WRN_ParameterDisallowsNull = 8777,
+        WRN_ConstOutOfRangeChecked = 8778,
+
+        ERR_DesignatorBeneathPatternCombinator = 8780,
+        ERR_UnsupportedTypeForRelationalPattern = 8781,
+        ERR_RelationalPatternWithNaN = 8782,
+
+        ERR_ConditionalOnLocalFunction = 8783,
+
+        WRN_GeneratorFailedDuringInitialization = 8784,
+        WRN_GeneratorFailedDuringGeneration = 8785,
+
+        ERR_WrongFuncPtrCallingConvention = 8786,
+        ERR_MissingAddressOf = 8787,
+        ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
+        ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
+
+        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
+        ERR_ExpressionTreeContainsRangeExpression = 8792,
+        WRN_GivenExpressionAlwaysMatchesPattern = 8793,
+        WRN_IsPatternAlways = 8794,
+
+        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 8795,
+        ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8796,
+        ERR_PartialMethodWithOutParamMustHaveAccessMods = 8797,
+        ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8798,
+        ERR_PartialMethodAccessibilityDifference = 8799,
+        ERR_PartialMethodExtendedModDifference = 8800,
+
+        ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
+        ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
+        ERR_TopLevelStatementAfterNamespaceOrType = 8803,
+        ERR_SimpleProgramDisallowsMainType = 8804,
+        ERR_SimpleProgramNotAnExecutable = 8805,
+
+        ERR_UnsupportedCallingConvention = 8806,
+        ERR_InvalidFunctionPointerCallingConvention = 8807,
+        ERR_InvalidFuncPointerReturnTypeModifier = 8808,
+        ERR_DupReturnTypeMod = 8809,
+        ERR_AddressOfMethodGroupInExpressionTree = 8810,
+        ERR_CannotConvertAddressOfToDelegate = 8811,
+        ERR_AddressOfToNonFunctionPointer = 8812,
+
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8813,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8814,
+        ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid = 8815,
+        ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
+
+        ERR_PartialMethodReturnTypeDifference = 8817,
+        ERR_PartialMethodRefReturnDifference = 8818,
+        WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
+
+        ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
+        ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
+        ERR_OverrideDefaultConstraintNotSatisfied = 8822,
+        ERR_DefaultConstraintOverrideOnly = 8823,
+
+        ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
+        ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
+
+        WRN_SwitchExpressionNotExhaustiveWithWhen = 8846,
+        WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
+        WRN_PrecedenceInversion = 8848,
+        ERR_ExpressionTreeContainsWithExpression = 8849,
+        ERR_BadRecordDeclaration = 8850,
+
+        // Available = 8851,
+
+        ERR_AssignmentInitOnly = 8852,
+        ERR_CantChangeInitOnlyOnOverride = 8853,
+        ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
+        ERR_ExplicitPropertyMismatchInitOnly = 8855,
+        ERR_BadInitAccessor = 8856,
+        ERR_InvalidWithReceiverType = 8857,
+        ERR_NoSingleCloneMethod = 8858,
+        ERR_CloneDisallowedInRecord = 8859,
+        // Unused 8860
+        ERR_UnexpectedArgumentList = 8861,
+        ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
+        ERR_MultipleRecordParameterLists = 8863,
+        ERR_BadRecordBase = 8864,
+        ERR_BadInheritanceFromRecord = 8865,
+        ERR_BadRecordMemberForPositionalParameter = 8866,
+        ERR_NoCopyConstructorInBaseType = 8867,
+        ERR_CopyConstructorMustInvokeBaseCopyConstructor = 8868,
+        ERR_DoesNotOverrideMethodFromObject = 8869,
+        ERR_SealedGetHashCodeInRecord = 8870,
+        ERR_DoesNotOverrideBaseEquals = 8871,
+        ERR_NotOverridableAPIInRecord = 8872,
+        ERR_NonPublicAPIInRecord = 8873,
+        ERR_SignatureMismatchInRecord = 8874,
+        ERR_NonProtectedAPIInRecord = 8875,
+        ERR_DoesNotOverrideBaseEqualityContract = 8876,
+        ERR_StaticAPIInRecord = 8877,
+        ERR_CopyConstructorWrongAccessibility = 8878,
+        ERR_NonPrivateAPIInRecord = 8879,
+
+        // The following warnings correspond to errors of the same name, but are reported
+        // when a definite assignment issue is reported due to private fields imported from metadata.
+        WRN_UnassignedThisAutoProperty = 8880,
+        WRN_UnassignedThis = 8881,
+        WRN_ParamUnassigned = 8882,
+        WRN_UseDefViolationProperty = 8883,
+        WRN_UseDefViolationField = 8884,
+        WRN_UseDefViolationThis = 8885,
+        WRN_UseDefViolationOut = 8886,
+        WRN_UseDefViolation = 8887,
+
+        #endregion diagnostics introduced for C# 9.0
+        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

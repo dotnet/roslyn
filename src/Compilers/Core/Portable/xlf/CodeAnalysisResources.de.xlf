@@ -2,6 +2,93 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Für diese Option kann kein Sprachenname angegeben werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Für diese Option muss ein Sprachenname angegeben werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="translated">Das Ändern der Version eines Assemblyverweises ist während des Debuggens nicht zulässig: "{0}" hat die Version in "{1}" geändert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
+"{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisableAnalyzerDiagnosticsMessage">
+        <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
+        <target state="translated">Unterdrücken Sie die folgende Diagnose, um dieses Analysetool zu deaktivieren: {0}</target>
+        <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName contains an invalid character '{0}' at position {1}.</source>
+        <target state="translated">Der hintName enthält ein ungültiges Zeichen "{0}" an Position {1}.</target>
+        <note>{0}: the invalid character, {1} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName of the added source file must be unique within a generator.</source>
+        <target state="translated">Der hintName der hinzugefügten Quelldatei muss innerhalb eines Generators eindeutig sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">Die unterdrückte Diagnose-ID "{0}" entspricht nicht der unterdrückbaren ID "{1}" für den angegebenen Deskriptor zur Unterdrückung.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">Der angegebene Operationsblock gehört nicht zum aktuellen Analysekontext.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">Der Parameter "{0}" muss eine INamedTypeSymbol- oder eine IAssemblySymbol-Schnittstelle sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">Der Parameter "{0}" muss ein Symbol aus dieser Zusammenstellung oder eine referenzierte Assembly sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="translated">Das Modul weist ungültige Attribute auf.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">Die nicht gemeldete Diagnose mit der ID "{0}" kann nicht unterdrückt werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">Die angegebene Operation weist ein übergeordnetes Element ungleich NULL auf.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">Die angegebene Operation weist ein NULL-Semantikmodell auf.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">Der angegebene Vorgang darf nicht Bestandteil eines Ablaufsteuerungsdiagramm sein.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OutputKindNotSupported">
         <source>Output kind not supported.</source>
         <target state="translated">Ausgabetyp wird nicht unterstützt.</target>
@@ -20,6 +107,46 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Modulkopie kann nicht zum Erstellen von Assembly-Metadaten verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="translated">Pro Generator kann nur ein einzelner {0} registriert werden.</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">Der Analyzer "{0}" enthält einen NULL-Deskriptor in "SupportedDiagnostics".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">Das Analysetool "{0}" enthält einen NULL-Deskriptor in "SupportedDiagnostics".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">Die Diagnose "{0}: {1}" wurde durch einen DiagnosticSuppressor mit der Unterdrückungs-ID "{2}" und der Begründung "{3}" programmgesteuert unterdrückt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">Programmgesteuerte Unterdrückung einer Analysetooldiagnose</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">Ein SuppressionDescriptor muss eine ID aufweisen, die weder NULL noch eine leere Zeichenfolge noch eine Zeichenfolge ist, die nur Leerzeichen enthält.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">Wenn Nullable-Anmerkungen für Tupelelemente angegeben werden, muss die Anzahl von Anmerkungen der Kardinalität des Tupels entsprechen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="translated">Die spezifische Fehlerursache kann nicht ermittelt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -150,6 +277,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">{0}.GetMetadata() muss eine Instanz von {1} zurückgeben.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">Die gemeldete Unterdrückung mit der ID "{0}" wird vom Unterdrückungsmodul nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -324,7 +456,7 @@
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyName">
         <source>Invalid characters in assembly name</source>
-        <target state="translated">Assemblyname enthält ungültige Zeichen</target>
+        <target state="translated">Assemblyname enthält ungültige Zeichen.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
@@ -427,6 +559,26 @@
         <target state="translated">Ungültiger Kulturname: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">Der Diagnose "{0}" wurde ein ungültiger Schweregrad "{1}" in der Konfigurationsdatei des Analysetools unter "{2}" zugewiesen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">Ungültiger Schweregrad in der Konfigurationsdatei des Analysetools.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">Mehrere Konfigurationsdateien für die globale Analyse haben im Abschnitt "{1}" den gleichen Schlüssel "{0}" festgelegt. Die Festlegung wurde aufgehoben. Der Schlüssel wurde durch die folgenden Dateien festgelegt: "{2}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">Mehrere Konfigurationsdateien für die globale Analyse haben den gleichen Schlüssel festgelegt. Die Festlegung wurde aufgehoben.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">WindowsRuntime-Identität darf nicht anzielbar sein</target>
@@ -460,18 +612,16 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">Analysefehler</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
-        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">Die Analyse "{0}" hat eine Ausnahme vom Typ "{1}" mit der Meldung "{2}" ausgelöst.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
-"{1}".</target>
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Die Analyse "{0}" hat eine Ausnahme vom Typ "{1}" mit der Meldung "{2}" ausgelöst.
+{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
@@ -496,8 +646,8 @@
         <target state="translated">PE-Abbild enthält keine verwalteten Metadaten.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
         <target state="translated">Die Änderungen müssen sortiert sein und dürfen sich nicht überschneiden.</target>
         <note />
       </trans-unit>
@@ -826,11 +976,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Warnung: Multi-Core-JIT konnte aufgrund einer Ausnahme nicht aktiviert werden: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CompilerDiagnosticIdReported">
-        <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
         <note />
       </trans-unit>
     </body>

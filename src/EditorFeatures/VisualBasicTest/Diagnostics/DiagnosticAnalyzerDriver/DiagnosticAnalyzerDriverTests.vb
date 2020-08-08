@@ -1,22 +1,29 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
+<[UseExportProvider]>
 Public Class DiagnosticAnalyzerDriverTests
     <Fact>
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
         Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
         Using workspace = TestWorkspace.CreateVisualBasic(source)
+            Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+            Dim newSolution = workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}).
+                Projects.Single().AddAdditionalDocument(name:="dummy.txt", text:="", filePath:="dummy.txt").Project.Solution
+            workspace.TryApplyChanges(newSolution)
+
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
             AccessSupportedDiagnostics(analyzer)
-            Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length))
+            Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, New TextSpan(0, document.GetTextAsync().Result.Length))
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(New HashSet(Of SyntaxKind)())
@@ -37,8 +44,11 @@ End Class
 
         Dim ideEngineAnalyzer = New BasicTrackingDiagnosticAnalyzer()
         Using ideEngineWorkspace = TestWorkspace.CreateVisualBasic(source.Value)
+            Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(ideEngineAnalyzer))
+            ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
             Dim ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single()
-            Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, New TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length))
+            Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineDocument, New TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length))
             For Each method In methodNames
                 Assert.False(ideEngineAnalyzer.CallLog.Any(Function(e) e.CallerName = method AndAlso If(e.SymbolKind = SymbolKind.Event, False)))
                 Assert.True(ideEngineAnalyzer.CallLog.Any(Function(e) e.CallerName = method AndAlso If(e.SymbolKind = SymbolKind.NamedType, False)))
@@ -62,10 +72,15 @@ End Class
     <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
     Public Async Function DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
-        Using Workspace = TestWorkspace.CreateVisualBasic(source)
-            Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
+        Using workspace = TestWorkspace.CreateVisualBasic(source)
             Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(
-                Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))
+                Async Function(analyzer)
+                    Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(analyzer))
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
+                    Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                    Return Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, New TextSpan(0, document.GetTextAsync().Result.Length))
+                End Function)
         End Using
     End Function
 
@@ -77,27 +92,28 @@ End Class
         AccessSupportedDiagnostics(analyzer)
     End Sub
 
-    Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
-        Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, analyzer)
-        diagnosticService.GetDiagnosticDescriptors(projectOpt:=Nothing)
+    Private Shared Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
+        Dim diagnosticService = New HostDiagnosticAnalyzers({New AnalyzerImageReference(ImmutableArray.Create(analyzer))})
+        diagnosticService.GetDiagnosticDescriptorsPerReference(New DiagnosticAnalyzerInfoCache())
     End Sub
 
     <Fact>
     Public Async Function AnalyzerOptionsArePassedToAllAnalyzers() As Task
         Using workspace = TestWorkspace.CreateVisualBasic(TestResource.AllInOneVisualBasicCode)
-            Dim currentProject = workspace.CurrentSolution.Projects.Single()
-            Dim additionalDocId = DocumentId.CreateNewId(currentProject.Id)
-            Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"))
+            Dim projectId = workspace.CurrentSolution.Projects.Single().Id
 
-            currentProject = newSln.Projects.Single()
-            Dim additionalDocument = currentProject.GetAdditionalDocument(additionalDocId)
-
-            Dim additionalStream As AdditionalText = New AdditionalTextDocument(additionalDocument.State)
-            Dim options = New AnalyzerOptions(ImmutableArray.Create(additionalStream))
+            Dim additionalDocId = DocumentId.CreateNewId(projectId)
+            Dim additionalText = New TestAdditionalText("add.config", SourceText.From("random text"))
+            Dim options = New AnalyzerOptions(ImmutableArray.Create(Of AdditionalText)(additionalText))
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(expectedOptions:=options)
 
-            Dim sourceDocument = currentProject.Documents.Single()
-            Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, sourceDocument, New Text.TextSpan(0, sourceDocument.GetTextAsync().Result.Length))
+            Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+            workspace.TryApplyChanges(workspace.CurrentSolution.
+                WithAnalyzerReferences({analyzerReference}).
+                AddAdditionalDocument(additionalDocId, "add.config", additionalText.GetText()))
+
+            Dim sourceDocument = workspace.CurrentSolution.GetProject(projectId).Documents.Single()
+            Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(sourceDocument, New TextSpan(0, sourceDocument.GetTextAsync().Result.Length))
             analyzer.VerifyAnalyzerOptions()
         End Using
     End Function

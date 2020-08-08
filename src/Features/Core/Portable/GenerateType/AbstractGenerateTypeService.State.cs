@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -61,9 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; }
 
             private State(Compilation compilation)
-            {
-                Compilation = compilation;
-            }
+                => Compilation = compilation;
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<bool> TryInitializeAsync(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
@@ -91,26 +91,26 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                this.SimpleName = (TSimpleNameSyntax)node;
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out var name, out var arity);
+                SimpleName = (TSimpleNameSyntax)node;
+                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out _);
 
-                this.Name = name;
-                this.NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(this.SimpleName.GetFirstToken());
-                if (string.IsNullOrWhiteSpace(this.Name))
+                Name = name;
+                NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(SimpleName.GetFirstToken());
+                if (string.IsNullOrWhiteSpace(Name))
                 {
                     return false;
                 }
                 // We only support simple names or dotted names.  i.e. "(some + expr).Goo" is not a
                 // valid place to generate a type for Goo.
-                if (!service.TryInitializeState(document, this.SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
+                if (!service.TryInitializeState(semanticDocument, SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
                 {
                     return false;
                 }
 
-                if (char.IsLower(name[0]) && !document.SemanticModel.Compilation.IsCaseSensitive)
+                if (char.IsLower(name[0]) && !semanticDocument.SemanticModel.Compilation.IsCaseSensitive)
                 {
-                    // It's near universal in .Net that types start with a capital letter.  As such,
+                    // It's near universal in .NET that types start with a capital letter.  As such,
                     // if this name starts with a lowercase letter, don't even bother to offer 
                     // "generate type".  The user most likely wants to run 'Add Import' (which will
                     // then fix up a case where they typed an existing type name in lowercase, 
@@ -118,23 +118,23 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                this.NameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression;
-                this.ObjectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt;
+                NameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression;
+                ObjectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt;
 
-                var semanticModel = document.SemanticModel;
-                var info = semanticModel.GetSymbolInfo(this.SimpleName, cancellationToken);
+                var semanticModel = semanticDocument.SemanticModel;
+                var info = semanticModel.GetSymbolInfo(SimpleName, cancellationToken);
                 if (info.Symbol != null)
                 {
                     // This bound, so no need to generate anything.
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                if (!semanticFacts.IsTypeContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
-                    !semanticFacts.IsExpressionContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
-                    !semanticFacts.IsStatementContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
-                    !semanticFacts.IsNameOfContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
-                    !semanticFacts.IsNamespaceContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken))
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                if (!semanticFacts.IsTypeContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
+                    !semanticFacts.IsExpressionContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
+                    !semanticFacts.IsStatementContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
+                    !semanticFacts.IsInsideNameOfExpression(semanticModel, NameOrMemberAccessExpression, cancellationToken) &&
+                    !semanticFacts.IsNamespaceContext(semanticModel, NameOrMemberAccessExpression.SpanStart, cancellationToken))
                 {
                     return false;
                 }
@@ -155,41 +155,41 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                if (this.ObjectCreationExpressionOpt != null)
+                if (ObjectCreationExpressionOpt != null)
                 {
                     // If we're new'ing up something illegal, then don't offer generate type.
-                    var typeInfo = semanticModel.GetTypeInfo(this.ObjectCreationExpressionOpt, cancellationToken);
+                    var typeInfo = semanticModel.GetTypeInfo(ObjectCreationExpressionOpt, cancellationToken);
                     if (typeInfo.Type.IsModuleType())
                     {
                         return false;
                     }
                 }
 
-                await DetermineNamespaceOrTypeToGenerateInAsync(service, document, cancellationToken).ConfigureAwait(false);
+                await DetermineNamespaceOrTypeToGenerateInAsync(service, semanticDocument, cancellationToken).ConfigureAwait(false);
 
                 // Now, try to infer a possible base type for this new class/interface.
-                this.InferBaseType(service, document, cancellationToken);
-                this.IsInterface = GenerateInterface(service, cancellationToken);
-                this.IsStruct = GenerateStruct(service, semanticModel, cancellationToken);
-                this.IsAttribute = this.BaseTypeOrInterfaceOpt != null && this.BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.AttributeType());
-                this.IsException = this.BaseTypeOrInterfaceOpt != null && this.BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.ExceptionType());
-                this.IsMembersWithModule = generateTypeServiceStateOptions.IsMembersWithModule;
-                this.IsTypeGeneratedIntoNamespaceFromMemberAccess = generateTypeServiceStateOptions.IsTypeGeneratedIntoNamespaceFromMemberAccess;
-                this.IsInterfaceOrEnumNotAllowedInTypeContext = generateTypeServiceStateOptions.IsInterfaceOrEnumNotAllowedInTypeContext;
-                this.IsDelegateAllowed = generateTypeServiceStateOptions.IsDelegateAllowed;
-                this.IsDelegateOnly = generateTypeServiceStateOptions.IsDelegateOnly;
-                this.IsEnumNotAllowed = generateTypeServiceStateOptions.IsEnumNotAllowed;
-                this.DelegateMethodSymbol = generateTypeServiceStateOptions.DelegateCreationMethodSymbol;
-                this.IsClassInterfaceTypes = generateTypeServiceStateOptions.IsClassInterfaceTypes;
-                this.IsSimpleNameGeneric = service.IsGenericName(this.SimpleName);
-                this.PropertiesToGenerate = generateTypeServiceStateOptions.PropertiesToGenerate;
+                InferBaseType(service, semanticDocument, cancellationToken);
+                IsInterface = GenerateInterface(service);
+                IsStruct = GenerateStruct(service, semanticModel, cancellationToken);
+                IsAttribute = BaseTypeOrInterfaceOpt != null && BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.AttributeType());
+                IsException = BaseTypeOrInterfaceOpt != null && BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.ExceptionType());
+                IsMembersWithModule = generateTypeServiceStateOptions.IsMembersWithModule;
+                IsTypeGeneratedIntoNamespaceFromMemberAccess = generateTypeServiceStateOptions.IsTypeGeneratedIntoNamespaceFromMemberAccess;
+                IsInterfaceOrEnumNotAllowedInTypeContext = generateTypeServiceStateOptions.IsInterfaceOrEnumNotAllowedInTypeContext;
+                IsDelegateAllowed = generateTypeServiceStateOptions.IsDelegateAllowed;
+                IsDelegateOnly = generateTypeServiceStateOptions.IsDelegateOnly;
+                IsEnumNotAllowed = generateTypeServiceStateOptions.IsEnumNotAllowed;
+                DelegateMethodSymbol = generateTypeServiceStateOptions.DelegateCreationMethodSymbol;
+                IsClassInterfaceTypes = generateTypeServiceStateOptions.IsClassInterfaceTypes;
+                IsSimpleNameGeneric = service.IsGenericName(SimpleName);
+                PropertiesToGenerate = generateTypeServiceStateOptions.PropertiesToGenerate;
 
-                if (this.IsAttribute && this.TypeToGenerateInOpt.GetAllTypeParameters().Any())
+                if (IsAttribute && TypeToGenerateInOpt.GetAllTypeParameters().Any())
                 {
-                    this.TypeToGenerateInOpt = null;
+                    TypeToGenerateInOpt = null;
                 }
 
-                return this.TypeToGenerateInOpt != null || this.NamespaceToGenerateInOpt != null;
+                return TypeToGenerateInOpt != null || NamespaceToGenerateInOpt != null;
             }
 
             private void InferBaseType(
@@ -205,68 +205,60 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // then we don't really want to infer a base type for 'Goo'.
 
                 // However, there are a few other cases were we can infer a base type.
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                if (service.IsInCatchDeclaration(this.NameOrMemberAccessExpression))
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                if (service.IsInCatchDeclaration(NameOrMemberAccessExpression))
                 {
-                    this.BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.ExceptionType();
+                    SetBaseType(document.SemanticModel.Compilation.ExceptionType());
                 }
-                else if (syntaxFacts.IsAttributeName(this.NameOrMemberAccessExpression))
+                else if (syntaxFacts.IsAttributeName(NameOrMemberAccessExpression))
                 {
-                    this.BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.AttributeType();
+                    SetBaseType(document.SemanticModel.Compilation.AttributeType());
                 }
-                else if (
-                    service.IsArrayElementType(this.NameOrMemberAccessExpression) ||
-                    service.IsInVariableTypeContext(this.NameOrMemberAccessExpression) ||
-                    this.ObjectCreationExpressionOpt != null)
+                else
                 {
-                    var expr = this.ObjectCreationExpressionOpt ?? this.NameOrMemberAccessExpression;
-                    var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
-                    var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
-                    SetBaseType(baseType);
+                    var expr = ObjectCreationExpressionOpt ?? NameOrMemberAccessExpression;
+                    if (expr != null)
+                    {
+                        var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
+                        var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
+                        SetBaseType(baseType);
+                    }
                 }
             }
 
             private void SetBaseType(INamedTypeSymbol baseType)
             {
                 if (baseType == null)
-                {
                     return;
-                }
 
                 // A base type need to be non class or interface type.  Also, being 'object' is
                 // redundant as the base type.  
                 if (baseType.IsSealed || baseType.IsStatic || baseType.SpecialType == SpecialType.System_Object)
-                {
                     return;
-                }
 
                 if (baseType.TypeKind != TypeKind.Class && baseType.TypeKind != TypeKind.Interface)
-                {
                     return;
-                }
 
-                this.BaseTypeOrInterfaceOpt = baseType;
+                // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
+                // if you're deriving some interface like IEnumerable<string?>.
+                BaseTypeOrInterfaceOpt = (INamedTypeSymbol)baseType.WithNullableAnnotation(NullableAnnotation.None);
             }
 
             private bool GenerateStruct(TService service, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                return service.IsInValueTypeConstraintContext(semanticModel, this.NameOrMemberAccessExpression, cancellationToken);
-            }
+                => service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
 
-            private bool GenerateInterface(
-                TService service,
-                CancellationToken cancellationToken)
+            private bool GenerateInterface(TService service)
             {
-                if (!this.IsAttribute &&
-                    !this.IsException &&
-                    this.Name.LooksLikeInterfaceName() &&
-                    this.ObjectCreationExpressionOpt == null &&
-                    (this.BaseTypeOrInterfaceOpt == null || this.BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface))
+                if (!IsAttribute &&
+                    !IsException &&
+                    Name.LooksLikeInterfaceName() &&
+                    ObjectCreationExpressionOpt == null &&
+                    (BaseTypeOrInterfaceOpt == null || BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface))
                 {
                     return true;
                 }
 
-                return service.IsInInterfaceList(this.NameOrMemberAccessExpression);
+                return service.IsInInterfaceList(NameOrMemberAccessExpression);
             }
 
             private async Task DetermineNamespaceOrTypeToGenerateInAsync(
@@ -277,21 +269,21 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 DetermineNamespaceOrTypeToGenerateInWorker(service, document.SemanticModel, cancellationToken);
 
                 // Can only generate into a type if it's a class and it's from source.
-                if (this.TypeToGenerateInOpt != null)
+                if (TypeToGenerateInOpt != null)
                 {
-                    if (this.TypeToGenerateInOpt.TypeKind != TypeKind.Class &&
-                        this.TypeToGenerateInOpt.TypeKind != TypeKind.Module)
+                    if (TypeToGenerateInOpt.TypeKind != TypeKind.Class &&
+                        TypeToGenerateInOpt.TypeKind != TypeKind.Module)
                     {
-                        this.TypeToGenerateInOpt = null;
+                        TypeToGenerateInOpt = null;
                     }
                     else
                     {
-                        var symbol = await SymbolFinder.FindSourceDefinitionAsync(this.TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                         if (symbol == null ||
                             !symbol.IsKind(SymbolKind.NamedType) ||
                             !symbol.Locations.Any(loc => loc.IsInSource))
                         {
-                            this.TypeToGenerateInOpt = null;
+                            TypeToGenerateInOpt = null;
                             return;
                         }
 
@@ -300,7 +292,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                         if (documentToBeGeneratedIn == null)
                         {
-                            this.TypeToGenerateInOpt = null;
+                            TypeToGenerateInOpt = null;
                             return;
                         }
 
@@ -308,20 +300,20 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
                         if (documentToBeGeneratedIn.Project != document.Project ||
-                            service.GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
                         {
-                            this.IsPublicAccessibilityForTypeGeneration = true;
+                            IsPublicAccessibilityForTypeGeneration = true;
                         }
 
-                        this.TypeToGenerateInOpt = (INamedTypeSymbol)symbol;
+                        TypeToGenerateInOpt = (INamedTypeSymbol)symbol;
                     }
                 }
 
-                if (this.TypeToGenerateInOpt != null)
+                if (TypeToGenerateInOpt != null)
                 {
-                    if (!CodeGenerator.CanAdd(document.Project.Solution, this.TypeToGenerateInOpt, cancellationToken))
+                    if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, cancellationToken))
                     {
-                        this.TypeToGenerateInOpt = null;
+                        TypeToGenerateInOpt = null;
                     }
                 }
             }
@@ -333,11 +325,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 // If we're on the right of a dot, see if we can figure out what's on the left.  If
                 // it doesn't bind to a type or a namespace, then we can't proceed.
-                if (this.SimpleName != this.NameOrMemberAccessExpression)
+                if (SimpleName != NameOrMemberAccessExpression)
                 {
                     return DetermineNamespaceOrTypeToGenerateIn(
                         service, semanticModel,
-                        service.GetLeftSideOfDot(this.SimpleName), cancellationToken);
+                        service.GetLeftSideOfDot(SimpleName), cancellationToken);
                 }
                 else
                 {
@@ -347,17 +339,17 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // TODO(cyrusn): We need to make this logic work if the type is in the
                     // base/interface list of a type.
                     var format = SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
-                    this.TypeToGenerateInOpt = service.DetermineTypeToGenerateIn(semanticModel, this.SimpleName, cancellationToken);
-                    if (this.TypeToGenerateInOpt != null)
+                    TypeToGenerateInOpt = service.DetermineTypeToGenerateIn(semanticModel, SimpleName, cancellationToken);
+                    if (TypeToGenerateInOpt != null)
                     {
-                        this.NamespaceToGenerateInOpt = this.TypeToGenerateInOpt.ContainingNamespace.ToDisplayString(format);
+                        NamespaceToGenerateInOpt = TypeToGenerateInOpt.ContainingNamespace.ToDisplayString(format);
                     }
                     else
                     {
-                        var namespaceSymbol = semanticModel.GetEnclosingNamespace(this.SimpleName.SpanStart, cancellationToken);
+                        var namespaceSymbol = semanticModel.GetEnclosingNamespace(SimpleName.SpanStart, cancellationToken);
                         if (namespaceSymbol != null)
                         {
-                            this.NamespaceToGenerateInOpt = namespaceSymbol.ToDisplayString(format);
+                            NamespaceToGenerateInOpt = namespaceSymbol.ToDisplayString(format);
                         }
                     }
                 }
@@ -379,13 +371,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                     if (symbol is INamespaceSymbol)
                     {
-                        this.NamespaceToGenerateInOpt = symbol.ToNameDisplayString();
+                        NamespaceToGenerateInOpt = symbol.ToNameDisplayString();
                         return true;
                     }
                     else if (symbol is INamedTypeSymbol)
                     {
                         // TODO: Code coverage
-                        this.TypeToGenerateInOpt = (INamedTypeSymbol)symbol.OriginalDefinition;
+                        TypeToGenerateInOpt = (INamedTypeSymbol)symbol.OriginalDefinition;
                         return true;
                     }
 
@@ -400,7 +392,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // "Goo.Bar".
                     if (service.TryGetNameParts(leftSide, out var nameParts))
                     {
-                        this.NamespaceToGenerateInOpt = string.Join(".", nameParts);
+                        NamespaceToGenerateInOpt = string.Join(".", nameParts);
                         return true;
                     }
                 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -11,6 +13,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTriviaTests : CSharpFormattingTestBase
     {
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        public async Task PreprocessorNullable()
+        {
+            var content = @"
+    #nullable
+class C
+{
+    #nullable     enable
+    void Method()
+    {
+        #nullable    disable
+    }
+}";
+
+            var expected = @"
+#nullable
+class C
+{
+#nullable enable
+    void Method()
+    {
+#nullable disable
+    }
+}";
+            await AssertFormatAsync(expected, content);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task PreprocessorInEmptyFile()
         {
@@ -1619,19 +1649,22 @@ class Program
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_1()
         {
+            var expected = @"> Roslyn.Utilities.dll!   Basic";
             var content = @">	Roslyn.Utilities.dll! 	Basic";
-            await AssertFormatAsync(content, content);
+            await AssertFormatAsync(expected, content);
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_2()
         {
             var content = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";
-            var expectedContent = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
+            var expectedContent = @"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
             await AssertFormatAsync(expectedContent, content);
         }
 
@@ -1707,14 +1740,14 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task NewLineOptions_LineFeedOnly()
+        public void NewLineOptions_LineFeedOnly()
         {
             var tree = SyntaxFactory.ParseCompilationUnit("class C\r\n{\r\n}");
 
             // replace all EOL trivia with elastic markers to force the formatter to add EOL back
             tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.EndOfLineTrivia)), (o, r) => SyntaxFactory.ElasticMarker);
 
-            var formatted = await Formatter.FormatAsync(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"));
+            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"));
 
             var actual = formatted.ToFullString();
             var expected = "class C\n{\n}";
@@ -1724,7 +1757,7 @@ class Program
 
         [WorkItem(4019, "https://github.com/dotnet/roslyn/issues/4019")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatWithTabs()
+        public void FormatWithTabs()
         {
             var code = @"#region Assembly mscorlib
 // C:\
@@ -1755,10 +1788,37 @@ class F
                                                                                                               .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                                                               .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
 
-            var formatted = await Formatter.FormatAsync(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true));
+            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true));
 
             var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+// Test");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/* Test */");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DocComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/// Test");
         }
     }
 }

@@ -94,6 +94,11 @@
         <target state="translated">MSB3104: O assembly usado como referência "{0}" não foi encontrado. Se esse assembly tiver sido produzido por um outro projeto, compile aquele projeto antes de compilar este.</target>
         <note>{StrBegin="MSB3104: "}</note>
       </trans-unit>
+      <trans-unit id="General_UnableToReadFile">
+        <source>File "{0}" could not be read: {1}</source>
+        <target state="translated">Não foi possível ler o arquivo "{0}": {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">Compilação compartilhada com falha; fazendo fallback para a ferramenta: {0}</target>
@@ -118,6 +123,26 @@
         <source>MSB3402: There was an error creating the pdb file "{0}". {1}</source>
         <target state="translated">MSB3402: houve um erro na criação do arquivo pdb "{0}". {1}</target>
         <note>{StrBegin="MSB3402: "}</note>
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="translated">{0} contém itens duplicados '{1}' com metadados conflitantes'{2}': '{3}' e '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="translated">{0} caminhos precisam ser terminados com uma barra ou uma barra invertida: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="translated">{0} itens precisam incluir pelo menos um item de nível superior (não aninhado) quando {1} é verdadeiro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="translated">Valor de {0} não encontrado em {1} itens ou o item correspondente não é uma raiz de origem de nível superior: '{2}'</target>
+        <note />
       </trans-unit>
     </body>
   </file>

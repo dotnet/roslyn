@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -13,6 +16,7 @@ Imports Xunit
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Emit
 Imports System.Collections.Immutable
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -86,26 +90,26 @@ BC31541: Reference to class 'M' is not allowed when its assembly is configured t
         Dim _6 = GetType(M)
                          ~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             VerifyEmitDiagnostics(compilation2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=False)})
+                references:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=False)})
             VerifyEmitDiagnostics(compilation2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
+                references:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -158,16 +162,16 @@ BC31541: Reference to class 'A' is not allowed when its assembly is configured t
     Implements I(Of C(Of A))
                          ~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -195,16 +199,16 @@ BC31541: Reference to class 'A' is not allowed when its assembly is configured t
 Imports COfA = C(Of A)
                     ~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
+                references:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -260,16 +264,16 @@ BC31558: Nested type 'IA.E' cannot be embedded.
     Dim _5 As IA.E
               ~~~~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
+                references:={AssemblyMetadata.CreateFromImage(compilation1.EmitToArray()).GetReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -314,16 +318,16 @@ BC31558: Nested type 'S1.S2' cannot be embedded.
         Dim x As S1.S2 = o.F()
                  ~~~~~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -360,16 +364,16 @@ BC31558: Nested type 'S1.S2' cannot be embedded.
         Return o.F()
                ~~~~~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -400,16 +404,16 @@ BC31558: Nested type 'S1.S2' cannot be embedded.
     Sub M(o As S1.S2)
                ~~~~~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors2)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors2)
         End Sub
@@ -482,16 +486,16 @@ BC36923: Type 'D1(Of T)' cannot be embedded because it has generic argument. Con
     Dim _8 As D1(Of Object) ' No error from Dev11
               ~~~~~~~~~~~~~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -601,16 +605,16 @@ BC31542: Embedded interop structure 'S5' can contain only public instance fields
         Return DirectCast(Nothing, S5)
                ~~~~~~~~~~~~~~~~~~~~~~~
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
         End Sub
@@ -647,7 +651,7 @@ End Module
 ]]></file>
                            </compilation>
             Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources2, additionalRefs:={reference1})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources2, references:={reference1})
             VerifyEmitDiagnostics(compilation2, <errors>
 BC31561: Embedded interop method 'Sub D.M1()' contains a body.
         D.M1()
@@ -688,15 +692,15 @@ BC35000: Requested operation is not available because the runtime library functi
         Dim x As S = Nothing
                      ~~~~~~~
 </errors>
-            Dim compilation0 = CreateCompilationWithReferences(sources0, references:={MscorlibRef_v20})
+            Dim compilation0 = CreateEmptyCompilationWithReferences(sources0, references:={MscorlibRef_v20})
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, <errors/>)
-            Dim compilation1 = CreateCompilationWithReferences(
+            Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 references:={MscorlibRef_v20, New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
-            compilation1 = CreateCompilationWithReferences(
+            compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 references:={MscorlibRef_v20, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
@@ -731,16 +735,16 @@ BC35000: Requested operation is not available because the runtime library functi
         Dim y = DirectCast(Nothing, I)
             ~
 </errors>
-            Dim compilation0 = CreateCompilationWithReferences(sources0, references:={MscorlibRef_v20})
+            Dim compilation0 = CreateEmptyCompilationWithReferences(sources0, references:={MscorlibRef_v20})
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            Dim compilation1 = CreateCompilationWithReferences(
+            Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef_v20, New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
-            compilation1 = CreateCompilationWithReferences(
+            compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef_v20, compilation0.EmitToImageReference(embedInteropTypes:=True)})
@@ -986,7 +990,7 @@ Class UsePia4
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -1480,20 +1484,20 @@ End Class
   IL_0009:  ret
 }
 ]]>
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugExe,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
 
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("UsePia4.M5", expected_M5)
             verifier.VerifyIL("UsePia4.M6", expected_M6)
 
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugExe,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
 
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             verifier.VerifyDiagnostics()
@@ -1529,7 +1533,7 @@ Interface I3
 End Interface
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0, verify:=Verification.Fails)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -1596,16 +1600,16 @@ End Interface
                                                            Assert.Same(t1, t6.ConstraintTypes(0))
                                                            Assert.Equal(VarianceKind.None, t6.Variance)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -1637,16 +1641,16 @@ BC30375: 'New' cannot be used on an interface.
         Return New I()
                ~~~~~~~
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             compilation0.AssertTheseDiagnostics()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
         End Sub
@@ -1684,16 +1688,16 @@ BC31543: Interop type 'C' cannot be embedded because it is missing the required 
         Return New I() With {.P = 2}
                ~~~~~~~~~~~~~~~~~~~~~
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             compilation0.AssertTheseDiagnostics()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -1727,7 +1731,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -1737,9 +1741,9 @@ End Structure
                                                            Dim attr = i.GetAttributes("System.Runtime.InteropServices", "CoClassAttribute").Single()
                                                            Assert.Equal("System.Runtime.InteropServices.CoClassAttribute(GetType(Object))", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithReferences(
+            Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={Net40.mscorlib, Net40.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
@@ -1757,9 +1761,9 @@ End Structure
   IL_0020:  ret
 }
 ]]>)
-            compilation1 = CreateCompilationWithReferences(
+            compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={MscorlibRef_v4_0_30316_17626, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={Net451.mscorlib, Net451.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
@@ -1807,12 +1811,12 @@ Module M
 End Module
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, <errors>
 BC31450: Type 'C(Of )' cannot be used as an implementing class.
         Return New I()
@@ -1853,15 +1857,15 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             compilation0.AssertTheseDiagnostics()
             ' No errors for /r:_.dll
-            Dim compilation1 = CreateCompilationWithReferences(
+            Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 references:={MscorlibRef, SystemRef, MetadataReference.CreateFromImage(compilation0.EmitToArray())})
             compilation1.AssertTheseDiagnostics()
             ' Error for /l:_.dll
-            compilation1 = CreateCompilationWithReferences(
+            compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             compilation1.AssertTheseDiagnostics(<errors>
@@ -1925,16 +1929,16 @@ BC35000: Requested operation is not available because the runtime library functi
         Dim x As New I()
                  ~~~~~~~
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             compilation0.AssertTheseDiagnostics()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -1983,7 +1987,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2047,18 +2051,18 @@ End Class
   IL_002d:  ret
 }
 ]]>
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("C.Add", expectedAdd)
             verifier.VerifyIL("C.Remove(Of T)", expectedRemove)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("C.Add", expectedAdd)
@@ -2099,7 +2103,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2125,16 +2129,16 @@ End Class
                                                            Dim method = type.GetMember(Of PEMethodSymbol)("E")
                                                            Assert.NotNull(method)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2200,14 +2204,14 @@ BC31556: Interface 'I4' has an invalid source interface which is required to emb
         AddHandler x4.E, AddressOf H
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             compilation0.AssertTheseDiagnostics()
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
-            compilation1 = CreateCompilationWithMscorlibAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             VerifyEmitDiagnostics(compilation1, errors)
@@ -2252,14 +2256,14 @@ BC31557: Source interface 'IE' is missing method 'E', which is required to embed
         AddHandler x.E, AddressOf M2
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             compilation0.AssertTheseDiagnostics()
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, <errors/>)
-            compilation1 = CreateCompilationWithMscorlibAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             VerifyEmitDiagnostics(compilation1, errors)
@@ -2298,16 +2302,16 @@ BC31543: Interop type 'I' cannot be embedded because it is missing the required 
             Dim errorsMetadataOnly = <errors>
 BC31543: Interop type 'I' cannot be embedded because it is missing the required 'System.Runtime.InteropServices.ComImportAttribute' attribute.
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
         End Sub
@@ -2344,16 +2348,16 @@ BC31543: Interop type 'I' cannot be embedded because it is missing the required 
             Dim errorsMetadataOnly = <errors>
 BC31543: Interop type 'I' cannot be embedded because it is missing the required 'System.Runtime.InteropServices.GuidAttribute' attribute.
 </errors>
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             compilation1.AssertTheseDiagnostics()
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errorsMetadataOnly)
         End Sub
@@ -2386,7 +2390,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2400,14 +2404,14 @@ End Structure
                                                            attr = type.GetAttributes("System.Runtime.InteropServices", "InterfaceTypeAttribute").Single()
                                                            Assert.Equal("System.Runtime.InteropServices.InterfaceTypeAttribute(1)", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2440,7 +2444,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2454,14 +2458,14 @@ End Structure
                                                            attr = type.GetAttributes("System.Runtime.InteropServices", "BestFitMappingAttribute").Single()
                                                            Assert.Equal("System.Runtime.InteropServices.BestFitMappingAttribute(False)", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2488,7 +2492,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2499,14 +2503,14 @@ End Structure
                                                            Dim attr = type.GetAttributes("System", "FlagsAttribute").Single()
                                                            Assert.Equal("System.FlagsAttribute", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2536,7 +2540,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2547,14 +2551,14 @@ End Structure
                                                            Dim attr = type.GetAttributes("System.Reflection", "DefaultMemberAttribute").Single()
                                                            Assert.Equal("System.Reflection.DefaultMemberAttribute(""M"")", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2585,7 +2589,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2597,14 +2601,14 @@ End Structure
                                                            Dim attr = method.GetAttributes("System.Runtime.InteropServices", "LCIDConversionAttribute").Single()
                                                            Assert.Equal("System.Runtime.InteropServices.LCIDConversionAttribute(123)", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2633,7 +2637,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2645,14 +2649,14 @@ End Structure
                                                            Dim attr = method.GetAttributes("System.Runtime.InteropServices", "DispIdAttribute").Single()
                                                            Assert.Equal("System.Runtime.InteropServices.DispIdAttribute(124)", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2680,7 +2684,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2693,14 +2697,14 @@ End Structure
                                                            Assert.Equal(0, param.GetAttributes().Length)
                                                            Assert.True(param.IsParamArray)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2730,7 +2734,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2741,17 +2745,17 @@ End Structure
                                                            Dim method = type.GetMember(Of PEMethodSymbol)("M")
                                                            Assert.Equal(New Date(987654321), method.Parameters(0).ExplicitDefaultValue)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             compilation1.AssertTheseDiagnostics(<errors>
 BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Date)'.
         x.M()
           ~
                                                     </errors>)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2783,7 +2787,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2796,9 +2800,9 @@ End Structure
                                                            method = type.GetMember(Of PEMethodSymbol)("M2")
                                                            Assert.Equal(79228162495817593528424333315D, method.Parameters(0).ExplicitDefaultValue)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             compilation1.AssertTheseDiagnostics(<errors>
 BC30455: Argument not specified for parameter 'x' of 'Sub M1(x As Decimal)'.
         x.M1()
@@ -2807,9 +2811,9 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M2(x As Decimal)'.
         x.M2()
           ~~
                                                     </errors>)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2839,7 +2843,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation0 = CreateCompilationWithMscorlib40AndReferences(
                 sources0,
                 references:={SystemRef})
             Dim verifier = CompileAndVerify(compilation0)
@@ -2853,17 +2857,17 @@ End Structure
                                                            Dim attr = method.Parameters(0).GetAttributes("System.Runtime.InteropServices", "DefaultParameterValueAttribute").Single()
                                                            Assert.Equal("System.Runtime.InteropServices.DefaultParameterValueAttribute(123.456)", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             compilation1.AssertTheseDiagnostics(<errors>
 BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Decimal)'.
         x.M()
           ~
                                                     </errors>)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2889,7 +2893,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2900,14 +2904,14 @@ End Structure
                                                            Dim attr = type.GetAttributes("System.Runtime.InteropServices", "UnmanagedFunctionPointerAttribute").Single()
                                                            Assert.Equal("System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute(System.Runtime.InteropServices.CallingConvention.StdCall, SetLastError:=True)", attr.ToString())
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -2938,7 +2942,7 @@ Structure S
 End Structure
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -2949,14 +2953,14 @@ End Structure
                                                            Dim method = type.GetMember(Of PEMethodSymbol)("M")
                                                            Assert.Equal(MethodImplAttributes.IL Or MethodImplAttributes.PreserveSig, CType(method.ImplementationAttributes, MethodImplAttributes))
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -3007,25 +3011,25 @@ End Module
             Dim errors = <errors>
 BC31552: Cannot embed interop type 'I1' found in both assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and '1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider disabling the embedding of interop types.
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             VerifyEmitDiagnostics(compilation0)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(sources1)
             VerifyEmitDiagnostics(compilation1)
             ' No errors for /r:0.dll /l:1.dll.
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
             ' Errors for /l:0.dll /l:1.dll.
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
         End Sub
@@ -3089,28 +3093,28 @@ BC31560: Embedding the interop type 'I1' from assembly '0, Version=0.0.0.0, Cult
 BC31560: Embedding the interop type 'I2' from assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' causes a name clash in the current assembly. Consider disabling the embedding of interop types.
 BC31560: Embedding the interop type 'I3' from assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' causes a name clash in the current assembly. Consider disabling the embedding of interop types.
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             VerifyEmitDiagnostics(compilation0)
             ' No errors for /r:0.dll.
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
             VerifyEmitDiagnostics(compilation1)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=False)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=False)})
             VerifyEmitDiagnostics(compilation1)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
             ' Errors for /l:0.dll.
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
-            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
         End Sub
@@ -3146,7 +3150,7 @@ Class B
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -3154,36 +3158,36 @@ End Class
                                                            Dim references = [module].GetReferencedAssemblySymbols()
                                                            Assert.Equal(1, references.Length)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation1)
             AssertTheseDiagnostics(verifier, (<errors/>))
             ' No errors for /r:0.dll /r:1.dll.
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2)
             AssertTheseDiagnostics(verifier, (<errors/>))
             ' Errors for /l:0.dll /r:1.dll.
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
@@ -3223,7 +3227,7 @@ End Class
             Dim errors = <errors>
 BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' because of an indirect reference to that assembly from assembly '1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider changing the 'Embed Interop Types' property on either assembly.
 </errors>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -3232,36 +3236,36 @@ BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.
                                                            Assert.Equal(2, references.Length)
                                                            Assert.Equal("1", references(1).Name)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation1)
             AssertTheseDiagnostics(verifier, (<errors/>))
             ' No errors for /r:0.dll /r:1.dll.
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2)
             AssertTheseDiagnostics(verifier, (<errors/>))
             ' Errors for /l:0.dll /r:1.dll.
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
         End Sub
@@ -3299,7 +3303,7 @@ Interface I
 End Interface
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             CompileAndVerify(compilation0)
             compilation0.AssertTheseDiagnostics()
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -3312,13 +3316,13 @@ End Interface
                                                            Dim i3 = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I3")
                                                            Dim m3 = i3.GetMember(Of PEMethodSymbol)("M3")
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             CompileAndVerify(compilation1, symbolValidator:=validator)
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             CompileAndVerify(compilation2, symbolValidator:=validator)
         End Sub
 
@@ -3359,7 +3363,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             CompileAndVerify(compilation0)
             compilation0.AssertTheseDiagnostics()
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -3372,13 +3376,13 @@ End Class
                                                            Dim i3 = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I3")
                                                            Dim m3 = i3.GetMember(Of PEMethodSymbol)("M3")
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             CompileAndVerify(compilation1, symbolValidator:=validator)
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             CompileAndVerify(compilation2, symbolValidator:=validator)
         End Sub
 
@@ -3416,7 +3420,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             CompileAndVerify(compilation0)
             compilation0.AssertTheseDiagnostics()
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -3429,13 +3433,13 @@ End Class
                                                            Dim i3 = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I3")
                                                            Assert.Equal(0, i3.GetMembers().Length)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             CompileAndVerify(compilation1, symbolValidator:=validator)
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
-                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             CompileAndVerify(compilation2, symbolValidator:=validator)
         End Sub
 
@@ -3464,7 +3468,7 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
@@ -3478,12 +3482,12 @@ End Class
                                                            f = e.GetMember(Of PEFieldSymbol)("value__")
                                                            Assert.False(f.HasConstantValue)
                                                        End Sub
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
-            compilation1 = CreateCompilationWithMscorlibAndReferences(
+            compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
@@ -3527,21 +3531,21 @@ End Class
 BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are you missing an assembly reference?
 </errors>
 
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1)
             CompileAndVerify(piaCompilation1)
 
-            Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40AndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
             CompileAndVerify(piaCompilation2)
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, errors)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
@@ -3585,10 +3589,10 @@ End Class
 BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are you missing an assembly reference?
 </errors>
 
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1)
             CompileAndVerify(piaCompilation1)
 
-            Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40AndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
             CompileAndVerify(piaCompilation2)
@@ -3596,7 +3600,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim fullName = MetadataTypeName.FromFullName("I1")
             Dim isNoPiaLocalType = False
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
@@ -3607,7 +3611,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
@@ -3620,7 +3624,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
             CompileAndVerify(compilation3)
@@ -3630,7 +3634,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4)
@@ -3685,32 +3689,32 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
         ~~~~~~
 </errors>
 
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1)
             CompileAndVerify(piaCompilation1)
 
-            Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40AndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
             'CompileAndVerify(piaCompilation2, emitOptions:=EmitOptions.RefEmitBug)
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
             CompileAndVerify(compilation3, verify:=Verification.Fails)
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4, verify:=Verification.Fails)
@@ -3754,21 +3758,21 @@ End Class
 BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
 </errors>
 
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1)
             CompileAndVerify(piaCompilation1)
 
-            Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40AndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
             CompileAndVerify(piaCompilation2)
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, errors)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
@@ -3818,21 +3822,21 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
         ~~~~~~
 </errors>
 
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1)
             CompileAndVerify(piaCompilation1)
 
-            Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40AndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
             'CompileAndVerify(piaCompilation2, emitOptions:=EmitOptions.RefEmitBug)
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
@@ -3864,9 +3868,9 @@ End Class
             Dim errors = <errors>
 BC30002: Type 'I1' is not defined.
 </errors>
-            Dim piaCompilation2 = CreateCompilationWithMscorlib(pia2)
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40(pia2)
             'CompileAndVerify(piaCompilation2, emitOptions:=EmitOptions.RefEmitBug)
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
@@ -3901,9 +3905,9 @@ BC30002: Type 'I1' is not defined.
         o.M2(Nothing)
         ~~~~~~~~~~~~~
 </errors>
-            Dim piaCompilation2 = CreateCompilationWithMscorlib(pia2)
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40(pia2)
             'CompileAndVerify(piaCompilation2, emitOptions:=EmitOptions.RefEmitBug)
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
@@ -3948,32 +3952,32 @@ End Class
 BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
 </errors>
 
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1)
             CompileAndVerify(piaCompilation1)
 
-            Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40AndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
             CompileAndVerify(piaCompilation2)
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, errors)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, errors)
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
             CompileAndVerify(compilation3)
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4)
@@ -3996,7 +4000,7 @@ Public Interface ITest33
 End Interface
 ]]></file>
                        </compilation>
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1, options:=TestOptions.ReleaseDll)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1, options:=TestOptions.ReleaseDll)
             CompileAndVerify(piaCompilation1)
 
             Dim pia2 = <compilation>
@@ -4016,7 +4020,7 @@ Public Interface ITest34
 End Interface
 ]]></file>
                        </compilation>
-            Dim piaCompilation2 = CreateCompilationWithMscorlib(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40(
                 pia2, options:=TestOptions.ReleaseDll,
                 references:={piaCompilation1.EmitToImageReference(embedInteropTypes:=True), ValueTupleRef, SystemRuntimeFacadeRef})
             CompileAndVerify(piaCompilation2)
@@ -4037,25 +4041,25 @@ BC36924: Type 'List(Of ValueTuple(Of ITest33, ITest33))' cannot be used across a
                ~~~~~~~
                            </errors>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer, options:=TestOptions.ReleaseDll,
                 references:={piaCompilation2.ToMetadataReference(embedInteropTypes:=True), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
             VerifyEmitDiagnostics(compilation1, expected)
             VerifyEmitMetadataOnlyDiagnostics(compilation1, expected)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer, options:=TestOptions.ReleaseDll,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
             VerifyEmitDiagnostics(compilation2, expected)
             VerifyEmitMetadataOnlyDiagnostics(compilation2, expected)
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer, options:=TestOptions.ReleaseDll,
                 references:={piaCompilation2.ToMetadataReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
             VerifyEmitDiagnostics(compilation3, expected)
             VerifyEmitMetadataOnlyDiagnostics(compilation3, expected)
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer, options:=TestOptions.ReleaseDll,
                 references:={piaCompilation2.EmitToImageReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
             VerifyEmitDiagnostics(compilation4, expected)
@@ -4105,32 +4109,32 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
         ~~~~~~
 </errors>
 
-            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
+            Dim piaCompilation1 = CreateCompilationWithMscorlib40(pia1)
             CompileAndVerify(piaCompilation1)
 
-            Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim piaCompilation2 = CreateCompilationWithMscorlib40AndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
             'CompileAndVerify(piaCompilation2, emitOptions:=EmitOptions.RefEmitBug)
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2, embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation1, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation1)
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True)})
             VerifyEmitDiagnostics(compilation2, errors)
             VerifyEmitMetadataOnlyDiagnostics(compilation2)
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
             CompileAndVerify(compilation3, verify:=Verification.Fails)
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4, verify:=Verification.Fails)
@@ -4174,14 +4178,14 @@ Class C
 End Class
 ]]></file>
                            </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
             AssertTheseDiagnostics(verifier, (<errors/>))
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
-                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+                references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
 
             AssertTheseEmitDiagnostics(compilation1,
 <expected>
@@ -4249,7 +4253,7 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></file>
                            </compilation>
             Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
-            CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+            CompileAndVerify(sources2, references:={reference1}, symbolValidator:=
                                                 Sub([module] As ModuleSymbol)
                                                     DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                     Dim ia = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("IA")
@@ -4320,7 +4324,7 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></file>
                            </compilation>
             Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
-            CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+            CompileAndVerify(sources2, references:={reference1}, symbolValidator:=
                                                 Sub([module] As ModuleSymbol)
                                                     DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                     Dim ia = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("IA")
@@ -4357,7 +4361,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                                                                          {
                                                                             AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.NoPia.ParametersWithoutNames).
                                                                                 GetReference(display:="ParametersWithoutNames.dll", embedInteropTypes:=True)

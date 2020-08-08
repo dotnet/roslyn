@@ -1,8 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -61,13 +62,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
-                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
+                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger)
                 fileReadDiagnostics.Clear()
                 hadErrors = True
                 Return Nothing
             End If
 
-            Dim tree = VisualBasicSyntaxTree.ParseText(content, If(file.IsScript, scriptParseOptions, parseOptions), file.Path)
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+                content,
+                If(file.IsScript, scriptParseOptions, parseOptions),
+                file.Path)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit
@@ -78,7 +82,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return tree
         End Function
 
-        Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
+        Public Overrides Function CreateCompilation(consoleOutput As TextWriter,
+                                                    touchedFilesLogger As TouchedFileLogger,
+                                                    errorLogger As ErrorLogger,
+                                                    analyzerConfigOptions As ImmutableArray(Of AnalyzerConfigOptionsResult)) As Compilation
             Dim parseOptions = Arguments.ParseOptions
 
             ' We compute script parse options once so we don't have to do it repeatedly in
@@ -94,17 +101,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Parallel.For(0, sourceFiles.Length,
                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
-                            ' NOTE: order of trees is important!!
-                            trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                            Try
+                                ' NOTE: order of trees is important!!
+                                trees(i) = ParseFile(
+                                consoleOutput,
+                                parseOptions,
+                                scriptParseOptions,
+                                hadErrors,
+                                sourceFiles(i),
+                                errorLogger)
+                            Catch ex As Exception When FatalError.Report(ex)
+                                Throw ExceptionUtilities.Unreachable
+                            End Try
                         End Sub))
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!
-                    trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                    trees(i) = ParseFile(
+                        consoleOutput,
+                        parseOptions,
+                        scriptParseOptions,
+                        hadErrors,
+                        sourceFiles(i),
+                        errorLogger)
                 Next
             End If
 
-            ' If there were any errors while trying to read files, then exit.
             If hadErrors Then
                 Return Nothing
             End If
@@ -122,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
             Dim resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, referenceDirectiveResolver)
 
-            If ReportErrors(diagnostics, consoleOutput, errorLogger) Then
+            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger) Then
                 Return Nothing
             End If
 
@@ -135,7 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger)
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
+            Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -146,7 +169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
-                     WithSourceReferenceResolver(sourceFileResolver))
+                     WithSourceReferenceResolver(sourceFileResolver).
+                     WithSyntaxTreeOptionsProvider(syntaxTreeOptions))
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
@@ -178,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="consoleOutput"></param>
         Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion())
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine1, Culture), GetToolName(), GetCompilerVersion())
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LogoLine2, Culture))
             consoleOutput.WriteLine()
         End Sub
@@ -222,11 +246,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "BC", code)
         End Function
 
-        Protected Overrides Function ResolveAnalyzersFromArguments(
+        Protected Overrides Sub ResolveAnalyzersFromArguments(
             diagnostics As List(Of DiagnosticInfo),
-            messageProvider As CommonMessageProvider) As ImmutableArray(Of DiagnosticAnalyzer)
-            Return Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader)
-        End Function
+            messageProvider As CommonMessageProvider,
+            ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
+            ByRef generators As ImmutableArray(Of ISourceGenerator))
+
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, analyzers, generators)
+        End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(
             tree As SyntaxTree,

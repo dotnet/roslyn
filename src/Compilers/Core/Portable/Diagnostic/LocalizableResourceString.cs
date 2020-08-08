@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Resources;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.Reflection;
-using System.Resources;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -95,6 +97,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => false;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             writer.WriteType(_resourceSource);
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string GetText(IFormatProvider formatProvider)
+        protected override string GetText(IFormatProvider? formatProvider)
         {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis
                 string.Empty;
         }
 
-        protected override bool AreEqual(object other)
+        protected override bool AreEqual(object? other)
         {
             var otherResourceString = other as LocalizableResourceString;
             return otherResourceString != null &&

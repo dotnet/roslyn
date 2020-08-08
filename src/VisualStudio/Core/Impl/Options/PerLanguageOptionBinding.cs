@@ -1,36 +1,45 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class PerLanguageOptionBinding<T>
+    internal class PerLanguageOptionBinding<T> : INotifyPropertyChanged
     {
-        private readonly IOptionService _optionService;
-        private readonly PerLanguageOption<T> _key;
+        private readonly OptionStore _optionStore;
+        private readonly PerLanguageOption2<T> _key;
         private readonly string _languageName;
 
-        public PerLanguageOptionBinding(IOptionService optionService, PerLanguageOption<T> key, string languageName)
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public PerLanguageOptionBinding(OptionStore optionStore, PerLanguageOption2<T> key, string languageName)
         {
-            _optionService = optionService;
+            _optionStore = optionStore;
             _key = key;
             _languageName = languageName;
+
+            _optionStore.OptionChanged += (sender, e) =>
+            {
+                if (e.Option == _key)
+                {
+                    PropertyChanged?.Raise(this, new PropertyChangedEventArgs(nameof(Value)));
+                }
+            };
         }
 
         public T Value
         {
             get
             {
-                return _optionService.GetOption(_key, _languageName);
+                return _optionStore.GetOption(_key, _languageName);
             }
 
             set
             {
-                var oldOptions = _optionService.GetOptions();
-                var newOptions = oldOptions.WithChangedOption(_key, _languageName, value);
-
-                _optionService.SetOptions(newOptions);
-                OptionLogger.Log(oldOptions, newOptions);
+                _optionStore.SetOption(_key, _languageName, value);
             }
         }
     }

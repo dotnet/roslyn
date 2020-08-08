@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Windows.Media;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -43,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                return Enumerable.Empty<string>();
+                return SpecializedCollections.EmptyEnumerable<string>();
             }
         }
 
@@ -72,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker IconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public virtual ImageSource ExpandedIcon
@@ -82,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker ExpandedIconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public bool AllowIconTheming
@@ -107,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker OverlayIconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public ImageSource StateIcon
@@ -117,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public virtual ImageMoniker StateIconMoniker
         {
-            get { return default(ImageMoniker); }
+            get { return default; }
         }
 
         public string StateToolTipText

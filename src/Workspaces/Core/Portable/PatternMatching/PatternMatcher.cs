@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             CultureInfo culture,
             bool allowFuzzyMatching = false)
         {
-            culture = culture ?? CultureInfo.CurrentCulture;
+            culture ??= CultureInfo.CurrentCulture;
 
             _compareInfo = culture.CompareInfo;
             _textInfo = culture.TextInfo;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private static bool ContainsUpperCaseLetter(string pattern)
         {
             // Expansion of "foreach(char ch in pattern)" to avoid a CharEnumerator allocation
-            for (int i = 0; i < pattern.Length; i++)
+            for (var i = 0; i < pattern.Length; i++)
             {
                 if (char.IsUpper(pattern[i]))
                 {
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
         }
 
-        private PatternMatch? FuzzyMatchPatternChunk(
+        private static PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
             TextChunk patternChunk,
             bool punctuationStripped)
@@ -248,9 +250,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private static bool ContainsSpaceOrAsterisk(string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
-                char ch = text[i];
+                var ch = text[i];
                 if (ch == ' ' || ch == '*')
                 {
                     return true;
@@ -334,30 +336,23 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
             else
             {
-                var tempMatches = ArrayBuilder<PatternMatch>.GetInstance();
+                using var _ = ArrayBuilder<PatternMatch>.GetInstance(out var tempMatches);
 
-                try
+                foreach (var subWordTextChunk in subWordTextChunks)
                 {
-                    foreach (var subWordTextChunk in subWordTextChunks)
+                    // Try to match the candidate with this word
+                    var result = MatchPatternChunk(
+                        candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                    if (result == null)
                     {
-                        // Try to match the candidate with this word
-                        var result = MatchPatternChunk(
-                            candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
-                        if (result == null)
-                        {
-                            return false;
-                        }
-
-                        tempMatches.Add(result.Value);
+                        return false;
                     }
 
-                    matches.AddRange(tempMatches);
-                    return tempMatches.Count > 0;
+                    tempMatches.Add(result.Value);
                 }
-                finally
-                {
-                    tempMatches.Free();
-                }
+
+                matches.AddRange(tempMatches);
+                return tempMatches.Count > 0;
             }
         }
 
@@ -383,7 +378,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             return _compareInfo.Compare(
-                candidate, candidatePart.Start, patternPart.Length, 
+                candidate, candidatePart.Start, patternPart.Length,
                 pattern, patternPart.Start, patternPart.Length, compareOptions) == 0;
         }
 
@@ -468,28 +463,27 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // We'll have 3 pattern parts Si/U/I against two candidate parts Simple/UI.  However, U
             // and I will both match in UI. 
 
-            int currentCandidateHump = 0;
-            int currentPatternHump = 0;
+            var currentCandidateHump = 0;
+            var currentPatternHump = 0;
             int? firstMatch = null;
             bool? contiguous = null;
 
             var patternHumpCount = patternHumps.Count;
             var candidateHumpCount = candidateHumps.Count;
 
-            var matchSpans = ArrayBuilder<TextSpan>.GetInstance();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchSpans);
             while (true)
             {
                 // Let's consider our termination cases
                 if (currentPatternHump == patternHumpCount)
                 {
-                    Contract.Requires(firstMatch.HasValue);
-                    Contract.Requires(contiguous.HasValue);
+                    Debug.Assert(firstMatch.HasValue);
+                    Debug.Assert(contiguous.HasValue);
 
                     var matchCount = matchSpans.Count;
                     matchedSpans = _includeMatchedSpans
                         ? new NormalizedTextSpanCollection(matchSpans).ToImmutableArray()
                         : ImmutableArray<TextSpan>.Empty;
-                    matchSpans.Free();
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);
                     return GetCamelCaseKind(camelCaseResult, candidateHumps);
@@ -498,12 +492,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 {
                     // No match, since we still have more of the pattern to hit
                     matchedSpans = ImmutableArray<TextSpan>.Empty;
-                    matchSpans.Free();
                     return null;
                 }
 
                 var candidateHump = candidateHumps[currentCandidateHump];
-                bool gotOneMatchThisCandidate = false;
+                var gotOneMatchThisCandidate = false;
 
                 // Consider the case of matching SiUI against SimpleUIElement. The candidate parts
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'
@@ -533,12 +526,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     matchSpans.Add(new TextSpan(candidateHump.Start, patternChunkCharacterSpan.Length));
                     gotOneMatchThisCandidate = true;
 
-                    firstMatch = firstMatch ?? currentCandidateHump;
+                    firstMatch ??= currentCandidateHump;
 
                     // If we were contiguous, then keep that value.  If we weren't, then keep that
                     // value.  If we don't know, then set the value to 'true' as an initial match is
                     // obviously contiguous.
-                    contiguous = contiguous ?? true;
+                    contiguous ??= true;
 
                     candidateHump = new TextSpan(candidateHump.Start + patternChunkCharacterSpan.Length, candidateHump.Length - patternChunkCharacterSpan.Length);
                 }

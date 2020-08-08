@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -26,11 +29,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> returnTypeAttributes,
-            MethodKind methodKind = MethodKind.Ordinary)
+            MethodKind methodKind = MethodKind.Ordinary,
+            bool isInitOnly = false)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.ReturnType = returnType;
             this.RefKind = refKind;
+
+            Debug.Assert(!isInitOnly || methodKind == MethodKind.PropertySet);
+            this.IsInitOnly = methodKind == MethodKind.PropertySet && isInitOnly;
+
             this.TypeParameters = typeParameters.NullToEmpty();
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
@@ -44,13 +52,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
                 this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
-                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
+                this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
+                this.MethodKind, this.IsInitOnly);
 
             CodeGenerationMethodInfo.Attach(result,
                 CodeGenerationMethodInfo.GetIsNew(this),
                 CodeGenerationMethodInfo.GetIsUnsafe(this),
                 CodeGenerationMethodInfo.GetIsPartial(this),
-                CodeGenerationMethodInfo.GetIsAsync(this),
+                CodeGenerationMethodInfo.GetIsAsyncMethod(this),
                 CodeGenerationMethodInfo.GetStatements(this),
                 CodeGenerationMethodInfo.GetHandlesExpressions(this));
 
@@ -85,19 +94,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override IMethodSymbol ConstructedFrom => this;
 
+        public override bool IsReadOnly => Modifiers.IsReadOnly;
+        public override bool IsInitOnly { get; }
+
         public override IMethodSymbol OverriddenMethod => null;
 
         public override IMethodSymbol ReducedFrom => null;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
-        {
-            throw new InvalidOperationException();
-        }
+            => throw new InvalidOperationException();
 
         public override IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
-        {
-            return null;
-        }
+            => null;
 
         public override IMethodSymbol PartialImplementationPart => null;
 

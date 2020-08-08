@@ -1,0 +1,17 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.VisualStudio.Text;
+
+namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
+{
+    internal static class SnapshotPointExtensions
+    {
+        public static void Deconstruct(this SnapshotPoint snapshotPoint, out ITextSnapshot snapshot, out int position)
+        {
+            snapshot = snapshotPoint.Snapshot;
+            position = snapshotPoint.Position;
+        }
+    }
+}

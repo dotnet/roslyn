@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Xml
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -112,12 +115,7 @@ BC42021: Cannot infer a common type; 'Object' assumed.
         <Fact>
         Public Sub TestBinaryConditionalGenerics()
             TestCondition("if(GetUserGeneric(Of T), GetUserGeneric(Of T))", expectedType:="D(Of T)")
-            TestCondition("if(GetTypeParameter(Of T), GetTypeParameter(Of T))", expectedType:="T", errors:=
-<errors>
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
-        System.Console.WriteLine(if(GetTypeParameter(Of T), GetTypeParameter(Of T)))
-                                    ~~~~~~~~~~~~~~~~~~~~~~
-</errors>)
+            TestCondition("if(GetTypeParameter(Of T), GetTypeParameter(Of T))", expectedType:="T")
 
             TestCondition("if(GetUserGeneric(Of T), GetUserGeneric(Of T))", expectedType:="D(Of T)")
             TestCondition("if(GetUserGeneric(Of T), Nothing)", expectedType:="D(Of T)")
@@ -355,7 +353,7 @@ End Interface
 
             source.<file>.Single().Value = String.Format(source.<file>.Single().Value, text)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(strict))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(strict))
 
             If errors IsNot Nothing Then
                 CompilationUtils.AssertTheseDiagnostics(compilation, errors)
@@ -391,7 +389,7 @@ End Interface
         <Fact>
         Public Sub TestInvalidIfOperators()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestInvalidNumberOfParametersInIfOperator">
     <file name="a.vb">
 Class CX
@@ -400,7 +398,7 @@ Class CX
 
     Public F2 As Integer = If 1
 
-    Public F3 As Integer = If(1, 
+    Public F3 As Integer = If(1,
 
     Public F4 As Integer = If(True, 2
 
@@ -424,9 +422,9 @@ Class CX
 
     Public F13 As Integer = If(True, S, 23)
 
-    Public F14 As Integer = If( 
+    Public F14 As Integer = If(
 
-    Public F15 As Integer = If() 
+    Public F15 As Integer = If()
 
     Public F16 As Integer = If(True
 
@@ -441,18 +439,18 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC33104: 'If' operator requires either two or three operands.
+    BC33104: 'If' operator requires either two or three operands.
     Public F1 As Integer = If(True, 2, 3, 4, 5)
                                         ~~~~~~
 BC30199: '(' expected.
     Public F2 As Integer = If 1
                               ~
 BC30198: ')' expected.
-    Public F3 As Integer = If(1, 
-                                 ~
+    Public F3 As Integer = If(1,
+                                ~
 BC30201: Expression expected.
-    Public F3 As Integer = If(1, 
-                                 ~
+    Public F3 As Integer = If(1,
+                                ~
 BC30198: ')' expected.
     Public F4 As Integer = If(True, 2
                                      ~
@@ -499,16 +497,16 @@ BC30491: Expression does not produce a value.
     Public F13 As Integer = If(True, S, 23)
                                      ~
 BC30198: ')' expected.
-    Public F14 As Integer = If( 
-                                ~
+    Public F14 As Integer = If(
+                               ~
 BC30201: Expression expected.
-    Public F14 As Integer = If( 
-                                ~
+    Public F14 As Integer = If(
+                               ~
 BC33104: 'If' operator requires either two or three operands.
-    Public F14 As Integer = If( 
-                                ~
+    Public F14 As Integer = If(
+                               ~
 BC33104: 'If' operator requires either two or three operands.
-    Public F15 As Integer = If() 
+    Public F15 As Integer = If()
                                ~
 BC30198: ')' expected.
     Public F16 As Integer = If(True
@@ -524,7 +522,7 @@ BC33104: 'If' operator requires either two or three operands.
 
         Private Sub TestInvalidTernaryIfOperatorsStrict(strict As OptionStrict, errs As XElement)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestInvalidIfOperatorsStrict">
     <file name="a.vb">
 Imports System
@@ -534,8 +532,8 @@ Class CX
     Public F1 As Integer = If(True, "", 23)
     Public F2 As Integer = If("error", 1, 2)
 
-        Public Sub S1() 
-        End Sub 
+        Public Sub S1()
+        End Sub
     Public F3 As Integer = If(True, S1(), (Nothing))
 
         Public Function FUNK1(x As Integer) As Integer
@@ -674,15 +672,15 @@ BC30311: Value of type 'T1' cannot be converted to 'Boolean'.
 
         Private Sub TestInvalidBinaryIfOperatorsStrict(strict As OptionStrict, errs As XElement)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestInvalidIfOperatorsStrict">
     <file name="a.vb">
 Imports System
 
 Class CX
 
-    Public Sub S1() 
-    End Sub 
+    Public Sub S1()
+    End Sub
 
     Public Function FUNK1(x As Integer) As Integer
         Return 0
@@ -767,13 +765,13 @@ BC36911: Cannot infer a common type.
 BC36912: Cannot infer a common type, and Option Strict On does not allow 'Object' to be assumed.
         Dim F9 As Object = If(G.P1, G.F2)
                            ~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F9_ As Object = If(G.P1, Nothing)
                                ~~~~
 BC36912: Cannot infer a common type, and Option Strict On does not allow 'Object' to be assumed.
         Dim F10 As Object = If(G.F2, G.P3)
                             ~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F12 As Object = If(G.F4, G.P3)
                                ~~~~
 BC36912: Cannot infer a common type, and Option Strict On does not allow 'Object' to be assumed.
@@ -793,7 +791,7 @@ BC42021: Cannot infer a common type because more than one type is possible; 'Obj
 BC42021: Cannot infer a common type because more than one type is possible; 'Object' assumed.
         Dim F2 As Object = If(23, "")
                            ~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F2 As Object = If(23, "")
                               ~~
 BC30491: Expression does not produce a value.
@@ -811,28 +809,27 @@ BC36911: Cannot infer a common type.
 BC42021: Cannot infer a common type; 'Object' assumed.
         Dim F9 As Object = If(G.P1, G.F2)
                            ~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F9 As Object = If(G.P1, G.F2)
                               ~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F9_ As Object = If(G.P1, Nothing)
                                ~~~~
 BC42021: Cannot infer a common type; 'Object' assumed.
         Dim F10 As Object = If(G.F2, G.P3)
                             ~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F10 As Object = If(G.F2, G.P3)
                                ~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F12 As Object = If(G.F4, G.P3)
                                ~~~~
+BC42016: Implicit conversion from 'Object' to 'T1'.
+        Dim v1 As T1 = If(x1, x2)
+                       ~~~~~~~~~~
 BC42021: Cannot infer a common type; 'Object' assumed.
         Dim v1 As T1 = If(x1, x2)
                        ~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
-        Dim v1 As T1 = If(x1, x2)
-                          ~~
-
 ]]>
 </expected>)
         End Sub
@@ -842,7 +839,7 @@ BC33107: First operand in a binary 'If' expression must be nullable or a referen
         Public Sub TestInvalidBinaryIfOperatorsStrictOff()
             TestInvalidBinaryIfOperatorsStrict(OptionStrict.Off,
 <expected><![CDATA[
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F2 As Object = If(23, "")
                               ~~
 BC30491: Expression does not produce a value.
@@ -857,28 +854,25 @@ BC36911: Cannot infer a common type.
 BC36911: Cannot infer a common type.
         Dim F8 As Func(Of Integer, Integer) = If(Nothing, AddressOf FUNK2)
                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F9 As Object = If(G.P1, G.F2)
                               ~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F9_ As Object = If(G.P1, Nothing)
                                ~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F10 As Object = If(G.F2, G.P3)
                                ~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
+BC33107: First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.
         Dim F12 As Object = If(G.F4, G.P3)
                                ~~~~
-BC33107: First operand in a binary 'If' expression must be nullable or a reference type.
-        Dim v1 As T1 = If(x1, x2)
-                          ~~
         ]]>
 </expected>)
         End Sub
 
         <Fact, WorkItem(544983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544983")>
         Public Sub Bug13187()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -927,7 +921,7 @@ Full
 
         <Fact, WorkItem(544983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544983")>
         Public Sub Bug13187_2()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[

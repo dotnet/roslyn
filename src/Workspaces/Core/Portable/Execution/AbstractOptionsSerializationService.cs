@@ -1,15 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -18,13 +14,11 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         public abstract void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         public abstract void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
-        public abstract void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken);
 
         public abstract CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         public abstract ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
-        public abstract OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken);
 
-        protected void WriteCompilationOptionsTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static void WriteCompilationOptionsTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -40,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(options.CryptoKeyContainer);
             writer.WriteString(options.CryptoKeyFile);
 
-            writer.WriteValue(options.CryptoPublicKey.ToArray());
+            writer.WriteValue(options.CryptoPublicKey.AsSpan());
             writer.WriteBoolean(options.DelaySign.HasValue);
             if (options.DelaySign.HasValue)
             {
@@ -65,6 +59,8 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteBoolean(options.Deterministic);
             writer.WriteBoolean(options.PublicSign);
 
+            writer.WriteByte((byte)options.MetadataImportOptions);
+
             // REVIEW: What should I do with these. we probably need to implement either out own one
             //         or somehow share these as service....
             //
@@ -75,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // StrongNameProvider strongNameProvider
         }
 
-        protected void ReadCompilationOptionsFrom(
+        protected static void ReadCompilationOptionsFrom(
             ObjectReader reader,
             out OutputKind outputKind,
             out bool reportSuppressedDiagnostics,
@@ -95,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Execution
             out bool concurrentBuild,
             out bool deterministic,
             out bool publicSign,
+            out MetadataImportOptions metadataImportOptions,
             out XmlReferenceResolver xmlReferenceResolver,
             out SourceReferenceResolver sourceReferenceResolver,
             out MetadataReferenceResolver metadataReferenceResolver,
@@ -142,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var key = reader.ReadString();
                     var value = (ReportDiagnostic)reader.ReadInt32();
 
-                    specificDiagnosticOptionsList.Add(KeyValuePair.Create(key, value));
+                    specificDiagnosticOptionsList.Add(KeyValuePairUtil.Create(key, value));
                 }
             }
 
@@ -151,6 +148,8 @@ namespace Microsoft.CodeAnalysis.Execution
             concurrentBuild = reader.ReadBoolean();
             deterministic = reader.ReadBoolean();
             publicSign = reader.ReadBoolean();
+
+            metadataImportOptions = (MetadataImportOptions)reader.ReadByte();
 
             // REVIEW: What should I do with these. are these service required when compilation is built ourselves, not through
             //         compiler.
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Execution
             strongNameProvider = new DesktopStrongNameProvider();
         }
 
-        protected void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        protected void ReadParseOptionsFrom(
+        protected static void ReadParseOptionsFrom(
             ObjectReader reader,
             out SourceCodeKind kind,
             out DocumentationMode documentationMode,
@@ -206,191 +205,11 @@ namespace Microsoft.CodeAnalysis.Execution
                     var key = reader.ReadString();
                     var value = reader.ReadString();
 
-                    featuresList.Add(KeyValuePair.Create(key, value));
+                    featuresList.Add(KeyValuePairUtil.Create(key, value));
                 }
             }
 
             features = featuresList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, string>>();
-        }
-
-        protected void WriteOptionSetTo(OptionSet options, string language, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // order of options we serialize should be static so that we get deterministic checksum for options
-            WriteOptionTo(options, language, CodeStyleOptions.QualifyFieldAccess, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.QualifyPropertyAccess, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.QualifyMethodAccess, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.QualifyEventAccess, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferAutoProperties, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferCoalesceExpression, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferCollectionInitializer, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferExplicitTupleNames, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferInlinedVariableDeclaration, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferDeconstructedVariableDeclaration, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferNullPropagation, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferObjectInitializer, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferThrowExpression, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.RequireAccessibilityModifiers, writer, cancellationToken);
-            WriteOptionTo(options, language, SimplificationOptions.NamingPreferences, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken);
-            WriteOptionTo(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken);
-        }
-
-        protected OptionSet ReadOptionSetFrom(OptionSet options, string language, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyFieldAccess, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyPropertyAccess, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyMethodAccess, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyEventAccess, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferAutoProperties, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCoalesceExpression, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCollectionInitializer, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferExplicitTupleNames, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInlinedVariableDeclaration, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferDeconstructedVariableDeclaration, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferNullPropagation, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferObjectInitializer, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferThrowExpression, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.RequireAccessibilityModifiers, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, SimplificationOptions.NamingPreferences, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken);
-            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken);
-            return options;
-        }
-
-        protected void WriteOptionTo<T>(OptionSet options, Option<CodeStyleOption<T>> option, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var value = options.GetOption(option);
-            writer.WriteString(value.ToXElement().ToString());
-        }
-
-        protected OptionSet ReadOptionFrom<T>(OptionSet options, Option<CodeStyleOption<T>> option, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var xmlText = reader.ReadString();
-            var value = CodeStyleOption<T>.FromXElement(XElement.Parse(xmlText));
-
-            return options.WithChangedOption(option, value);
-        }
-
-        private void WriteOptionTo<T>(OptionSet options, string language, PerLanguageOption<CodeStyleOption<T>> option, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var value = options.GetOption(option, language);
-            writer.WriteString(value.ToXElement().ToString());
-        }
-
-        private OptionSet ReadOptionFrom<T>(OptionSet options, string language, PerLanguageOption<CodeStyleOption<T>> option, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var xmlText = reader.ReadString();
-            var value = CodeStyleOption<T>.FromXElement(XElement.Parse(xmlText));
-
-            return options.WithChangedOption(option, language, value);
-        }
-
-        protected void WriteOptionTo(OptionSet options, Option<NamingStylePreferences> option, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var value = options.GetOption(option);
-            writer.WriteString(value.CreateXElement().ToString());
-        }
-
-        protected OptionSet ReadOptionFrom(OptionSet options, Option<NamingStylePreferences> option, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var xmlText = reader.ReadString();
-            try
-            {
-                var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
-                return options.WithChangedOption(option, value);
-            }
-            catch (System.Exception)
-            {
-                return options;
-            }
-        }
-
-        private void WriteOptionTo(OptionSet options, string language, PerLanguageOption<NamingStylePreferences> option, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var value = options.GetOption(option, language);
-            writer.WriteString(value.CreateXElement().ToString());
-        }
-
-        private OptionSet ReadOptionFrom(OptionSet options, string language, PerLanguageOption<NamingStylePreferences> option, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var xmlText = reader.ReadString();
-            try
-            {
-                var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
-                return options.WithChangedOption(option, language, value);
-
-            }
-            catch (System.Exception)
-            {
-                return options;
-            }
-        }
-
-        /// <summary>
-        /// this is not real option set. it doesn't have all options defined in host. but only those
-        /// we pre-selected.
-        /// </summary>
-        protected class SerializedPartialOptionSet : OptionSet
-        {
-            private readonly ImmutableDictionary<OptionKey, object> _values;
-
-            public SerializedPartialOptionSet()
-            {
-                _values = ImmutableDictionary<OptionKey, object>.Empty;
-            }
-
-            private SerializedPartialOptionSet(ImmutableDictionary<OptionKey, object> values)
-            {
-                _values = values;
-            }
-
-            public override object GetOption(OptionKey optionKey)
-            {
-                Contract.ThrowIfFalse(_values.TryGetValue(optionKey, out var value));
-
-                return value;
-            }
-
-            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
-            {
-                return new SerializedPartialOptionSet(_values.SetItem(optionAndLanguage, value));
-            }
-
-            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-            {
-                foreach (var kvp in _values)
-                {
-                    var currentValue = optionSet.GetOption(kvp.Key);
-                    if (!object.Equals(currentValue, kvp.Value))
-                    {
-                        yield return kvp.Key;
-                    }
-                }
-            }
         }
     }
 }

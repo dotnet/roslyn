@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 
@@ -30,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         public int SyntaxTreeActionsCount { get; set; } = 0;
 
         /// <summary>
+        /// Count of registered additional file actions.
+        /// </summary>
+        public int AdditionalFileActionsCount { get; set; } = 0;
+
+        /// <summary>
         /// Count of registered semantic model actions.
         /// </summary>
         public int SemanticModelActionsCount { get; set; } = 0;
@@ -38,6 +47,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of registered symbol actions.
         /// </summary>
         public int SymbolActionsCount { get; set; } = 0;
+
+        /// <summary>
+        /// Count of registered symbol start actions.
+        /// </summary>
+        public int SymbolStartActionsCount { get; set; } = 0;
+
+        /// <summary>
+        /// Count of registered symbol end actions.
+        /// </summary>
+        public int SymbolEndActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered syntax node actions.
@@ -80,19 +99,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         public int OperationBlockActionsCount { get; set; } = 0;
 
         /// <summary>
+        /// Count of registered suppression actions.
+        /// This is the same as count of <see cref="DiagnosticSuppressor"/>s as each suppressor
+        /// has a single suppression action, i.e. <see cref="DiagnosticSuppressor.ReportSuppressions(SuppressionAnalysisContext)"/>.
+        /// </summary>
+        public int SuppressionActionsCount { get; set; } = 0;
+
+        /// <summary>
         /// Total execution time.
         /// </summary>
         public TimeSpan ExecutionTime { get; set; } = TimeSpan.Zero;
 
-        internal AnalyzerTelemetryInfo(AnalyzerActionCounts actionCounts, TimeSpan executionTime)
+        /// <summary>
+        /// Gets a value indicating whether the analyzer supports concurrent execution.
+        /// </summary>
+        public bool Concurrent { get; set; }
+
+        internal AnalyzerTelemetryInfo(AnalyzerActionCounts actionCounts, int suppressionActionCounts, TimeSpan executionTime)
         {
             CompilationStartActionsCount = actionCounts.CompilationStartActionsCount;
             CompilationEndActionsCount = actionCounts.CompilationEndActionsCount;
             CompilationActionsCount = actionCounts.CompilationActionsCount;
 
             SyntaxTreeActionsCount = actionCounts.SyntaxTreeActionsCount;
+            AdditionalFileActionsCount = actionCounts.AdditionalFileActionsCount;
             SemanticModelActionsCount = actionCounts.SemanticModelActionsCount;
             SymbolActionsCount = actionCounts.SymbolActionsCount;
+            SymbolStartActionsCount = actionCounts.SymbolStartActionsCount;
+            SymbolEndActionsCount = actionCounts.SymbolEndActionsCount;
             SyntaxNodeActionsCount = actionCounts.SyntaxNodeActionsCount;
 
             CodeBlockStartActionsCount = actionCounts.CodeBlockStartActionsCount;
@@ -104,7 +138,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             OperationBlockEndActionsCount = actionCounts.OperationBlockEndActionsCount;
             OperationBlockActionsCount = actionCounts.OperationBlockActionsCount;
 
+            SuppressionActionsCount = suppressionActionCounts;
+
             ExecutionTime = executionTime;
+            Concurrent = actionCounts.Concurrent;
         }
 
         /// <summary>

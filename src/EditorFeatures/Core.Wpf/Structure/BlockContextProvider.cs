@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -7,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -28,9 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynBlockContextProvider(
+            IThreadingContext threadingContext,
             ITextEditorFactoryService textEditorFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService)
+            : base(threadingContext)
         {
             _textEditorFactoryService = textEditorFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -51,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             private readonly RoslynBlockContextProvider _provider;
 
             public BlockContextSource(RoslynBlockContextProvider provider)
-            {
-                _provider = provider;
-            }
+                => _provider = provider;
 
             public void Dispose()
             {
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     return Task.FromResult<IBlockContext>(result);
                 }
 
-                return SpecializedTasks.Default<IBlockContext>();
+                return SpecializedTasks.Null<IBlockContext>();
             }
         }
 
@@ -84,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 RoslynBlockContextProvider provider,
                 IBlockTag blockTag,
                 ITextView textView)
+                : base(provider.ThreadingContext)
             {
                 _provider = provider;
                 BlockTag = blockTag;
@@ -105,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
                 return BlockTagState.CreateShrunkenTextView(
+                    _provider.ThreadingContext,
                     _provider._textEditorFactoryService, finalBuffer);
             }
 
@@ -138,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 {
                     var blockTag = blockTags[i];
                     var fullStatementSpan = blockTag.StatementSpan;
-                    
+
                     if (blockTag.Parent != null &&
                         textSnapshot.AreOnSameLine(fullStatementSpan.Start, blockTag.Parent.StatementSpan.Start))
                     {

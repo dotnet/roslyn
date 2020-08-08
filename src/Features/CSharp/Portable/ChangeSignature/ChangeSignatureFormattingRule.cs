@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -20,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.BracketedArgumentList,
             SyntaxKind.AttributeArgumentList);
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             if (s_allowableKinds.Contains(node.Kind()))
             {
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
         }
 
-        private void AddChangeSignatureIndentOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddChangeSignatureIndentOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             if (node.Parent != null)
             {
@@ -44,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (previousToken.Kind() == SyntaxKind.CommaToken && s_allowableKinds.Contains(previousToken.Parent.Kind()))
             {
                 return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
-            return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+            return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
         }
     }
 }

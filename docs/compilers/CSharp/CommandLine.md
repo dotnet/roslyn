@@ -72,7 +72,7 @@
 | `/main`:*type* | Specify the type that contains the entry point (ignore all other possible entry points) (Short form: `/m`)
 | `/fullpaths` | Compiler generates fully qualified paths
 | `/filealign`:*n* | Specify the alignment used for output file sections
-| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... | Specify a mapping for source path names output by the compiler.
+| `/pathmap:`*k1*=*v1*,*k2*=*v2*,... | Specify a mapping for source path names output by the compiler. Two consecutive separator characters are treated as a single character that is part of the key or value (i.e. `==` stands for `=` and `,,` for `,`).
 | `/pdb:`*file* | Specify debug information file name (default: output file name with `.pdb` extension)
 | `/errorendlocation` | Output line and column of the end location of each error
 | `/preferreduilang` | Specify the preferred output language name.

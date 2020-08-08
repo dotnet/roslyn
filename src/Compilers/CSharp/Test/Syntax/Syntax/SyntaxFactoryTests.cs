@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
@@ -15,6 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxFactoryTests : CSharpTestBase
     {
+        [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
+        public void AlternateVerbatimString()
+        {
+            var token = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken);
+            Assert.Equal("$@\"", token.Text);
+            Assert.Equal("$@\"", token.ValueText);
+        }
+
         [Fact]
         public void SyntaxTree()
         {
@@ -129,7 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -141,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -153,7 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
             }
@@ -266,8 +273,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("x,y,z", list2.ToString());
         }
 
-        [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         public void TestLiteralDefaultStringValues()
         {
             // string
@@ -324,7 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // float
             CheckLiteralToString(0F, @"0F");
             CheckLiteralToString(0.012345F, @"0.012345F");
+#if NET472
             CheckLiteralToString(float.MaxValue, @"3.40282347E+38F");
+#else
+            CheckLiteralToString(float.MaxValue, @"3.4028235E+38F");
+#endif
 
             // double
             CheckLiteralToString(0D, @"0");
@@ -337,8 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(decimal.MaxValue, @"79228162514264337593543950335M");
         }
 
-        [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
         [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
         public void TestLiteralToStringDifferentCulture()
         {
             var culture = CultureInfo.CurrentCulture;
@@ -531,6 +544,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var syntaxNode3 = SyntaxFactory.ParseExpression("x is object??y").NormalizeWhitespace();
             Assert.Equal("x is object ?? y", syntaxNode3.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(37467, "https://github.com/dotnet/roslyn/issues/37467")]
+        public void TestUnnecessarySemicolon()
+        {
+            var syntaxNode = SyntaxFactory.MethodDeclaration(
+                attributeLists: default,
+                modifiers: default,
+                returnType: SyntaxFactory.ParseTypeName("int[]"),
+                explicitInterfaceSpecifier: null,
+                identifier: SyntaxFactory.Identifier("M"),
+                typeParameterList: null,
+                parameterList: SyntaxFactory.ParseParameterList("()"),
+                constraintClauses: default,
+                body: (BlockSyntax)SyntaxFactory.ParseStatement("{}"),
+                semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                );
+            Assert.Equal("int[]M(){};", syntaxNode.ToFullString());
+        }
+
+        [Fact, WorkItem(40342, "https://github.com/dotnet/roslyn/issues/40342")]
+        public void TestParenthesizedLambdaNoParameterList()
+        {
+            var lambda = SyntaxFactory.ParenthesizedLambdaExpression(body: SyntaxFactory.Block());
+            Assert.NotNull(lambda);
+            Assert.Equal("()=>{}", lambda.ToFullString());
+
+            var fullySpecified = SyntaxFactory.ParenthesizedLambdaExpression(parameterList: SyntaxFactory.ParameterList(), body: SyntaxFactory.Block());
+            Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact, WorkItem(40342, "https://github.com/dotnet/roslyn/issues/40342")]
+        public void TestParenthesizedLambdaNoParameterList_ExpressionBody()
+        {
+            var lambda = SyntaxFactory.ParenthesizedLambdaExpression(body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+            Assert.NotNull(lambda);
+            Assert.Equal("()=>1", lambda.ToFullString());
+
+            var fullySpecified = SyntaxFactory.ParenthesizedLambdaExpression(
+                parameterList: SyntaxFactory.ParameterList(),
+                body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+            Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact]
+        public void TestParseNameWithOptions()
+        {
+            var type = "delegate*<void>";
+
+            var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
+            parsedWith8.GetDiagnostics().Verify(
+                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1)
+            );
+
+            var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.RegularPreview);
+            parsedWithPreview.GetDiagnostics().Verify();
         }
     }
 }

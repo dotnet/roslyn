@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void Method_Delete_Leaf1()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -29,7 +31,7 @@ class C
         <AS:0>Console.WriteLine(a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 <AS:0>class C</AS:0>
 {
     static void Main(string[] args)
@@ -101,7 +103,7 @@ class C
         [Fact]
         public void Update_Inner_GenericMethod()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -117,7 +119,7 @@ class C
         <AS:0>Console.WriteLine(""hello"");</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -147,7 +149,7 @@ class C
         [Fact]
         public void Update_Inner_ParameterType_GenericMethod()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -160,7 +162,7 @@ class C
         <AS:0>Console.WriteLine(""hello"");</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -187,7 +189,7 @@ class C
         [Fact]
         public void Update_Leaf_GenericMethod()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -200,7 +202,7 @@ class C
         <AS:0>Console.WriteLine(""hello"");</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -229,7 +231,7 @@ class C
         [Fact]
         public void Update_Leaf_AsyncMethod()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -244,7 +246,7 @@ class Test
         return ""Done"";
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -269,7 +271,7 @@ class Test
         [Fact]
         public void Update_Inner_AsyncMethod()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -284,7 +286,7 @@ class Test
         return ""Done"";
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -310,7 +312,7 @@ class Test
         [Fact]
         public void Update_Initializer_MultipleVariables1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -328,7 +330,7 @@ class Test
         return 2;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -357,7 +359,7 @@ class Test
         [Fact]
         public void Update_Initializer_MultipleVariables2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -375,7 +377,7 @@ class Test
         return 2;
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -403,7 +405,7 @@ class Test
         [Fact]
         public void MethodUpdateWithLocalVariables()
         {
-            string src1 = @"
+            var src1 = @"
 class C
 {
     static void Main(string[] args)
@@ -414,7 +416,7 @@ class C
     }
 }
 ";
-            string src2 = @"
+            var src2 = @"
 class C
 {
     static void Main(string[] args)
@@ -431,6 +433,58 @@ class C
             edits.VerifySemantics(
                 active,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), syntaxMap[0]) });
+        }
+
+        #endregion
+
+        #region Constuctors
+
+        [Fact]
+        public void Constructor_ExpressionBodyToBlockBody1()
+        {
+            var src1 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+            var src2 = "class C { int x; <AS:0>C()</AS:0> { x = 1; } }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_BlockBodyToExpressionBody1()
+        {
+            var src1 = "class C { int x; C() <AS:0>{</AS:0> x = 1; } }";
+            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_BlockBodyToExpressionBody2()
+        {
+            var src1 = "class C { int x; <AS:0>C()</AS:0> { x = 1; } }";
+            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Constructor_BlockBodyToExpressionBody3()
+        {
+            var src1 = "class C { int x; C() : <AS:0>base()</AS:0> { x = 1; } }";
+            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
         }
 
         #endregion
@@ -545,7 +599,7 @@ class C
 
             // Can be improved with https://github.com/dotnet/roslyn/issues/22696
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "=>       M()"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "int P"));
         }
 
         #endregion
@@ -604,7 +658,7 @@ class C
         [Fact]
         public void Update_Leaf_Indexers1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -624,7 +678,7 @@ class SampleCollection<T>
         set { <AS:0>arr[i] = value;</AS:0> }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -655,7 +709,7 @@ class SampleCollection<T>
         [Fact]
         public void Update_Inner_Indexers1()
         {
-            string src1 = @"
+            var src1 = @"
 using System;
 class Test
 {
@@ -676,7 +730,7 @@ class SampleCollection<T>
         set { <AS:0>arr[i] = value;</AS:0> }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 using System;
 class Test
 {
@@ -708,7 +762,7 @@ class SampleCollection<T>
         [Fact]
         public void Update_Leaf_Indexers2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -728,7 +782,7 @@ class SampleCollection<T>
         set { arr[i] = value; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -759,7 +813,7 @@ class SampleCollection<T>
         [Fact]
         public void Update_Inner_Indexers2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -779,7 +833,7 @@ class SampleCollection<T>
         set { arr[i] = value; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -810,7 +864,7 @@ class SampleCollection<T>
         [Fact]
         public void Deleted_Leaf_Indexers1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -830,7 +884,7 @@ class SampleCollection<T>
         set { <AS:0>arr[i] = value;</AS:0> }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -860,7 +914,7 @@ class SampleCollection<T>
         [Fact]
         public void Deleted_Inner_Indexers1()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -880,7 +934,7 @@ class SampleCollection<T>
         set { <AS:0>arr[i] = value;</AS:0> }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -909,7 +963,7 @@ class SampleCollection<T>
         [Fact]
         public void Deleted_Leaf_Indexers2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -929,7 +983,7 @@ class SampleCollection<T>
         set { arr[i] = value; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -959,7 +1013,7 @@ class SampleCollection<T>
         [Fact]
         public void Deleted_Inner_Indexers2()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -979,7 +1033,7 @@ class SampleCollection<T>
         set { arr[i] = value; }
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -1061,7 +1115,7 @@ class SampleCollection<T>
         [Fact]
         public void Update_Leaf_OverloadedOperator()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -1075,7 +1129,7 @@ class Test
         <AS:0>return new Test(t1.a + t2.a);</AS:0>
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)
@@ -1099,7 +1153,7 @@ class Test
         [Fact]
         public void Update_Inner_OverloadedOperator()
         {
-            string src1 = @"
+            var src1 = @"
 class Test
 {
     static void Main(string[] args)
@@ -1117,7 +1171,7 @@ class Test
         return new Test(t1.a * t2.a);
     }
 }";
-            string src2 = @"
+            var src2 = @"
 class Test
 {
     static void Main(string[] args)

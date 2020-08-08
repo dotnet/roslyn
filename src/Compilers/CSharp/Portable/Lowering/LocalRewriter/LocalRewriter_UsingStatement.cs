@@ -1,22 +1,30 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// Rewrite a using statement into a try finally statement.  Two forms are possible:
+        /// Rewrite a using statement into a try finally statement.  Four forms are possible:
         ///   1) using (expr) stmt
-        ///   2) using (C c = expr) stmt
-        ///   
-        /// The former is handled by RewriteExpressionUsingStatement and the latter is handled by
+        ///   2) await using (expr) stmt
+        ///   3) using (C c = expr) stmt
+        ///   4) await using (C c = expr) stmt
+        ///
+        /// The first two are handled by RewriteExpressionUsingStatement and the latter two are handled by
         /// RewriteDeclarationUsingStatement (called in a loop, once for each local declared).
+        ///
+        /// For the async variants, `IAsyncDisposable` is used instead of `IDisposable` and we produce
+        /// `... await expr.DisposeAsync() ...` instead of `... expr.Dispose() ...`.
         /// </summary>
         /// <remarks>
         /// It would be more in line with our usual pattern to rewrite using to try-finally
@@ -25,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             BoundBlock tryBlock = rewrittenBody.Kind == BoundKind.Block
                 ? (BoundBlock)rewrittenBody
@@ -33,37 +42,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.ExpressionOpt != null)
             {
-                return RewriteExpressionUsingStatement(node, tryBlock);
+                return MakeExpressionUsingStatement(node, tryBlock);
             }
             else
             {
-                Debug.Assert(node.DeclarationsOpt != null);
-
-                SyntaxNode usingSyntax = node.Syntax;
-                Conversion idisposableConversion = node.IDisposableConversion;
-                ImmutableArray<BoundLocalDeclaration> declarations = node.DeclarationsOpt.LocalDeclarations;
-
-                BoundBlock result = tryBlock;
-
-                int numDeclarations = declarations.Length;
-                for (int i = numDeclarations - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
-                {
-                    result = RewriteDeclarationUsingStatement(usingSyntax, declarations[i], result, idisposableConversion);
-                }
-
-                // Declare all locals in a single, top-level block so that the scope is correct in the debugger
-                // (Dev10 has them all come into scope at once, not per-declaration.)
-                return new BoundBlock(
-                    usingSyntax,
-                    node.Locals,
-                    ImmutableArray.Create<BoundStatement>(result));
+                Debug.Assert(node.DeclarationsOpt is { });
+                SyntaxToken awaitKeyword = node.Syntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
+                return MakeDeclarationUsingStatement(node.Syntax,
+                                                     tryBlock,
+                                                     node.Locals,
+                                                     node.DeclarationsOpt.LocalDeclarations,
+                                                     node.IDisposableConversion,
+                                                     node.DisposeMethodOpt,
+                                                     node.AwaitOpt,
+                                                     awaitKeyword);
             }
         }
 
+        private BoundStatement MakeDeclarationUsingStatement(SyntaxNode syntax,
+                                                       BoundBlock body,
+                                                       ImmutableArray<LocalSymbol> locals,
+                                                       ImmutableArray<BoundLocalDeclaration> declarations,
+                                                       Conversion iDisposableConversion,
+                                                       MethodSymbol? disposeMethodOpt,
+                                                       BoundAwaitableInfo? awaitOpt,
+                                                       SyntaxToken awaitKeyword)
+        {
+            Debug.Assert(declarations != null);
+
+            BoundBlock result = body;
+            for (int i = declarations.Length - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
+            {
+                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, iDisposableConversion, awaitKeyword, awaitOpt, disposeMethodOpt);
+            }
+
+            // Declare all locals in a single, top-level block so that the scope is correct in the debugger
+            // (Dev10 has them all come into scope at once, not per-declaration.)
+            return new BoundBlock(
+                syntax,
+                locals,
+                ImmutableArray.Create<BoundStatement>(result));
+        }
+
         /// <summary>
-        /// Lower "using (expression) statement" to a try-finally block.
+        /// Lower "[await] using var x = (expression)" to a try-finally block.
         /// </summary>
-        private BoundBlock RewriteExpressionUsingStatement(BoundUsingStatement node, BoundBlock tryBlock)
+        private BoundStatement MakeLocalUsingDeclarationStatement(BoundUsingLocalDeclarations usingDeclarations, ImmutableArray<BoundStatement> statements)
+        {
+            LocalDeclarationStatementSyntax syntax = (LocalDeclarationStatementSyntax)usingDeclarations.Syntax;
+            BoundBlock body = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements);
+
+            var usingStatement = MakeDeclarationUsingStatement(syntax,
+                                                               body,
+                                                               ImmutableArray<LocalSymbol>.Empty,
+                                                               usingDeclarations.LocalDeclarations,
+                                                               usingDeclarations.IDisposableConversion,
+                                                               usingDeclarations.DisposeMethodOpt,
+                                                               awaitOpt: usingDeclarations.AwaitOpt,
+                                                               awaitKeyword: syntax.AwaitKeyword);
+
+            return usingStatement;
+        }
+
+        /// <summary>
+        /// Lower "using [await] (expression) statement" to a try-finally block.
+        /// </summary>
+        private BoundBlock MakeExpressionUsingStatement(BoundUsingStatement node, BoundBlock tryBlock)
         {
             Debug.Assert(node.ExpressionOpt != null);
             Debug.Assert(node.DeclarationsOpt == null);
@@ -82,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If expr is the constant null then we can elide the whole thing and simply generate the statement. 
 
-            BoundExpression rewrittenExpression = (BoundExpression)Visit(node.ExpressionOpt);
+            BoundExpression rewrittenExpression = VisitExpression(node.ExpressionOpt);
             if (rewrittenExpression.ConstantValue == ConstantValue.Null)
             {
                 Debug.Assert(node.Locals.IsEmpty); // TODO: This might not be a valid assumption in presence of semicolon operator.
@@ -104,20 +148,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   using(ResourceType temp = expression) statement;
             //
 
+            Debug.Assert(rewrittenExpression.Type is { });
             TypeSymbol expressionType = rewrittenExpression.Type;
             SyntaxNode expressionSyntax = rewrittenExpression.Syntax;
             UsingStatementSyntax usingSyntax = (UsingStatementSyntax)node.Syntax;
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp;
-            if ((object)expressionType == null || expressionType.IsDynamic())
+            if (expressionType is null || expressionType.IsDynamic())
             {
                 // IDisposable temp = (IDisposable) expr;
+                // or
+                // IAsyncDisposable temp = (IAsyncDisposable) expr;
+                TypeSymbol iDisposableType = node.AwaitOpt is null ?
+                    _compilation.GetSpecialType(SpecialType.System_IDisposable) :
+                    _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+
                 BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
                     Conversion.GetTrivialConversion(node.IDisposableConversion.Kind),
-                    _compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    iDisposableType,
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
 
@@ -135,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
-            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
+            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt, node.DisposeMethodOpt);
 
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(
@@ -145,14 +196,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lower "using (ResourceType resource = expression) statement" to a try-finally block.
+        /// Lower "using [await] (ResourceType resource = expression) statement" to a try-finally block.
         /// </summary>
         /// <remarks>
         /// Assumes that the local symbol will be declared (i.e. in the LocalsOpt array) of an enclosing block.
         /// Assumes that using statements with multiple locals have already been split up into multiple using statements.
         /// </remarks>
-        private BoundBlock RewriteDeclarationUsingStatement(SyntaxNode usingSyntax, BoundLocalDeclaration localDeclaration, BoundBlock tryBlock, Conversion idisposableConversion)
+        private BoundBlock RewriteDeclarationUsingStatement(
+            SyntaxNode usingSyntax,
+            BoundLocalDeclaration localDeclaration,
+            BoundBlock tryBlock,
+            Conversion iDisposableConversion,
+            SyntaxToken awaitKeywordOpt,
+            BoundAwaitableInfo? awaitOpt,
+            MethodSymbol? methodSymbol)
         {
+            Debug.Assert(localDeclaration.InitializerOpt is { });
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
@@ -161,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValue, localType);
 
-            BoundStatement rewrittenDeclaration = (BoundStatement)Visit(localDeclaration);
+            BoundStatement? rewrittenDeclaration = VisitStatement(localDeclaration);
+            Debug.Assert(rewrittenDeclaration is { });
 
             // If we know that the expression is null, then we know that the null check in the finally block
             // will fail, and the Dispose call will never happen.  That is, the finally block will have no effect.
@@ -175,17 +235,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localType.IsDynamic())
             {
+                TypeSymbol iDisposableType = awaitOpt is null ?
+                    _compilation.GetSpecialType(SpecialType.System_IDisposable) :
+                    _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+
                 BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,
                     boundLocal,
-                    idisposableConversion,
-                    _compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    iDisposableConversion,
+                    iDisposableType,
                     @checked: false);
 
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, awaitKeywordOpt, awaitOpt, methodSymbol);
 
                 return new BoundBlock(
                     syntax: usingSyntax,
@@ -197,14 +261,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal, awaitKeywordOpt, awaitOpt, methodSymbol);
 
                 // localSymbol will be declared by an enclosing block
                 return BoundBlock.SynthesizedNoLocals(usingSyntax, rewrittenDeclaration, tryFinally);
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local)
+        private BoundStatement RewriteUsingStatementTryFinally(
+            SyntaxNode syntax,
+            BoundBlock tryBlock,
+            BoundLocal local,
+            SyntaxToken awaitKeywordOpt,
+            BoundAwaitableInfo? awaitOpt,
+            MethodSymbol? methodOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -234,6 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: An implementation is permitted to implement a given using statement 
             // SPEC: differently -- for example, for performance reasons -- as long as the 
             // SPEC: behavior is consistent with the above expansion.
+            //
+            // In the case of using-await statement, we'll use "IAsyncDisposable" instead of "IDisposable", "await DisposeAsync()" instead of "Dispose()"
             //
             // And we do in fact generate the code slightly differently than precisely how it is 
             // described above.
@@ -273,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // "{ dynamic temp1 = x; IDisposable temp2 = (IDisposable) temp1; ... }". Rather, we elide
             // the completely unnecessary first temporary. 
 
+            Debug.Assert((awaitKeywordOpt == default) == (awaitOpt is null));
             BoundExpression disposedExpression;
             bool isNullableValueType = local.Type.IsNullableType();
 
@@ -288,23 +361,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 disposedExpression = local;
             }
 
-            // local.Dispose()
-            BoundExpression disposeCall;
+            BoundExpression disposeCall = GenerateDisposeCall(syntax, disposedExpression, methodOpt, awaitOpt, awaitKeywordOpt);
 
-            MethodSymbol disposeMethodSymbol;
-            if (Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out disposeMethodSymbol))
-            {
-                disposeCall = BoundCall.Synthesized(syntax, disposedExpression, disposeMethodSymbol);
-            }
-            else
-            {
-                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
-            }
-
-            // local.Dispose();
+            // local.Dispose(); or await variant
             BoundStatement disposeStatement = new BoundExpressionStatement(syntax, disposeCall);
 
-            BoundExpression ifCondition;
+            BoundExpression? ifCondition;
 
             if (isNullableValueType)
             {
@@ -325,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ifCondition == null)
             {
-                // local.Dispose();
+                // local.Dispose(); or await variant
                 finallyStatement = disposeStatement;
             }
             else
@@ -333,6 +395,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if (local != null) local.Dispose();
                 // or
                 // if (local.HasValue) local.GetValueOrDefault().Dispose();
+                // or
+                // await variants
                 finallyStatement = RewriteIfStatement(
                     syntax: syntax,
                     rewrittenCondition: ifCondition,
@@ -342,6 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // try { ... } finally { if (local != null) local.Dispose(); }
+            // or
+            // nullable or await variants
             BoundStatement tryFinally = new BoundTryStatement(
                 syntax: syntax,
                 tryBlock: tryBlock,
@@ -349,6 +415,79 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finallyBlockOpt: BoundBlock.SynthesizedNoLocals(syntax, finallyStatement));
 
             return tryFinally;
+        }
+
+        private BoundExpression GenerateDisposeCall(
+            SyntaxNode syntax,
+            BoundExpression disposedExpression,
+            MethodSymbol? methodOpt,
+            BoundAwaitableInfo? awaitOpt,
+            SyntaxToken awaitKeyword)
+        {
+            Debug.Assert(awaitOpt is null || awaitKeyword != default);
+
+            // If we don't have an explicit dispose method, try and get the special member for IDiposable/IAsyncDisposable
+            if (methodOpt is null)
+            {
+                if (awaitOpt is null)
+                {
+                    // IDisposable.Dispose()
+                    Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt);
+                }
+                else
+                {
+                    // IAsyncDisposable.DisposeAsync()
+                    TryGetWellKnownTypeMember<MethodSymbol>(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
+                }
+            }
+
+            BoundExpression disposeCall;
+            if (methodOpt is null)
+            {
+                disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
+            }
+            else
+            {
+                disposeCall = MakeCallWithNoExplicitArgument(syntax, disposedExpression, methodOpt);
+
+                if (awaitOpt is object)
+                {
+                    // await local.DisposeAsync()
+                    _sawAwaitInExceptionHandler = true;
+
+                    TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
+                    disposeCall = RewriteAwaitExpression(syntax, disposeCall, awaitOpt, awaitExpressionType, false);
+                }
+            }
+
+            return disposeCall;
+        }
+
+        /// <summary>
+        /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters.
+        /// </summary>
+        private BoundExpression MakeCallWithNoExplicitArgument(SyntaxNode syntax, BoundExpression expression, MethodSymbol method)
+        {
+            var receiver = method.IsExtensionMethod ? null : expression;
+
+            var args = method.IsExtensionMethod
+                ? ImmutableArray.Create(expression)
+                : ImmutableArray<BoundExpression>.Empty;
+
+            Debug.Assert(!method.IsExtensionMethod || method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] != RefKind.Ref);
+
+            BoundExpression disposeCall = MakeCall(syntax: syntax,
+                rewrittenReceiver: receiver,
+                method: method,
+                rewrittenArguments: args,
+                argumentRefKindsOpt: default,
+                expanded: method.HasParamsParameter(),
+                invokedAsExtensionMethod: method.IsExtensionMethod,
+                argsToParamsOpt: default,
+                resultKind: LookupResultKind.Viable,
+                type: method.ReturnType);
+
+            return disposeCall;
         }
     }
 }

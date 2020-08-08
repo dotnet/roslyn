@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -20,13 +26,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : definition.Locations;
         }
 
-        public static IEnumerable<ReferencedSymbol> FilterToItemsToShow(
-            this IEnumerable<ReferencedSymbol> result)
+        public static ImmutableArray<ReferencedSymbol> FilterToItemsToShow(
+            this ImmutableArray<ReferencedSymbol> result, FindReferencesSearchOptions options)
         {
-            return result.Where(ShouldShow);
+            return result.WhereAsArray(r => ShouldShow(r, options));
         }
 
-        public static bool ShouldShow(this ReferencedSymbol referencedSymbol)
+        public static bool ShouldShow(
+            this ReferencedSymbol referencedSymbol, FindReferencesSearchOptions options)
         {
             // If the reference has any locations then we will present it.
             if (referencedSymbol.Locations.Any())
@@ -35,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return referencedSymbol.Definition.ShouldShowWithNoReferenceLocations(
-                showMetadataSymbolsWithoutReferences: true);
+                options, showMetadataSymbolsWithoutReferences: true);
         }
 
         public static bool ShouldShowWithNoReferenceLocations(
-            this ISymbol definition, bool showMetadataSymbolsWithoutReferences)
+            this ISymbol definition, FindReferencesSearchOptions options, bool showMetadataSymbolsWithoutReferences)
         {
             // If the definition is implicit and we have no references, then we don't want to
             // clutter the UI with it.
@@ -48,11 +55,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            // We don't want to clutter the UI with property accessors if there are no direct
+            // If we're associating property references with an accessor, then we don't want to show
+            // a property if it is has no references.  Similarly, if we're associated associating
+            // everything with the property, then we don't want to include accessors if there are no
             // references to them.
-            if (definition.IsPropertyAccessor())
+            if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
-                return false;
+                if (definition.Kind == SymbolKind.Property)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (definition.IsPropertyAccessor())
+                {
+                    return false;
+                }
             }
 
             // Otherwise we still show the item even if there are no references to it.
@@ -71,23 +90,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static IEnumerable<ReferencedSymbol> FilterToAliasMatches(
-            this IEnumerable<ReferencedSymbol> result,
-            IAliasSymbol aliasSymbolOpt)
+        public static ImmutableArray<ReferencedSymbol> FilterToAliasMatches(
+            this ImmutableArray<ReferencedSymbol> result,
+            IAliasSymbol? aliasSymbol)
         {
-            if (aliasSymbolOpt == null)
+            if (aliasSymbol == null)
             {
                 return result;
             }
 
-            return from r in result
-                   let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbolOpt))
-                   where aliasLocations.Any()
-                   select new ReferencedSymbol(r.DefinitionAndProjectId, aliasLocations);
+            var q = from r in result
+                    let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol))
+                    where aliasLocations.Any()
+                    select new ReferencedSymbol(r.Definition, aliasLocations);
+
+            return q.ToImmutableArray();
         }
 
-        public static IEnumerable<ReferencedSymbol> FilterNonMatchingMethodNames(
-            this IEnumerable<ReferencedSymbol> result,
+        public static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNames(
+            this ImmutableArray<ReferencedSymbol> result,
             Solution solution,
             ISymbol symbol)
         {
@@ -96,14 +117,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : result;
         }
 
-        private static IEnumerable<ReferencedSymbol> FilterNonMatchingMethodNamesWorker(
-            IEnumerable<ReferencedSymbol> result,
+        private static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNamesWorker(
+            ImmutableArray<ReferencedSymbol> references,
             Solution solution,
             ISymbol symbol)
         {
-            foreach (var reference in result)
+            using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
+            foreach (var reference in references)
             {
-                var isCaseSensitive = solution.Workspace.Services.GetLanguageServices(reference.Definition.Language).GetService<ISyntaxFactsService>().IsCaseSensitive;
+                var isCaseSensitive = solution.Workspace.Services.GetLanguageServices(reference.Definition.Language).GetRequiredService<ISyntaxFactsService>().IsCaseSensitive;
                 var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                 if (reference.Definition.IsOrdinaryMethod() &&
                     !comparer.Equals(reference.Definition.Name, symbol.Name))
@@ -111,8 +133,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     continue;
                 }
 
-                yield return reference;
+                result.Add(reference);
             }
+
+            return result.ToImmutable();
         }
     }
 }

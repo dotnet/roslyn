@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -11,11 +13,16 @@ Imports Microsoft.CodeAnalysis.Options
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
     ' This type has to be defined here until we get that cleaned up. Otherwise, other tests may import it.
-    <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Host), [Shared]>
+    <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Test), [Shared], PartNotDiscoverable>
     Public Class MockSymbolNavigationServiceProvider
         Implements IWorkspaceServiceFactory
 
-        Private _instance As MockSymbolNavigationService = New MockSymbolNavigationService()
+        Private ReadOnly _instance As MockSymbolNavigationService = New MockSymbolNavigationService()
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Public Function CreateService(workspaceServices As HostWorkspaceServices) As IWorkspaceService Implements IWorkspaceServiceFactory.CreateService
             Return _instance

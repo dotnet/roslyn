@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a property or indexer.
     /// </summary>
-    internal abstract partial class PropertySymbol : Symbol, IPropertySymbol
+    internal abstract partial class PropertySymbol : Symbol
     {
         /// <summary>
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
@@ -51,6 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If a property is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
+        /// listed in those attributes.
+        /// Otherwise, an empty array.
+        /// </summary>
+        internal virtual ImmutableArray<string> NotNullMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
+
+        /// <summary>
         /// Indicates whether or not the property returns by reference
         /// </summary>
         public bool ReturnsByRef { get { return this.RefKind == RefKind.Ref; } }
@@ -58,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether or not the property returns a readonly reference
         /// </summary>
-        public bool ReturnsByRefReadonly { get { return this.RefKind == RefKind.RefReadOnly ; } }
+        public bool ReturnsByRefReadonly { get { return this.RefKind == RefKind.RefReadOnly; } }
 
         /// <summary>
         /// Gets the ref kind of the property.
@@ -66,14 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
-        /// The type of the property. 
+        /// The type of the property along with its annotations.
         /// </summary>
-        public abstract TypeSymbol Type { get; }
+        public abstract TypeWithAnnotations TypeWithAnnotations { get; }
 
         /// <summary>
-        /// The list of custom modifiers, if any, associated with the type of the property. 
+        /// The type of the property.
         /// </summary>
-        public abstract ImmutableArray<CustomModifier> TypeCustomModifiers { get; }
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
@@ -99,12 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<TypeSymbol> ParameterTypes
+        internal ImmutableArray<TypeWithAnnotations> ParameterTypesWithAnnotations
         {
             get
             {
                 ParameterSignature.PopulateParameterSignature(this.Parameters, ref _lazyParameterSignature);
-                return _lazyParameterSignature.parameterTypes;
+                return _lazyParameterSignature.parameterTypesWithAnnotations;
             }
         }
 
@@ -116,6 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyParameterSignature.parameterRefKinds;
             }
         }
+
+        /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
 
         /// <summary>
         /// Returns whether the property is really an indexer.
@@ -236,8 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal PropertySymbol GetLeastOverriddenProperty(NamedTypeSymbol accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
-
+            accessingTypeOpt = accessingTypeOpt?.OriginalDefinition;
             PropertySymbol p = this;
             while (p.IsOverride && !p.HidesBasePropertiesByName)
             {
@@ -263,7 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
                 PropertySymbol overridden = p.OverriddenProperty;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                if ((object)overridden == null ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref useSiteDiagnostics)))
                 {
                     break;
                 }
@@ -324,11 +341,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitProperty(this);
         }
 
-        internal virtual PropertySymbol AsMember(NamedTypeSymbol newOwner)
+        internal PropertySymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedPropertySymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            return newOwner.IsDefinition ? this : new SubstitutedPropertySymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
         #region Use-Site Diagnostics
@@ -348,9 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinition);
 
             // Check return type, custom modifiers and parameters:
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.TypeCustomModifiers) ||
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
@@ -361,9 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes))
                 {
                     return true;
@@ -395,117 +410,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        /// <summary>
-        /// Is this a property of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleProperty
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return false;
-            }
+            return new PublicModel.PropertySymbol(this);
         }
-
-        /// <summary>
-        /// If this is a property of a tuple type, return corresponding underlying property from the
-        /// tuple underlying type. Otherwise, null. 
-        /// </summary>
-        public virtual PropertySymbol TupleUnderlyingProperty
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        #region IPropertySymbol Members
-
-        bool IPropertySymbol.IsIndexer
-        {
-            get { return this.IsIndexer; }
-        }
-
-        ITypeSymbol IPropertySymbol.Type
-        {
-            get { return this.Type; }
-        }
-
-        ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
-        {
-            get { return StaticCast<IParameterSymbol>.From(this.Parameters); }
-        }
-
-        IMethodSymbol IPropertySymbol.GetMethod
-        {
-            get { return this.GetMethod; }
-        }
-
-        IMethodSymbol IPropertySymbol.SetMethod
-        {
-            get { return this.SetMethod; }
-        }
-
-        IPropertySymbol IPropertySymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        IPropertySymbol IPropertySymbol.OverriddenProperty
-        {
-            get { return this.OverriddenProperty; }
-        }
-
-        ImmutableArray<IPropertySymbol> IPropertySymbol.ExplicitInterfaceImplementations
-        {
-            get { return this.ExplicitInterfaceImplementations.Cast<PropertySymbol, IPropertySymbol>(); }
-        }
-
-        bool IPropertySymbol.IsReadOnly
-        {
-            get { return this.IsReadOnly; }
-        }
-
-        bool IPropertySymbol.IsWriteOnly
-        {
-            get { return this.IsWriteOnly; }
-        }
-
-        bool IPropertySymbol.IsWithEvents
-        {
-            get { return false; }
-        }
-
-        ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
-        {
-            get { return this.TypeCustomModifiers; }
-        }
-
-        ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers
-        {
-            get { return this.RefCustomModifiers; }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitProperty(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitProperty(this);
-        }
-
-        #endregion
 
         #region Equality
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
-            PropertySymbol other = obj as PropertySymbol;
+            PropertySymbol other = symbol as PropertySymbol;
 
             if (ReferenceEquals(null, other))
             {
@@ -517,9 +431,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
+            if (other is NativeIntegerPropertySymbol nps)
+            {
+                return nps.Equals(this, compareKind);
+            }
+
             // This checks if the property have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            return this.ContainingType == other.ContainingType && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
+            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, compareKind) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
         }
 
         public override int GetHashCode()

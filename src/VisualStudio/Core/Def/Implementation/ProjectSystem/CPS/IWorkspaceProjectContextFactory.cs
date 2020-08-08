@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -14,29 +14,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     {
         /// <summary>
         /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to lazily initialize the properties and items for the project.
-        /// This method can be invoked on a background thread and doesn't access any members of the given UI <paramref name="hierarchy"/>,
-        /// allowing the UI hierarchy to be published lazily, as long as <see cref="VisualStudioWorkspaceImpl.GetProjectTrackerAndInitializeIfNecessary"/> has been called once.
         /// </summary>
         /// <param name="languageName">Project language.</param>
-        /// <param name="projectDisplayName">Display name for the project.</param>
+        /// <param name="projectUniqueName">Unique name for the project.</param>
         /// <param name="projectFilePath">Full path to the project file for the project.</param>
         /// <param name="projectGuid">Project guid.</param>
-        /// <param name="hierarchy"><see cref="IVsHierarchy"/> for the project, an be null in deferred project load cases.</param>
+        /// <param name="hierarchy">Obsolete. The argument is ignored.</param>
         /// <param name="binOutputPath">Initial project binary output path.</param>
-        IWorkspaceProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
-
-        /// <summary>
-        /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to lazily initialize the properties and items for the project.
-        /// This method can be invoked on a background thread and doesn't access any members of the given UI <paramref name="hierarchy"/>,
-        /// allowing the UI hierarchy to be published lazily, as long as <see cref="VisualStudioWorkspaceImpl.GetProjectTrackerAndInitializeIfNecessary"/> has been called once.
-        /// </summary>
-        /// <param name="languageName">Project language.</param>
-        /// <param name="projectDisplayName">Display name for the project.</param>
-        /// <param name="projectFilePath">Full path to the project file for the project.</param>
-        /// <param name="projectGuid">Project guid.</param>
-        /// <param name="hierarchy"><see cref="IVsHierarchy"/> for the project, an be null in deferred project load cases.</param>
-        /// <param name="binOutputPath">Initial project binary output path.</param>
-        /// <param name="errorReporter">Error reporter object.</param>
-        IWorkspaceProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath, ProjectExternalErrorReporter errorReporter);
+        IWorkspaceProjectContext CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
     }
 }

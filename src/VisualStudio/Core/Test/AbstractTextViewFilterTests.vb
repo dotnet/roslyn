@@ -1,14 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Roslyn.Test.Utilities
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
+    <[UseExportProvider]>
     Public Class AbstractTextViewFilterTests
         <WpfFact, WorkItem(617826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617826"), Trait(Traits.Feature, Traits.Features.Venus), Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub MapPointsInProjectionCSharp()
@@ -30,14 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim projected = workspace.CreateProjectionBufferDocument(<text><![CDATA[
 @{|S1:|}
     <span>@{|S2:|}</span>
 {|S3:|}
 <h2>Default</h2>
-                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc}, LanguageNames.CSharp)
+                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc})
 
                 Dim matchingSpan = projected.SelectedSpans.Single()
                 TestSpan(workspace, projected, projected.CursorPosition.Value, matchingSpan.End)
@@ -67,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, doc.CursorPosition.Value, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -97,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -129,7 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
@@ -159,7 +163,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 
@@ -194,7 +198,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
                 TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
@@ -225,7 +229,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
 
@@ -240,14 +244,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Sub
 
         Private Shared Sub TestSpan(workspace As TestWorkspace, document As TestHostDocument, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing)
-            Dim braceMatcher = VisualStudioTestExportProvider.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
+            Dim braceMatcher = workspace.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
             Dim initialLine = document.InitialTextSnapshot.GetLineFromPosition(startPosition)
             Dim initialLineNumber = initialLine.LineNumber
             Dim initialIndex = startPosition - initialLine.Start.Position
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,
@@ -262,14 +265,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Sub
 
         Private Shared Sub TestSpan(workspace As TestWorkspace, document As TestHostDocument, caretPosition As Integer, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing)
-            Dim braceMatcher = VisualStudioTestExportProvider.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
+            Dim braceMatcher = workspace.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
             Dim initialLine = document.InitialTextSnapshot.GetLineFromPosition(caretPosition)
             Dim initialLineNumber = initialLine.LineNumber
             Dim initialIndex = caretPosition - initialLine.Start.Position
             Dim spans() = {New VsTextSpan()}
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
-                         workspace,
                          braceMatcher,
                          initialLineNumber,
                          initialIndex,

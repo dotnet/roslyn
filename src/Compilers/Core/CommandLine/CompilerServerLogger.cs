@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Roslyn.Utilities;
 using System;
@@ -24,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         // Environment variable, if set, to enable logging and set the file to log to.
         private const string environmentVariable = "RoslynCommandLineLogFile";
 
-        private static readonly Stream s_loggingStream;
+        private static readonly Stream? s_loggingStream;
         private static string s_prefix = "---";
 
         /// <summary>
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             try
             {
                 // Check if the environment
-                string loggingFileName = Environment.GetEnvironmentVariable(environmentVariable);
+                string? loggingFileName = Environment.GetEnvironmentVariable(environmentVariable);
 
                 if (loggingFileName != null)
                 {
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Otherwise, assume that the environment variable specifies the name of the log file.
                     if (Directory.Exists(loggingFileName))
                     {
-                        loggingFileName = Path.Combine(loggingFileName, $"server.{loggingFileName}.{GetCurrentProcessId()}.log");
+                        loggingFileName = Path.Combine(loggingFileName, $"server.{GetCurrentProcessId()}.log");
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
@@ -71,18 +75,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Log an exception. Also logs information about inner exceptions.
         /// </summary>
-        public static void LogException(Exception e, string reason)
+        public static void LogException(Exception exception, string reason)
         {
             if (s_loggingStream != null)
             {
-                Log("Exception '{0}' occurred during '{1}'. Stack trace:\r\n{2}", e.Message, reason, e.StackTrace);
+                LogError("'{0}' '{1}' occurred during '{2}'. Stack trace:\r\n{3}", exception.GetType().Name, exception.Message, reason, exception.StackTrace);
 
                 int innerExceptionLevel = 0;
 
-                e = e.InnerException;
+                Exception? e = exception.InnerException;
                 while (e != null)
                 {
-                    Log("Inner exception[{0}] '{1}'. Stack trace: \r\n{1}", innerExceptionLevel, e.Message, e.StackTrace);
+                    Log("Inner exception[{0}] '{1}' '{2}'. Stack trace: \r\n{3}", innerExceptionLevel, e.GetType().Name, e.Message, e.StackTrace);
                     e = e.InnerException;
                     innerExceptionLevel += 1;
                 }
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Log a line of text to the logging file, with string.Format arguments.
         /// </summary>
-        public static void Log(string format, params object[] arguments)
+        public static void Log(string format, params object?[] arguments)
         {
             if (s_loggingStream != null)
             {
@@ -120,6 +124,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 s_loggingStream.Flush();
             }
         }
+
+        public static void LogError(string message) => Log($"Error: {message}");
+
+        public static void LogError(string format, params object?[] arguments) => Log($"Error: {format}", arguments);
 
         private static int GetCurrentProcessId()
         {

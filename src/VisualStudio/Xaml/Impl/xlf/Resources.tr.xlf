@@ -12,6 +12,16 @@
         <target state="translated">Gereksiz Ad Alanlarını Kaldır</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Namespaces">
+        <source>&amp;Sort Namespaces</source>
+        <target state="translated">&amp;Ad Alanlarını Sırala</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Xaml_Language_Server_Client">
+        <source>XAML Language Server Client</source>
+        <target state="new">XAML Language Server Client</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

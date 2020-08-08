@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         =
         {
             AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display: "WinRTTest"),
-            AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "SystemCore")
+            AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.SystemCore).GetReference(display: "SystemCore")
         };
 
 
@@ -41,7 +44,7 @@ public sealed class BehaviorCollection : DependencyObjectCollection
      return this[i];
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -253,8 +256,8 @@ testKey2testValue3
 
             verifier.VerifyIL("Class1.Main",
 @"{
-// Code size      213 (0xd5)
-  .maxstack  3
+  // Code size      225 (0xe1)
+  .maxstack  4
   .locals init (Windows.ApplicationModel.DataTransfer.DataPackagePropertySet V_0, //dpps
   object V_1, //tv2
   System.Collections.Generic.IEnumerator<object> V_2, //valsEnumerator
@@ -305,21 +308,27 @@ testKey2testValue3
   IL_009c:  callvirt   ""System.Collections.Generic.ICollection<string> System.Collections.Generic.IDictionary<string, object>.Keys.get""
   IL_00a1:  callvirt   ""System.Collections.Generic.IEnumerator<string> System.Collections.Generic.IEnumerable<string>.GetEnumerator()""
   IL_00a6:  stloc.3
-  IL_00a7:  br.s       IL_00c4
+  IL_00a7:  br.s       IL_00d0
   IL_00a9:  call       ""System.IO.TextWriter System.Console.Out.get""
   IL_00ae:  ldloc.3
   IL_00af:  callvirt   ""string System.Collections.Generic.IEnumerator<string>.Current.get""
   IL_00b4:  ldloc.2
   IL_00b5:  callvirt   ""object System.Collections.Generic.IEnumerator<object>.Current.get""
-  IL_00ba:  call       ""string string.Concat(object, object)""
-  IL_00bf:  callvirt   ""void System.IO.TextWriter.WriteLine(string)""
-  IL_00c4:  ldloc.3
-  IL_00c5:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_00ca:  brfalse.s  IL_00d4
-  IL_00cc:  ldloc.2
-  IL_00cd:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-  IL_00d2:  brtrue.s   IL_00a9
-  IL_00d4:  ret
+  IL_00ba:  dup
+  IL_00bb:  brtrue.s   IL_00c1
+  IL_00bd:  pop
+  IL_00be:  ldnull
+  IL_00bf:  br.s       IL_00c6
+  IL_00c1:  callvirt   ""string object.ToString()""
+  IL_00c6:  call       ""string string.Concat(string, string)""
+  IL_00cb:  callvirt   ""void System.IO.TextWriter.WriteLine(string)""
+  IL_00d0:  ldloc.3
+  IL_00d1:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+  IL_00d6:  brfalse.s  IL_00e0
+  IL_00d8:  ldloc.2
+  IL_00d9:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+  IL_00de:  brtrue.s   IL_00a9
+  IL_00e0:  ret
 }");
         }
 
@@ -341,7 +350,7 @@ public class Class1
         en = new WwwFormUrlDecoder(""?param1=test"").GetEnumerator();
     }
 }";
-            var comp = CreateCompilation(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             // JsonArray implements both IEnumerable and IList, which both have a GetEnumerator
             // method. We can't know which interface method to call, so we shouldn't emit a
             // GetEnumerator method at all.
@@ -424,8 +433,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -1454,7 +1463,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var comp = CreateWinRtCompilation(source, additionalRefs: LegacyRefs);
+            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs);
             comp.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -1821,8 +1830,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 //FIXME: Can't verify because the metadata adapter isn't implemented yet
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -3182,8 +3191,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -4425,8 +4434,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -4791,8 +4800,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -4977,8 +4986,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
 
             verifier.VerifyDiagnostics(
@@ -5174,8 +5183,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails,
                 options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
@@ -5230,7 +5239,7 @@ class AllMembers
   IL_005b:  ldc.i4.5
   IL_005c:  newarr     ""int""
   IL_0061:  dup
-  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.864782BF337E3DBC1A27023D5C0C065C80F17087""
+  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.A4161100F9A38A73DDA6BAB5DE1C8D59C39708CBBBF384A489FEA6385940EBFE""
   IL_0067:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_006c:  ldloc.0
   IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass3_0.<TestLINQ>b__0(int)""
@@ -5395,8 +5404,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -5532,8 +5541,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -5680,7 +5689,7 @@ namespace Test
         }
     }
 }";
-            var comp = CreateWinRtCompilation(source, additionalRefs: LegacyRefs);
+            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
     // (30,36): error CS0539: 'R.this[int]' in explicit interface declaration is not a member of interface
     //         int IObservableVector<int>.this[int index]
@@ -5802,8 +5811,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -6029,8 +6038,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -6228,8 +6237,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -6587,8 +6596,8 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: LegacyRefs,
+            var verifier = CompileAndVerifyWithWinRt(source,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -6747,9 +6756,9 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
-                additionalRefs: LegacyRefs,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -7019,9 +7028,9 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
-                additionalRefs: LegacyRefs,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -7146,9 +7155,9 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
-                additionalRefs: LegacyRefs,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -7267,9 +7276,9 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
-                additionalRefs: LegacyRefs,
+                references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -7346,7 +7355,7 @@ namespace Test
         }   
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.C.GetEnumerator()",
@@ -7373,8 +7382,8 @@ namespace Test2
         }
     }
 }";
-            verifier = CompileAndVerifyWinRt(source,
-                additionalRefs: new[] { compRef });
+            verifier = CompileAndVerifyWithWinRt(source,
+                references: new[] { compRef });
             verifier.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using System;
@@ -7405,7 +7414,7 @@ public class Class1
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

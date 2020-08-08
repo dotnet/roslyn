@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -32,6 +34,58 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem("C()", String.Empty, Nothing, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickString() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        Dim obj = [|new C(i:="Hello"$$|])
+    End Sub
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As String)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickInteger() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        Dim obj = [|new C(i:=1$$|])
+    End Sub
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As String)", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,11 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     public class EditAndContinuePdbTests : EditAndContinueTestBase
     {
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(ExternalPdbFormats))]
         public void MethodExtents(DebugInformationFormat format)
         {
-            var source0 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
+            var source0 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
 using System;
 
 public class C
@@ -49,9 +50,9 @@ public class C
         }</N:1>;
     }
 }                              
-", fileName: @"C:\Enc1.cs");
+"), fileName: @"C:\Enc1.cs");
 
-            var source1 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
+            var source1 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
 using System;
 
 public class C
@@ -80,9 +81,9 @@ public class C
 
     int E() => 1;
 }
-", fileName: @"C:\Enc1.cs");
+"), fileName: @"C:\Enc1.cs");
 
-            var source2 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
+            var source2 = MarkedSource(WithWindowsLineBreaks(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
 using System;
 
 public class C
@@ -113,9 +114,9 @@ public class C
 
     int B() => 4;
 }
-", fileName: @"C:\Enc1.cs");
+"), fileName: @"C:\Enc1.cs");
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -145,8 +146,8 @@ public class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -169,24 +170,23 @@ public class C
 
             if (format == DebugInformationFormat.PortablePdb)
             {
-                using (var pdbProvider = MetadataReaderProvider.FromPortablePdbImage(diff1.PdbDelta))
-                {
-                    CheckEncMap(pdbProvider.GetMetadataReader(),
-                        Handle(2, TableIndex.MethodDebugInformation),
-                        Handle(4, TableIndex.MethodDebugInformation),
-                        Handle(8, TableIndex.MethodDebugInformation),
-                        Handle(9, TableIndex.MethodDebugInformation),
-                        Handle(10, TableIndex.MethodDebugInformation),
-                        Handle(11, TableIndex.MethodDebugInformation));
-                }
+                using var pdbProvider = MetadataReaderProvider.FromPortablePdbImage(diff1.PdbDelta);
+
+                CheckEncMap(pdbProvider.GetMetadataReader(),
+                    Handle(2, TableIndex.MethodDebugInformation),
+                    Handle(4, TableIndex.MethodDebugInformation),
+                    Handle(8, TableIndex.MethodDebugInformation),
+                    Handle(9, TableIndex.MethodDebugInformation),
+                    Handle(10, TableIndex.MethodDebugInformation),
+                    Handle(11, TableIndex.MethodDebugInformation));
             }
 
             diff1.VerifyPdb(Enumerable.Range(0x06000001, 20), @"
 <symbols>
   <files>
-    <file id=""1"" name=""C:\Enc1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum="" B, 95, CB, 78,  0, AE, C7, 34, 45, D9, FB, 31, E4, 30, A4,  E, FC, EA, 9E, 95, "" />
-    <file id=""2"" name=""C:\F\A.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
-    <file id=""3"" name=""C:\F\C.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name=""C:\Enc1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""0B-95-CB-78-00-AE-C7-34-45-D9-FB-31-E4-30-A4-0E-FC-EA-9E-95"" />
+    <file id=""2"" name=""C:\F\A.cs"" language=""C#"" />
+    <file id=""3"" name=""C:\F\C.cs"" language=""C#"" />
   </files>
   <methods>
     <method token=""0x6000002"">
@@ -266,10 +266,10 @@ public class C
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
-                    new SemanticEdit(SemanticEditKind.Insert, null, b2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables: true),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, b2)));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -290,24 +290,23 @@ public class C
 
             if (format == DebugInformationFormat.PortablePdb)
             {
-                using (var pdbProvider = MetadataReaderProvider.FromPortablePdbImage(diff2.PdbDelta))
-                {
-                    CheckEncMap(pdbProvider.GetMetadataReader(),
-                        Handle(1, TableIndex.MethodDebugInformation),
-                        Handle(2, TableIndex.MethodDebugInformation),
-                        Handle(4, TableIndex.MethodDebugInformation),
-                        Handle(9, TableIndex.MethodDebugInformation),
-                        Handle(11, TableIndex.MethodDebugInformation),
-                        Handle(12, TableIndex.MethodDebugInformation));
-                }
+                using var pdbProvider = MetadataReaderProvider.FromPortablePdbImage(diff2.PdbDelta);
+
+                CheckEncMap(pdbProvider.GetMetadataReader(),
+                    Handle(1, TableIndex.MethodDebugInformation),
+                    Handle(2, TableIndex.MethodDebugInformation),
+                    Handle(4, TableIndex.MethodDebugInformation),
+                    Handle(9, TableIndex.MethodDebugInformation),
+                    Handle(11, TableIndex.MethodDebugInformation),
+                    Handle(12, TableIndex.MethodDebugInformation));
             }
 
             diff2.VerifyPdb(Enumerable.Range(0x06000001, 20), @"
 <symbols>
   <files>
-    <file id=""1"" name=""C:\Enc1.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""9C, B9, FF, 18,  E, 9F, A4, 22, 93, 85, A8, 5A,  6, 11, 43, 1E, 64, 3E, 88,  6, "" />
-    <file id=""2"" name=""C:\F\B.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
-    <file id=""3"" name=""C:\F\E.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name=""C:\Enc1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""9C-B9-FF-18-0E-9F-A4-22-93-85-A8-5A-06-11-43-1E-64-3E-88-06"" />
+    <file id=""2"" name=""C:\F\B.cs"" language=""C#"" />
+    <file id=""3"" name=""C:\F\E.cs"" language=""C#"" />
   </files>
   <methods>
     <method token=""0x6000001"">

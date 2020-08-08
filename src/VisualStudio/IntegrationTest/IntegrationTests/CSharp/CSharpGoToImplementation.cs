@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -18,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -40,7 +44,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -51,7 +55,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
 }
 ");
-            VisualStudio.SolutionExplorer.CloseFile(project, "FileImplementation.cs", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseCodeFile(project, "FileImplementation.cs", saveFile: true);
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
             VisualStudio.Editor.SetText(
@@ -64,9 +68,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-
         // TODO: Enable this once the GoToDefinition tests are merged
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
             var project = new ProjectUtils.Project(ProjectName);

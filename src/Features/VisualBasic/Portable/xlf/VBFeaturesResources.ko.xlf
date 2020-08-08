@@ -2,6 +2,31 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="translated">Await 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="translated">Await 및 'ConfigureAwait(false)' 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">&lt;Obsolete&gt; 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="translated">누락된 Imports 추가</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="translated">'Shadows' 추가</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">{0}'을(를) 삽입합니다.</target>
@@ -37,9 +62,14 @@
         <target state="translated">충돌이 감지되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">If 문을 반대로 합니다.</target>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="translated">'Using' 문 지정</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">'{0}'을(를) 상속 가능으로 지정</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -52,9 +82,9 @@
         <target state="translated">{0}' 문을 삭제합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">불필요한 Imports 제거</target>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;여러 형식&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -160,16 +190,6 @@
       <trans-unit id="Fix_Incorrect_Function_Return_Type">
         <source>Fix Incorrect Function Return Type</source>
         <target state="translated">잘못된 함수 반환 형식 수정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">불필요한 캐스트 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">캐스팅이 중복됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
@@ -307,11 +327,6 @@
         <target state="translated">&lt;새 변수&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Imports 제거 및 정렬(&amp;E)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
@@ -428,7 +443,7 @@ CType(Object As Expression, Object As Type) As Type</target>
       <trans-unit id="Declares_and_allocates_storage_space_for_one_or_more_variables_Dim_var_bracket_As_bracket_New_bracket_dataType_bracket_boundList_bracket_bracket_bracket_initializer_bracket_bracket_var2_bracket">
         <source>Declares and allocates storage space for one or more variables.
 Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</source>
-        <target state="translated">하나 이상의 변수에 사용할 저장 공간을 선언하고 할당합니다.
+        <target state="translated">하나 이상의 변수에 사용할 스토리지 공간을 선언하고 할당합니다.
 Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</target>
         <note />
       </trans-unit>
@@ -820,7 +835,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Reallocates_storage_space_for_an_array_variable">
         <source>Reallocates storage space for an array variable.</source>
-        <target state="translated">배열 변수의 저장 공간을 다시 할당합니다.</target>
+        <target state="translated">배열 변수의 스토리지 공간을 다시 할당합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
@@ -1452,11 +1467,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">{0}을(를) 비동기 함수로 설정합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">누락된 캐스트 삽입</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">반복기로 {0} 변환</target>
@@ -1485,36 +1495,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
         <target state="translated">{0}'에서 확대 변환 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">이 코드를 변경하지 마세요. 위의 Dispose(disposing As Boolean)에 정리 코드를 입력하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 Finalize()를 재정의합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 위의 Dispose(disposing As Boolean)에 관리되지 않는 리소스를 해제하기 위한 코드가 있는 경우에만 Finalize()를 재정의합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">삭제 가능한 패턴을 올바르게 구현하기 위해 Visual Basic에서 추가한 코드입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: 위의 Finalize()가 재정의된 경우 다음 줄의 주석 처리를 제거합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports 문은 필요하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1589,7 +1569,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Await_expression">
         <source>Await expression</source>
-        <target state="translated">대기 식</target>
+        <target state="translated">Await 식</target>
         <note>{Locked="Await"} "Await" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Lambda">
@@ -1659,7 +1639,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">조인 조건</target>
+        <target state="translated">Join 조건</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">
@@ -1703,9 +1683,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">오버로드 추가</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="translated">'Overloads' 추가</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
@@ -1797,24 +1777,24 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">비동기 Sub로 설정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">Me'를 추가하세요.</target>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="translated">'Select Case'로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">If'를 'Select Case'로 변환</target>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="translated">'For Each'로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Is Nothing' 검사 사용</target>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="translated">'For'로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">IsNot Nothing' 검사 사용</target>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">if 반전</target>
         <note />
       </trans-unit>
     </body>

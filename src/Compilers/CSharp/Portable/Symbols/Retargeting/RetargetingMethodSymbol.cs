@@ -1,16 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        private CustomModifiersTuple _lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeSymbol _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
 
         public RetargetingMethodSymbol(RetargetingModuleSymbol retargetingModule, MethodSymbol underlyingMethod)
         {
@@ -108,47 +106,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
                 if (IsGenericMethod)
                 {
-                    return StaticCast<TypeSymbol>.From(this.TypeParameters);
+                    return GetTypeParametersAsTypeArguments();
                 }
                 else
                 {
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    return ImmutableArray<TypeWithAnnotations>.Empty;
                 }
             }
         }
 
-        public override bool ReturnsVoid
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _underlyingMethod.ReturnsVoid;
-            }
-        }
-
-        public override TypeSymbol ReturnType
-        {
-            get
-            {
-                if ((object)_lazyReturnType == null)
+                if (_lazyReturnType is null)
                 {
-                    var type = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-                    _lazyReturnType = type.AsDynamicIfNoPia(this.ContainingType);
+                    Interlocked.CompareExchange(ref _lazyReturnType,
+                                                new TypeWithAnnotations.Boxed(this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode, this.ContainingType)),
+                                                null);
                 }
-                return _lazyReturnType;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return CustomModifiersTuple.TypeCustomModifiers;
+                return _lazyReturnType.Value;
             }
         }
 
@@ -156,17 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return CustomModifiersTuple.RefCustomModifiers;
-            }
-        }
-
-        private CustomModifiersTuple CustomModifiersTuple
-        {
-            get
-            {
-                return RetargetingTranslator.RetargetModifiers(
-                    _underlyingMethod.ReturnTypeCustomModifiers, _underlyingMethod.RefCustomModifiers,
-                    ref _lazyCustomModifiers);
+                return RetargetingTranslator.RetargetModifiers(_underlyingMethod.RefCustomModifiers, ref _lazyRefCustomModifiers);
             }
         }
 
@@ -305,6 +278,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// The explicitly overridden method (e.g. as would be declared in the PE method in covariant return scenarios).
+        /// </summary>
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
+        {
+            get
+            {
+                return
+                    _underlyingMethod.RequiresExplicitOverride(out _)
+                        ? this.RetargetingTranslator.Retarget(_underlyingMethod.OverriddenMethod, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
+                        : null;
+            }
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()

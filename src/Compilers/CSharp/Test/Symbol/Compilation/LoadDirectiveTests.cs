@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -39,35 +41,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileWithErrors()
         {
-            var code = "#load \"a.csx\"";
-            var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+            using (new EnsureEnglishUICulture())
+            {
+                var code = "#load \"a.csx\"";
+                var resolver = TestSourceReferenceResolver.Create(
+                    KeyValuePairUtil.Create("a.csx", @"
                     #load ""b.csx""
                     asdf();"));
-            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+                var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+                var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
-            Assert.Equal(2, compilation.SyntaxTrees.Length);
-            compilation.GetParseDiagnostics().Verify(
-                // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
-                //                     #load "b.csx";
-                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27));
-            compilation.GetDiagnostics().Verify(
-                // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
-                //                     #load "b.csx";
-                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27),
-                // a.csx(3,21): error CS0103: The name 'asdf' does not exist in the current context
-                //                     asdf();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));
+                Assert.Equal(2, compilation.SyntaxTrees.Length);
+                compilation.GetParseDiagnostics().Verify(
+                    // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
+                    //                     #load "b.csx";
+                    Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27));
+                compilation.GetDiagnostics().Verify(
+                    // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
+                    //                     #load "b.csx";
+                    Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27),
+                    // a.csx(3,21): error CS0103: The name 'asdf' does not exist in the current context
+                    //                     asdf();
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));
+            }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12603")]
         public void FileThatCannotBeDecoded()
         {
             var code = "#load \"b.csx\"";
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
-                KeyValuePair.Create<string, object>("b.csx", "#load \"a.csx\""));
+                KeyValuePairUtil.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
+                KeyValuePairUtil.Create<string, object>("b.csx", "#load \"a.csx\""));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
             var external1 = compilation.SyntaxTrees.Last();
@@ -145,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Cycles()
         {
             var code = "#load \"a.csx\"";
-            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", code));
+            var resolver = TestSourceReferenceResolver.Create(KeyValuePairUtil.Create("a.csx", code));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
@@ -164,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilation.VerifyDiagnostics();
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "#load \"b.csx\""),
-                KeyValuePair.Create("b.csx", code));
+                KeyValuePairUtil.Create("a.csx", "#load \"b.csx\""),
+                KeyValuePairUtil.Create("b.csx", code));
             options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 

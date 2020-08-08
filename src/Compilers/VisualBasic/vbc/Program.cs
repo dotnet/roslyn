@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -25,12 +27,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         private static int MainCore(string[] args)
         {
-#if NET46
-            var loader = new DesktopAnalyzerAssemblyLoader();
-#else
-            var loader = new CoreClrAnalyzerAssemblyLoader();
+#if BOOTSTRAP
+            ExitingTraceListener.Install();
 #endif
-            return DesktopBuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, loader);
+
+            return BuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

@@ -1,0 +1,28 @@
+﻿[$RootKey$\Packages\{bb7e83f4-eaf6-456c-b140-f8c027a7ed8a}\SatelliteDll]
+"Path"="$PackageFolder$"
+"DllName"="Microsoft.VisualStudio.LanguageServices.LiveShareUI.dll"
+
+// ProvideLanguageService(StringConstants.CSharpLspLanguageServiceGuidString, StringConstants.CSharpLspLanguageName, ...)
+[$RootKey$\Languages\Language Services\C#_LSP]
+@="{b7b576c5-24ae-4fbb-965e-382125fd4889}"
+"Package"="{bb7e83f4-eaf6-456c-b140-f8c027a7ed8a}"
+"LangResID"=dword:00000065
+"DefaultToInsertSpaces"=dword:00000001
+"ShowDropdownBarOption"=dword:00000001
+"RequestStockColors"=dword:00000001
+"ShowCompletion"=dword:00000001
+"EnableAdvancedMembersOption"=dword:00000001
+"ShowSmartIndent"=dword:00000001
+
+// ProvideService(typeof(CSharpLspLanguageService))
+[$RootKey$\Services\{b7b576c5-24ae-4fbb-965e-382125fd4889}]
+@="{bb7e83f4-eaf6-456c-b140-f8c027a7ed8a}"
+"Name"="CSharpLspLanguageService"
+
+;; Set the C#_LSP NotALanguage attribute for this package.
+;; This will suppress the duplicate C#_LSP entry from appearing in Tools > Options > Text Editor
+;; This can be removed once we remove the CSharpLspPackage
+[$RootKey$\Languages\Language Services\C#_LSP]
+"Package"="{BB7E83F4-EAF6-456C-B140-F8C027A7ED8A}"
+"NotALanguage"=dword:00000001
+

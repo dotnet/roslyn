@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -11,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal struct SyntaxTreeDiagnosticEnumerator
     {
-        private readonly SyntaxTree _syntaxTree;
+        private readonly SyntaxTree? _syntaxTree;
         private NodeIterationStack _stack;
-        private Diagnostic _current;
+        private Diagnostic? _current;
         private int _position;
         private const int DefaultStackCapacity = 8;
 
-        internal SyntaxTreeDiagnosticEnumerator(SyntaxTree syntaxTree, GreenNode node, int position)
+        internal SyntaxTreeDiagnosticEnumerator(SyntaxTree syntaxTree, GreenNode? node, int position)
         {
             _syntaxTree = null;
             _current = null;
@@ -56,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
+                    Debug.Assert(_syntaxTree is object);
                     var length = _syntaxTree.GetRoot().FullSpan.Length;
                     var spanStart = Math.Min(_position - leadingWidthAlreadyCounted + sdi.Offset, length);
                     var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
@@ -67,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var slotIndex = _stack.Top.SlotIndex;
-            tryAgain:
+tryAgain:
                 if (slotIndex < node.SlotCount - 1)
                 {
                     slotIndex++;
@@ -105,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Diagnostic Current
         {
-            get { return _current; }
+            get { Debug.Assert(_current is object); return _current; }
         }
 
         private struct NodeIteration

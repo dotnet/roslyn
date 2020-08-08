@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.LabelStatement:
                 case BoundKind.LabeledStatement:
                 case BoundKind.SwitchSection:
-                case BoundKind.PatternSwitchSection:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -43,16 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
                     {
                         if (boundSwitchLabel.Label == label)
-                        {
-                            return;
-                        }
-                    }
-                    throw ExceptionUtilities.Unreachable;
-
-                case BoundKind.PatternSwitchSection:
-                    foreach (var boundPatternSwitchLabel in ((BoundPatternSwitchSection)node).SwitchLabels)
-                    {
-                        if (boundPatternSwitchLabel.Label == label)
                         {
                             return;
                         }

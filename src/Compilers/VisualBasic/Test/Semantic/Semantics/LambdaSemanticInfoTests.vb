@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -14,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub Lambda1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -49,7 +52,7 @@ End Module
 
         <Fact>
         Public Sub Lambda2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -82,7 +85,7 @@ End Module
 
         <Fact>
         Public Sub Lambda3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -117,7 +120,7 @@ End Module
 
         <Fact>
         Public Sub Lambda4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -150,7 +153,7 @@ End Module
 
         <Fact>
         Public Sub Lambda5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Module Module1
@@ -188,7 +191,7 @@ End Module
 
         <Fact>
         Public Sub Lambda6()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -226,7 +229,7 @@ End Module
 
         <Fact>
         Public Sub Lambda7()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -262,7 +265,7 @@ End Module
 
         <Fact>
         Public Sub Lambda8()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -298,7 +301,7 @@ End Module
 
         <Fact>
         Public Sub Lambda9()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -337,7 +340,7 @@ End Module
 
         <Fact>
         Public Sub Lambda10()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -373,7 +376,7 @@ End Module
 
         <Fact>
         Public Sub Lambda11()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -413,7 +416,7 @@ End Module
 
         <Fact>
         Public Sub Lambda12()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -454,7 +457,7 @@ End Module
 
         <Fact>
         Public Sub Lambda13()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Module Module1
@@ -489,7 +492,7 @@ End Module
 
         <Fact>
         Public Sub Lambda14()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Module1
@@ -519,7 +522,7 @@ End Module
 
         <Fact>
         Public Sub Bug8643()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -556,7 +559,7 @@ End Module
 
         <Fact>
         Public Sub Bug8522()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -596,7 +599,7 @@ End Module
         <WorkItem(9805, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub LambdaInWhileStatement()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test
@@ -618,7 +621,7 @@ End Module
 
         <Fact>
         Public Sub SingleLineLambdaWithDimStatement()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test
@@ -642,7 +645,7 @@ End Module
         <Fact, WorkItem(544647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544647")>
         Public Sub InvokeGenericOverloadedMethod()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -665,7 +668,7 @@ Module M
 
 End Module
     </file>
-    </compilation>, additionalRefs:={SystemCoreRef})
+    </compilation>, references:={SystemCoreRef})
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
@@ -680,7 +683,7 @@ End Module
 
         <Fact, WorkItem(566495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566495")>
         Public Sub Bug566495()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
         <compilation>
             <file name="a.vb"><![CDATA[
         Imports System.Linq
@@ -741,7 +744,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_01()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System.Collections.Generic
@@ -768,7 +771,7 @@ End Class
         <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_02()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System.Collections.Generic
@@ -794,7 +797,7 @@ End Class
         <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_03()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System.Collections.Generic
@@ -824,7 +827,7 @@ End Class
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_01()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -861,7 +864,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_02()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -900,7 +903,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_03()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -936,7 +939,7 @@ BC30203: Identifier expected.
         <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
         Public Sub ParameterReference_04()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="InstantiatingNamespace">
         <file name="a.vb">
 Imports System
@@ -967,6 +970,87 @@ BC30203: Identifier expected.
             Dim symbolInfo = semanticModel.GetSymbolInfo(node)
 
             Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <WorkItem(35096, "https://github.com/dotnet/roslyn/issues/35096")>
+        <Fact()>
+        Public Sub ThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+<compilation name="ThenIncludeIntellisenseBugNamespace">
+    <file name="a.vb"><![CDATA[
+Imports System                       
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Linq.Expressions
+
+Namespace ThenIncludeIntellisenseBug
+
+    Class Program
+        Shared Sub Main(args As String())
+            Dim registrations = New List(Of Registration)().AsQueryable()
+            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(0, Function(a, b, c) c.F)
+        End Sub
+    End Class
+
+    Friend Class Registration
+        Public Property Activities As ICollection(Of Activity)
+    End Class
+
+    Public Class Activity
+        Public Property Task As Task
+    End Class
+
+    Public Class Task
+        Public Property Name As String
+    End Class
+
+    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
+        Inherits IQueryable(Of TEntity)
+    End Interface
+
+    Public Module EntityFrameworkQueryableExtensions
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of TEntity, TProperty)(
+                source As IQueryable(Of TEntity), 
+                navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+    End Module
+End Namespace"
+    ]]></file>
+</compilation>, references:={TestMetadata.Net40.SystemCore})
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ToArray()(1)
+            Assert.Equal("registrations.Include(Function(r) r.Activities).ThenInclude(0, Function(a, b, c) c.F)", node.ToString())
+
+            Dim info = model.GetSymbolInfo(node)
+            Assert.Equal(2, info.CandidateSymbols.Length)
+            Assert.Equal("Public Function ThenInclude(Of TProperty)(a As Integer, navigationPropertyPath As " +
+                         "System.Linq.Expressions.Expression(Of System.Func(Of String, ThenIncludeIntellisenseBug.Activity, TProperty))) As " +
+                         "ThenIncludeIntellisenseBug.IIncludableQueryable(Of ThenIncludeIntellisenseBug.Registration, TProperty)", info.CandidateSymbols(0).ToString())
+            Assert.Equal("Public Function ThenInclude(Of TProperty)(a As Integer, navigationPropertyPath As " +
+                         "System.Linq.Expressions.Expression(Of System.Func(Of String, String, System.Collections.Generic.ICollection(Of ThenIncludeIntellisenseBug.Activity), TProperty))) As " +
+                         "ThenIncludeIntellisenseBug.IIncludableQueryable(Of ThenIncludeIntellisenseBug.Registration, TProperty)", info.CandidateSymbols(1).ToString())
         End Sub
 
     End Class

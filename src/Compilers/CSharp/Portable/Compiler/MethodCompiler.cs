@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -31,21 +33,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PEModuleBuilder _moduleBeingBuiltOpt; // Null if compiling for diagnostics
         private readonly Predicate<Symbol> _filterOpt;         // If not null, limit analysis to specific symbols
         private readonly DebugDocumentProvider _debugDocumentProvider;
+        private readonly SynthesizedEntryPointSymbol.AsyncForwardEntryPoint _entryPointOpt;
 
         //
         // MethodCompiler employs concurrency by following flattened fork/join pattern.
         //
         // For every item that we want to compile in parallel a new task is forked.
-        // compileTaskQueue is used to track and observe all the tasks. 
+        // compileTaskQueue is used to track and observe all the tasks.
         // Once compileTaskQueue is empty, we know that there are no more tasks (and no more can be created)
         // and that means we are done compiling. WaitForWorkers ensures this condition.
         //
         // Note that while tasks may fork more tasks (nested types, lambdas, whatever else that may introduce more types),
-        // we do not want any child/parent relationship between spawned tasks and their creators. 
+        // we do not want any child/parent relationship between spawned tasks and their creators.
         // Creator has no real dependencies on the completion of its children and should finish and release any resources
         // as soon as it can regardless of the tasks it may have spawned.
         //
-        // Stack is used so that the wait would observe the most recently added task and have 
+        // Stack is used so that the wait would observe the most recently added task and have
         // more chances to do inlined execution.
         private ConcurrentStack<Task> _compilerTasks;
 
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      It is ok if other tasks will see the change after some delay or does not observe at all.
             //      Such races are unavoidable and will just result in performing some work that is safe to do
             //      but may no longer be needed.
-            //      The final Join of compiling tasks cannot happen without interlocked operations and that 
+            //      The final Join of compiling tasks cannot happen without interlocked operations and that
             //      will ensure that any write of the flag is globally visible.
             if (arg)
             {
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Internal for testing only.
         internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool emitTestCoverageData, bool hasDeclarationErrors,
-            DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, CancellationToken cancellationToken)
+            DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
             Debug.Assert(diagnostics != null);
@@ -88,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cancellationToken = cancellationToken;
             _diagnostics = diagnostics;
             _filterOpt = filterOpt;
+            _entryPointOpt = entryPointOpt;
 
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (compilation.PreviousSubmission != null)
             {
-                // In case there is a previous submission, we should ensure 
+                // In case there is a previous submission, we should ensure
                 // it has already created anonymous type/delegates templates
 
                 // NOTE: if there are any errors, we will pick up what was created anyway
@@ -124,7 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // TODO: revise to use a loop instead of a recursion
             }
 
-            MethodCompiler methodCompiler = new MethodCompiler(
+            MethodSymbol entryPoint = null;
+            if (filterOpt is null)
+            {
+                entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
+            }
+
+            var methodCompiler = new MethodCompiler(
                 compilation,
                 moduleBeingBuiltOpt,
                 emittingPdb,
@@ -132,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasDeclarationErrors,
                 diagnostics,
                 filterOpt,
+                entryPoint as SynthesizedEntryPointSymbol.AsyncForwardEntryPoint,
                 cancellationToken);
 
             if (compilation.Options.ConcurrentBuild)
@@ -172,7 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // module or crashing.
             if (moduleBeingBuiltOpt != null && (methodCompiler._globalHasErrors || moduleBeingBuiltOpt.SourceModule.HasBadAttributes) && !diagnostics.HasAnyErrors() && !hasDeclarationErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name);
+                var messageResourceName = methodCompiler._globalHasErrors ? nameof(CodeAnalysisResources.UnableToDetermineSpecificCauseOfFailure) : nameof(CodeAnalysisResources.ModuleHasInvalidAttributes);
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name,
+                    new LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
@@ -182,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 WarnUnusedFields(compilation, diagnostics, cancellationToken);
 
-                MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
                 if (moduleBeingBuiltOpt != null && entryPoint != null && compilation.Options.OutputKind.IsApplication())
                 {
                     moduleBeingBuiltOpt.SetPEEntryPoint(entryPoint, diagnostics);
@@ -195,10 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
-            if (entryPointAndDiagnostics == null)
-            {
-                return null;
-            }
 
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
@@ -206,19 +214,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)entryPoint == null)
             {
-                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
                 return null;
             }
 
             // entryPoint can be a SynthesizedEntryPointSymbol if a script is being compiled.
             SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
-            if ((object)synthesizedEntryPoint == null && (entryPoint.ReturnType.IsGenericTaskType(compilation) || entryPoint.ReturnType.IsNonGenericTaskType(compilation)))
+            if ((object)synthesizedEntryPoint == null)
             {
-                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, entryPoint.ContainingType, entryPoint);
-                entryPoint = synthesizedEntryPoint;
-                if ((object)moduleBeingBuilt != null)
+                var returnType = entryPoint.ReturnType;
+                if (returnType.IsGenericTaskType(compilation) || returnType.IsNonGenericTaskType(compilation))
                 {
-                    moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                    synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, entryPoint.ContainingType, entryPoint);
+                    entryPoint = synthesizedEntryPoint;
+                    if ((object)moduleBeingBuilt != null)
+                    {
+                        moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                    }
                 }
             }
 
@@ -278,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     importChainOpt: null,
                     emittingPdb: false,
                     emitTestCoverageData: false,
-                    dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
+                    dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty,
+                    entryPointOpt: null);
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
@@ -318,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamespaceAsTask(symbol);
+                Task worker = CompileNamespaceAsAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -329,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
+        private Task CompileNamespaceAsAsync(NamespaceSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -364,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamedTypeAsTask(symbol);
+                Task worker = CompileNamedTypeAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -375,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
+        private Task CompileNamedTypeAsync(NamedTypeSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -503,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Property:
                         {
-                            SourcePropertySymbol sourceProperty = member as SourcePropertySymbol;
+                            var sourceProperty = member as SourcePropertySymbolBase;
                             if ((object)sourceProperty != null && sourceProperty.IsSealed && compilationState.Emitting)
                             {
                                 CompileSynthesizedSealedAccessors(sourceProperty, compilationState);
@@ -524,7 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Field:
                         {
-                            SourceMemberFieldSymbol fieldSymbol = member as SourceMemberFieldSymbol;
+                            var field = (FieldSymbol)member;
+                            var fieldSymbol = (field.TupleUnderlyingField ?? field) as SourceMemberFieldSymbol;
                             if ((object)fieldSymbol != null)
                             {
                                 if (fieldSymbol.IsConst)
@@ -536,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
                                 }
 
-                                if (fieldSymbol.IsFixed && compilationState.Emitting)
+                                if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
                                 {
                                     // force the generation of implementation types for fixed-size buffers
                                     TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);
@@ -565,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_moduleBeingBuiltOpt != null && !hasStaticConstructor && !processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty)
             {
                 Debug.Assert(processedStaticInitializers.BoundInitializers.All((init) =>
-                    (init.Kind == BoundKind.FieldInitializer) && !((BoundFieldInitializer)init).Field.IsMetadataConstant));
+                    (init.Kind == BoundKind.FieldEqualsValue) && !((BoundFieldEqualsValue)init).Field.IsMetadataConstant));
 
                 MethodSymbol method = new SynthesizedStaticConstructor(sourceTypeSymbol);
                 if (PassesFilter(_filterOpt, method))
@@ -577,6 +590,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method);
                     }
+                }
+            }
+
+            // If there is no explicit or implicit .cctor and no static initializers, then report
+            // warnings for any static non-nullable fields. (If there is no .cctor, there
+            // shouldn't be any initializers but for robustness, we check both.)
+            if (!hasStaticConstructor &&
+                processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty &&
+                _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            {
+                switch (containingType.TypeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                        UnassignedFieldsWalker.ReportUninitializedNonNullableReferenceTypeFields(
+                            walkerOpt: null,
+                            thisSlot: -1,
+                            isStatic: true,
+                            members,
+                            getIsAssigned: (walker, slot, member) => false,
+                            getSymbolForLocation: (walker, member) => member,
+                            _diagnostics);
+                        break;
                 }
             }
 
@@ -651,10 +687,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var methodWithBody in synthesizedMethods)
                 {
-                    var importChain = methodWithBody.ImportChainOpt;
+                    var importChain = methodWithBody.ImportChain;
                     compilationState.CurrentImportChain = importChain;
 
-                    // We make sure that an asynchronous mutation to the diagnostic bag does not 
+                    // We make sure that an asynchronous mutation to the diagnostic bag does not
                     // confuse the method body generator by making a fresh bag and then loading
                     // any diagnostics emitted into it back into the main diagnostic bag.
                     var diagnosticsThisMethod = DiagnosticBag.GetInstance();
@@ -666,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method, diagnosticsThisMethod);
 
                     // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
-                    // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
+                    // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named,
                     // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                     const int methodOrdinal = -1;
                     MethodBody emittedBody = null;
@@ -683,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AsyncStateMachine asyncStateMachine;
                             loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
 
-                            Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+                            Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
@@ -703,7 +739,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method.GenerateDebugInfo ? importChain : null,
                                 emittingPdb: _emittingPdb,
                                 emitTestCoverageData: _emitTestCoverageData,
-                                dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
+                                dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty,
+                                _entryPointOpt);
                         }
                     }
                     catch (BoundTreeVisitor.CancelledByStackGuardException ex)
@@ -738,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a 
+        /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
         /// base type from another assembly) it is necessary for the compiler to generate explicit implementations for
         /// some interface methods.  They don't go in the symbol table, but if we are emitting, then we should
         /// generate code for them.
@@ -760,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CompileSynthesizedSealedAccessors(SourcePropertySymbol sourceProperty, TypeCompilationState compilationState)
+        private void CompileSynthesizedSealedAccessors(SourcePropertySymbolBase sourceProperty, TypeCompilationState compilationState)
         {
             SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
 
@@ -809,7 +846,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         importChainOpt: null,
                         emittingPdb: false,
                         emitTestCoverageData: _emitTestCoverageData,
-                        dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
+                        dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty,
+                        entryPointOpt: null);
 
                     _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -852,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cancellationToken.ThrowIfCancellationRequested();
             SourceMemberMethodSymbol sourceMethod = methodSymbol as SourceMemberMethodSymbol;
 
-            if (methodSymbol.IsAbstract)
+            if (methodSymbol.IsAbstract || methodSymbol.ContainingType?.IsDelegateType() == true)
             {
                 if ((object)sourceMethod != null)
                 {
@@ -910,24 +948,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // initializers that have been analyzed but not yet lowered.
                 BoundStatementList analyzedInitializers = null;
-
+                MethodBodySemanticModel.InitialState forSemanticModel = default;
                 ImportChain importChain = null;
                 var hasTrailingExpression = false;
 
                 if (methodSymbol.IsScriptConstructor)
                 {
+                    Debug.Assert(methodSymbol.IsImplicitlyDeclared);
                     body = new BoundBlock(methodSymbol.GetNonNullSyntaxNode(), ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty) { WasCompilerGenerated = true };
                 }
                 else if (methodSymbol.IsScriptInitializer)
                 {
+                    Debug.Assert(methodSymbol.IsImplicitlyDeclared);
+
                     // rewrite top-level statements and script variable declarations to a list of statements and assignments, respectively:
                     var initializerStatements = InitializerRewriter.RewriteScriptInitializer(processedInitializers.BoundInitializers, (SynthesizedInteractiveInitializerMethod)methodSymbol, out hasTrailingExpression);
 
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
 
+                    NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, initializerStatements, diagsForCurrentMethod);
+
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
-                    DataFlowPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
+                    DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
                     DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
                     unusedDiagnostics.Free();
                 }
@@ -935,27 +978,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Do not emit initializers if we are invoking another constructor of this class.
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
-                                                !HasThisConstructorInitializer(methodSymbol);
+                                                !HasThisConstructorInitializer(methodSymbol) &&
+                                                !(methodSymbol is SynthesizedRecordCopyCtor) &&
+                                                !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
 
-                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested);
+                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain, out originalBodyNested, out forSemanticModel);
+                    if (diagsForCurrentMethod.HasAnyErrors() && body != null)
+                    {
+                        body = (BoundBlock)body.WithHasErrors();
+                    }
 
-                    // lower initializers just once. the lowered tree will be reused when emitting all constructors 
+                    if (body != null && methodSymbol.IsConstructor())
+                    {
+                        UnassignedFieldsWalker.Analyze(_compilation, methodSymbol, body, diagsForCurrentMethod);
+                    }
+
+                    // lower initializers just once. the lowered tree will be reused when emitting all constructors
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
-                    // (see later in this method). Don't bother lowering _now_ if this particular ctor won't have the initializers 
+                    // (see later in this method). Don't bother lowering _now_ if this particular ctor won't have the initializers
                     // appended to its body.
                     if (includeInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || _emitTestCoverageData))
+                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || methodSymbol is SynthesizedRecordConstructor || _emitTestCoverageData))
                         {
                             if (_emitTestCoverageData && methodSymbol.IsImplicitConstructor)
                             {
                                 // Flow analysis over the initializers is necessary in order to find assignments to fields.
                                 // Bodies of implicit constructors do not get flow analysis later, so the initializers
                                 // are analyzed here.
-                                DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                                DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             }
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
@@ -967,7 +1021,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // These analyses check for diagnostics in lambdas.
                             // Control flow analysis and implicit return insertion are unnecessary.
-                            DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod);
+                            DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                         }
                     }
@@ -1018,22 +1073,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
                 {
-                    var lazySemanticModel = body == null ? null : new Lazy<SemanticModel>(() =>
-                    {
-                        var syntax = body.Syntax;
-                        var semanticModel = (CSharpSemanticModel)_compilation.GetSemanticModel(syntax.SyntaxTree);
-                        var memberModel = semanticModel.GetMemberModel(syntax);
-                        if (memberModel != null)
-                        {
-                            memberModel.UnguardedAddBoundTreeForStandaloneSyntax(syntax, body);
-                        }
-                        return semanticModel;
-                    });
+                    Lazy<SemanticModel> lazySemanticModel = null;
 
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
+                    if (body != null)
+                    {
+                        lazySemanticModel = new Lazy<SemanticModel>(() =>
+                        {
+                            var syntax = body.Syntax;
+                            var semanticModel = (SyntaxTreeSemanticModel)_compilation.GetSemanticModel(syntax.SyntaxTree);
+
+                            if (forSemanticModel.Syntax is { } semanticModelSyntax)
+                            {
+                                semanticModel.GetOrAddModel(semanticModelSyntax,
+                                                            (rootSyntax) =>
+                                                            {
+                                                                Debug.Assert(rootSyntax == forSemanticModel.Syntax);
+                                                                return MethodBodySemanticModel.Create(semanticModel,
+                                                                                                      methodSymbol,
+                                                                                                      forSemanticModel);
+                                                            });
+                            }
+
+                            return semanticModel;
+                        });
+                    }
+
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), lazySemanticModel));
                 }
 
-                // Don't lower if we're not emitting or if there were errors. 
+                // Don't lower if we're not emitting or if there were errors.
                 // Methods that had binding errors are considered too broken to be lowered reliably.
                 if (_moduleBeingBuiltOpt == null || hasErrors)
                 {
@@ -1043,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ############################
                 // LOWERING AND EMIT
-                // Any errors generated below here are considered Emit diagnostics 
+                // Any errors generated below here are considered Emit diagnostics
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
                 ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
@@ -1086,7 +1154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // don't emit if the resulting method would contain initializers with errors
                     if (!hasErrors && (hasBody || includeInitializersInBody))
                     {
-                        Debug.Assert(!methodSymbol.IsImplicitInstanceConstructor || !methodSymbol.ContainingType.IsStructType());
+                        Debug.Assert(!(methodSymbol.IsImplicitInstanceConstructor && methodSymbol.ParameterCount == 0) ||
+                                     !methodSymbol.ContainingType.IsStructType());
 
                         // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
                         // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
@@ -1162,27 +1231,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+                        if (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers))
+                        {
+                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
-                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+                            var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
-                        var emittedBody = GenerateMethodBody(
-                            _moduleBeingBuiltOpt,
-                            methodSymbol,
-                            methodOrdinal,
-                            boundBody,
-                            lambdaDebugInfoBuilder.ToImmutable(),
-                            closureDebugInfoBuilder.ToImmutable(),
-                            stateMachineTypeOpt,
-                            lazyVariableSlotAllocator,
-                            diagsForCurrentMethod,
-                            _debugDocumentProvider,
-                            importChain,
-                            _emittingPdb,
-                            _emitTestCoverageData,
-                            dynamicAnalysisSpans);
+                            var emittedBody = GenerateMethodBody(
+                                _moduleBeingBuiltOpt,
+                                methodSymbol,
+                                methodOrdinal,
+                                boundBody,
+                                lambdaDebugInfoBuilder.ToImmutable(),
+                                closureDebugInfoBuilder.ToImmutable(),
+                                stateMachineTypeOpt,
+                                lazyVariableSlotAllocator,
+                                diagsForCurrentMethod,
+                                _debugDocumentProvider,
+                                importChain,
+                                _emittingPdb,
+                                _emitTestCoverageData,
+                                dynamicAnalysisSpans,
+                                entryPointOpt: null);
 
-                        _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        }
                     }
 
                     _diagnostics.AddRange(diagsForCurrentMethod);
@@ -1226,9 +1299,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                bool sawLambdas;
-                bool sawLocalFunctions;
-                bool sawAwaitInExceptionHandler;
                 var loweredBody = LocalRewriter.Rewrite(
                     method.DeclaringCompilation,
                     method,
@@ -1242,9 +1312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     debugDocumentProvider: debugDocumentProvider,
                     dynamicAnalysisSpans: ref dynamicAnalysisSpans,
                     diagnostics: diagnostics,
-                    sawLambdas: out sawLambdas,
-                    sawLocalFunctions: out sawLocalFunctions,
-                    sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
+                    sawLambdas: out bool sawLambdas,
+                    sawLocalFunctions: out bool sawLocalFunctions,
+                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
 
                 if (loweredBody.HasErrors)
                 {
@@ -1253,12 +1323,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (sawAwaitInExceptionHandler)
                 {
-                    // If we have awaits in handlers, we need to 
+                    // If we have awaits in handlers, we need to
                     // replace handlers with synthetic ones which can be consumed by async rewriter.
-                    // The reason why this rewrite happens before the lambda rewrite 
+                    // The reason why this rewrite happens before the lambda rewrite
                     // is that we may need access to exception locals and it would be fairly hard to do
                     // if these locals are captured into closures (possibly nested ones).
-                    Debug.Assert(!method.IsIterator);
                     loweredBody = AsyncExceptionHandlerRewriter.Rewrite(
                         method,
                         method.ContainingType,
@@ -1280,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutLambdas = loweredBody;
                 if (sawLambdas || sawLocalFunctions)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(
+                    bodyWithoutLambdas = ClosureConversion.Rewrite(
                         loweredBody,
                         method.ContainingType,
                         method.ThisParameter,
@@ -1300,18 +1369,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutLambdas;
                 }
 
-                IteratorStateMachine iteratorStateMachine;
-                BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
+                BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
+                    out IteratorStateMachine iteratorStateMachine);
 
                 if (bodyWithoutIterators.HasErrors)
                 {
                     return bodyWithoutIterators;
                 }
 
-                AsyncStateMachine asyncStateMachine;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out asyncStateMachine);
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics,
+                    out AsyncStateMachine asyncStateMachine);
 
-                Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+                Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
                 return bodyWithoutAsync;
@@ -1323,6 +1392,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// entryPointOpt is only considered for synthesized methods (to recognize the synthesized MoveNext method for async Main)
+        /// </summary>
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
@@ -1337,7 +1409,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImportChain importChainOpt,
             bool emittingPdb,
             bool emitTestCoverageData,
-            ImmutableArray<SourceSpan> dynamicAnalysisSpans)
+            ImmutableArray<SourceSpan> dynamicAnalysisSpans,
+            SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1346,7 +1419,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localSlotManager = new LocalSlotManager(variableSlotAllocatorOpt);
             var optimizations = compilation.Options.OptimizationLevel;
 
-            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations);
+            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, method.AreLocalsZeroed);
+            bool hasStackalloc;
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();
             try
             {
@@ -1371,7 +1445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     isAsyncStateMachine = kickoffMethod.IsAsync;
 
-                    // Async void method may be partial. Debug info needs to be associated with the emitted definition, 
+                    // Async void method may be partial. Debug info needs to be associated with the emitted definition,
                     // but the kickoff method is the method implementation (the part with body).
                     kickoffMethod = kickoffMethod.PartialDefinitionPart ?? kickoffMethod;
                 }
@@ -1383,22 +1457,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isAsyncStateMachine)
                 {
-                    codeGen.Generate(out int asyncCatchHandlerOffset, out var asyncYieldPoints, out var asyncResumePoints);
+                    codeGen.Generate(out int asyncCatchHandlerOffset, out var asyncYieldPoints, out var asyncResumePoints, out hasStackalloc);
 
                     // The exception handler IL offset is used by the debugger to treat exceptions caught by the marked catch block as "user unhandled".
                     // This is important for async void because async void exceptions generally result in the process being terminated,
                     // but without anything useful on the call stack. Async Task methods on the other hand return exceptions as the result of the Task.
                     // So it is undesirable to consider these exceptions "user unhandled" since there may well be user code that is awaiting the task.
                     // This is a heuristic since it's possible that there is no user code awaiting the task.
+
+                    // We do the same for async Main methods, since it is unlikely that user code will be awaiting the Task:
+                    // AsyncForwardEntryPoint <Main> -> kick-off method Main -> MoveNext.
+
+                    bool isAsyncMainMoveNext = entryPointOpt?.UserMain.Equals(kickoffMethod) == true;
+
                     moveNextBodyDebugInfoOpt = new AsyncMoveNextBodyDebugInfo(
                         kickoffMethod,
-                        kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1,
+                        catchHandlerOffset: (kickoffMethod.ReturnsVoid || isAsyncMainMoveNext) ? asyncCatchHandlerOffset : -1,
                         asyncYieldPoints,
                         asyncResumePoints);
                 }
                 else
                 {
-                    codeGen.Generate();
+                    codeGen.Generate(out hasStackalloc);
 
                     if ((object)kickoffMethod != null)
                     {
@@ -1411,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stateMachineHoistedLocalScopes = ((object)kickoffMethod != null) ?
                     builder.GetHoistedLocalScopes() : default(ImmutableArray<StateMachineHoistedLocalScope>);
 
-                // Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
+                // Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata
                 // and we don't want to emit different metadata depending on whether or we emit with PDB stream.
                 // TODO (https://github.com/dotnet/roslyn/issues/2846): This will need to change for member initializers in partial class.
                 var importScopeOpt = importChainOpt?.Translate(moduleBuilder, diagnosticsForThisMethod);
@@ -1437,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);
                 var stateMachineAwaiterSlots = default(ImmutableArray<Cci.ITypeReference>);
-                if (optimizations == OptimizationLevel.Debug && stateMachineTypeOpt != null)
+                if (optimizations == OptimizationLevel.Debug && (object)stateMachineTypeOpt != null)
                 {
                     Debug.Assert(method.IsAsync || method.IsIterator);
                     GetStateMachineSlotDebugInfo(moduleBuilder, moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), variableSlotAllocatorOpt, diagnosticsForThisMethod, out stateMachineHoistedLocalSlots, out stateMachineAwaiterSlots);
@@ -1460,6 +1540,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.RealizedSequencePoints,
                     debugDocumentProvider,
                     builder.RealizedExceptionHandlers,
+                    builder.AreLocalsZeroed,
+                    hasStackalloc,
                     builder.GetAllScopes(),
                     builder.HasDynamicLocal,
                     importScopeOpt,
@@ -1547,27 +1629,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: can return null if the method has no body.
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            ImportChain importChain;
-            bool originalBodyNested;
-            return BindMethodBody(method, compilationState, diagnostics, out importChain, out originalBodyNested);
+            return BindMethodBody(method, compilationState, diagnostics, out _, out _, out _);
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, out ImportChain importChain, out bool originalBodyNested)
+        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics,
+                                                 out ImportChain importChain, out bool originalBodyNested,
+                                                 out MethodBodySemanticModel.InitialState forSemanticModel)
         {
             originalBodyNested = false;
             importChain = null;
+            forSemanticModel = default;
 
             BoundBlock body;
 
-            var sourceMethod = method as SourceMemberMethodSymbol;
-            if ((object)sourceMethod != null)
+            if (method is SourceMemberMethodSymbol sourceMethod)
             {
-                var constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
+                CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
 
                 // Static constructor can't have any this/base call
                 if (method.MethodKind == MethodKind.StaticConstructor &&
-                    constructorSyntax?.Initializer != null)
+                    syntaxNode is ConstructorDeclarationSyntax constructorSyntax &&
+                    constructorSyntax.Initializer != null)
                 {
                     diagnostics.Add(
                         ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall,
@@ -1575,44 +1658,87 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constructorSyntax.Identifier.ValueText);
                 }
 
-                if (sourceMethod.IsExtern)
+                ExecutableCodeBinder bodyBinder = sourceMethod.TryGetBodyBinder();
+
+                if (sourceMethod.IsExtern || sourceMethod.IsDefaultValueTypeConstructor())
                 {
-                    if (sourceMethod.BodySyntax == null && constructorSyntax?.Initializer == null)
+                    return null;
+                }
+
+                if (bodyBinder != null)
+                {
+                    importChain = bodyBinder.ImportChain;
+
+                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    BoundNode methodBodyForSemanticModel = methodBody;
+                    NullableWalker.SnapshotManager snapshotManager = null;
+                    ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
+                    var compilation = bodyBinder.Compilation;
+                    var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
+                    if (compilation.NullableSemanticAnalysisEnabled)
                     {
-                        // Generate warnings only if we are not generating ERR_ExternHasBody or ERR_ExternHasConstructorInitializer errors
-                        GenerateExternalMethodWarnings(sourceMethod, diagnostics);
+                        methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
+                            compilation,
+                            method,
+                            methodBody,
+                            bodyBinder,
+                            // if language version is insufficient, we do not want to surface nullability diagnostics,
+                            // but we should still provide nullability information through the semantic model.
+                            isSufficientLangVersion ? diagnostics : new DiagnosticBag(),
+                            createSnapshots: true,
+                            out snapshotManager,
+                            ref remappedSymbols);
+                    }
+                    else
+                    {
+                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics);
                     }
 
-                    return null;
-                }
+                    forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
 
-                if (sourceMethod.IsDefaultValueTypeConstructor())
-                {
-                    // No body for default struct constructor.
-                    return null;
-                }
+                    switch (methodBody.Kind)
+                    {
+                        case BoundKind.ConstructorMethodBody:
+                            var constructor = (BoundConstructorMethodBody)methodBody;
+                            body = constructor.BlockBody ?? constructor.ExpressionBody;
 
-                var compilation = method.DeclaringCompilation;
-                var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
+                            if (constructor.Initializer != null)
+                            {
+                                ReportCtorInitializerCycles(method, constructor.Initializer.Expression, compilationState, diagnostics);
 
-                var bodySyntax = sourceMethod.BodySyntax;
+                                if (body == null)
+                                {
+                                    body = new BoundBlock(constructor.Syntax, constructor.Locals, ImmutableArray.Create<BoundStatement>(constructor.Initializer));
+                                }
+                                else
+                                {
+                                    body = new BoundBlock(constructor.Syntax, constructor.Locals, ImmutableArray.Create<BoundStatement>(constructor.Initializer, body));
+                                    originalBodyNested = true;
+                                }
 
-                if (bodySyntax != null)
-                {
-                    var inMethodBinder = factory.GetBinder(bodySyntax);
-                    var binder = new ExecutableCodeBinder(bodySyntax, sourceMethod, inMethodBinder);
-                    importChain = binder.ImportChain;
+                                return body;
+                            }
+                            else
+                            {
+                                Debug.Assert(constructor.Locals.IsEmpty);
+                            }
+                            break;
 
-                    binder.ValidateIteratorMethods(diagnostics);
+                        case BoundKind.NonConstructorMethodBody:
+                            var nonConstructor = (BoundNonConstructorMethodBody)methodBody;
+                            body = nonConstructor.BlockBody ?? nonConstructor.ExpressionBody;
+                            break;
 
-                    body = bodySyntax.Kind() == SyntaxKind.Block
-                        ? binder.BindEmbeddedBlock((BlockSyntax)bodySyntax, diagnostics)
-                        : binder.BindExpressionBodyAsBlock(
-                            (ArrowExpressionClauseSyntax)bodySyntax, diagnostics);
+                        case BoundKind.Block:
+                            body = (BoundBlock)methodBody;
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(methodBody.Kind);
+                    }
                 }
                 else
                 {
-                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbol;
+                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
                     if ((object)property != null && property.IsAutoProperty)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
@@ -1620,6 +1746,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return null;
                 }
+            }
+            else if (method is SynthesizedInstanceConstructor ctor)
+            {
+                // Synthesized instance constructors may partially synthesize
+                // their body
+                var node = ctor.GetNonNullSyntaxNode();
+                var factory = new SyntheticBoundNodeFactory(ctor, node, compilationState, diagnostics);
+                var stmts = ArrayBuilder<BoundStatement>.GetInstance();
+                ctor.GenerateMethodBodyStatements(factory, stmts, diagnostics);
+                body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
             }
             else
             {
@@ -1632,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MethodBodySynthesizer.ConstructDestructorBody(method, body);
             }
 
-            var constructorInitializer = BindConstructorInitializerIfAny(method, compilationState, diagnostics);
+            var constructorInitializer = BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
             ImmutableArray<BoundStatement> statements;
 
             if (constructorInitializer == null)
@@ -1657,22 +1793,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode(), statements);
         }
 
-        private static BoundStatement BindConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        private static BoundStatement BindImplicitConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
+            Debug.Assert(!method.ContainingType.IsDelegateType());
+
             // delegates have constructors but not constructor initializers
-            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType() && !method.IsExtern)
+            if (method.MethodKind == MethodKind.Constructor && !method.IsExtern)
             {
                 var compilation = method.DeclaringCompilation;
-                var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
+                var initializerInvocation = BindImplicitConstructorInitializer(method, diagnostics, compilation);
 
                 if (initializerInvocation != null)
                 {
-                    var ctorCall = initializerInvocation as BoundCall;
-                    if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
-                    {
-                        // Detect and report indirect cycles in the ctor-initializer call graph.
-                        compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
-                    }
+                    ReportCtorInitializerCycles(method, initializerInvocation, compilationState, diagnostics);
 
                     //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
                     var constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = method.IsImplicitlyDeclared };
@@ -1684,38 +1817,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private static void ReportCtorInitializerCycles(MethodSymbol method, BoundExpression initializerInvocation, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            var ctorCall = initializerInvocation as BoundCall;
+            if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && TypeSymbol.Equals(ctorCall.Method.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))
+            {
+                // Detect and report indirect cycles in the ctor-initializer call graph.
+                compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
+            }
+        }
+
         /// <summary>
-        /// Bind the (implicit or explicit) constructor initializer of a constructor symbol.
+        /// Bind the implicit constructor initializer of a constructor symbol.
         /// </summary>
         /// <param name="constructor">Constructor method.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
         /// <param name="compilation">Used to retrieve binder.</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
-        internal static BoundExpression BindConstructorInitializer(
+        internal static BoundExpression BindImplicitConstructorInitializer(
             MethodSymbol constructor, DiagnosticBag diagnostics, CSharpCompilation compilation)
         {
             // Note that the base type can be null if we're compiling System.Object in source.
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
-            ConstructorDeclarationSyntax constructorSyntax = null;
-            ArgumentListSyntax initializerArgumentListOpt = null;
-            if ((object)sourceConstructor != null)
-            {
-                constructorSyntax = (ConstructorDeclarationSyntax)sourceConstructor.SyntaxNode;
-                if (constructorSyntax.Initializer != null)
-                {
-                    initializerArgumentListOpt = constructorSyntax.Initializer.ArgumentList;
-                }
-            }
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
-            // The common case is that we have no constructor initializer and the type inherits directly from object.
+            // The common case is that the type inherits directly from object.
             // Also, we might be trying to generate a constructor for an entirely compiler-generated class such
             // as a closure class; in that case it is vexing to try to find a suitable binder for the non-existing
             // constructor syntax so that we can do unnecessary overload resolution on the non-existing initializer!
             // Simply take the early out: bind directly to the parameterless object ctor rather than attempting
             // overload resolution.
-            if (initializerArgumentListOpt == null && (object)baseType != null)
+            if ((object)baseType != null)
             {
                 if (baseType.SpecialType == SpecialType.System_Object)
                 {
@@ -1729,95 +1863,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Either our base type is not object, or we have an initializer syntax, or both. We're going to
-            // need to do overload resolution on the set of constructors of the base type, either on
-            // the provided initializer syntax, or on an implicit ": base()" syntax.
-
-            // SPEC ERROR: The specification states that if you have the situation 
-            // SPEC ERROR: class B { ... } class D1 : B {} then the default constructor
-            // SPEC ERROR: generated for D1 must call an accessible *parameterless* constructor
-            // SPEC ERROR: in B. However, it also states that if you have 
-            // SPEC ERROR: class B { ... } class D2 : B { D2() {} }  or
-            // SPEC ERROR: class B { ... } class D3 : B { D3() : base() {} }  then
-            // SPEC ERROR: the compiler performs *overload resolution* to determine
-            // SPEC ERROR: which accessible constructor of B is called. Since B might have
-            // SPEC ERROR: a ctor with all optional parameters, overload resolution might
-            // SPEC ERROR: succeed even if there is no parameterless constructor. This
-            // SPEC ERROR: is unintentionally inconsistent, and the native compiler does not
-            // SPEC ERROR: implement this behavior. Rather, we should say in the spec that
-            // SPEC ERROR: if there is no ctor in D1, then a ctor is created for you exactly
-            // SPEC ERROR: as though you'd said "D1() : base() {}". 
-            // SPEC ERROR: This is what we now do in Roslyn.
+            if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            {
+                return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
+            }
 
             // Now, in order to do overload resolution, we're going to need a binder. There are
-            // three possible situations:
+            // two possible situations:
             //
             // class D1 : B { }
             // class D2 : B { D2(int x) { } }
-            // class D3 : B { D3(int x) : base(x) { } }
             //
             // In the first case the binder needs to be the binder associated with
             // the *body* of D1 because if the base class ctor is protected, we need
             // to be inside the body of a derived class in order for it to be in the
             // accessibility domain of the protected base class ctor.
             //
-            // In the second case the binder could be the binder associated with 
+            // In the second case the binder could be the binder associated with
             // the body of D2; since the implicit call to base() will have no arguments
             // there is no need to look up "x".
-            // 
-            // In the third case the binder must be the binder that knows about "x" 
-            // because x is in scope.
-
             Binder outerBinder;
 
             if ((object)sourceConstructor == null)
             {
                 // The constructor is implicit. We need to get the binder for the body
-                // of the enclosing class. 
+                // of the enclosing class.
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
-                SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
-                outerBinder = compilation.GetBinderFactory(containerNode.SyntaxTree).GetBinder(containerNode, bodyToken.Position);
-            }
-            else if (initializerArgumentListOpt == null)
-            {
-                // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
-                // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
-                // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
+                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(constructorSyntax.ParameterList);
+                if (containerNode is RecordDeclarationSyntax recordDecl)
+                {
+                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                }
+                else
+                {
+                    SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
+                    outerBinder = binderFactory.GetBinder(containerNode, bodyToken.Position);
+                }
             }
             else
             {
-                outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
+                BinderFactory binderFactory = compilation.GetBinderFactory(sourceConstructor.SyntaxTree);
+
+                switch (sourceConstructor.SyntaxNode)
+                {
+                    case ConstructorDeclarationSyntax ctorDecl:
+                        // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
+                        // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
+                        // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
+
+                        outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+                        break;
+
+                    case RecordDeclarationSyntax recordDecl:
+                        outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
             }
 
             // wrap in ConstructorInitializerBinder for appropriate errors
             // Handle scoping for possible pattern variables declared in the initializer
             Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
 
-            if (initializerArgumentListOpt != null)
-            {
-                initializerBinder = new ExecutableCodeBinder(initializerArgumentListOpt, constructor, initializerBinder);
-            }
-
-            return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
+            return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
         }
 
         private static SyntaxToken GetImplicitConstructorBodyToken(CSharpSyntaxNode containerNode)
         {
-            var kind = containerNode.Kind();
-            switch (kind)
-            {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)containerNode).OpenBraceToken;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)containerNode).OpenBraceToken;
-                case SyntaxKind.EnumDeclaration:
-                    // We're not going to find any non-default ctors, but we'll look anyway.
-                    return ((EnumDeclarationSyntax)containerNode).OpenBraceToken;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+            return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
         }
 
         internal static BoundCall GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
@@ -1879,21 +1995,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 resultKind: resultKind,
                 binderOpt: null,
-                type: baseType,
+                type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
         }
 
-        private static void GenerateExternalMethodWarnings(SourceMemberMethodSymbol methodSymbol, DiagnosticBag diagnostics)
+        private static BoundCall GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, DiagnosticBag diagnostics)
         {
-            if (methodSymbol.GetAttributes().IsEmpty && !methodSymbol.ContainingType.IsComImport)
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            MethodSymbol baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteDiagnostics);
+
+            if (baseConstructor is null)
             {
-                // external method with no attributes
-                var errorCode = (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) ?
-                    ErrorCode.WRN_ExternCtorNoImplementation :
-                    ErrorCode.WRN_ExternMethodNoImplementation;
-                diagnostics.Add(errorCode, methodSymbol.Locations[0], methodSymbol);
+                diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
+                return null;
             }
+
+            if (Binder.ReportUseSiteDiagnostics(baseConstructor, diagnostics, diagnosticsLocation))
+            {
+                return null;
+            }
+
+            if (!useSiteDiagnostics.IsNullOrEmpty())
+            {
+                diagnostics.Add(diagnosticsLocation, useSiteDiagnostics);
+            }
+
+            CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            BoundExpression argument = new BoundParameter(syntax, constructor.Parameters[0]);
+
+            return new BoundCall(
+                syntax: syntax,
+                receiverOpt: receiver,
+                method: baseConstructor,
+                arguments: ImmutableArray.Create(argument),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                resultKind: LookupResultKind.Viable,
+                binderOpt: null,
+                type: baseConstructor.ReturnType,
+                hasErrors: false)
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>

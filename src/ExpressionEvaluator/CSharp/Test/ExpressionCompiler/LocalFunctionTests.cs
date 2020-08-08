@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         int z = G();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>g__G|0_0");
@@ -37,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.Equal(assembly.Count, 0);
-                Assert.Equal(locals.Count, 0);
+                Assert.Equal(0, assembly.Count);
+                Assert.Equal(0, locals.Count);
                 locals.Free();
             });
         }
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         G(x + 1);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>g__G|0_0");
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "y", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 locals.Free();
                 string error;
                 context.CompileExpression("this.F(1)", out error, testData);
-                Assert.Equal(error, "error CS0027: Keyword 'this' is not available in the current context");
+                Assert.Equal("error CS0027: Keyword 'this' is not available in the current context", error);
             });
         }
 
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         int z = G();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>g__G|1_0");
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         F2(1);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F1>g__F3|0_1");
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         G();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>g__G|0_0");
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "value", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -285,14 +287,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         G();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>g__G|0_0");
                 var testData = new CompilationTestData();
                 string error;
                 context.CompileExpression("value", out error, testData);
-                Assert.Equal(error, "error CS0103: The name 'value' does not exist in the current context");
+                Assert.Equal("error CS0103: The name 'value' does not exist in the current context", error);
             });
         }
     }
