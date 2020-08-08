@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -104,6 +105,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static readonly TypeSymbol NoReturnExpression = new UnsupportedMetadataTypeSymbol();
+
+        internal sealed class MethodBodyExitPaths : BoundTreeWalker
+        {
+            private readonly ArrayBuilder<(BoundNode, TypeWithAnnotations)> _builder;
+
+            private MethodBodyExitPaths(ArrayBuilder<(BoundNode, TypeWithAnnotations)> builder)
+            {
+                _builder = builder;
+            }
+
+            public static void GerExitPaths(ArrayBuilder<(BoundNode, TypeWithAnnotations)> builder, BoundNode node)
+            {
+                var visitor = new MethodBodyExitPaths(builder);
+                visitor.Visit(node);
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (!(node is BoundExpression))
+                {
+                    return base.Visit(node);
+                }
+
+                return null;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                // Do not recurse into local functions; we don't want their returns.
+                return null;
+            }
+
+            public override BoundNode VisitReturnStatement(BoundReturnStatement node)
+            {
+                var expression = node.ExpressionOpt;
+                var type = (expression is null) ?
+                    NoReturnExpression :
+                    expression.Type?.SetUnknownNullabilityForReferenceTypes();
+                _builder.Add((node, TypeWithAnnotations.Create(type)));
+                return null;
+            }
+        }
+
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
@@ -129,6 +179,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind;
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
+
+            // if it's an error type, try to resolve from the Body instead!
+            if(returnType.Type?.IsErrorType() == true)
+            {
+                // try to infer from the body
+                var bodyBinder = TryGetBodyBinder();
+                if (bodyBinder != null)
+                {
+                    // set the parameters before evaluating method body ... it may try to access the parameters ...
+                    _lazyParameters = parameters;
+
+                    // evaluate method body
+                    var bodyDiagnostics = new DiagnosticBag();
+                    var boundBody = bodyBinder.BindMethodBody(syntax, bodyDiagnostics);
+                    var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
+                    MethodBodyExitPaths.GerExitPaths(exitPaths, boundBody);
+                    if (exitPaths.Count > 0)
+                    {
+                        var exitPath = exitPaths.Last();
+                        returnType = exitPath.Item2;
+                    }
+                }
+            }
 
             // span-like types are returnable in general
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
