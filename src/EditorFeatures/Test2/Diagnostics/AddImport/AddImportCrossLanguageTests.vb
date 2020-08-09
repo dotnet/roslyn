@@ -404,7 +404,7 @@ End Namespace
             Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IWorkspaceServiceFactory).First(
                         Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
             Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
-            solutionCrawler.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzer))
+            solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

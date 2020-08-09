@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadRefCompareLeft:
                 case ErrorCode.WRN_BadRefCompareRight:
                 case ErrorCode.WRN_PatternIsAmbiguous:
-                case ErrorCode.WRN_PatternStaticOrInaccessible:
+                case ErrorCode.WRN_PatternNotPublicOrNotInstance:
                 case ErrorCode.WRN_PatternBadSignature:
                 case ErrorCode.WRN_SameFullNameThisNsAgg:
                 case ErrorCode.WRN_SameFullNameThisAggAgg:

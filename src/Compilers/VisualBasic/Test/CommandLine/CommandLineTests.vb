@@ -127,11 +127,15 @@ my_option2 = my_val2")
 
             Dim comp = cmd.Compilation
             Dim tree = comp.SyntaxTrees.Single()
-            AssertEx.SetEqual({
-                KeyValuePairUtil.Create("bc42024", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning03", ReportDiagnostic.Suppress)
-                }, tree.DiagnosticOptions)
+            Dim syntaxTreeOptions = comp.Options.SyntaxTreeOptionsProvider
+            Dim report As ReportDiagnostic
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "BC42024", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning01", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning03", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.False(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning02", report))
 
             Dim provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider
             Dim options = provider.GetOptions(tree)

@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public async Task<object> HandleRequestAsync(
-            LSP.ExecuteCommandParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+        public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);

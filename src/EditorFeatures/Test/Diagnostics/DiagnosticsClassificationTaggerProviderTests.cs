@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticsClassificationTaggerProviderTests
     {
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/46463"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task Test_FadingSpans()
         {
             var analyzer = new Analyzer();

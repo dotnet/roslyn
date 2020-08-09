@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
                    sourceReferenceResolver: sourceReferenceResolver,
+                   syntaxTreeOptionsProvider: null,
                    metadataReferenceResolver: metadataReferenceResolver,
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
@@ -204,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool debugPlusMode,
             XmlReferenceResolver? xmlReferenceResolver,
             SourceReferenceResolver? sourceReferenceResolver,
+            SyntaxTreeOptionsProvider? syntaxTreeOptionsProvider,
             MetadataReferenceResolver? metadataReferenceResolver,
             AssemblyIdentityComparer? assemblyIdentityComparer,
             StrongNameProvider? strongNameProvider,
@@ -216,8 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
                    concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver,
-                   sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
-                   strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
+                   sourceReferenceResolver, syntaxTreeOptionsProvider, metadataReferenceResolver,
+                   assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
@@ -248,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             debugPlusMode: other.DebugPlusMode,
             xmlReferenceResolver: other.XmlReferenceResolver,
             sourceReferenceResolver: other.SourceReferenceResolver,
+            syntaxTreeOptionsProvider: other.SyntaxTreeOptionsProvider,
             metadataReferenceResolver: other.MetadataReferenceResolver,
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
@@ -573,6 +576,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { SourceReferenceResolver = resolver };
         }
 
+        public new CSharpCompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? provider)
+        {
+            if (ReferenceEquals(provider, this.SyntaxTreeOptionsProvider))
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { SyntaxTreeOptionsProvider = provider };
+        }
+
         public new CSharpCompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver? resolver)
         {
             if (ReferenceEquals(resolver, this.MetadataReferenceResolver))
@@ -624,6 +637,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver? resolver) =>
             WithSourceReferenceResolver(resolver);
+
+        protected override CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider? provider)
+            => WithSyntaxTreeOptionsProvider(provider);
 
         protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver? resolver) =>
             WithMetadataReferenceResolver(resolver);
@@ -739,9 +755,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode()))));
         }
 
-        internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
+        internal override Diagnostic? FilterDiagnostic(Diagnostic diagnostic)
         {
-            return CSharpDiagnosticFilter.Filter(diagnostic, WarningLevel, NullableContextOptions, GeneralDiagnosticOption, SpecificDiagnosticOptions);
+            return CSharpDiagnosticFilter.Filter(
+                diagnostic,
+                WarningLevel,
+                NullableContextOptions,
+                GeneralDiagnosticOption,
+                SpecificDiagnosticOptions,
+                SyntaxTreeOptionsProvider);
         }
 
         protected override CompilationOptions CommonWithModuleName(string? moduleName)
@@ -901,6 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
                    sourceReferenceResolver: sourceReferenceResolver,
+                   syntaxTreeOptionsProvider: null,
                    metadataReferenceResolver: metadataReferenceResolver,
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,

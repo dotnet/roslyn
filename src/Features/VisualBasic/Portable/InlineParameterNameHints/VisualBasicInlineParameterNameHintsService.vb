@@ -43,6 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineParameterNameHints
                 Return True
             End If
 
+            If TypeOf arg Is InterpolatedStringExpressionSyntax Then
+                ' We want to adorn all types of strings
+                Return True
+            End If
+
             If TypeOf arg Is ObjectCreationExpressionSyntax Then
                 ' We want to adorn object invocations that exist as arguments because they are Not declared anywhere
                 ' else in the file
