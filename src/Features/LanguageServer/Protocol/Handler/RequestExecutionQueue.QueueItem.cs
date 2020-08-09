@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             public Func<RequestContext, Task<bool>> Callback { get; }
             public bool MutatesSolutionState { get; }
-            public string ClientName { get; }
+            public string? ClientName { get; }
             public ClientCapabilities ClientCapabilities { get; }
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string clientName, Func<RequestContext, Task<bool>> callback)
+            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, Func<RequestContext, Task<bool>> callback)
             {
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;

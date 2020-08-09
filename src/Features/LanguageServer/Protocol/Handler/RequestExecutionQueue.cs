@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request,
-            ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken) where TRequestType : class
+            ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken) where TRequestType : class
         {
             var completion = new TaskCompletionSource<TResponseType>();
 
@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                     var ranToCompletion = await work.Callback(context).ConfigureAwait(false);
 
+                    // If the handling of the request failed, the exception will bubble back up to the caller, but we
+                    // still need to react to it here by throwing away solution updates
                     if (ranToCompletion)
                     {
                         _lastMutatedSolution = mutatedSolution ?? _lastMutatedSolution;
