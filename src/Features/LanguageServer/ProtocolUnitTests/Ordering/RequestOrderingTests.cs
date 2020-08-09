@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             .AddParts(typeof(FailingMutatingRequestHandler));
 
         [Fact]
-        public async Task SerialRequestsDontOverlap()
+        public async Task MutatingRequestsDontOverlap()
         {
             var requests = new[] {
                 new TestRequest(MutatingRequestHandler.MethodName),
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         }
 
         [Fact]
-        public async Task ParallelRequestsOverlap()
+        public async Task NonMutatingRequestsOverlap()
         {
             var requests = new[] {
                 new TestRequest(NonMutatingRequestHandler.MethodName),
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         }
 
         [Fact]
-        public async Task ParallelWaitsForSerial()
+        public async Task NonMutatingWaitsForMutating()
         {
             var requests = new[] {
                 new TestRequest(MutatingRequestHandler.MethodName),
@@ -70,16 +70,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             var responses = await TestAsync(requests);
 
-            // The parallel tasks should have waited for the first task to finish
+            // The non mutating tasks should have waited for the first task to finish
             Assert.True(responses[1].StartTime >= responses[0].EndTime);
             Assert.True(responses[2].StartTime >= responses[0].EndTime);
-            // The parallel requests shouldn't have waited for each other
+            // The non mutating requests shouldn't have waited for each other
             Assert.True(responses[1].StartTime < responses[2].EndTime);
             Assert.True(responses[2].StartTime < responses[1].EndTime);
         }
 
         [Fact]
-        public async Task ParallelOperatesOnTheRightSolutions()
+        public async Task NonMutatingOperatesOnTheRightSolutions()
         {
             var requests = new[] {
                 new TestRequest(NonMutatingRequestHandler.MethodName),
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             var responses = await TestAsync(requests);
 
-            // first two tasks should have kicked off in parallel
+            // first two tasks should have kicked off without waiting
             Assert.True(responses[0].StartTime < responses[1].EndTime);
             Assert.True(responses[1].StartTime < responses[0].EndTime);
 
@@ -122,8 +122,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             var waitables = StartTestRun(requests);
 
+            // first task should fail
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
 
+            // remaining tasks should have executed normally
             var responses = await Task.WhenAll(waitables.Skip(1));
 
             Assert.Empty(responses.Where(r => r.StartTime == default));
@@ -142,8 +144,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             var waitables = StartTestRun(requests);
 
+            // first task should fail
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[0]);
 
+            // remaining tasks should have executed normally
             var responses = await Task.WhenAll(waitables.Skip(1));
 
             Assert.Empty(responses.Where(r => r.StartTime == default));
@@ -161,12 +165,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             var waitables = StartTestRun(requests);
 
+            // second task should have failed
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await waitables[1]);
 
             var responses = await Task.WhenAll(waitables.Where(t => !t.IsFaulted));
 
-            // Every request should have started at or after the one before it
-            Assert.Equal(responses[0].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
+            // First and last tasks use the same solution because the middle request failed
+            Assert.Equal(responses[0].Solution.WorkspaceVersion, responses[2].Solution.WorkspaceVersion);
         }
 
         private async Task<TestResponse[]> TestAsync(TestRequest[] requests)

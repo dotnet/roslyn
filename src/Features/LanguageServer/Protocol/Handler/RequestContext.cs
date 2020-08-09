@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         /// <summary>
-        /// Allows a mutating request to provide a new solution snapshot that all subsequent requests
-        /// should use.
+        /// Allows a mutating request to provide a new solution snapshot that all subsequent requests should use.
         /// </summary>
         public void UpdateSolution(Solution solution)
         {

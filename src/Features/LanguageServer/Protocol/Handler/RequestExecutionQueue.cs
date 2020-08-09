@@ -26,13 +26,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
-            _ = ProcessQueueAsync();
             _solutionProvider = solutionProvider;
+
+            // Start the queue processing
+            _ = ProcessQueueAsync();
         }
 
+        /// <summary>
+        /// Queues a request to be handled by the specified handler, with mutating requests blocking future requests
+        /// from starting until the mutation is complete.
+        /// </summary>
+        /// <param name="mutatesSolutionState">Whether or not the specified request needs to mutate the solution.</param>
+        /// <param name="handler">The handler that will handle the request.</param>
+        /// <param name="request">The request to hanel.</param>
+        /// <param name="clientCapabilities">The client capabilities.</param>
+        /// <param name="clientName">The client name.</param>
+        /// <param name="cancellationToken">A cancellation token that will cancel the handing of this request.</param>
+        /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
         public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request,
             ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken) where TRequestType : class
         {
+            // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
 
             var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName,
@@ -57,6 +71,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     catch (Exception exception)
                     {
+                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can observe but
+                        // don't let it escape from this callback, so it doens't affect the queue processing.
                         completion.SetException(exception);
                     }
                     return false;
@@ -92,6 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
+                    // Non mutating request get given the current solution state, but are otherwise fire-and-forget
                     _ = work.Callback(context);
                 }
             }
