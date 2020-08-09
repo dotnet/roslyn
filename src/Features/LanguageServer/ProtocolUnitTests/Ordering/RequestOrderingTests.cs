@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task SerialRequestsDontOverlap()
         {
             var requests = new[] {
-                new OrderedLspRequest(MutatingRequestHandler.MethodName),
-                new OrderedLspRequest(MutatingRequestHandler.MethodName),
-                new OrderedLspRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ParallelRequestsOverlap()
         {
             var requests = new[] {
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ParallelWaitsForSerial()
         {
             var requests = new[] {
-                new OrderedLspRequest(MutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ParallelOperatesOnTheRightSolutions()
         {
             var requests = new[] {
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(MutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
             var responses = await TestAsync(requests);
@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ThrowingTaskDoesntBringDownQueue()
         {
             var requests = new[] {
-                new OrderedLspRequest(FailingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(MutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(FailingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
             var waitables = StartTestRun(requests);
@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ThrowingMutableTaskDoesntBringDownQueue()
         {
             var requests = new[] {
-                new OrderedLspRequest(FailingMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(MutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(FailingMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
             var waitables = StartTestRun(requests);
@@ -154,9 +154,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public async Task ThrowingMutableTaskDoesntMutateTheSolution()
         {
             var requests = new[] {
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(FailingMutatingRequestHandler.MethodName),
-                new OrderedLspRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(FailingMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
             var waitables = StartTestRun(requests);
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Equal(responses[0].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
         }
 
-        private async Task<OrderedLspResponse[]> TestAsync(OrderedLspRequest[] requests)
+        private async Task<TestResponse[]> TestAsync(TestRequest[] requests)
         {
             var waitables = StartTestRun(requests);
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             return responses;
         }
 
-        private List<Task<OrderedLspResponse>> StartTestRun(OrderedLspRequest[] requests)
+        private List<Task<TestResponse>> StartTestRun(TestRequest[] requests)
         {
             using var workspace = CreateTestWorkspace("class C { }", out _);
             var solution = workspace.CurrentSolution;
@@ -190,12 +190,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var languageServer = GetLanguageServer(solution);
             var clientCapabilities = new LSP.ClientCapabilities();
 
-            var waitables = new List<Task<OrderedLspResponse>>();
+            var waitables = new List<Task<TestResponse>>();
             var order = 1;
             foreach (var request in requests)
             {
                 request.RequestOrder = order++;
-                waitables.Add(languageServer.ExecuteRequestAsync<OrderedLspRequest, OrderedLspResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
+                waitables.Add(languageServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
             }
 
             return waitables;

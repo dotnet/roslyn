@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspMethod(MethodName, mutatesSolutionState: true)]
-    internal class MutatingRequestHandler : AbstractRequestHandler<OrderedLspRequest, OrderedLspResponse>
+    internal class MutatingRequestHandler : AbstractRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(MutatingRequestHandler);
         private const int Delay = 100;
@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public override async Task<OrderedLspResponse> HandleRequestAsync(OrderedLspRequest request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
-            var response = new OrderedLspResponse
+            var response = new TestResponse
             {
                 Solution = context.Solution,
                 RequestOrder = request.RequestOrder,
