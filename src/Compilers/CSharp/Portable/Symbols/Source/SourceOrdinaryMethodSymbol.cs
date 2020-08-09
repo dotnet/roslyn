@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -105,55 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static readonly TypeSymbol NoReturnExpression = new UnsupportedMetadataTypeSymbol();
-
-        internal sealed class MethodBodyExitPaths : BoundTreeWalker
-        {
-            private readonly ArrayBuilder<(BoundNode, TypeWithAnnotations)> _builder;
-
-            private MethodBodyExitPaths(ArrayBuilder<(BoundNode, TypeWithAnnotations)> builder)
-            {
-                _builder = builder;
-            }
-
-            public static void GerExitPaths(ArrayBuilder<(BoundNode, TypeWithAnnotations)> builder, BoundNode node)
-            {
-                var visitor = new MethodBodyExitPaths(builder);
-                visitor.Visit(node);
-            }
-
-            public override BoundNode Visit(BoundNode node)
-            {
-                if (!(node is BoundExpression))
-                {
-                    return base.Visit(node);
-                }
-
-                return null;
-            }
-
-            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-            {
-                // Do not recurse into local functions; we don't want their returns.
-                return null;
-            }
-
-            public override BoundNode VisitReturnStatement(BoundReturnStatement node)
-            {
-                var expression = node.ExpressionOpt;
-                var type = (expression is null) ?
-                    NoReturnExpression :
-                    expression.Type?.SetUnknownNullabilityForReferenceTypes();
-                _builder.Add((node, TypeWithAnnotations.Create(type)));
-                return null;
-            }
-        }
-
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
@@ -194,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var bodyDiagnostics = new DiagnosticBag();
                     var boundBody = bodyBinder.BindMethodBody(syntax, bodyDiagnostics);
                     var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
-                    MethodBodyExitPaths.GerExitPaths(exitPaths, boundBody);
+                    CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBody);
                     if (exitPaths.Count > 0)
                     {
                         var exitPath = exitPaths.Last();
