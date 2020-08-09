@@ -9531,7 +9531,7 @@ tryAgain:
         /// </summary>
         private bool CanStartExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false);
+            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false, allowBraceLambdaExpression: false);
         }
 
         /// <summary>
@@ -9539,10 +9539,10 @@ tryAgain:
         /// </summary>
         private bool IsPossibleExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true);
+            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true, allowBraceLambdaExpression: false);
         }
 
-        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions)
+        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions, bool allowBraceLambdaExpression)
         {
             SyntaxKind tk = this.CurrentToken.Kind;
             switch (tk)
@@ -9576,7 +9576,11 @@ tryAgain:
                 case SyntaxKind.RefKeyword:
                     return true;
                 case SyntaxKind.StaticKeyword:
-                    return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
+                    return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression, allowBraceLambdaExpression: allowBraceLambdaExpression);
+                case SyntaxKind.OpenBraceToken:
+                    if (allowBraceLambdaExpression && IsPossibleLambdaExpression(Precedence.Expression, allowBraceLambdaExpression: true))
+                        return true;
+                    return false;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
@@ -10215,6 +10219,8 @@ tryAgain:
                     return this.ParseQualifiedName(NameOptions.InExpression);
                 case SyntaxKind.EqualsGreaterThanToken:
                     return this.ParseLambdaExpression();
+                case SyntaxKind.OpenBraceToken:
+                    return this.ParseLambdaExpression();
                 case SyntaxKind.StaticKeyword:
                     if (this.IsPossibleAnonymousMethodExpression())
                     {
@@ -10695,7 +10701,7 @@ tryAgain:
 
         private bool IsPossibleArgumentExpression()
         {
-            return IsValidArgumentRefKindKeyword(this.CurrentToken.Kind) || this.IsPossibleExpression();
+            return IsValidArgumentRefKindKeyword(this.CurrentToken.Kind) || this.IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true, allowBraceLambdaExpression: true);
         }
 
         private static bool IsValidArgumentRefKindKeyword(SyntaxKind kind)
@@ -11177,12 +11183,11 @@ tryAgain:
             }
         }
 
-        private bool IsPossibleLambdaExpression(Precedence precedence)
+        private bool IsPossibleLambdaExpression(Precedence precedence, bool allowBraceLambdaExpression = false)
         {
             // Only call into this if after `static` or after a legal identifier.
-            Debug.Assert(
-                this.CurrentToken.Kind == SyntaxKind.StaticKeyword ||
-                this.IsTrueIdentifier(this.CurrentToken));
+            // Debug.Assert(this.CurrentToken.Kind == SyntaxKind.StaticKeyword || this.IsTrueIdentifier(this.CurrentToken));
+
             if (precedence > Precedence.Lambda)
             {
                 return false;
@@ -11195,6 +11200,8 @@ tryAgain:
 
             int peekIndex;
             bool seenStatic;
+            bool seenAsync;
+            
             if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
             {
                 peekIndex = 1;
@@ -11205,11 +11212,13 @@ tryAgain:
             {
                 peekIndex = 2;
                 seenStatic = true;
+                seenAsync = true;
             }
             else
             {
                 peekIndex = 0;
                 seenStatic = false;
+                seenAsync = false;
             }
 
             if (this.PeekToken(peekIndex).Kind == SyntaxKind.EqualsGreaterThanToken)
@@ -11224,6 +11233,14 @@ tryAgain:
 
                 // This is an error case, but we have enough code in front of us to be certain
                 // the user was trying to write a static lambda.
+                return true;
+            }
+
+            if(allowBraceLambdaExpression && this.PeekToken(peekIndex).Kind == SyntaxKind.OpenBraceToken)
+            {
+                // this could be a parameterless lambda
+                // 1. `{ ... }`
+
                 return true;
             }
 
@@ -12128,6 +12145,22 @@ tryAgain:
                     var paramList = this.ParseLambdaParameterList();
                     var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                     arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    var (block, expression) = ParseLambdaBody();
+
+                    return _syntaxFactory.ParenthesizedLambdaExpression(
+                        modifiers, paramList, arrow, block, expression);
+                }
+                else if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                {
+                    var openParen = SyntaxFactory.FakeToken(SyntaxKind.OpenParenToken, "(");
+                    var closeParen = SyntaxFactory.FakeToken(SyntaxKind.CloseParenToken, ")");
+                    var arrow = SyntaxFactory.FakeToken(SyntaxKind.EqualsGreaterThanToken, "=>");
+
+                    // build fake parameters list
+                    var nodes = _pool.AllocateSeparated<ParameterSyntax>();
+                    var paramList = _syntaxFactory.ParameterList(openParen, nodes, closeParen);
+
+                    // parse the body
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.ParenthesizedLambdaExpression(
