@@ -2853,6 +2853,9 @@ End Class
   <data name=""AnalyzerTitle3"" xml:space=""preserve"">
     <value>  " + "\t" + @"    Title with leading and trailing spaces/tabs  " + "\t" + @"    </value>
   </data>
+  <data name=""AnalyzerTitle4"" xml:space=""preserve"">
+    <value>Title with trailing space. </value>
+  </data>
 </root>";
             var fixedAdditionalFileText = @"
 <root>
@@ -2864,6 +2867,9 @@ End Class
   </data>
   <data name=""AnalyzerTitle3"" xml:space=""preserve"">
     <value>Title with leading and trailing spaces/tabs</value>
+  </data>
+  <data name=""AnalyzerTitle4"" xml:space=""preserve"">
+    <value>Title with trailing space</value>
   </data>
 </root>";
 
@@ -2888,11 +2894,14 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor descriptor3 =
         new DiagnosticDescriptor(""MyDiagnosticId"", {|#2:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""MyDiagnosticId"", {|#3:new LocalizableResourceString(""AnalyzerTitle4"", null, typeof(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
         }
     }
 
@@ -2924,11 +2933,14 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor descriptor3 =
         new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""MyDiagnosticId"", new LocalizableResourceString(""AnalyzerTitle4"", null, typeof(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
         }
     }
 
@@ -2940,6 +2952,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1),
         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(2),
+        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3),
     });
 
             await VerifyBasicCodeFixAsync(@"
@@ -2959,10 +2972,11 @@ Class MyAnalyzer
     Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
     Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle3"", Nothing, GetType(Resources))
     Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#2:Title|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", {|#3:New LocalizableResourceString(""AnalyzerTitle4"", Nothing, GetType(Resources))|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
 		End Get
 	End Property
 
@@ -2990,10 +3004,11 @@ Class MyAnalyzer
     Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle2"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
     Private Shared ReadOnly Title As New LocalizableResourceString(""AnalyzerTitle3"", Nothing, GetType(Resources))
     Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", Title, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", New LocalizableResourceString(""AnalyzerTitle4"", Nothing, GetType(Resources)), ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
 		End Get
 	End Property
 
@@ -3004,6 +3019,7 @@ End Class
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(0),
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1),
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(2),
+        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3),
     });
         }
 
@@ -3738,6 +3754,9 @@ End Class
   <data name=""AnalyzerMessage3"" xml:space=""preserve"">
     <value>  " + "\t" + @"    Message with leading and trailing spaces/tabs  " + "\t" + @"    </value>
   </data>
+  <data name=""AnalyzerMessage4"" xml:space=""preserve"">
+    <value>Message with period and trailing whitespace. </value>
+  </data>
 </root>";
             var fixedAdditionalFileText = @"
 <root>
@@ -3749,7 +3768,10 @@ End Class
     <comment>Optional comment.</comment>
   </data>
   <data name=""AnalyzerMessage3"" xml:space=""preserve"">
-    <value>Message with leading and trailing whitespace</value>
+    <value>Message with leading and trailing spaces/tabs</value>
+  </data>
+  <data name=""AnalyzerMessage4"" xml:space=""preserve"">
+    <value>Message with period and trailing whitespace</value>
   </data>
 </root>";
 
@@ -3774,11 +3796,14 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor descriptor3 =
         new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#2:new LocalizableResourceString(""AnalyzerMessage3"", null, typeof(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#3:new LocalizableResourceString(""AnalyzerMessage4"", null, typeof(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
         }
     }
 
@@ -3810,11 +3835,14 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor descriptor3 =
         new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", new LocalizableResourceString(""AnalyzerMessage3"", null, typeof(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", new LocalizableResourceString(""AnalyzerMessage4"", null, typeof(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
         }
     }
 
@@ -3826,6 +3854,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1),
         VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(2),
+        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3),
     });
 
             await VerifyBasicCodeFixAsync(@"
@@ -3845,10 +3874,11 @@ Class MyAnalyzer
     Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
     Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:Message|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
     Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#2:New LocalizableResourceString(""AnalyzerMessage3"", Nothing, GetType(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#3:New LocalizableResourceString(""AnalyzerMessage4"", Nothing, GetType(Resources))|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
 		End Get
 	End Property
 
@@ -3876,10 +3906,11 @@ Class MyAnalyzer
     Private Shared ReadOnly Message As LocalizableString = New LocalizableResourceString(""AnalyzerMessage2"", Nothing, GetType(Resources))
     Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", Message, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
     Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", New LocalizableResourceString(""AnalyzerMessage3"", Nothing, GetType(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", New LocalizableResourceString(""AnalyzerMessage4"", Nothing, GetType(Resources)), ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
 		End Get
 	End Property
 
@@ -3890,6 +3921,7 @@ End Class
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(0),
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1),
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(2),
+        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3),
     });
         }
 
@@ -4248,27 +4280,31 @@ End Class
             var additionalFileText = @"
 <root>
   <data name=""AnalyzerDescription1"" xml:space=""preserve"">
-    <value> Description with leading whitespace</value>
+    <value>Description with trailing space </value>
   </data>
   <data name=""AnalyzerDescription2"" xml:space=""preserve"">
-    <value>Description with trailing whitespace </value>
-    <comment>Optional comment.</comment>
+    <value> Description with leading space</value>
   </data>
   <data name=""AnalyzerDescription3"" xml:space=""preserve"">
     <value>  " + "\t" + @"    Description with leading and trailing spaces/tabs  " + "\t" + @"    </value>
+  </data>
+  <data name=""AnalyzerDescription4"" xml:space=""preserve"">
+    <value>Description with trailing space. </value>
   </data>
 </root>";
             var fixedAdditionalFileText = @"
 <root>
   <data name=""AnalyzerDescription1"" xml:space=""preserve"">
-    <value>Description with leading whitespace</value>
+    <value>Description with trailing space.</value>
   </data>
   <data name=""AnalyzerDescription2"" xml:space=""preserve"">
-    <value>Description with trailing whitespace</value>
-    <comment>Optional comment.</comment>
+    <value>Description with leading space.</value>
   </data>
   <data name=""AnalyzerDescription3"" xml:space=""preserve"">
-    <value>Description with leading and trailing spaces/tabs</value>
+    <value>Description with leading and trailing spaces/tabs.</value>
+  </data>
+  <data name=""AnalyzerDescription4"" xml:space=""preserve"">
+    <value>Description with trailing space.</value>
   </data>
 </root>";
 
@@ -4293,11 +4329,14 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor descriptor3 =
         new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#2:description: new LocalizableResourceString(""AnalyzerDescription3"", null, typeof(Resources))|}, helpLinkUri: ""HelpLink"", customTags: """");
 
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, {|#3:description: new LocalizableResourceString(""AnalyzerDescription4"", null, typeof(Resources))|}, helpLinkUri: ""HelpLink"", customTags: """");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
         }
     }
 
@@ -4305,10 +4344,10 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }",
-    additionalFileName: additionalFileName,
-    additionalFileText: additionalFileText,
-    fixedAdditionalFileText: fixedAdditionalFileText,
-    fixedSource: @"
+                additionalFileName: additionalFileName,
+                additionalFileText: additionalFileText,
+                fixedAdditionalFileText: fixedAdditionalFileText,
+                fixedSource: @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -4329,11 +4368,14 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor descriptor3 =
         new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: new LocalizableResourceString(""AnalyzerDescription3"", null, typeof(Resources)), helpLinkUri: ""HelpLink"", customTags: """");
 
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: new LocalizableResourceString(""AnalyzerDescription4"", null, typeof(Resources)), helpLinkUri: ""HelpLink"", customTags: """");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
         }
     }
 
@@ -4341,11 +4383,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }",
-    expected: new[] {
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1),
-        VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(2),
-    });
+                expected: new[] {
+                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0),
+                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1),
+                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(2),
+                    VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(3),
+                });
 
             await VerifyBasicCodeFixAsync(@"
 Imports System
@@ -4364,10 +4407,11 @@ Class MyAnalyzer
     Private Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(""AnalyzerDescription2"", Nothing, GetType(Resources))
     Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#1:Description|}, ""HelpLinkUrl"", ""Tag"")
     Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#2:New LocalizableResourceString(""AnalyzerDescription3"", Nothing, GetType(Resources))|}, ""HelpLinkUrl"", ""Tag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, {|#3:New LocalizableResourceString(""AnalyzerDescription4"", Nothing, GetType(Resources))|}, ""HelpLinkUrl"", ""Tag"")
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
 		End Get
 	End Property
 
@@ -4395,10 +4439,11 @@ Class MyAnalyzer
     Private Shared ReadOnly Description As LocalizableString = New LocalizableResourceString(""AnalyzerDescription2"", Nothing, GetType(Resources))
     Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, Description, ""HelpLinkUrl"", ""Tag"")
     Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, New LocalizableResourceString(""AnalyzerDescription3"", Nothing, GetType(Resources)), ""HelpLinkUrl"", ""Tag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, New LocalizableResourceString(""AnalyzerDescription4"", Nothing, GetType(Resources)), ""HelpLinkUrl"", ""Tag"")
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
 		End Get
 	End Property
 
@@ -4409,6 +4454,7 @@ End Class
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(0),
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(1),
         VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(2),
+        VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(3),
     });
         }
 

@@ -501,18 +501,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AnalyzeTitleCore(string title, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
         {
+            var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(title);
+            if (hasLeadingOrTrailingWhitespaces)
+            {
+                title = RemoveLeadingAndTrailingWhitespaces(title);
+            }
+
             var isMultiSentences = IsMultiSentences(title);
             var endsWithPeriod = EndsWithPeriod(title);
             var containsLineReturn = ContainsLineReturn(title);
-            var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(title);
 
             if (isMultiSentences || endsWithPeriod || containsLineReturn || hasLeadingOrTrailingWhitespaces)
             {
+                // Leading and trailing spaces were already fixed
                 var fixedTitle = endsWithPeriod ? RemoveTrailingPeriod(title) : title;
                 fixedTitle = isMultiSentences ? FixMultiSentences(fixedTitle) : fixedTitle;
                 fixedTitle = containsLineReturn ? FixLineReturns(fixedTitle, allowMultisentences: false) : fixedTitle;
-                fixedTitle = hasLeadingOrTrailingWhitespaces ? RemoveLeadingAndTrailingWhitespaces(fixedTitle) : fixedTitle;
-                Debug.Assert(title != fixedTitle);
 
                 ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticTitleCorrectlyRule,
                     argumentOperation, fixedTitle, fixLocation, reportDiagnostic);
@@ -594,13 +598,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static void AnalyzeMessageCore(string message, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
         {
+            var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(message);
+            if (hasLeadingOrTrailingWhitespaces)
+            {
+                message = RemoveLeadingAndTrailingWhitespaces(message);
+            }
+
             var isMultiSentences = IsMultiSentences(message);
             var endsWithPeriod = EndsWithPeriod(message);
             var containsLineReturn = ContainsLineReturn(message);
-            var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(message);
 
             if (isMultiSentences ^ endsWithPeriod || containsLineReturn || hasLeadingOrTrailingWhitespaces)
             {
+                // Leading and trailing spaces were already fixed
                 var fixedMessage = containsLineReturn ? FixLineReturns(message, allowMultisentences: true) : message;
                 isMultiSentences = IsMultiSentences(fixedMessage);
                 endsWithPeriod = EndsWithPeriod(fixedMessage);
@@ -609,8 +619,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     fixedMessage = endsWithPeriod ? RemoveTrailingPeriod(fixedMessage) : fixedMessage + ".";
                 }
-
-                fixedMessage = hasLeadingOrTrailingWhitespaces ? RemoveLeadingAndTrailingWhitespaces(fixedMessage) : fixedMessage;
 
                 ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticMessageCorrectlyRule,
                     argumentOperation, fixedMessage, fixLocation, reportDiagnostic);
@@ -638,12 +646,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static void AnalyzeDescriptionCore(string description, IArgumentOperation argumentOperation, Location fixLocation, Action<Diagnostic> reportDiagnostic)
         {
             var hasLeadingOrTrailingWhitespaces = HasLeadingOrTrailingWhitespaces(description);
+            if (hasLeadingOrTrailingWhitespaces)
+            {
+                description = RemoveLeadingAndTrailingWhitespaces(description);
+            }
+
             var endsWithPunctuation = EndsWithPunctuation(description);
 
             if (!endsWithPunctuation || hasLeadingOrTrailingWhitespaces)
             {
                 var fixedDescription = !endsWithPunctuation ? description + "." : description;
-                fixedDescription = hasLeadingOrTrailingWhitespaces ? RemoveLeadingAndTrailingWhitespaces(fixedDescription) : fixedDescription;
 
                 ReportDefineDiagnosticArgumentCorrectlyDiagnostic(DefineDiagnosticDescriptionCorrectlyRule,
                     argumentOperation, fixedDescription, fixLocation, reportDiagnostic);
