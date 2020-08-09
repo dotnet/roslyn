@@ -49,14 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public override async Task<LSP.VSCodeAction> HandleRequestAsync(
-            LSP.VSCodeAction codeAction,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken)
+        public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
-            var document = SolutionProvider.GetDocument(data.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
             Contract.ThrowIfNull(document);
 
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(

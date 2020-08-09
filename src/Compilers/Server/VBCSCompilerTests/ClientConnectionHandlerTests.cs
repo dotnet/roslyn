@@ -119,9 +119,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [CombinatorialData]
         public async Task ShutdownRequest(bool allowCompilationRequests)
         {
+            var hitCompilation = false;
             var compilerServerHost = new TestableCompilerServerHost(delegate
             {
-                Assert.True(false);
+                hitCompilation = true;
                 throw new Exception("");
             });
 
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Task.FromResult<IClientConnection>(clientConnection),
                 allowCompilationRequests: allowCompilationRequests).ConfigureAwait(false);
 
+            Assert.False(hitCompilation);
             Assert.Equal(new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true), completionData);
             Assert.True(response is ShutdownBuildResponse);
         }

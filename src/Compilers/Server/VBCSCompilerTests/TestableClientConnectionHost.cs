@@ -4,27 +4,64 @@
 
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
+using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal sealed class TestableClientConnectionHost : IClientConnectionHost
     {
-        private TaskCompletionSource<IClientConnection> _listenTask;
+        private readonly object _guard = new object();
+        private Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
+
+        public bool IsListening { get; set; }
 
         public TestableClientConnectionHost()
         {
-            _listenTask = new TaskCompletionSource<IClientConnection>();
+
         }
 
-        public Task<IClientConnection> ListenAsync(CancellationToken cancellationToken) => _listenTask.Task;
-
-        public void Add(Action<TaskCompletionSource<IClientConnection>> action)
+        public void BeginListening()
         {
-            action(_listenTask);
-            _listenTask = new TaskCompletionSource<IClientConnection>();
+            IsListening = true;
+        }
+
+        public void EndListening()
+        {
+            IsListening = false;
+
+            lock (_guard)
+            {
+                _waitingTasks.Clear();
+            }
+        }
+
+        public Task<IClientConnection> GetNextClientConnectionAsync()
+        {
+            Func<Task<IClientConnection>>? func = null;
+            lock (_guard)
+            {
+                if (_waitingTasks.Count == 0)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                func = _waitingTasks.Dequeue();
+            }
+
+            return func();
+        }
+
+        public void Add(Func<Task<IClientConnection>> func)
+        {
+            lock (_guard)
+            {
+                _waitingTasks.Enqueue(func);
+            }
         }
     }
 }
