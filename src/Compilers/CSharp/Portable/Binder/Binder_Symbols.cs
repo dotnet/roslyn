@@ -1415,6 +1415,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal TypeWithAnnotations BindSpecialType(SyntaxKind typeKind, DiagnosticBag diagnostics = null, SyntaxNode node = null, bool isNullableEnabled = false)
+        {
+            var typeSymbol = GetSpecialType(typeKind.GetSpecialType(), diagnostics, node);
+            return TypeWithAnnotations.Create(isNullableEnabled, typeSymbol);
+        }
+
         internal NamedTypeSymbol GetSpecialType(SpecialType typeId, DiagnosticBag diagnostics, SyntaxNode node)
         {
             return GetSpecialType(this.Compilation, typeId, node, diagnostics);
@@ -1424,7 +1430,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
-            ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            // only report if there is actually a node with a location
+            if (node != null && diagnostics != null)
+            {
+                ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            }
             return typeSymbol;
         }
 

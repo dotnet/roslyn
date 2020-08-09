@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // if it's an error type, try to resolve from the Body instead!
@@ -149,8 +150,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBody);
                     if (exitPaths.Count > 0)
                     {
+                        // there is some return, so lets use the last return statement
                         var exitPath = exitPaths.Last();
                         returnType = exitPath.Item2;
+                    }
+                    else
+                    {
+                        // there is no return, so lets make it "void" per default
+                        returnType = signatureBinder.BindSpecialType(SyntaxKind.VoidKeyword);
                     }
                 }
             }
