@@ -7244,7 +7244,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7317,7 +7317,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithLeadingSpace()
         {
-            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7358,7 +7358,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithLeadingNewLine()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7399,7 +7399,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithTrailingSpace()
         {
-            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7440,7 +7440,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithTrailingNewLine()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7525,7 +7525,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceAfterParam()
         {
-            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7654,7 +7654,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceAfterEquals()
         {
-            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview, expectedErrors: new DiagnosticDescription[0]);
+            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
