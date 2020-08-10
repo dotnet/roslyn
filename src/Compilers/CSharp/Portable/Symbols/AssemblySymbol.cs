@@ -437,6 +437,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                || _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
 
         /// <summary>
+        /// True if the target runtime support covariant returns of methods declared in classes.
+        /// </summary>
+        internal bool RuntimeSupportsCovariantReturnsOfClasses
+        {
+            get
+            {
+                // check for the runtime feature indicator.
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) is { };
+            }
+        }
+
+        /// <summary>
         /// Return an array of assemblies involved in canonical type resolution of
         /// NoPia local types defined within this assembly. In other words, all 
         /// references used by previous compilation referencing this assembly.

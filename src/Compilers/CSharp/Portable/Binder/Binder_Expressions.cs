@@ -6613,7 +6613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private MethodGroupResolution BindExtensionMethod(
+        protected MethodGroupResolution BindExtensionMethod(
             SyntaxNode expression,
             string methodName,
             AnalyzedArguments analyzedArguments,

@@ -24,13 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol constructor,
-            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
             var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, workspace, options,
-                destination?.SyntaxTree.Options ?? options.ParseOptions);
+                constructor, options, destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
@@ -42,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
             IMethodSymbol constructor,
-            Workspace workspace,
             CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
@@ -65,20 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : GenerateBlock(constructor),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
-            declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
+            declaration = UseExpressionBodyIfDesired(options, declaration, parseOptions);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options));
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, ConstructorDeclarationSyntax declaration, ParseOptions options)
+            CodeGenerationOptions options, ConstructorDeclarationSyntax declaration, ParseOptions parseOptions)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
+                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (declaration.Body.TryConvertToArrowExpressionBody(
-                        declaration.Kind(), options, expressionBodyPreference,
+                        declaration.Kind(), parseOptions, expressionBodyPreference,
                         out var expressionBody, out var semicolonToken))
                 {
                     return declaration.WithBody(null)

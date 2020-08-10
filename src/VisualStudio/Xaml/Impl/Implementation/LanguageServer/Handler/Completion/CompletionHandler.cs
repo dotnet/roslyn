@@ -31,9 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
+        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return CreateErrorItem($"Cannot find document in solution!", request.TextDocument.Uri.ToString());

@@ -6,7 +6,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -19,6 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SolutionProvider = solutionProvider;
         }
 
-        public abstract Task<ResponseType> HandleRequestAsync(RequestType request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken);
+        public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }

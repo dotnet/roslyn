@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 if (_nonConflictSymbols == null)
                     return null;
 
-                var compilation = await currentProject.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                var compilation = await currentProject.GetRequiredCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 return ImmutableHashSet.CreateRange(
                     _nonConflictSymbols.Select(s => s.GetSymbolKey().Resolve(compilation).GetAnySymbol()).WhereNotNull());
             }
