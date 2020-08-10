@@ -515,7 +515,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
-        public async Task TestQueryableType()
+        public async Task TestQueryable()
 
         {
             var source = @"
@@ -531,20 +531,7 @@ namespace demo
         int output = [||]testvar2.Where(x => x == 4).Count();
     }
 }";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
-        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
-        int output = testvar2.Count(x => x == 4);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+            await TestMissingInRegularAndScriptAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]

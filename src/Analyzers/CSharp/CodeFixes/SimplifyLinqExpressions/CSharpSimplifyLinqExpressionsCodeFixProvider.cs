@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-
         public CSharpSimplifyLinqExpressionsCodeFixProvider()
         {
         }
@@ -45,46 +44,48 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
+                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 RemoveWhere(model, editor, node);
             }
         }
 
         private static void RemoveWhere(SemanticModel model, SyntaxEditor editor, SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.InvocationExpression))
+            var childNode = ((InvocationExpressionSyntax)node).Expression;
+
+            // Get the Linq expression being invoked
+            // Example: 'Single' from 'Data.Where(x => x == 1).Single()'
+            var memberAccess = (MemberAccessExpressionSyntax)childNode;
+
+            // Retrieve the lambda expression from the node
+            // Example: 'x => x == 1' from 'Data.Where(x => x == 1).Single()'
+            var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
+
+            // Get the data or object the query is being called on
+            // Example: 'Data' from 'Data.Where(x => x == 1).Single()'
+            var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
+            ExpressionSyntax expression;
+            if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
-                node = node.ChildNodes().First();
-                var memberAccess = (MemberAccessExpressionSyntax)node;
-
-                // Retrieve the lambda expression from the node
-                var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
-
-                // Get the data or object the query is being called on
-                var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
-                ExpressionSyntax expression;
-                if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                {
-                    expression = (ExpressionSyntax)objectNodeSyntax;
-                }
-                else
-                {
-                    expression = SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text);
-                }
-                SyntaxNode newNode = SyntaxFactory.InvocationExpression(
-                                    SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        expression,
-                                        memberAccess.Name))
-                                .WithArgumentList(lambda);
-                editor.ReplaceNode(node.Parent, newNode);
+                expression = (ExpressionSyntax)objectNodeSyntax;
             }
+            else
+            {
+                expression = SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text);
+            }
+            var newNode = SyntaxFactory.InvocationExpression(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    expression,
+                                    memberAccess.Name))
+                            .WithArgumentList(lambda);
+            editor.ReplaceNode(childNode.Parent, newNode);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_collection_initialization, createChangedDocument, AnalyzersResources.Simplify_collection_initialization)
+                : base(CSharpAnalyzersResources.Simplify_linq_expressions, createChangedDocument, CSharpAnalyzersResources.Simplify_linq_expressions)
             {
             }
         }
