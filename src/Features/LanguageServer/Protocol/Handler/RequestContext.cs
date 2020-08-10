@@ -37,12 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public string? ClientName { get; }
 
-        public RequestContext(ClientCapabilities clientCapabilities, string? clientName)
-            : this(null, null, null, clientCapabilities, clientName)
-        {
-        }
-
-        internal RequestContext(Document? document, Solution? solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
+        public RequestContext(Document? document, Solution? solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
         {
             Document = document;
             Solution = solution;
