@@ -12,6 +12,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -411,7 +412,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _workQueue.AddWork((solutionChanged, changedProject));
         }
 
-        private async Task ProcessWorkQueueAsync(
+        private Task ProcessWorkQueueAsync(
             ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
         {
             ThisCanBeCalledOnAnyThread();
@@ -420,7 +421,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             // If we've been disconnected, then there's no point proceeding.
             if (_workspace == null || !IsEnabled)
-                return;
+                return Task.CompletedTask;
+
+            return ProcessWorkQueueWorkerAsync(workQueue, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private async Task ProcessWorkQueueWorkerAsync(
+            ImmutableArray<(bool solutionChanged, ProjectId? changedProject)> workQueue, CancellationToken cancellationToken)
+        {
+            ThisCanBeCalledOnAnyThread();
 
             var serviceContainer = (IBrokeredServiceContainer)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
