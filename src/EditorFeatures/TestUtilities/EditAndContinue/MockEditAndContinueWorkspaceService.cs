@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, string?, bool>? HasChangesAsyncImpl;
         public Func<Solution, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)>)>? EmitSolutionUpdateAsyncImpl;
         public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionAsyncImpl;
+        public Action<DocumentId>? OnSourceFileUpdatedImpl;
 
         public bool IsDebuggingSessionInProgress => throw new NotImplementedException();
 
@@ -66,7 +67,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
             => Task.FromResult((IsActiveStatementInExceptionRegionAsyncImpl ?? throw new NotImplementedException()).Invoke(instructionId));
 
-        public void OnSourceFileUpdated(DocumentId documentId) { }
+        public void OnSourceFileUpdated(DocumentId documentId)
+            => OnSourceFileUpdatedImpl?.Invoke(documentId);
 
         public void StartDebuggingSession(Solution solution)
             => StartDebuggingSessionImpl?.Invoke(solution);

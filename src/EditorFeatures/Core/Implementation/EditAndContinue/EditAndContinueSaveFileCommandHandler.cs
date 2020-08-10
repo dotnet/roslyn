@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -36,15 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             if (Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
-                // TODO:
-                var encService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
-                if (encService != null)
+                var documentId = workspace.GetDocumentIdInCurrentContext(textContainer);
+                if (documentId != null)
                 {
-                    var documentId = workspace.GetDocumentIdInCurrentContext(textContainer);
-                    if (documentId != null)
-                    {
-                        encService.OnSourceFileUpdated(documentId);
-                    }
+                    var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+
+                    // fire and forget
+                    _ = Task.Run(() => proxy.OnSourceFileUpdatedAsync(documentId, CancellationToken.None));
                 }
             }
 

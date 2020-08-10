@@ -237,5 +237,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return await GetService().GetCurrentActiveStatementPositionAsync(solution, instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
+
+        public Task OnSourceFileUpdatedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            RunService(() => GetService().OnSourceFileUpdated(documentId), cancellationToken);
+            return Task.CompletedTask;
+        }
     }
 }

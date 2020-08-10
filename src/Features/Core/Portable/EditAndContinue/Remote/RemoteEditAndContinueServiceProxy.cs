@@ -292,5 +292,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // JSON-RPC does not support serialization of default ImmutableArray
             return result ?? default;
         }
+
+        public async Task OnSourceFileUpdatedAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return;
+            }
+
+            await client.RunRemoteAsync(
+               WellKnownServiceHubService.RemoteEditAndContinueService,
+               nameof(IRemoteEditAndContinueService.OnSourceFileUpdatedAsync),
+               solution: null,
+               new object[] { documentId },
+               callbackTarget: null,
+               cancellationToken).ConfigureAwait(false);
+        }
     }
 }

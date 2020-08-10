@@ -41,5 +41,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         Task<bool?> IsActiveStatementInExceptionRegionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken);
         Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(PinnedSolutionInfo solutionInfo, Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken);
+        Task OnSourceFileUpdatedAsync(DocumentId documentId, CancellationToken cancellationToken);
     }
 }
