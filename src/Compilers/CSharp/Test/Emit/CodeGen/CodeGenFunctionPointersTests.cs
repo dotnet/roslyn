@@ -113,7 +113,7 @@ unsafe class C
                 var m = c.GetMethod("M");
                 var funcPtr = m.ReturnType;
 
-                AssertEx.Equal("delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>", funcPtr.ToTestDisplayString());
+                AssertEx.Equal("delegate* unmanaged[Thiscall, Stdcall]<System.Void modopt(System.Runtime.CompilerServices.CallConvThiscall) modopt(System.Runtime.CompilerServices.CallConvStdcall)>", funcPtr.ToTestDisplayString());
                 Assert.Equal(CallingConvention.Unmanaged, ((FunctionPointerTypeSymbol)funcPtr).Signature.CallingConvention);
             }
         }
@@ -818,7 +818,6 @@ public unsafe class C
         [Fact]
         public void CustomModifierOnReturnType()
         {
-
             var ilSource = @"
 .class public auto ansi beforefieldinit C
        extends[mscorlib] System.Object
@@ -873,7 +872,7 @@ class D : C
        extends [mscorlib]System.Object
 {
     .field public method vararg void*() 'Field'
-    .field private method unmanaged fastcall void *() '<Prop>k__BackingField'
+    .field private method vararg void *() '<Prop>k__BackingField'
     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
     .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) 
     
@@ -888,34 +887,34 @@ class D : C
       IL_0007:  ret
     } // end of method C::.ctor
     
-    .method public hidebysig specialname instance method unmanaged fastcall void *() 
+    .method public hidebysig specialname instance method vararg void *() 
             get_Prop() cil managed
     {
       .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
       // Code size       7 (0x7)
       .maxstack  8
       IL_0000:  ldarg.0
-      IL_0001:  ldfld      method unmanaged fastcall void *() C::'<Prop>k__BackingField'
+      IL_0001:  ldfld      method vararg void *() C::'<Prop>k__BackingField'
       IL_0006:  ret
     } // end of method C::get_Prop
     
     .method public hidebysig specialname instance void 
-            set_Prop(method unmanaged fastcall void *() 'value') cil managed
+            set_Prop(method  vararg void *() 'value') cil managed
     {
       .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
       // Code size       8 (0x8)
       .maxstack  8
       IL_0000:  ldarg.0
       IL_0001:  ldarg.1
-      IL_0002:  stfld      method unmanaged fastcall void *() C::'<Prop>k__BackingField'
+      IL_0002:  stfld      method vararg void *() C::'<Prop>k__BackingField'
       IL_0007:  ret
     } // end of method C::set_Prop
     
-    .property instance method unmanaged fastcall void *()
+    .property instance method vararg void *()
             Prop()
     {
-      .get instance method unmanaged fastcall void *() C::get_Prop()
-      .set instance void C::set_Prop(method unmanaged fastcall void *())
+      .get instance method vararg void *() C::get_Prop()
+      .set instance void C::set_Prop(method vararg void *())
     } // end of property C::Prop
 } // end of class C
 ";
@@ -937,36 +936,36 @@ unsafe class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, ilSource);
             comp.VerifyDiagnostics(
-                // (6,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (6,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field(__arglist(1, 2));
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(6, 11),
-                // (7,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(6, 11),
+                // (7,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field(1, 2, 3);
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(7, 11),
-                // (8,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(7, 11),
+                // (8,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field();
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(8, 11),
-                // (9,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(8, 11),
+                // (9,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field = c.Field;
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 11),
-                // (9,21): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(9, 11),
+                // (9,21): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field = c.Field;
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 21),
-                // (10,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(9, 21),
+                // (10,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Prop();
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(10, 11),
-                // (11,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate* unmanaged[]<void>").WithLocation(10, 11),
+                // (11,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Prop = c.Prop;
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 11),
-                // (11,20): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate* unmanaged[]<void>").WithLocation(11, 11),
+                // (11,20): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Prop = c.Prop;
-                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 20)
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate* unmanaged[]<void>").WithLocation(11, 20)
             );
 
             var c = comp.GetTypeByMetadataName("C");
             var prop = c.GetProperty("Prop");
 
-            VerifyFunctionPointerSymbol(prop.Type, CallingConvention.FastCall,
+            VerifyFunctionPointerSymbol(prop.Type, CallingConvention.ExtraArguments,
                 (RefKind.None, IsVoidType()));
 
             Assert.True(prop.Type.HasUseSiteError);
@@ -1189,104 +1188,32 @@ unsafe class Caller
         }
 
         [Theory]
-        [InlineData("cdecl")]
-        [InlineData("stdcall")]
-        public void UnmanagedCallingConventions(string convention)
+        [InlineData("Cdecl", "Cdecl")]
+        [InlineData("Stdcall", "StdCall")]
+        public void UnmanagedCallingConventions(string unmanagedConvention, string enumConvention)
         {
             // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelegate>(TDelegate delegate) to
             // get a function pointer around a native calling convention
-            var ilStub = $@"
-.class public auto ansi beforefieldinit UnmanagedFunctionPointer
-    extends [mscorlib]System.Object
-{{
-    // Nested Types
-    .class nested private auto ansi sealed CombineStrings
-        extends [mscorlib]System.MulticastDelegate
-    {{
-        .custom instance void [mscorlib]System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute::.ctor(valuetype [mscorlib]System.Runtime.InteropServices.CallingConvention) = (
-            01 00 {(convention == "cdecl" ? "02" : "03")} 00 00 00 00 00
-        )
-        // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor (
-                object 'object',
-                native int 'method'
-            ) runtime managed 
-        {{
-        }} // end of method CombineStrings::.ctor
-
-        .method public hidebysig newslot virtual 
-            instance string Invoke (
-                string s1,
-                string s2
-            ) runtime managed 
-        {{
-        }} // end of method CombineStrings::Invoke
-
-        .method public hidebysig newslot virtual 
-            instance class [mscorlib]System.IAsyncResult BeginInvoke (
-                string s1,
-                string s2,
-                class [mscorlib]System.AsyncCallback callback,
-                object 'object'
-            ) runtime managed 
-        {{
-        }} // end of method CombineStrings::BeginInvoke
-
-        .method public hidebysig newslot virtual 
-            instance string EndInvoke (
-                class [mscorlib]System.IAsyncResult result
-            ) runtime managed 
-        {{
-        }} // end of method CombineStrings::EndInvoke
-    }} // end of class CombineStrings
-
-    // Methods
-    .method private hidebysig static 
-        string CombineStringsImpl (
-            string s1,
-            string s2
-        ) cil managed 
-    {{
-        // Method begins at RVA 0x2050
-        // Code size 13 (0xd)
-        .maxstack 2
-        .locals init (
-            [0] string
-        )
-
-        ldarg.0
-        ldarg.1
-        call string [mscorlib]System.String::Concat(string, string)
-        ret
-    }} // end of method UnmanagedFunctionPointer::CombineStringsImpl
-
-    .method public hidebysig static 
-        method unmanaged {convention} string *(string, string) GetFuncPtr () cil managed 
-    {{
-        // Method begins at RVA 0x206c
-        // Code size 23 (0x17)
-        .maxstack 2
-        .locals init (
-            [0] native int
-        )
-
-        nop
-        ldnull
-        ldftn string UnmanagedFunctionPointer::CombineStringsImpl(string, string)
-        newobj instance void UnmanagedFunctionPointer/CombineStrings::.ctor(object, native int)
-        call native int [mscorlib]System.Runtime.InteropServices.Marshal::GetFunctionPointerForDelegate<class UnmanagedFunctionPointer/CombineStrings>(!!0)
-        stloc.0
-        ldloc.0
-        box [mscorlib]System.IntPtr
-		call void [mscorlib]System.GC::KeepAlive(object)
-        ldloc.0
-        ret
-    }} // end of method UnmanagedFunctionPointer::GetFuncPtr
-}} // end of class UnmanagedFunctionPointer";
-
-            var source = $@"
+            var source = $@" 
 using System;
+using System.Runtime.InteropServices;
+public unsafe class UnmanagedFunctionPointer 
+{{
+    [UnmanagedFunctionPointer(CallingConvention.{enumConvention})]
+    private delegate string CombineStrings(string s1, string s2);
+    
+    private static string CombineStringsImpl(string s1, string s2)
+    {{
+        return s1 + s2;
+    }}
+
+    public static delegate* unmanaged[{unmanagedConvention}]<string, string, string> GetFuncPtr()
+    {{
+        var ptr = Marshal.GetFunctionPointerForDelegate((CombineStrings)CombineStringsImpl);
+        GC.KeepAlive(ptr);
+        return (delegate* unmanaged[{unmanagedConvention}]<string, string, string>)ptr;
+    }}
+}}
 class Caller
 {{
     public unsafe static void Main()
@@ -1294,25 +1221,81 @@ class Caller
         Call(UnmanagedFunctionPointer.GetFuncPtr());
     }}
 
-    public unsafe static void Call(delegate* unmanaged[{char.ToUpper(convention[0]) + convention[1..]}]<string, string, string> ptr)
+    public unsafe static void Call(delegate* unmanaged[{unmanagedConvention}]<string, string, string> ptr)
     {{
         Console.WriteLine(ptr(""Hello"", "" World""));
     }}
 }}";
 
-            var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Hello World");
-            // https://github.com/dotnet/roslyn/issues/39865: Add calling convention when the formatter supports it
-            verifier.VerifyIL($"Caller.Call(delegate*<string, string, string>)", @"
-{
+            var verifier = CompileAndVerifyFunctionPointers(source, expectedOutput: "Hello World");
+            verifier.VerifyIL($"Caller.Call", $@"
+{{
   // Code size       24 (0x18)
   .maxstack  3
-  .locals init (delegate*<string, string, string> V_0)
+  .locals init (delegate* unmanaged[{unmanagedConvention}]<string, string, string> V_0)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldstr      ""Hello""
   IL_0007:  ldstr      "" World""
   IL_000c:  ldloc.0
-  IL_000d:  calli      ""delegate*<string, string, string>""
+  IL_000d:  calli      ""delegate* unmanaged[{unmanagedConvention}]<string, string, string>""
+  IL_0012:  call       ""void System.Console.WriteLine(string)""
+  IL_0017:  ret
+}}");
+        }
+
+        [Fact]
+        public void FastCall()
+        {
+            // Use IntPtr Marshal.GetFunctionPointerForDelegate<TDelegate>(TDelegate delegate) to
+            // get a function pointer around a native calling convention
+            var source = @" 
+using System;
+using System.Runtime.InteropServices;
+public unsafe class UnmanagedFunctionPointer 
+{
+    [UnmanagedFunctionPointer(CallingConvention.FastCall)]
+    private delegate string CombineStrings(string s1, string s2);
+    
+    private static string CombineStringsImpl(string s1, string s2)
+    {
+        return s1 + s2;
+    }
+
+    public static delegate* unmanaged[Fastcall]<string, string, string> GetFuncPtr()
+    {
+        var ptr = Marshal.GetFunctionPointerForDelegate((CombineStrings)CombineStringsImpl);
+        GC.KeepAlive(ptr);
+        return (delegate* unmanaged[Fastcall]<string, string, string>)ptr;
+    }
+}
+class Caller
+{
+    public unsafe static void Main()
+    {
+        Call(UnmanagedFunctionPointer.GetFuncPtr());
+    }
+
+    public unsafe static void Call(delegate* unmanaged[Fastcall]<string, string, string> ptr)
+    {
+        Console.WriteLine(ptr(""Hello"", "" World""));
+    }
+}";
+
+            // Fastcall is only supported by Mono on Windows x86, which we do not have a test leg for.
+            // Therefore, we just verify that the emitted IL is what we expect.
+            var verifier = CompileAndVerifyFunctionPointers(source);
+            verifier.VerifyIL($"Caller.Call(delegate* unmanaged[Fastcall]<string, string, string>)", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (delegate* unmanaged[Fastcall]<string, string, string> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldstr      ""Hello""
+  IL_0007:  ldstr      "" World""
+  IL_000c:  ldloc.0
+  IL_000d:  calli      ""delegate* unmanaged[Fastcall]<string, string, string>""
   IL_0012:  call       ""void System.Console.WriteLine(string)""
   IL_0017:  ret
 }");
@@ -1544,18 +1527,18 @@ unsafe class C
   // Code size       37 (0x25)
   .maxstack  2
   .locals init (S V_0, //s
-                delegate*<S*, int> V_1)
+                delegate* unmanaged[Thiscall]<S*, int> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*, int> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
+  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, int> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate*<S*, int>""
+  IL_001a:  calli      ""delegate* unmanaged[Thiscall]<S*, int>""
   IL_001f:  call       ""void System.Console.Write(int)""
   IL_0024:  ret
 }
@@ -1566,19 +1549,19 @@ unsafe class C
   // Code size       38 (0x26)
   .maxstack  3
   .locals init (S V_0, //s
-                delegate*<S*, int, int> V_1)
+                delegate* unmanaged[Thiscall]<S*, int, int> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*, int, int> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
+  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, int, int> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldc.i4.3
   IL_001a:  ldloc.1
-  IL_001b:  calli      ""delegate*<S*, int, int>""
+  IL_001b:  calli      ""delegate* unmanaged[Thiscall]<S*, int, int>""
   IL_0020:  call       ""void System.Console.Write(int)""
   IL_0025:  ret
 }
@@ -1868,41 +1851,42 @@ unsafe class C
   // Code size       42 (0x2a)
   .maxstack  2
   .locals init (S V_0, //s
-                delegate*<S*, IntWrapper> V_1)
+                delegate* unmanaged[Thiscall]<S*, IntWrapper> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*, IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
+  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate*<S*, IntWrapper>""
+  IL_001a:  calli      ""delegate* unmanaged[Thiscall]<S*, IntWrapper>""
   IL_001f:  ldfld      ""int IntWrapper.i""
   IL_0024:  call       ""void System.Console.WriteLine(int)""
   IL_0029:  ret
-}");
+}
+");
 
             verifier.VerifyIL("C.TestMultiple()", @"
 {
   // Code size       58 (0x3a)
   .maxstack  3
   .locals init (S V_0, //s
-                delegate*<S*, float, ReturnWrapper> V_1)
+                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_1)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate*<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
+  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  conv.u
   IL_0019:  ldc.r4     3.5
   IL_001e:  ldloc.1
-  IL_001f:  calli      ""delegate*<S*, float, ReturnWrapper>""
+  IL_001f:  calli      ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>""
   IL_0024:  dup
   IL_0025:  ldfld      ""int ReturnWrapper.i1""
   IL_002a:  call       ""void System.Console.Write(int)""
@@ -6279,24 +6263,24 @@ unsafe class Derived2 : Base
             comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
 
             comp.VerifyDiagnostics(
-                // (11,29): error CS0115: 'Derived1.M1(delegate*<void>)': no suitable method found to override
+                // (11,29): error CS0115: 'Derived1.M1(delegate* unmanaged[Cdecl]<void>)': no suitable method found to override
                 //     protected override void M1(delegate* unmanaged[Cdecl]<void> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived1.M1(delegate*<void>)").WithLocation(11, 29),
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived1.M1(delegate* unmanaged[Cdecl]<void>)").WithLocation(11, 29),
                 // (12,57): error CS0508: 'Derived1.M2()': return type must be 'delegate*<void>' to match overridden member 'Base.M2()'
                 //     protected override delegate* unmanaged[Cdecl]<void> M2() => throw null;
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived1.M2()", "Base.M2()", "delegate*<void>").WithLocation(12, 57),
-                // (13,29): error CS0115: 'Derived1.M3(delegate*<void>)': no suitable method found to override
+                // (13,29): error CS0115: 'Derived1.M3(delegate* unmanaged[Fastcall, Thiscall]<void>)': no suitable method found to override
                 //     protected override void M3(delegate* unmanaged[Fastcall, Thiscall]<void> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived1.M3(delegate*<void>)").WithLocation(13, 29),
-                // (14,70): error CS0508: 'Derived1.M4()': return type must be 'delegate*<void>' to match overridden member 'Base.M4()'
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived1.M3(delegate* unmanaged[Fastcall, Thiscall]<void>)").WithLocation(13, 29),
+                // (14,70): error CS0508: 'Derived1.M4()': return type must be 'delegate* unmanaged[Stdcall, Thiscall]<void>' to match overridden member 'Base.M4()'
                 //     protected override delegate* unmanaged[Fastcall, Thiscall]<void> M4() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("Derived1.M4()", "Base.M4()", "delegate*<void>").WithLocation(14, 70),
-                // (20,29): error CS0115: 'Derived2.M3(delegate*<void>)': no suitable method found to override
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("Derived1.M4()", "Base.M4()", "delegate* unmanaged[Stdcall, Thiscall]<void>").WithLocation(14, 70),
+                // (20,29): error CS0115: 'Derived2.M3(delegate* unmanaged[Stdcall, Fastcall]<void>)': no suitable method found to override
                 //     protected override void M3(delegate* unmanaged[Stdcall, Fastcall]<void> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived2.M3(delegate*<void>)").WithLocation(20, 29),
-                // (21,69): error CS0508: 'Derived2.M4()': return type must be 'delegate*<void>' to match overridden member 'Base.M4()'
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived2.M3(delegate* unmanaged[Stdcall, Fastcall]<void>)").WithLocation(20, 29),
+                // (21,69): error CS0508: 'Derived2.M4()': return type must be 'delegate* unmanaged[Stdcall, Thiscall]<void>' to match overridden member 'Base.M4()'
                 //     protected override delegate* unmanaged[Stdcall, Fastcall]<void> M4() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("Derived2.M4()", "Base.M4()", "delegate*<void>").WithLocation(21, 69)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("Derived2.M4()", "Base.M4()", "delegate* unmanaged[Stdcall, Thiscall]<void>").WithLocation(21, 69)
             );
         }
 
@@ -7565,10 +7549,10 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-                // (7,19): error CS9501: The target runtime doesn't support runtime-environment default calling convention. Specify the unmanaged calling convention explicitly.
+                // (7,19): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //         delegate* unmanaged<void> ptr1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(7, 19),
-                // (8,19): error CS9502: The target runtime doesn't support extensible unmanaged calling conventions.
+                // (8,19): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //         delegate* unmanaged[Stdcall, Thiscall]<void> ptr2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(8, 19)
             );
@@ -7582,13 +7566,13 @@ class C
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntaxes[0],
                 expectedSyntax: "delegate* unmanaged<void>",
-                expectedType: "delegate*<System.Void>",
-                expectedSymbol: "delegate*<System.Void>");
+                expectedType: "delegate* unmanaged<System.Void>",
+                expectedSymbol: "delegate* unmanaged<System.Void>");
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntaxes[1],
                 expectedSyntax: "delegate* unmanaged[Stdcall, Thiscall]<void>",
-                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
-                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>");
+                expectedType: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>",
+                expectedSymbol: "delegate* unmanaged[Stdcall, Thiscall]<System.Void modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvThiscall)>");
         }
 
         [Fact]
@@ -7636,8 +7620,8 @@ unsafe class C
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
                 expectedSyntax: "delegate* unmanaged[Test]<void>",
-                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
-                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
+                expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
+                expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
 
             var coreLib = CreateEmptyCompilation(source1);
             coreLib.VerifyDiagnostics();
@@ -7656,8 +7640,8 @@ unsafe class C
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
                 expectedSyntax: "delegate* unmanaged[Test]<void>",
-                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
-                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
+                expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
+                expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
         }
 
         [Fact]
@@ -7705,8 +7689,8 @@ unsafe class C
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
                 expectedSyntax: "delegate* unmanaged[Test]<void>",
-                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
-                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+                expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
 
             var coreLib = CreateEmptyCompilation(source1);
             coreLib.VerifyDiagnostics();
@@ -7725,29 +7709,29 @@ unsafe class C
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
                 expectedSyntax: "delegate* unmanaged[Test]<void>",
-                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
-                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+                expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
 
             var @string = comp1.GetSpecialType(SpecialType.System_String);
             var testMod = CSharpCustomModifier.CreateOptional(comp1.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest`1"));
 
-            var funcPtr = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtr = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
-            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                parameterRefCustomModifiers: default, compilation: comp1);
+            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
-                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
+                parameterRefCustomModifiers: default, returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                compilation: comp1);
 
-            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string, customModifiers: ImmutableArray.Create(testMod)), refCustomModifiers: default,
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
-            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
+                parameterRefCustomModifiers: default, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                compilation: comp1);
+            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
-                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp1);
+                parameterRefCustomModifiers: default, returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                compilation: comp1);
 
             Assert.Empty(funcPtrWithTestOnReturn.Signature.GetCallingConventionModifiers());
             Assert.Empty(funcPtrWithTestOnRef.Signature.GetCallingConventionModifiers());
@@ -7793,8 +7777,8 @@ unsafe class C
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
                 expectedSyntax: "delegate* unmanaged[Test]<void>",
-                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
-                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+                expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
 
             var reference = CreateCompilation(source1);
             var comp2 = CreateCompilationWithFunctionPointers(source2, new[] { reference.EmitToImageReference() });
@@ -7812,29 +7796,29 @@ unsafe class C
 
             VerifyFunctionPointerSemanticInfo(model, functionPointerSyntax,
                 expectedSyntax: "delegate* unmanaged[Test]<void>",
-                expectedType: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
-                expectedSymbol: "delegate*<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
+                expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
+                expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
 
             var @string = comp2.GetSpecialType(SpecialType.System_String);
             var testMod = CSharpCustomModifier.CreateOptional(comp2.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest"));
 
-            var funcPtr = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtr = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
-            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromParts(
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                parameterRefCustomModifiers: default, compilation: comp2);
+            var funcPtrRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: default,
-                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
+                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                parameterRefCustomModifiers: default, compilation: comp2);
 
-            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromParts(
+            var funcPtrWithTestOnReturn = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string, customModifiers: ImmutableArray.Create(testMod)), refCustomModifiers: default,
-                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
-            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromParts(
+                returnRefKind: RefKind.None, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                parameterRefCustomModifiers: default, compilation: comp2);
+            var funcPtrWithTestOnRef = FunctionPointerTypeSymbol.CreateFromPartsForTests(
                 CallingConvention.Unmanaged, TypeWithAnnotations.Create(@string), refCustomModifiers: ImmutableArray.Create(testMod),
-                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefCustomModifiers: default,
-                parameterRefKinds: ImmutableArray<RefKind>.Empty, comp2);
+                returnRefKind: RefKind.Ref, parameterTypes: ImmutableArray<TypeWithAnnotations>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty,
+                parameterRefCustomModifiers: default, compilation: comp2);
 
             Assert.Empty(funcPtrWithTestOnReturn.Signature.GetCallingConventionModifiers());
             Assert.Empty(funcPtrWithTestOnRef.Signature.GetCallingConventionModifiers());

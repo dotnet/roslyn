@@ -94,16 +94,18 @@ namespace Microsoft.Cci
             | SignatureAttributes.Instance
             | SignatureAttributes.ExplicitThis;
 
-        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention)
         {
-            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
-            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            if (!convention.IsValid())
             {
                 throw new UnsupportedSignatureContent();
             }
 
-            return callingConvention;
+            return (CallingConvention)(convention & SignatureCallingConventionMask);
         }
+
+        internal static bool IsValid(this SignatureCallingConvention convention)
+            => convention <= SignatureCallingConvention.VarArgs || convention == SignatureCallingConvention.Unmanaged;
 
         internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
             => (SignatureCallingConvention)convention & SignatureCallingConventionMask;

@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CallingConventionTypeIsInvalid">
+        <source>Cannot use '{0}' as a calling convention modifier.</source>
+        <target state="new">Cannot use '{0}' as a calling convention modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CallingConventionTypesRequireUnmanaged">
+        <source>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</source>
+        <target state="new">Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotCreateConstructedFromConstructed">
         <source>Cannot create constructed generic type from another constructed generic type.</source>
         <target state="translated">Konstruovaný obecný typ nejde vytvořit z jiného konstruovaného obecného typu.</target>
