@@ -565,6 +565,24 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
+        [Fact]
+        [WorkItem(46656, "https://github.com/dotnet/roslyn/issues/46656")]
+        public void TestNormalizeBlockLambdas()
+        {
+            TestNormalizeStatement("_=()=>{};", "_ = () =>\r\n{\r\n};");
+            TestNormalizeStatement("_=x=>{};", "_ = x =>\r\n{\r\n};");
+            TestNormalizeStatement("Add(()=>{});", "Add(() =>\r\n{\r\n});");
+            TestNormalizeStatement("Add(()=>{{_=x=>{};}});",
+@"Add(() =>
+{
+  {
+    _ = x =>
+    {
+    };
+  }
+});");
+        }
+
         private void TestNormalize(CSharpSyntaxNode node, string expected)
         {
             var actual = node.NormalizeWhitespace("  ").ToFullString();
