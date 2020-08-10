@@ -86,14 +86,14 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             var testGenerator = new CallbackGenerator(
-                onInit: Initialize,
+                onInit: initialize,
                 onExecute: (e) => { }
                 );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out _, out _);
 
-            void Initialize(InitializationContext initContext)
+            void initialize(InitializationContext initContext)
             {
                 initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
                 Assert.Throws<InvalidOperationException>(() =>
@@ -402,7 +402,7 @@ class C
             var testGenerator = new CallbackGenerator(
                 onInit: (i) => { i.RegisterForSyntaxNotifications(() => receiver = new TestSyntaxReceiver()); throw new Exception("test exception"); },
                 onExecute: (e) => { Assert.True(false); }
-                ) ;
+                );
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
