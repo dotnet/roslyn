@@ -1707,5 +1707,22 @@ public class Repro
     private readonly object second;
 }");
         }
+
+        [WorkItem(45288, "https://github.com/dotnet/roslyn/pull/45288")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task UsedAsRef_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    private string [|_x|] = string.Empty;
+
+    public bool M()
+    {
+        ref var myVar = ref x;
+        return myVar is null;
+    }
+}");
+        }
     }
 }
