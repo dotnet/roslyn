@@ -572,15 +572,7 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeStatement("_=()=>{};", "_ = () =>\r\n{\r\n};");
             TestNormalizeStatement("_=x=>{};", "_ = x =>\r\n{\r\n};");
             TestNormalizeStatement("Add(()=>{});", "Add(() =>\r\n{\r\n});");
-            TestNormalizeStatement("Add(()=>{{_=x=>{};}});",
-@"Add(() =>
-{
-  {
-    _ = x =>
-    {
-    };
-  }
-});");
+            TestNormalizeStatement("Add(()=>{{_=x=>{};}});", "Add(() =>\r\n{\r\n  {\r\n    _ = x =>\r\n    {\r\n    };\r\n  }\r\n});");
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)
