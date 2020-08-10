@@ -133,7 +133,17 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public List<string> DisabledDiagnostics { get; } = new List<string>();
 
+        /// <summary>
+        /// Gets or sets the reference assemblies to use.
+        /// </summary>
         public ReferenceAssemblies ReferenceAssemblies { get; set; } = ReferenceAssemblies.Default;
+
+        /// <summary>
+        /// Gets or sets an additional verifier for a diagnostic.
+        /// The action compares actual <see cref="Diagnostic"/> and the expected
+        /// <see cref="DiagnosticResult"/> based on custom test requirements not yet supported by the test framework.
+        /// </summary>
+        public Action<ImmutableArray<DiagnosticAnalyzer>, Diagnostic, DiagnosticResult, IVerifier>? DiagnosticVerifier { get; set; }
 
         /// <summary>
         /// Gets a collection of transformation functions to apply to <see cref="Workspace.Options"/> during diagnostic
@@ -237,20 +247,6 @@ namespace Microsoft.CodeAnalysis.Testing
             VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, analyzers, verifier, cancellationToken).ConfigureAwait(false), analyzers, expected, verifier);
             await VerifyGeneratedCodeDiagnosticsAsync(analyzers, sources, additionalFiles, additionalProjects, additionalMetadataReferences, expected, verifier, cancellationToken).ConfigureAwait(false);
             await VerifySuppressionDiagnosticsAsync(analyzers, sources, additionalFiles, additionalProjects, additionalMetadataReferences, expected, verifier, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Checks each of the actual <see cref="Diagnostic"/>s found and compares them with the corresponding
-        /// <see cref="DiagnosticResult"/> based on custom test requirements not yet supported by the test framework.
-        /// </summary>
-        /// <param name="analyzers">The analyzers that have been run on the sources.</param>
-        /// <param name="actual">The <see cref="Diagnostic"/>s found by the compiler after running the analyzer
-        /// on the source code.</param>
-        /// <param name="expected">The <see cref="DiagnosticResult"/>s describing the expected
-        /// diagnostics for the sources.</param>
-        /// <param name="verifier">The verifier to use for test assertions.</param>
-        protected virtual void VerifyDiagnosticCustom(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic actual, DiagnosticResult expected, IVerifier verifier)
-        {
         }
 
         private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
@@ -386,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         message);
                 }
 
-                VerifyDiagnosticCustom(analyzers, actual, expected, verifier);
+                DiagnosticVerifier?.Invoke(analyzers, actual, expected, verifier);
             }
         }
 
