@@ -171,7 +171,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var responses = await Task.WhenAll(waitables.Where(t => !t.IsFaulted));
 
             // First and last tasks use the same solution because the middle request failed
-            Assert.Equal(responses[0].Solution.WorkspaceVersion, responses[2].Solution.WorkspaceVersion);
+            // Note the last task is the _second_ item in responses because it only contains the successful responses
+            Assert.Equal(responses[0].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
         }
 
         private async Task<TestResponse[]> TestAsync(TestRequest[] requests)
