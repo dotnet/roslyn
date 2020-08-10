@@ -1957,6 +1957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expr = node.ExpressionOpt;
             if (expr == null)
             {
+                EnforceDoesNotReturn(node.Syntax);
                 PendingBranches.Add(new PendingBranch(node, this.State, label: null));
                 SetUnreachable();
                 return null;
