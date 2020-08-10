@@ -2223,7 +2223,10 @@ tryAgain:
                         }
                         else
                         {
-                            return this.ParseMethodDeclaration(attributes, modifiers, null, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
+                            // create a fake return type for the method
+                            var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                            var methodType = _syntaxFactory.IdentifierName(token);
+                            return this.ParseMethodDeclaration(attributes, modifiers, methodType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
                         }
                     }
                 }
@@ -2275,7 +2278,24 @@ tryAgain:
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
 
-                TypeSyntax type = ParseReturnType();
+                TypeSyntax type;
+                bool hasExplicitType;
+                // Before parsing the return type, check if it looks like a method
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    // check if following is a "(" or a "<" ... then it's most likely the name we are at!
+                    (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.PeekToken(1).Kind == SyntaxKind.LessThanToken))
+                {
+                    // it's more likely to be a method - without any return type defined
+                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                    type = _syntaxFactory.IdentifierName(token);
+                    hasExplicitType = false;
+                }
+                else
+                {
+                    // we should have a type
+                    type = ParseReturnType();
+                    hasExplicitType = true;
+                }
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -2304,7 +2324,9 @@ tryAgain:
                             IsInAsync = wasInAsync;
                             _termState = saveTerm;
 
-                            if (isAcceptableNonDeclarationStatement(statement, IsScript))
+                            // if it's a parameterless invocation statement, it could actually be a method declaration!
+                            var isLikelyMethodDeclaration = LooksLikeMethodDeclaration(statement, hasExplicitType);
+                            if (!isLikelyMethodDeclaration && isAcceptableNonDeclarationStatement(statement, IsScript))
                             {
                                 return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
                             }
@@ -2494,6 +2516,19 @@ parse_member_name:;
 
         }
 
+        private bool LooksLikeMethodDeclaration(StatementSyntax statement, bool hasExplicitType = false)
+        {
+            if (statement is ExpressionStatementSyntax exprStatement &&
+                                exprStatement.Expression is InvocationExpressionSyntax invocationExpr &&
+                                invocationExpr.ArgumentList?.Arguments.Count == 0)
+            {
+                // only if we have a following "{" or "=>" ... then it's likely to be a method declaration
+                return !hasExplicitType && (CurrentToken.Kind == SyntaxKind.OpenBraceToken || CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken);
+            }
+
+            return false;
+        }
+
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
@@ -2614,6 +2649,18 @@ parse_member_name:;
             return result;
         }
 
+        private bool IsPossibleMethodDeclarationStart()
+        {
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                // check if following is a "(" or a "<" ... then it's most likely the name we are at!
+                (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.PeekToken(1).Kind == SyntaxKind.LessThanToken))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Changes in this function should be mirrored in <see cref="ParseMemberDeclarationOrStatementCore"/>.
         /// Try keeping structure of both functions similar to simplify this task. The split was made to 
@@ -2702,9 +2749,7 @@ parse_member_name:;
                 TypeSyntax type = null;
 
                 // Before parsing the return type, check if it looks like a method
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                    // check if following is a "(" or a "<" ... then it's most likely the name we are at!
-                    (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.PeekToken(1).Kind == SyntaxKind.LessThanToken))
+                if (IsPossibleMethodDeclarationStart())
                 {
                     // it's more likely to be a method - without any return type defined
                     var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
@@ -7181,7 +7226,17 @@ done:;
 
             if (!this.IsPossibleLocalDeclarationStatement(isGlobal))
             {
-                return this.ParseExpressionStatement(attributes);
+                var exprStatement = this.ParseExpressionStatement(attributes);
+                var isLikelyMethodDeclaration = LooksLikeMethodDeclaration(exprStatement, false);
+                if(isLikelyMethodDeclaration)
+                {
+                    // looks like a method declaration... then we will attempt that instead!
+                    this.Reset(ref resetPointBeforeStatement);
+                }
+                else
+                {
+                    return exprStatement;
+                }
             }
 
             if (isGlobal)
@@ -9240,7 +9295,23 @@ tryAgain:
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
-            type = allowLocalFunctions ? ParseReturnType() : this.ParseType();
+            if (allowLocalFunctions)
+            {
+                if(IsPossibleMethodDeclarationStart())
+                {
+                    // it's more likely to be a method - without any return type defined
+                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                    type = _syntaxFactory.IdentifierName(token);
+                }
+                else
+                {
+                    type = ParseReturnType();
+                }
+            }
+            else
+            {
+                type = ParseType();
+            }
 
             VariableFlags flags = VariableFlags.Local;
             if (mods.Any((int)SyntaxKind.ConstKeyword))
