@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var handler = (IRequestHandler<RequestType, ResponseType>?)handlerEntry.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            LSP.TextDocumentIdentifier? documentIdentifier = null;
-
-            return _queue.ExecuteAsync(mutatesSolutionState, documentIdentifier, handler, request, clientCapabilities, clientName, cancellationToken);
+            return _queue.ExecuteAsync(mutatesSolutionState, handler, request, clientCapabilities, clientName, cancellationToken);
         }
     }
 }

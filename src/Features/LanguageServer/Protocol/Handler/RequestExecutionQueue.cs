@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
         public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
             bool mutatesSolutionState,
-            TextDocumentIdentifier? documentIdentifier
             IRequestHandler<TRequestType, TResponseType> handler,
             TRequestType request,
             ClientCapabilities clientCapabilities,
@@ -57,7 +56,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
 
-            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, documentIdentifier,
+            var textDocument = handler.GetTextDocumentIdentifier(request);
+            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, textDocument,
                 callback: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue

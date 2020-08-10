@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -18,6 +19,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
     internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
     {
+        /// <summary>
+        /// Gets the TestDocumentIdentifier from the request, if the request provides one.
+        /// </summary>
+        TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
+
         /// <summary>
         /// Handles an LSP request.
         /// </summary>
