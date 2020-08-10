@@ -1232,12 +1232,9 @@ class Program
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-
-                // This test intentionally uses the fact that the equivalence key for this refactoring matches the
-                // title, thus allowing us to verify that the action with the specified title appears at the specified
-                // index.
                 CodeActionIndex = 0,
                 CodeActionEquivalenceKey = FeaturesResources.Generate_Equals_object,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Generate_Equals_object, codeAction.Title),
             }.RunAsync();
         }
 
@@ -1290,12 +1287,9 @@ class Program
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-
-                // This test intentionally uses the fact that the equivalence key for this refactoring matches the
-                // title, thus allowing us to verify that the action with the specified title appears at the specified
-                // index.
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = FeaturesResources.Generate_Equals_and_GetHashCode,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Generate_Equals_and_GetHashCode, codeAction.Title),
             }.RunAsync();
         }
 
@@ -1348,12 +1342,9 @@ class Program
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-
-                // This test intentionally uses the fact that the equivalence key for this refactoring matches the
-                // title, thus allowing us to verify that the action with the specified title appears at the specified
-                // index.
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = FeaturesResources.Generate_Equals_and_GetHashCode,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Generate_Equals_and_GetHashCode, codeAction.Title),
             }.RunAsync();
         }
 
