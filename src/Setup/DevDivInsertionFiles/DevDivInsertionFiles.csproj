@@ -132,7 +132,6 @@
       <_Dependency Remove="EnvDTE80"/>
       <_Dependency Remove="MessagePack"/>
       <_Dependency Remove="MessagePack.Annotations"/>
-      <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
       <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
