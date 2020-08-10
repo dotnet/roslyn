@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -48,6 +49,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             return documentIds.SelectAsArray(id => getDocument(solution, id));
+        }
+
+        public static (Document?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
+        {
+            var solution = provider.GetCurrentSolutionForMainWorkspace();
+            if (textDocument != null)
+            {
+                var document = provider.GetDocument(textDocument, clientName);
+                var solutionOfDocument = document?.Project.Solution;
+
+                return (document, solutionOfDocument ?? solution);
+            }
+
+            return (null, solution);
+        }
+
+        public static RequestContext CreateRequestContext(this ILspSolutionProvider provider, TextDocumentIdentifier textDocument, ClientCapabilities clientCapabilities, string? clientName = null)
+        {
+            var (document, solution) = GetDocumentAndSolution(provider, textDocument, clientName);
+
+            return new RequestContext(document, solution, null, clientCapabilities, clientName);
         }
 
         public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
