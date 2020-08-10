@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var documentId = DocumentId.CreateFromSerialized(ProjectId.CreateFromSerialized(data.ProjectGuid), data.DocumentGuid);
-            var document = SolutionProvider.GetCurrentSolutionForMainWorkspace().GetAdditionalDocument(documentId);
+            var document = context.Solution.GetAdditionalDocument(documentId);
             if (document == null)
             {
                 return completionItem;
