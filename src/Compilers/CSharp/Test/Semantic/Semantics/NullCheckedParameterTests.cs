@@ -126,6 +126,7 @@ partial class C
         public void NullCheckedBadSyntax()
         {
             var source = @"
+#pragma warning disable CS8893  
 partial class C
 {
     void M0(string name !!=null) { }
@@ -136,36 +137,18 @@ partial class C
     void M5(string name! ! =null) { }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                    // (4,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
-                    //     void M0(string name !!=null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(4, 20),
-                    // (5,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    // (6,26): error CS1525: Invalid expression term 'null'
                     //     void M1(string name! !=null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 20),
-                    // (5,26): error CS1525: Invalid expression term 'null'
-                    //     void M1(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(5, 26),
-                    // (6,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
-                    //     void M2(string name!!= null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(6, 20),
-                    // (7,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(6, 26),
+                    // (8,27): error CS1525: Invalid expression term 'null'
                     //     void M3(string name ! !=null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(7, 20),
-                    // (7,27): error CS1525: Invalid expression term 'null'
-                    //     void M3(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(7, 27),
-                    // (8,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
-                    //     void M4(string name ! !=null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(8, 20),
-                    // (8,27): error CS1525: Invalid expression term '='
-                    //     void M4(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(8, 27),
-                    // (9,20): warning CS8893: Parameter 'name' is null-checked but is null by default.
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(8, 27),
+                    // (9,27): error CS1525: Invalid expression term '='
+                    //     void M4(string name ! ! =null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(9, 27),
+                    // (10,26): error CS1525: Invalid expression term '='
                     //     void M5(string name! ! =null) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(9, 20),
-                    // (9,26): error CS1525: Invalid expression term '='
-                    //     void M5(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(9, 26));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(10, 26));
         }
 
         [Fact]
