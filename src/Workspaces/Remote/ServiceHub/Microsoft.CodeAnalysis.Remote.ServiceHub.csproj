@@ -25,7 +25,6 @@
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
@@ -40,10 +39,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.cs" Link="Services\LegacyEditorConfig\LegacyEditorConfigDocumentOptionsProvider.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" Link="Services\LegacyEditorConfig\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" Link="Services\LegacyEditorConfig\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" Link="Services\LegacyEditorConfig\LegacyEditorConfigDocumentOptionsProviderFactory.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Services\WorkspaceTelemetry\WatsonExtensions.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs" Link="Services\WorkspaceTelemetry\WatsonReporter.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonTraceListener.cs" Link="Services\WorkspaceTelemetry\WatsonTraceListener.cs" />
