@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-
         public CSharpSimplifyLinqExpressionsCodeFixProvider()
         {
         }
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
+                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 RemoveWhere(model, editor, node);
             }
         }
