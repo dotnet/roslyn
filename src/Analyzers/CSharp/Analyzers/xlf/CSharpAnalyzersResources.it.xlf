@@ -87,9 +87,9 @@
         <target state="translated">Semplifica l'espressione 'default'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_linq_expressions">
-        <source>Simplify linq expressions</source>
-        <target state="new">Simplify linq expressions</target>
+      <trans-unit id="Simplify_linq_expression">
+        <source>Simplify linq expression</source>
+        <target state="new">Simplify linq expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
