@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             lock (_guard)
             {
-                s_loggers.Add(logger);
+                s_loggers = s_loggers.Add(logger);
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             lock (_guard)
             {
-                s_loggers.Remove(logger);
+                s_loggers = s_loggers.Remove(logger);
             }
         }
 
