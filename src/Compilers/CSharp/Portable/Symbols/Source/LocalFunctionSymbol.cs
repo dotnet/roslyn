@@ -235,43 +235,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
             // if there is an issue with the return type - try to do the binding from the body - only if this is a method without explicit return type
-            if (returnType.Type?.IsErrorType() == true) 
+            if (returnType.Type?.IsErrorType() == true && !Syntax.HasExplicitReturnType()) 
             {
-                var hasNoExplicitReturnType = Syntax.ReturnType.Kind() == SyntaxKind.IdentifierName && Syntax.ReturnType.Width == 0;
-                if (hasNoExplicitReturnType)
+                // temporarily set the return type before attempting any binding ... it's an error type ... but thats fine ... it will either stay so or will get an infered type from body
+                Interlocked.Exchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType));
+                updateReturnType = true;
+
+                // bind the body of the function
+                var tmpDiagnostics = DiagnosticBag.GetInstance();
+                BoundNode boundBodyNode = null;
+                if (Syntax.Body != null)
+                    boundBodyNode = _binder.BindEmbeddedBlock(Syntax.Body, tmpDiagnostics);
+                else if (Syntax.ExpressionBody != null)
+                    boundBodyNode = _binder.BindExpressionBodyAsBlock(Syntax.ExpressionBody, tmpDiagnostics);
+                tmpDiagnostics.Free();
+
+                if (boundBodyNode != null)
                 {
-                    // temporarily set the return type before attempting any binding ... it's an error type ... but thats fine ... it will either stay so or will get an infered type from body
-                    Interlocked.Exchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType));
-                    updateReturnType = true;
-
-                    // bind the body of the function
-                    var tmpDiagnostics = DiagnosticBag.GetInstance();
-                    BoundNode boundBodyNode = null;
-                    if (Syntax.Body != null)
+                    var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
+                    CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBodyNode);
+                    if (exitPaths.Count > 0)
                     {
-                        boundBodyNode = _binder.BindEmbeddedBlock(Syntax.Body, tmpDiagnostics);
+                        // there is some return, so lets use the last return statement
+                        var exitPath = exitPaths.Last();
+                        returnType = exitPath.Item2;
                     }
-                    else if (Syntax.ExpressionBody != null)
+                    else
                     {
-                        boundBodyNode = _binder.BindExpressionBodyAsBlock(Syntax.ExpressionBody, tmpDiagnostics);
-                    }
-                    tmpDiagnostics.Free();
-
-                    if (hasNoExplicitReturnType && boundBodyNode != null)
-                    {
-                        var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
-                        CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBodyNode);
-                        if (exitPaths.Count > 0)
-                        {
-                            // there is some return, so lets use the last return statement
-                            var exitPath = exitPaths.Last();
-                            returnType = exitPath.Item2;
-                        }
-                        else
-                        {
-                            // there is no return, so lets make it "void" per default
-                            returnType = SignatureBinder.BindSpecialType(SyntaxKind.VoidKeyword);
-                        }
+                        // there is no return, so lets make it "void" per default
+                        returnType = SignatureBinder.BindSpecialType(SyntaxKind.VoidKeyword);
                     }
                 }
             }

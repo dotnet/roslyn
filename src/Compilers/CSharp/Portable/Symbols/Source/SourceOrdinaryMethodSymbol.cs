@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // if it's an error type, try to resolve from the Body instead!
-            if(returnType.Type?.IsErrorType() == true)
+            if(returnType.Type?.IsErrorType() == true && !syntax.HasExplicitReturnType())
             {
                 // try to infer from the body
                 var bodyBinder = TryGetBodyBinder();

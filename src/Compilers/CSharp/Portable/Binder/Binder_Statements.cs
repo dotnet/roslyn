@@ -554,6 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasErrors = localSymbol.ScopeBinder
                 .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
+            // check if no return type has been declared
+            var hasExplicitReturnType = node.HasExplicitReturnType();
+
             BoundBlock blockBody = null;
             BoundBlock expressionBody = null;
             if (node.Body != null)
@@ -609,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
                         }
-                        else if (!hasNoExplicitReturnType)
+                        else if (hasExplicitReturnType)
                         {
                             blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
                         }
@@ -2677,21 +2680,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if(returnType?.IsErrorType() == true)
                 {
                     // check if the local function has no return type specified
-                    if(symbol is LocalFunctionSymbol localFuncSymbol)
+                    if(symbol is LocalFunctionSymbol localFuncSymbol && !localFuncSymbol.Syntax.HasExplicitReturnType())
                     {
-                        var returnTypeSyntax = localFuncSymbol.Syntax.ReturnType;
-                        if(returnTypeSyntax.Kind() == SyntaxKind.IdentifierName && returnTypeSyntax.Width == 0)
-                        {
-                            return null;
-                        }
+                        return null;
                     }
-                    else if(symbol is SourceOrdinaryMethodSymbol methodSymbol)
+                    else if(symbol is SourceOrdinaryMethodSymbol methodSymbol && !methodSymbol.GetSyntax().HasExplicitReturnType())
                     {
-                        var returnTypeSyntax = methodSymbol.GetSyntax().ReturnType;
-                        if (returnTypeSyntax.Kind() == SyntaxKind.IdentifierName && returnTypeSyntax.Width == 0)
-                        {
-                            return null;
-                        }
+                        return null;
                     }
                     /*else if (this.ContainingMemberOrLambda is SourcePropertySymbol propSymbol)
                     {
