@@ -53,25 +53,25 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var linqMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
 
             var enumNamedType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Enumerable).FullName);
-            var queryNamedType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Queryable).FullName);
-            var enumMethods = enumNamedType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>();
-            var queryMethods = queryNamedType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>();
+            if (enumNamedType is null)
+            {
+                return;
+            }
 
-            if (enumMethods == null || queryMethods == null)
+            var enumMethods = enumNamedType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>();
+
+            if (enumMethods is null)
             {
                 return;
             }
 
             AddIfNotNull(whereMethods, enumMethods);
-            AddIfNotNull(whereMethods, queryMethods);
 
             // add all valid linq calls
             foreach (var id in s_validLinqCalls)
             {
                 enumMethods = enumNamedType?.GetMembers(id).OfType<IMethodSymbol>();
-                queryMethods = queryNamedType?.GetMembers(id).OfType<IMethodSymbol>();
                 AddIfNotNull(linqMethods, enumMethods);
-                AddIfNotNull(linqMethods, queryMethods);
             }
 
             if (whereMethods.Count > 0 && linqMethods.Count > 0)

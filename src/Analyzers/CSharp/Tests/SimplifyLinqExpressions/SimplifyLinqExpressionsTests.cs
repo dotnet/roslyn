@@ -533,6 +533,33 @@ namespace demo
 }";
             await TestMissingInRegularAndScriptAsync(source);
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestComplicatedLambda()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class Test
+{
+    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    var test5 = [||]test.Where(a => a.Where(s => s.Equals('hello').FirstOrDefault()).Equals('hello')).FirstOrDefault();
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+ 
+class Test
+{
+    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    var test5 = test.FirstOrDefault(a => a.Where(s => s.Equals('hello').FirstOrDefault()).Equals('hello'));
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
         public async Task TestUserDefinedWhere()
