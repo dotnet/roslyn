@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
         Inherits AbstractSemanticModelReuseLanguageService(Of
             DeclarationStatementSyntax,
             MethodBlockBaseSyntax,
+            DeclarationStatementSyntax,
             AccessorBlockSyntax)
 
         <ImportingConstructor>
@@ -26,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
-        Protected Overrides Function GetAccessorContainerDeclaration(currentAccessor As AccessorBlockSyntax) As DeclarationStatementSyntax
-            Dim container = currentAccessor.Parent
+        Protected Overrides Function GetBasePropertyDeclaration(accessor As AccessorBlockSyntax) As DeclarationStatementSyntax
+            Dim container = accessor.Parent
             Contract.ThrowIfFalse(TypeOf container Is PropertyBlockSyntax OrElse
                                   TypeOf container Is EventBlockSyntax)
             Return DirectCast(container, DeclarationStatementSyntax)

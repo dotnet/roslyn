@@ -2495,13 +2495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
-            => declaration switch
-            {
-                PropertyDeclarationSyntax property => property.AccessorList,
-                IndexerDeclarationSyntax indexer => indexer.AccessorList,
-                EventDeclarationSyntax @event => @event.AccessorList,
-                _ => null,
-            };
+            => (declaration as BasePropertyDeclarationSyntax)?.AccessorList;
 
         private static bool CanHaveAccessors(SyntaxNode declaration)
             => declaration.Kind() switch
@@ -2513,11 +2507,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         private static SyntaxNode WithAccessorList(SyntaxNode declaration, AccessorListSyntax accessorList)
-            => declaration.Kind() switch
+            => declaration switch
             {
-                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
-                SyntaxKind.IndexerDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
-                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).WithAccessorList(accessorList),
+                BasePropertyDeclarationSyntax baseProperty => baseProperty.WithAccessorList(accessorList),
                 _ => declaration,
             };
 

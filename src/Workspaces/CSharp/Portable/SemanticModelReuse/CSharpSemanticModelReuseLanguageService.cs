@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
     internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
         MemberDeclarationSyntax,
         BaseMethodDeclarationSyntax,
+        BasePropertyDeclarationSyntax,
         AccessorDeclarationSyntax>
     {
         [ImportingConstructor]
@@ -32,15 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
-        protected override MemberDeclarationSyntax GetAccessorContainerDeclaration(AccessorDeclarationSyntax currentAccessor)
+        protected override BasePropertyDeclarationSyntax GetBasePropertyDeclaration(AccessorDeclarationSyntax accessor)
         {
-            Contract.ThrowIfFalse(currentAccessor.Parent is AccessorListSyntax);
-            Contract.ThrowIfFalse(currentAccessor.Parent.Parent is MemberDeclarationSyntax);
-            return (MemberDeclarationSyntax)currentAccessor.Parent.Parent;
+            Contract.ThrowIfFalse(accessor.Parent is AccessorListSyntax);
+            Contract.ThrowIfFalse(accessor.Parent.Parent is BasePropertyDeclarationSyntax);
+            return (BasePropertyDeclarationSyntax)accessor.Parent.Parent;
         }
 
-        protected override SyntaxList<AccessorDeclarationSyntax> GetAccessors(MemberDeclarationSyntax member)
-            => CSharpSyntaxGenerator.GetAccessorList(member).Accessors;
+        protected override SyntaxList<AccessorDeclarationSyntax> GetAccessors(BasePropertyDeclarationSyntax baseProperty)
+            => baseProperty.AccessorList.Accessors;
 
         public override SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node)
         {

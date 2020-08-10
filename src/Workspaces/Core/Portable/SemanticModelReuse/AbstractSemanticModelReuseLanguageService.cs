@@ -15,9 +15,11 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
     internal abstract class AbstractSemanticModelReuseLanguageService<
         TMemberDeclarationSyntax,
         TBaseMethodDeclarationSyntax,
+        TBasePropertyDeclarationSyntax,
         TAccessorDeclarationSyntax> : ISemanticModelReuseLanguageService
         where TMemberDeclarationSyntax : SyntaxNode
         where TBaseMethodDeclarationSyntax : TMemberDeclarationSyntax
+        where TBasePropertyDeclarationSyntax : TMemberDeclarationSyntax
         where TAccessorDeclarationSyntax : SyntaxNode
     {
         protected abstract ISyntaxFacts SyntaxFacts { get; }
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
         public abstract SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node);
 
         protected abstract Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken);
-        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TMemberDeclarationSyntax member);
-        protected abstract TMemberDeclarationSyntax GetAccessorContainerDeclaration(TAccessorDeclarationSyntax currentAccessor);
+        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TBasePropertyDeclarationSyntax baseProperty);
+        protected abstract TBasePropertyDeclarationSyntax GetBasePropertyDeclaration(TAccessorDeclarationSyntax accessor);
 
         public Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
         {
@@ -45,10 +47,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 // in the case of an accessor, have to find the previous accessor in the previous prop/event corresponding
                 // to the current prop/event.
 
-                var currentContainer = GetAccessorContainerDeclaration(currentAccessor);
+                var currentContainer = GetBasePropertyDeclaration(currentAccessor);
                 var previousContainer = GetPreviousBodyNode(previousRoot, currentRoot, currentContainer);
 
-                if (previousContainer is not TMemberDeclarationSyntax previousMember)
+                if (previousContainer is not TBasePropertyDeclarationSyntax previousMember)
                 {
                     Debug.Fail("Previous container didn't map back to a normal accessor container.");
                     return null;
