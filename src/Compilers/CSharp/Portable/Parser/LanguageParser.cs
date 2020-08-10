@@ -12252,21 +12252,28 @@ tryAgain:
                             exclamationExclamation = MergeTokens(exclamationExclamation, this.EatToken(SyntaxKind.ExclamationToken), SyntaxKind.ExclamationExclamationToken);
                             arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                         }
-                        arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     }
                     // Case x=>, x =>
                     else
                     {
                         arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                        arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                         exclamationExclamation = null;
                     }
+
                     if (exclamationExclamation != null)
                     {
                         exclamationExclamation = (exclamationExclamation.Kind != SyntaxKind.ExclamationExclamationToken)
                             ? ConvertToMissingWithTrailingTrivia(exclamationExclamation, SyntaxKind.ExclamationExclamationToken)
                             : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
                     }
+
+                    if (arrow != null)
+                    {
+                        arrow = (arrow.Kind != SyntaxKind.EqualsGreaterThanToken)
+                            ? ConvertToMissingWithTrailingTrivia(arrow, SyntaxKind.EqualsGreaterThanToken)
+                            : CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    }
+
                     var parameter = _syntaxFactory.Parameter(
                         attributeLists: default, modifiers: default,
                         type: null, identifier: name, exclamationExclamationToken: exclamationExclamation, @default: null);
