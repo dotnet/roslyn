@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
                   CodeStyleOptions2.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                  new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                  new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  isUnnecessary: true)
         {
         }
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                UnnecessaryWithSuggestionDescriptor,
+                Descriptor,
                 unnecessaryLocations.First(),
                 option.Notification.Severity,
                 additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()).AddRange(unnecessaryLocations.Skip(1)),

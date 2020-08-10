@@ -4,8 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Fading;
@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                    option: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Unreachable_code_detected), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   // This analyzer supports fading through AdditionalLocations since it's a user-controlled option
+                   isUnnecessary: false,
                    configurable: false)
         {
         }
@@ -114,8 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
-            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : Descriptor;
-
             if (fadeOutCode)
             {
                 var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -135,11 +135,21 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
                 var location = root.SyntaxTree.GetLocation(span);
 
-                // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them 
+                // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
-                context.ReportDiagnostic(
-                    Diagnostic.Create(descriptor, location, additionalLocations, s_subsequentSectionProperties));
+                if (fadeOutCode)
+                {
+                    var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
+                        .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { additionalLocations.Count() });
+                    context.ReportDiagnostic(
+                        DiagnosticHelper.CreateWithLocationTags(Descriptor, location, ReportDiagnostic.Default, additionalLocations.Concat(location), tagIndices, s_subsequentSectionProperties));
+                }
+                else
+                {
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(Descriptor, location, additionalLocations, s_subsequentSectionProperties));
+                }
             }
         }
     }

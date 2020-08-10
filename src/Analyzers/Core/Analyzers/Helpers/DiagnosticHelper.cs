@@ -85,10 +85,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IDictionary<string, IEnumerable<int>> tagIndices,
             params object[] messageArgs)
         {
+            return CreateWithLocationTags(descriptor, location, effectiveSeverity, additionalLocations, tagIndices, ImmutableDictionary<string, string>.Empty, messageArgs);
+        }
+
+        /// <summary>
+        /// Create a diagnostic that adds properties specifying a tag for a set of locations.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// If null, <see cref="Diagnostic.AdditionalLocations"/> will return an empty list.
+        /// </param>
+        /// <param name="tagIndices">
+        /// a map of location tag to index in additional locations.
+        /// "AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer" for an example of usage.
+        /// </param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer.
+        /// </param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic CreateWithLocationTags(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
+            IEnumerable<Location> additionalLocations,
+            IDictionary<string, IEnumerable<int>> tagIndices,
+            ImmutableDictionary<string, string> properties,
+            params object[] messageArgs)
+        {
             Contract.ThrowIfTrue(additionalLocations.IsEmpty());
             Contract.ThrowIfTrue(tagIndices.IsEmpty());
 
-            var properties = tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))).ToImmutableDictionary();
+            properties ??= ImmutableDictionary<string, string>.Empty;
+            properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
 
             return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
 

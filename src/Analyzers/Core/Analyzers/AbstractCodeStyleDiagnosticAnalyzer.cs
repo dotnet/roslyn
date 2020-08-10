@@ -15,29 +15,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected readonly DiagnosticDescriptor Descriptor;
 
-        /// <summary>
-        /// Diagnostic descriptor for code you want to fade out *and* want to have a smart-tag
-        /// appear for.  This is the common descriptor for code that is being faded out
-        /// </summary>
-        protected readonly DiagnosticDescriptor? UnnecessaryWithSuggestionDescriptor;
-
         protected readonly LocalizableString _localizableTitle;
         protected readonly LocalizableString _localizableMessageFormat;
 
         protected AbstractCodeStyleDiagnosticAnalyzer(
             string descriptorId, LocalizableString title,
             LocalizableString? messageFormat = null,
+            bool isUnnecessary = false,
             bool configurable = true)
         {
             DescriptorId = descriptorId;
             _localizableTitle = title;
             _localizableMessageFormat = messageFormat ?? title;
 
-            Descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, isConfigurable: configurable);
-            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor(DescriptorId, configurable);
-
-            SupportedDiagnostics = ImmutableArray.Create(
-                Descriptor, UnnecessaryWithSuggestionDescriptor);
+            Descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, isUnnecessary: isUnnecessary, isConfigurable: configurable);
+            SupportedDiagnostics = ImmutableArray.Create(Descriptor);
         }
 
         protected AbstractCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
@@ -48,12 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableTitle = Descriptor.Title;
             _localizableMessageFormat = Descriptor.MessageFormat;
         }
-
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId, bool isConfigurable = true)
-            => CreateDescriptorWithId(
-                descriptorId, _localizableTitle, _localizableMessageFormat,
-                isUnnecessary: true,
-                isConfigurable);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 

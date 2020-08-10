@@ -149,16 +149,15 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                         match.SpanStart, arguments[0].SpanStart));
 
-                    RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                        UnnecessaryWithSuggestionDescriptor,
+                        Descriptor,
                         location1,
                         ReportDiagnostic.Default,
-                        additionalLocations: locations.Add(Location.Create(syntaxTree, TextSpan.FromBounds(
-                            arguments.Last().FullSpan.End,
-                            match.Span.End))),
+                        additionalLocations: locations
+                            .Add(location1)
+                            .Add(syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End))),
                         tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
-                            .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { locations.Length })));
+                            .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { locations.Length - 1, locations.Length })));
                 }
             }
         }
