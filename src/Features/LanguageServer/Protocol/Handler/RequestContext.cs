@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly Action<Solution>? _solutionUpdater;
 
         /// <summary>
+        /// The document that the request is for, if applicable
+        /// </summary>
+        public Document? Document { get; }
+        /// <summary>
         /// The solution state that the request should operate on
         /// </summary>
         public Solution? Solution { get; }
@@ -34,12 +38,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string? ClientName { get; }
 
         public RequestContext(ClientCapabilities clientCapabilities, string? clientName)
-            : this(null, null, clientCapabilities, clientName)
+            : this(null, null, null, clientCapabilities, clientName)
         {
         }
 
-        internal RequestContext(Solution? solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
+        internal RequestContext(Document? document, Solution? solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
         {
+            Document = document;
             Solution = solution;
             _solutionUpdater = solutionUpdater;
             ClientCapabilities = clientCapabilities;
