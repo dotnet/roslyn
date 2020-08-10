@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private void StopTrackingDataForParamArrayParameterIndices(AnalysisEntity analysisEntity, TAnalysisData analysisData, PooledHashSet<AnalysisEntity> allEntities)
         {
-            Debug.Assert(analysisEntity.SymbolOpt is IParameterSymbol parameter && parameter.IsParams);
+            Debug.Assert(analysisEntity.Symbol is IParameterSymbol parameter && parameter.IsParams);
 
             foreach (var entity in allEntities)
             {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue>? assignedValue)
         {
-            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
+            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
             if (assignedValue != null)
             {
                 SetAbstractValueForAssignment(analysisEntity, assignedValue.Operation, assignedValue.Value);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
+            Debug.Assert(Equals(analysisEntity.Symbol, parameter));
             if (parameter.RefKind != RefKind.None)
             {
                 SetAbstractValue(analysisEntity, GetDefaultValueForParameterOnExit(analysisEntity.Type));
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         #region Interprocedural analysis
         protected override TAnalysisData GetInitialInterproceduralAnalysisData(
             IMethodSymbol invokedMethod,
-            (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstance,
+            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? invocationInstance,
             (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCaller,
             ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
             IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValues,
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (invocationInstance.HasValue)
                 {
-                    AddWorklistEntityAndPointsToValue(invocationInstance.Value.InstanceOpt);
+                    AddWorklistEntityAndPointsToValue(invocationInstance.Value.Instance);
                     AddWorklistPointsToValue(invocationInstance.Value.PointsToValue);
                 }
 
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 foreach (var argument in argumentValuesMap.Values)
                 {
-                    if (!AddWorklistEntityAndPointsToValue(argument.AnalysisEntityOpt))
+                    if (!AddWorklistEntityAndPointsToValue(argument.AnalysisEntity))
                     {
                         // For allocations passed as arguments.
                         AddWorklistPointsToValue(argument.InstanceLocation);
@@ -721,21 +721,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         internal bool ShouldStopTrackingEntityAtExit(AnalysisEntity entity)
         {
-            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null);
+            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisData != null);
 
             // Filter out all the parameter, local symbol and flow capture entities from the analysis data.
             return IsParameterEntityForCurrentMethod(entity) ||
-                entity.SymbolOpt?.Kind == SymbolKind.Local &&
-                entity.SymbolOpt.ContainingSymbol.Equals(DataFlowAnalysisContext.OwningSymbol) ||
-                entity.CaptureIdOpt.HasValue &&
-                entity.CaptureIdOpt.Value.ControlFlowGraph == DataFlowAnalysisContext.ControlFlowGraph;
+                entity.Symbol?.Kind == SymbolKind.Local &&
+                entity.Symbol.ContainingSymbol.Equals(DataFlowAnalysisContext.OwningSymbol) ||
+                entity.CaptureId.HasValue &&
+                entity.CaptureId.Value.ControlFlowGraph == DataFlowAnalysisContext.ControlFlowGraph;
         }
 
         public override TAnalysisData? GetMergedDataForUnhandledThrowOperations()
         {
             // For interprocedural analysis, prune analysis data for unhandled exceptions
             // to remove analysis entities that are only valid in the callee.
-            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null &&
+            if (DataFlowAnalysisContext.InterproceduralAnalysisData != null &&
                 AnalysisDataForUnhandledThrowOperations != null &&
                 AnalysisDataForUnhandledThrowOperations.Values.Any(HasAnyAbstractValue))
             {
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var tupleElementEntity = tupleElementEntities[i];
                     if (element is ITupleOperation tupleElement)
                     {
-                        Debug.Assert(tupleElementEntity.SymbolOpt is IFieldSymbol field);
+                        Debug.Assert(tupleElementEntity.Symbol is IFieldSymbol field);
                         HandleDeconstructionAssignment(tupleElement, childEntities);
                     }
                     else if (AnalysisEntityFactory.TryCreate(element, out var elementEntity))
@@ -838,18 +838,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return false;
                 }
 
-                if (tupleElementEntity.ParentOpt == null)
+                if (tupleElementEntity.Parent == null)
                 {
                     // Root tuple entity, compare the underlying tuple types.
-                    return childEntity.ParentOpt == null &&
+                    return childEntity.Parent == null &&
                         tupleElementEntity.Type.OriginalDefinition.Equals(childEntity.Type.OriginalDefinition);
                 }
 
                 // Must be a tuple element field entity.
-                return tupleElementEntity.SymbolOpt is IFieldSymbol tupleElementField &&
-                    childEntity.SymbolOpt is IFieldSymbol childEntityField &&
+                return tupleElementEntity.Symbol is IFieldSymbol tupleElementField &&
+                    childEntity.Symbol is IFieldSymbol childEntityField &&
                     tupleElementField.OriginalDefinition.Equals(childEntityField.OriginalDefinition) &&
-                    IsMatchingAssignedEntity(tupleElementEntity.ParentOpt, childEntity.ParentOpt);
+                    IsMatchingAssignedEntity(tupleElementEntity.Parent, childEntity.Parent);
             }
         }
 

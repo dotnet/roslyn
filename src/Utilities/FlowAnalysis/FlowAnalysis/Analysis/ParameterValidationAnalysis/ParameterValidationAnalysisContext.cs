@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
                 OwningSymbol, AnalyzerOptions, NullCheckValidationMethodNames,
                 InterproceduralAnalysisConfiguration, PessimisticAnalysis,
-                PointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ParentControlFlowGraphOpt,
-                InterproceduralAnalysisDataOpt, trackHazardousParameterUsages: true);
+                PointsToAnalysisResult, TryGetOrComputeAnalysisResult, ParentControlFlowGraph,
+                InterproceduralAnalysisData, trackHazardousParameterUsages: true);
 
         public bool TrackHazardousParameterUsages { get; }
 

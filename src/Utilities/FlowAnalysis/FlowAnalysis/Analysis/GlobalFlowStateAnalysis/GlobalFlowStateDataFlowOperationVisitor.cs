@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         private static AnalysisEntity GetGlobalEntity(GlobalFlowStateAnalysisContext analysisContext)
         {
             ISymbol owningSymbol;
-            if (analysisContext.InterproceduralAnalysisDataOpt == null)
+            if (analysisContext.InterproceduralAnalysisData == null)
             {
                 owningSymbol = analysisContext.OwningSymbol;
             }
             else
             {
-                owningSymbol = analysisContext.InterproceduralAnalysisDataOpt.MethodsBeingAnalyzed
-                    .Single(m => m.InterproceduralAnalysisDataOpt == null)
+                owningSymbol = analysisContext.InterproceduralAnalysisData.MethodsBeingAnalyzed
+                    .Single(m => m.InterproceduralAnalysisData == null)
                     .OwningSymbol;
             }
 
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
             if (_hasPredicatedGlobalState &&
                 branch.ControlFlowConditionKind != ControlFlowConditionKind.None &&
-                branch.BranchValueOpt != null &&
+                branch.BranchValue != null &&
                 result.isFeasibleBranch)
             {
-                var branchValue = GetCachedAbstractValue(branch.BranchValueOpt);
+                var branchValue = GetCachedAbstractValue(branch.BranchValue);
                 var negate = branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse;
                 MergeAndSetGlobalState(branchValue, negate);
             }

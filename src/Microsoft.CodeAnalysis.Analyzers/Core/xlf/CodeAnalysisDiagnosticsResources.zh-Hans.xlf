@@ -73,7 +73,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
-        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign</source>
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
         <target state="needs-review-translation">诊断说明应为以一个标点符号结尾的一个或多个句子。</target>
         <note />
       </trans-unit>
@@ -83,7 +83,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
-        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
         <target state="needs-review-translation">诊断消息不应包含任何行回车符，应为不带尾随句点的单个句子或带有一个尾随句点的多个句子。</target>
         <note />
       </trans-unit>
@@ -93,8 +93,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
-        <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="translated">诊断标题不应包含句点或任何行回车字符</target>
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="needs-review-translation">诊断标题不应包含句点或任何行回车字符</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">

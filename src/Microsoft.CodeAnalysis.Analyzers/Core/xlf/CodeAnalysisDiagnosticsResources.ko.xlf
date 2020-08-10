@@ -73,7 +73,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
-        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign</source>
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
         <target state="needs-review-translation">진단 설명에는 문장 부호로 끝나는 하나 이상의 문장이 있어야 합니다.</target>
         <note />
       </trans-unit>
@@ -83,7 +83,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
-        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
         <target state="needs-review-translation">진단 메시지에 줄 바꿈 문자를 포함할 수 없으며, 마침표가 없는 단일 문장이거나 마침표가 있는 여러 문장이어야 합니다.</target>
         <note />
       </trans-unit>
@@ -93,8 +93,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
-        <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="translated">진단 제목에는 마침표 또는 줄 바꿈 문자를 포함할 수 없습니다.</target>
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="needs-review-translation">진단 제목에는 마침표 또는 줄 바꿈 문자를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
