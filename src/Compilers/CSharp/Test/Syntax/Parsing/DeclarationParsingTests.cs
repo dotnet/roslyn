@@ -7481,6 +7481,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceInbetween()
         {
+            // PROTOTYPE(BangBang) - add single ! tests 
             UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
                     // (1,21): error CS1525: Invalid expression term 'null'
                     // void M(string name! !=null) { }
@@ -7610,6 +7611,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceBeforeBangs()
         {
+            // PROTOTYPE(BangBang) - States that the invalid expression term is null
             UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
                     // (1,22): error CS1525: Invalid expression term 'null'
                     // void M(string name ! !=null) { }           

@@ -1631,6 +1631,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection8()
         {
+            // PROTOTYPE(BangBang) - States that the invalid expression term is >
             UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview,
                     // (1,33): error CS1525: Invalid expression term '>'
                     // Func<string, string> func8 = x! !=> x;
