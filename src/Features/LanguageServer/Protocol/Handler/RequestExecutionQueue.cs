@@ -112,7 +112,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
                 // to merge in the changes from any mutations that have been applied to open documents
                 var solution = GetCurrentSolution();
-                solution = MergeChanges(solution, lastMutatedSolution);
+                var (document, solution) = GetWorkspaceState(work.TextDocument, work.ClientName);
+
+                solution = MergeChanges(solution, _lastMutatedSolution);
 
                 Solution? mutatedSolution = null;
                 var context = new RequestContext(solution, s => mutatedSolution = s, work.ClientCapabilities, work.ClientName);
@@ -144,8 +146,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return mutatedSolution ?? solution;
         }
 
-        private Solution GetCurrentSolution()
-            => _solutionProvider.GetCurrentSolutionForMainWorkspace();
+        private (Document?, Solution) GetWorkspaceState(TextDocumentIdentifier? textDocument, string? clientName)
+        {
+            Document? document = null;
+            Solution? solution = null;
+            if (textDocument != null)
+            {
+                document = _solutionProvider.GetDocument(textDocument, clientName);
+                solution = document?.Project.Solution;
+            }
+
+            if (solution == null)
+            {
+                solution = _solutionProvider.GetCurrentSolutionForMainWorkspace();
+            }
+
+            return (document, solution);
+        }
 
         public void Dispose()
         {
