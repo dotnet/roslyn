@@ -31,11 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
+
         public override async Task<LSP.VSReferenceItem[]> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
 
-            var document = SolutionProvider.GetDocument(referenceParams.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return Array.Empty<LSP.VSReferenceItem>();

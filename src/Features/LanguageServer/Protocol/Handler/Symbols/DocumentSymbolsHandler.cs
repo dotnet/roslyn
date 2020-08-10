@@ -29,9 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
+
         public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();

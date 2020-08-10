@@ -26,11 +26,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+
         public override async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
-            var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, context.ClientName);
+            var document = context.Document;
 
             if (document == null)
             {

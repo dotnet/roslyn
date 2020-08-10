@@ -29,10 +29,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
+
         public override async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document != null)
             {
                 var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();

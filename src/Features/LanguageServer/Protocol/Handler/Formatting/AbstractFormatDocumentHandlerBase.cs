@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
         {
             var edits = new ArrayBuilder<LSP.TextEdit>();
-            var document = SolutionProvider.GetDocument(documentIdentifier, context.ClientName);
+            var document = context.Document;
 
             if (document != null)
             {

@@ -31,9 +31,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             : base(solutionProvider)
             => _allProviders = allProviders;
 
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+
         public override async Task<LSP.SignatureHelp> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return new LSP.SignatureHelp();
