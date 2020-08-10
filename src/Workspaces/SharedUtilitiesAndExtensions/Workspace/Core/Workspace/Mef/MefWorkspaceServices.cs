@@ -5,12 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+
+[assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
-    internal class MefWorkspaceServices : HostWorkspaceServices
+    internal sealed class MefWorkspaceServices : HostWorkspaceServices
     {
         private readonly IMefHostExportProvider _exportProvider;
         private readonly Workspace _workspace;
@@ -29,10 +34,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             _exportProvider = host;
             _workspace = workspace;
-            _services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
-                .Concat(host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-                            .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata)))
-                .ToImmutableArray();
+
+            var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>();
+            var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
+                .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata));
+
+            _services = services.Concat(factories).ToImmutableArray();
         }
 
         public override HostServices HostServices
@@ -74,9 +81,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
         {
-
+            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
+#if !CODE_STYLE
+            // test layer overrides all other layers and workspace kind:
+            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
+            {
+                return service;
+            }
+#endif
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out var service))
+            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
             {
                 return service;
             }
@@ -179,5 +193,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
             => _languageServicesMap.TryGetValue(languageName, out languageServices);
+
+        internal sealed class LazyServiceMetadataDebuggerProxy
+        {
+            private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
+
+            public LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services) =>
+                _services = services;
+
+            public (string type, string layer)[] Metadata
+                => _services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
+        }
     }
 }

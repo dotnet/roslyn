@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="translated">Našlo se {0} sestavení pro {1}:</target>
+        <target state="translated">Pro {1} se našlo několik ({0}) sestavení:</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_exact_match_0">

@@ -88,18 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         TextDocumentSync = null,
                     })));
 
-            languageServerGuestService.RegisterClientMetadata(
-                new string[] { ContentTypeNames.CSharpLspContentTypeName, ContentTypeNames.VBLspContentTypeName },
-                new LS.LanguageServerClientMetadata(
-                    true,
-                    JObject.FromObject(new ServerCapabilities
-                    {
-                        // Uses Roslyn client.
-                        CodeActionProvider = true,
-                        ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        ReferencesProvider = true,
-                    })));
-
             var lifeTimeService = LspClientLifeTimeService;
             lifeTimeService.Disposed += (s, e) =>
             {

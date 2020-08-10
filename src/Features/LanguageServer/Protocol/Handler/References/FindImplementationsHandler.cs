@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -16,44 +17,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentImplementationName)]
-    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, object>
+    internal class FindImplementationsHandler : AbstractRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindImplementationsHandler()
+        public FindImplementationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<object> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();
             }
 
-            var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
+            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var context = new SimpleFindUsagesContext(cancellationToken);
+            var findUsagesContext = new SimpleFindUsagesContext(cancellationToken);
 
-            await FindImplementationsAsync(findUsagesService, document, position, context).ConfigureAwait(false);
+            await FindImplementationsAsync(findUsagesService, document, position, findUsagesContext).ConfigureAwait(false);
 
-            foreach (var definition in context.GetDefinitions())
+            foreach (var definition in findUsagesContext.GetDefinitions())
             {
                 var text = definition.GetClassifiedText();
-                foreach (var sourceSpan in context.GetDefinitions().SelectMany(definition => definition.SourceSpans))
+                foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    if (clientCapabilities?.HasVisualStudioLspCapability() == true)
+                    if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
                     }
                     else
                     {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
+                        locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }

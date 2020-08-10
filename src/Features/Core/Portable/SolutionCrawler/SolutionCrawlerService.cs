@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
             }
 
-            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
+            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
                 if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)

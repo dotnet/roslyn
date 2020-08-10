@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
             nullableWarnings.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
             nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen));
 
             nullableWarnings.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             nullableWarnings.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
             nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
@@ -209,12 +211,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInfo(code) || IsHidden(code))
             {
-                // Info and hidden diagnostics have least warning level.
-                return Diagnostic.HighestValidWarningLevel;
+                // Info and hidden diagnostics have default warning level.
+                return Diagnostic.DefaultWarningLevel;
             }
 
             switch (code)
             {
+                case ErrorCode.WRN_NubExprIsConstBool2:
+                case ErrorCode.WRN_StaticInAsOrIs:
+                case ErrorCode.WRN_PrecedenceInversion:
+                case ErrorCode.WRN_UnassignedThisAutoProperty:
+                case ErrorCode.WRN_UnassignedThis:
+                case ErrorCode.WRN_ParamUnassigned:
+                case ErrorCode.WRN_UseDefViolationProperty:
+                case ErrorCode.WRN_UseDefViolationField:
+                case ErrorCode.WRN_UseDefViolationThis:
+                case ErrorCode.WRN_UseDefViolationOut:
+                case ErrorCode.WRN_UseDefViolation:
+                    // Warning level 5 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
+                    return 5;
                 case ErrorCode.WRN_InvalidMainSig:
                 case ErrorCode.WRN_LowercaseEllSuffix:
                 case ErrorCode.WRN_NewNotRequired:
@@ -258,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadRefCompareLeft:
                 case ErrorCode.WRN_BadRefCompareRight:
                 case ErrorCode.WRN_PatternIsAmbiguous:
-                case ErrorCode.WRN_PatternStaticOrInaccessible:
+                case ErrorCode.WRN_PatternNotPublicOrNotInstance:
                 case ErrorCode.WRN_PatternBadSignature:
                 case ErrorCode.WRN_SameFullNameThisNsAgg:
                 case ErrorCode.WRN_SameFullNameThisAggAgg:
@@ -268,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CmpAlwaysFalse:
                 case ErrorCode.WRN_GotoCaseShouldConvert:
                 case ErrorCode.WRN_NubExprIsConstBool:
-                case ErrorCode.WRN_NubExprIsConstBool2:
                 case ErrorCode.WRN_ExplicitImplCollision:
                 case ErrorCode.WRN_DeprecatedSymbolStr:
                 case ErrorCode.WRN_VacuousIntegralComp:
@@ -399,6 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
@@ -447,6 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
                 case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_ConstOutOfRangeChecked:
                 case ErrorCode.WRN_MemberNotNull:
                 case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_MemberNotNullWhen:
@@ -455,6 +472,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParameterDisallowsNull:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                     return 1;
                 default:
                     return 0;

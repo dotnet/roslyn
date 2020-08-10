@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(SymbolCompletionProvider)
         End Function
 
-        Protected Overrides Function GetExportCatalog() As ComposableCatalog
-            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
+        Protected Overrides Function GetComposition() As TestComposition
+            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -3013,7 +3013,6 @@ Class SomeClass
     End Function
 End Class</Code>.Value
 
-
             Await VerifyItemExistsAsync(code, "Bar")
         End Function
 
@@ -3200,7 +3199,6 @@ End Class
                 sourceLanguage:=LanguageNames.VisualBasic,
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
-
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5962,7 +5960,6 @@ Namespace $$
 
 ]]></code>.Value
 
-
             Await VerifyItemExistsAsync(source, "A")
         End Function
 
@@ -6455,7 +6452,6 @@ End Class
             Await VerifyItemExistsAsync(text, "b")
             Await VerifyItemIsAbsentAsync(text, "c")
         End Function
-
 
         <WorkItem(1079694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -7269,7 +7265,6 @@ End Module
                                  textTypedSoFar:="")
         End Function
 
-
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSystemFuncExcludedInExpressionContext1() As Task
@@ -7760,7 +7755,6 @@ End Namespace
             Dim input =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="_MyType=WindowsForms">
-
                         <Document name="Form.vb">
                             <![CDATA[
 Namespace Global.System.Windows.Forms
@@ -7803,7 +7797,6 @@ Namespace Global.WindowsApplication1
     End Class
 End Namespace
     ]]></Document>
-
                     </Project>
                 </Workspace>
 

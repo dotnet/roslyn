@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function IsInCatchOfTry(targetToken As SyntaxToken, tryBlock As TryBlockSyntax) As Boolean
+        Private Shared Function IsInCatchOfTry(targetToken As SyntaxToken, tryBlock As TryBlockSyntax) As Boolean
             Dim parent = targetToken.Parent
             While parent IsNot tryBlock
                 If parent.IsKind(SyntaxKind.CatchBlock) AndAlso tryBlock.CatchBlocks.Contains(DirectCast(parent, CatchBlockSyntax)) Then

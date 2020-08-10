@@ -7,12 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -20,14 +20,13 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    internal class DiagnosticTaggerWrapper<TProvider> : IDisposable
-        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    internal class DiagnosticTaggerWrapper<TProvider, TTag> : IDisposable
+        where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
+        where TTag : ITag
     {
         private readonly TestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService? AnalyzerService;
-        private readonly ISolutionCrawlerRegistrationService _registrationService;
-        private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
-        private readonly SolutionCrawlerRegistrationService? _solutionCrawlerService;
+        private readonly SolutionCrawlerRegistrationService _registrationService;
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -43,31 +42,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _threadingContext = workspace.GetService<IThreadingContext>();
             _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
-            if (updateSource == null)
-            {
-                updateSource = AnalyzerService = new MyDiagnosticAnalyzerService(_listenerProvider.GetListener(FeatureAttribute.DiagnosticService));
-            }
-
             var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             _workspace = workspace;
 
-            _registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            _registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
-            DiagnosticService = new DiagnosticService(_listenerProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
-            DiagnosticService.Register(updateSource);
+            if (!_registrationService.GetTestAccessor().TryGetWorkCoordinator(workspace, out var coordinator))
+                throw new InvalidOperationException();
+
+            AnalyzerService = (DiagnosticAnalyzerService?)_registrationService.GetTestAccessor().AnalyzerProviders.SelectMany(pair => pair.Value).SingleOrDefault(lazyProvider => lazyProvider.Metadata.Name == WellKnownSolutionCrawlerAnalyzers.Diagnostic && lazyProvider.Metadata.HighPriorityForActiveFile)?.Value;
+            DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
+
+            if (updateSource is object)
+            {
+                DiagnosticService.Register(updateSource);
+            }
 
             if (createTaggerProvider)
             {
                 _ = TaggerProvider;
-            }
-
-            if (AnalyzerService != null)
-            {
-                _incrementalAnalyzers = ImmutableArray.Create(AnalyzerService.CreateIncrementalAnalyzer(workspace));
-                _solutionCrawlerService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
             }
         }
 
@@ -77,23 +73,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 if (_taggerProvider == null)
                 {
-                    WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                    WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider, TTag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
-                    if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider))
+                    if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider)
+                        || typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider)
+                        || typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider))
                     {
-                        _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
-                            _threadingContext,
-                            DiagnosticService,
-                            _workspace.GetService<IForegroundNotificationService>(),
-                            _listenerProvider);
-                    }
-                    else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
-                    {
-                        _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
-                            _threadingContext,
-                            DiagnosticService,
-                            _workspace.GetService<IForegroundNotificationService>(),
-                            _listenerProvider);
+                        _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
+                            .OfType<TProvider>()
+                            .Single();
                     }
                     else
                     {
@@ -110,13 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public async Task WaitForTags()
         {
-            if (_solutionCrawlerService != null)
-            {
-                _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
-            }
-
+            await _listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService

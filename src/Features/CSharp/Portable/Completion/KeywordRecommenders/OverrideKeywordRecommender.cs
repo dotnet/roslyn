@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             if (!context.IsMemberDeclarationContext(
                 validModifiers: s_validMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken))
             {

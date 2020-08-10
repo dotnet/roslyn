@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -49,6 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
+                case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                    return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
+                case RecordDeclarationSyntax recordDecl:
+                    return recordDecl;
                 default:
                     return null;
             }
@@ -63,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal CSharpSyntaxNode SyntaxNode
+        internal virtual CSharpSyntaxNode SyntaxNode
         {
             get
             {
@@ -79,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
@@ -482,6 +487,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
+            {
+                MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                DecodeModuleInitializerAttribute(arguments);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -642,7 +652,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
-            if (!this.IsExtern || !this.IsStatic)
+            var implementationPart = this.PartialImplementationPart ?? this;
+            if (!implementationPart.IsExtern || !implementationPart.IsStatic)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -755,6 +766,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         bestFitMapping,
                         throwOnUnmappable),
                     preserveSig);
+            }
+        }
+
+        private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                return;
+            }
+
+            Debug.Assert(ContainingType is object);
+            var hasError = false;
+
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteDiagnostics))
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            arguments.Diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteDiagnostics);
+
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            if (IsGenericMethod || ContainingType.IsGenericType)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
+                hasError = true;
+            }
+
+            if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
+            {
+                DeclaringCompilation.AddModuleInitializerMethod(this);
             }
         }
 #nullable restore

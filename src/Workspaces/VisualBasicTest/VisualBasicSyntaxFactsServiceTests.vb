@@ -176,7 +176,6 @@ Enum E
 End Enum"))
         End Sub
 
-
         <Fact>
         Public Sub IsMethodLevelMember_DeclareStatement()
             Assert.True(IsMethodLevelMember("
@@ -503,7 +502,7 @@ Do
 Loop $$While index < 10")))
         End Sub
 
-        Private Function IsMethodLevelMember(markup As String) As Boolean
+        Private Shared Function IsMethodLevelMember(markup As String) As Boolean
             Dim code As String = Nothing
             Dim span As TextSpan
             MarkupTestFile.GetSpan(markup, code, span)
@@ -512,7 +511,7 @@ Loop $$While index < 10")))
             Return VisualBasicSyntaxFacts.Instance.IsMethodLevelMember(node)
         End Function
 
-        Private Function WrapInMethod(methodBody As String) As String
+        Private Shared Function WrapInMethod(methodBody As String) As String
             Return $"
 Class C
     Sub M()
@@ -521,7 +520,7 @@ Class C
 End Class"
         End Function
 
-        Private Function IsQueryKeyword(markup As String) As Boolean
+        Private Shared Function IsQueryKeyword(markup As String) As Boolean
             Dim code As String = Nothing
             Dim position As Integer
             MarkupTestFile.GetPosition(markup, code, position)
@@ -537,7 +536,7 @@ Dim index As Integer = 0
 $$index += 1")))
         End Sub
 
-        Private Function IsLeftSideOfCompoundAssignment(markup As String) As Boolean
+        Private Shared Function IsLeftSideOfCompoundAssignment(markup As String) As Boolean
             Dim code As String = Nothing
             Dim position As Integer
             MarkupTestFile.GetPosition(markup, code, position)

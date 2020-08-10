@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
+using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -58,82 +58,77 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
-
-        public static bool IsOpen(this Document document)
+        public static bool IsOpen(this TextDocument document)
         {
             var workspace = document.Project.Solution.Workspace as Workspace;
             return workspace != null && workspace.IsDocumentOpen(document.Id);
         }
 
         /// <summary>
-        /// this will return either regular semantic model or speculative semantic based on context. 
-        /// any feature that is involved in typing or run on UI thread should use this to take advantage of speculative semantic model 
-        /// whenever possible automatically.
-        /// 
-        /// when using this API, semantic model should only be used to ask node inside of the given span. 
-        /// otherwise, it might throw if semantic model returned by this API is a speculative semantic model.
-        /// 
-        /// also, symbols from the semantic model returned by this API might have out of date location information. 
-        /// if exact location (not relative location) is needed from symbol, regular GetSemanticModel should be used.
+        /// Attempts to return an speculative semantic model for <paramref name="document"/> if possible if <paramref
+        /// name="position"/> is contained within a method body in the tree.  Specifically, this will attempt to get an
+        /// existing cached semantic model for <paramref name="document"/>.  If it can find one, and the top-level semantic
+        /// version for this project matches the cached version, and the position is within a method body, then it will 
+        /// be returned, just with the previous corresponding method body swapped out with the current method body.
+        /// <para/>
+        /// If this is not possible, the regular semantic model for <paramref name="document"/> will be returned.
+        /// <para/>
+        /// When using this API, semantic model should only be used to ask questions about nodes inside of the member
+        /// that contains the given <paramref name="position"/>.
+        /// <para/>
+        /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
+        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, int position, CancellationToken cancellationToken)
+            => ReuseExistingSpeculativeModelAsync(document, new TextSpan(position, 0), cancellationToken);
+
+        /// <summary>
+        /// Attempts to return an speculative semantic model for <paramref name="document"/> if possible if <paramref
+        /// name="span"/> is contained within a method body in the tree.  Specifically, this will attempt to get an
+        /// existing cached semantic model <paramref name="document"/>.  If it can find one, and the top-level semantic
+        /// version for this project matches the cached version, and the position is within a method body, then it will 
+        /// be returned, just with the previous corresponding method body swapped out with the current method body.
+        /// <para/>
+        /// If this is not possible, the regular semantic model for <paramref name="document"/> will be returned.
+        /// <para/>
+        /// When using this API, semantic model should only be used to ask questions about nodes inside of the
+        /// member that contains the given <paramref name="span"/>.
+        /// <para/>
+        /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
+        /// </summary>
+        public static async Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
-            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
-            if (semanticModelService == null || syntaxFactService == null)
-            {
-                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(root, "We shouldn't have a null root if the document supports semantic models");
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
-            if (token.Parent == null)
-            {
-                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
-            }
+            var node = token.Parent!.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
 
-            var node = token.Parent.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
-            return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
+            return await ReuseExistingSpeculativeModelAsync(document, node, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// this will return either regular semantic model or speculative semantic based on context. 
-        /// any feature that is involved in typing or run on UI thread should use this to take advantage of speculative semantic model 
-        /// whenever possible automatically.
-        /// 
-        /// when using this API, semantic model should only be used to ask node inside of the given node except ones that belong to 
-        /// member signature. otherwise, it might throw if semantic model returned by this API is a speculative semantic model.
-        /// 
-        /// also, symbols from the semantic model returned by this API might have out of date location information. 
-        /// if exact location (not relative location) is needed from symbol, regular GetSemanticModel should be used.
+        /// Attempts to return an speculative semantic model for <paramref name="document"/> if possible if <paramref
+        /// name="node"/> is contained within a method body in the tree.  Specifically, this will attempt to get an
+        /// existing cached semantic model <paramref name="document"/>.  If it can find one, and the top-level semantic
+        /// version for this project matches the cached version, and the position is within a method body, then it will 
+        /// be returned, just with the previous corresponding method body swapped out with the current method body.
+        /// <para/>
+        /// If this is not possible, the regular semantic model for <paramref name="document"/> will be returned.
+        /// <para/>
+        /// When using this API, semantic model should only be used to ask questions about nodes inside of the
+        /// member that contains the given <paramref name="node"/>.
+        /// <para/>
+        /// As a speculative semantic model may be returned, location based information provided by it may be innacurate.
         /// </summary>
-        public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
+        public static Task<SemanticModel> ReuseExistingSpeculativeModelAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
         {
-            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
-            if (semanticModelService == null || syntaxFactService == null || node == null)
-            {
-                return document.GetSemanticModelAsync(cancellationToken)!;
-            }
+            if (node == null)
+                return document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            return GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, node.FullSpan, cancellationToken);
-        }
+            var workspace = document.Project.Solution.Workspace;
+            var semanticModelService = workspace.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
 
-        private static Task<SemanticModel> GetSemanticModelForNodeAsync(
-            ISemanticModelService semanticModelService, ISyntaxFactsService syntaxFactService,
-            Document document, SyntaxNode node, TextSpan span, CancellationToken cancellationToken)
-        {
-            // check whether given span is a valid span to do speculative binding
-            var speculativeBindingSpan = syntaxFactService.GetMemberBodySpanForSpeculativeBinding(node);
-            if (!speculativeBindingSpan.Contains(span))
-            {
-                return document.GetSemanticModelAsync(cancellationToken)!;
-            }
-
-            return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);
+            return semanticModelService.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken);
         }
 
 #if DEBUG
@@ -183,12 +178,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService != null &&
                 await generatedCodeRecognitionService.IsGeneratedCodeAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        public static async Task<SemanticModel> RequireSemanticModelAsync(this Document document, CancellationToken cancellationToken)
-        {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return model ?? throw new InvalidOperationException();
         }
 
         public static IEnumerable<Document> GetLinkedDocuments(this Document document)

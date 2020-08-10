@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
 using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartIndenterEnterOnTokenTests : CSharpFormatterTestsBase
     {
+        public SmartIndenterEnterOnTokenTests(ITestOutputHelper output) : base(output) { }
+
         [WorkItem(537808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -1453,7 +1456,7 @@ class C
                 expectedIndentation);
         }
 
-        private async Task AssertIndentUsingSmartTokenFormatterAsync(
+        private static async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
             int indentationLine,
@@ -1463,7 +1466,7 @@ class C
             await AssertIndentUsingSmartTokenFormatterAsync(code.Replace("    ", "\t"), ch, indentationLine, expectedIndentation, useTabs: true).ConfigureAwait(false);
         }
 
-        private async Task AssertIndentUsingSmartTokenFormatterAsync(
+        private static async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
             int indentationLine,
@@ -1498,7 +1501,7 @@ class C
             Assert.Equal(expectedIndentation.Value, actualIndentation);
         }
 
-        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -1508,7 +1511,7 @@ class C
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, indentStyle).ConfigureAwait(false);
         }
 
-        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,

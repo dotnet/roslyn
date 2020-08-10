@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
-        private ColorSchemeApplier _colorSchemeApplier;
+        private readonly ColorSchemeApplier _colorSchemeApplier;
 
         public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
         {
@@ -39,7 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
-            BindToOption(Use_editorconfig_compatibility_mode, EditorConfigDocumentOptionsProviderFactory.UseLegacyEditorConfigSupport);
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp);
@@ -59,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
 
+            BindToOption(DisplayInlineParameterNameHints, FeatureOnOffOptions.InlineParameterNameHints, LanguageNames.CSharp);
             BindToOption(GenerateXmlDocCommentsForTripleSlash, FeatureOnOffOptions.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.ShowRemarksInQuickInfo, LanguageNames.CSharp);
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);

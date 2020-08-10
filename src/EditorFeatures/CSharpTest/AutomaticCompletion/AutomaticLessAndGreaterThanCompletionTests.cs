@@ -392,7 +392,20 @@ public class Inner
             CheckStart(session.Session);
         }
 
-        internal Holder CreateSession(string code)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void FunctionPointerStartSession()
+        {
+            var code = @"
+class C
+{
+    delegate*$$";
+
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        internal static Holder CreateSession(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

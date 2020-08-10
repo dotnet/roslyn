@@ -11,10 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
-        Private Shared Function ConvertToOptional(value As ConstantValue) As [Optional](Of Object)
-            Return If(value Is Nothing OrElse value.IsBad, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
-        End Function
-
         Private Shared Function IsMidStatement(node As BoundNode) As Boolean
             If node.Kind = BoundKind.Conversion Then
                 node = DirectCast(node, BoundConversion).Operand
@@ -92,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignment.Left))
             Dim syntax As SyntaxNode = boundAssignment.Syntax
             Dim type As ITypeSymbol = boundAssignment.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignment.ConstantValueOpt)
+            Dim constantValue As ConstantValue = boundAssignment.ConstantValueOpt
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
             Return New VisualBasicLazyCompoundAssignmentOperation(Me, boundAssignment, inConversion, outConversion, operatorInfo.OperatorKind,
@@ -371,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim isRef As Boolean = False
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
-                Dim constantValue As [Optional](Of Object) = value.ConstantValue
+                Dim constantValue As ConstantValue = value.GetConstantValue()
                 Dim assignment = New SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
                 builder.Add(assignment)
             Next i
@@ -542,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                    _semanticModel,
                                                                    boundOperand.Syntax,
                                                                    adjustedInfo.Operation.Type,
-                                                                   ConvertToOptional(boundOperand.ConstantValueOpt),
+                                                                   boundOperand.ConstantValueOpt,
                                                                    boundOperand.WasCompilerGenerated),
                             adjustedInfo.Conversion,
                             adjustedInfo.IsDelegateCreation)

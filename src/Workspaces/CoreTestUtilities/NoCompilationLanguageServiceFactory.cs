@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [ExportLanguageServiceFactory(typeof(INoCompilationLanguageService), NoCompilationConstants.LanguageName), Shared]
+    [ExportLanguageServiceFactory(typeof(INoCompilationLanguageService), NoCompilationConstants.LanguageName, ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class NoCompilationLanguageServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]

@@ -38,18 +38,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = document.Project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                     solution,
                     new object[] { document.Id, searchPattern, kinds.ToArray() },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(r => r.Rehydrate(solution));
-                }
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchDocumentInCurrentProcessAsync(
@@ -64,18 +61,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                     solution,
                     new object[] { project.Id, priorityDocuments.Select(d => d.Id).ToArray(), searchPattern, kinds.ToArray() },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(r => r.Rehydrate(solution));
-                }
+                return result.SelectAsArray(r => r.Rehydrate(solution));
             }
 
             return await SearchProjectInCurrentProcessAsync(

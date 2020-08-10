@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (targetFrameworkMoniker == null)
                 {
-                    targetFrameworkMoniker = GetTargetFrameworkMoniker(parent, targetFrameworkMoniker);
+                    targetFrameworkMoniker = GetTargetFrameworkMoniker(parent);
                 }
 
                 if (NestedHierarchyHasProjectTreeCapability(parent, "ProjectRoot"))
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// Given an item determines if it represents a particular target frmework.
         /// If so, it returns the corresponding TargetFrameworkMoniker.
         /// </summary>
-        private static string GetTargetFrameworkMoniker(IVsHierarchyItem item, string targetFrameworkMoniker)
+        private static string GetTargetFrameworkMoniker(IVsHierarchyItem item)
         {
             var hierarchy = item.HierarchyIdentity.NestedHierarchy;
             var itemId = item.HierarchyIdentity.NestedItemID;
@@ -200,6 +200,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             return _diagnosticAnalyzerService;
         }
-
     }
 }

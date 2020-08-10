@@ -21,43 +21,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("@$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void Char_TopLevel()
         {
             using var session = CreateSessionSingleQuote("$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;@$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -421,14 +426,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        internal Holder CreateSessionSingleQuote(string code)
+        internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
                 BraceCompletionSessionProvider.SingleQuote.OpenCharacter, BraceCompletionSessionProvider.SingleQuote.CloseCharacter);
         }
 
-        internal Holder CreateSessionDoubleQuote(string code)
+        internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),

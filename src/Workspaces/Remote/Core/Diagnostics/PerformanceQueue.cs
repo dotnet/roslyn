@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        private (double average, double stddev) GetAverageAndAdjustedStandardDeviation(List<double> data)
+        private static (double average, double stddev) GetAverageAndAdjustedStandardDeviation(List<double> data)
         {
             var average = data.Average();
             var stddev = Math.Sqrt(data.Select(ms => Math.Pow(ms - average, 2)).Average());
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return value;
             }
 
-            private void Reset(
+            private static void Reset(
                 Dictionary<int, double> map, IEnumerable<(int assignedAnalyzerNumber, TimeSpan timeSpan)> rawData, int fileCount)
             {
                 // get smallest timespan in the snapshot

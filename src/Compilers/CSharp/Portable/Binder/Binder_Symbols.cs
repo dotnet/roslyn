@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Binds the type for the syntax taking into account possibility of the type being a keyword.
         /// If the syntax binds to an alias symbol to a type, it returns the alias symbol.
         /// PREREQUISITE: syntax should be checked to match the keyword, like <see cref="TypeSyntax.IsVar"/> or <see cref="TypeSyntax.IsUnmanaged"/>.
-        /// Otherwise, call <see cref="Binder.BindTypeOrAlias(ExpressionSyntax, DiagnosticBag, ConsList{TypeSymbol})"/> instead.
+        /// Otherwise, call <see cref="Binder.BindTypeOrAlias(ExpressionSyntax, DiagnosticBag, ConsList{TypeSymbol}, bool)"/> instead.
         /// </summary>
         private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrKeyword(IdentifierNameSyntax syntax, DiagnosticBag diagnostics, out bool isKeyword)
         {
@@ -289,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Binds the given expression syntax as Type.
         // If the resulting symbol is an Alias to a Type, it unwraps the alias
         // and returns it's target type.
-        internal TypeWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        internal TypeWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null, bool suppressUseSiteDiagnostics = false)
         {
-            var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
+            var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
             return UnwrapAlias(symbol, diagnostics, syntax, basesBeingResolved).TypeWithAnnotations;
         }
 
@@ -307,11 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Binds the given expression syntax as Type or an Alias to Type
         // and returns the resultant symbol.
         // NOTE: This method doesn't unwrap aliases.
-        internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAlias(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAlias(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null, bool suppressUseSiteDiagnostics = false)
         {
             Debug.Assert(diagnostics != null);
 
-            var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null);
+            var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null || suppressUseSiteDiagnostics);
 
             // symbol must be a TypeSymbol or an Alias to a TypeSymbol
             if (symbol.IsType ||
@@ -380,18 +381,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnwrapAlias(result, diagnostics, syntax, basesBeingResolved);
         }
 
+#nullable enable
         /// <summary>
-        /// Bind the syntax into a namespace, type or alias symbol. 
+        /// Bind the syntax into a namespace, type or alias symbol.
         /// </summary>
         /// <remarks>
         /// This method is used in deeply recursive parts of the compiler. Specifically this and
         /// <see cref="BindQualifiedName(ExpressionSyntax, SimpleNameSyntax, DiagnosticBag, ConsList{TypeSymbol}, bool)"/>
-        /// are mutually recursive. The non-recursive parts of this method tend to reserve significantly large 
+        /// are mutually recursive. The non-recursive parts of this method tend to reserve significantly large
         /// stack frames due to their use of large struct like <see cref="TypeWithAnnotations"/>.
         ///
-        /// To keep the stack frame size on recursive paths small the non-recursive parts are factored into local 
-        /// functions. This means we pay their stack penalty only when they are used. They are themselves big 
-        /// enough they should be disqualified from inlining. In the future when attributes are allowed on 
+        /// To keep the stack frame size on recursive paths small the non-recursive parts are factored into local
+        /// functions. This means we pay their stack penalty only when they are used. They are themselves big
+        /// enough they should be disqualified from inlining. In the future when attributes are allowed on
         /// local functions we should explicitly mark them as <see cref="MethodImplOptions.NoInlining"/>
         /// </remarks>
         internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
@@ -433,6 +435,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerType:
                     return bindPointer();
 
+                case SyntaxKind.FunctionPointerType:
+                    var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
+                    if (GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null) is CSDiagnosticInfo info)
+                    {
+                        var @delegate = functionPointerTypeSyntax.DelegateKeyword;
+                        var asterisk = functionPointerTypeSyntax.AsteriskToken;
+                        RoslynDebug.Assert(@delegate.SyntaxTree is object);
+                        diagnostics.Add(info, Location.Create(@delegate.SyntaxTree, TextSpan.FromBounds(@delegate.SpanStart, asterisk.Span.End)));
+                    }
+
+                    return TypeWithAnnotations.Create(
+                        FunctionPointerTypeSymbol.CreateFromSource(
+                            functionPointerTypeSyntax,
+                            this,
+                            diagnostics,
+                            basesBeingResolved,
+                            suppressUseSiteDiagnostics));
+
                 case SyntaxKind.OmittedTypeArgument:
                     {
                         return BindTypeArgument((TypeSyntax)syntax, diagnostics, basesBeingResolved);
@@ -461,24 +481,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // This is invalid syntax for a type.  This arises when a constant pattern that fails to bind
                         // is attempted to be bound as a type pattern.
-                        diagnostics.Add(ErrorCode.ERR_TypeExpected, syntax.GetLocation());
-                        return TypeWithAnnotations.Create(CreateErrorType());
+                        return createErrorType();
                     }
             }
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
             {
                 bool isNullableEnabled = AreNullableAnnotationsEnabled(questionToken);
+                bool isGeneratedCode = IsGeneratedCode(questionToken);
                 var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
                 if (typeArgument.HasType && !ShouldCheckConstraints)
                 {
-                    LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
+                    LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(
+                        isNullableEnabled,
+                        isGeneratedCode,
+                        typeArgument,
+                        location,
+                        diagnostics);
                 }
                 else
                 {
-                    LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(isNullableEnabled, typeArgument, location, diagnostics);
+                    LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
+                        isNullableEnabled,
+                        isGeneratedCode,
+                        typeArgument,
+                        location,
+                        diagnostics);
                 }
             }
 
@@ -493,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!ShouldCheckConstraints)
                 {
-                    diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
+                    diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(Compilation.LanguageVersion, constructedType), syntax.GetLocation());
                 }
                 else if (constructedType.IsNullableType())
                 {
@@ -502,9 +532,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var location = syntax.Location;
                     type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
                 }
-                else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
+                else if (GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(Compilation.LanguageVersion, constructedType) is { } diagnosticInfo)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
+                    diagnostics.Add(diagnosticInfo, syntax.Location);
                 }
 
                 return constructedType;
@@ -522,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var node = (AliasQualifiedNameSyntax)syntax;
                 var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
                 var alias = bindingResult as AliasSymbol;
-                NamespaceOrTypeSymbol left = ((object)alias != null) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
+                NamespaceOrTypeSymbol left = (alias is object) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
 
                 if (left.Kind == SymbolKind.NamedType)
                 {
@@ -545,7 +575,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));
             }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations createErrorType()
+            {
+                diagnostics.Add(ErrorCode.ERR_TypeExpected, syntax.GetLocation());
+                return TypeWithAnnotations.Create(CreateErrorType());
+            }
         }
+
+        internal static CSDiagnosticInfo? GetNullableUnconstrainedTypeParameterDiagnosticIfNecessary(LanguageVersion languageVersion, in TypeWithAnnotations type)
+        {
+            if (type.Type.IsTypeParameterDisallowingAnnotationInCSharp8())
+            {
+                // Check IDS_FeatureDefaultTypeParameterConstraint feature since `T?` and `where ... : default`
+                // are treated as a single feature, even though the errors reported for the two cases are distinct.
+                var requiredVersion = MessageID.IDS_FeatureDefaultTypeParameterConstraint.RequiredVersion();
+                if (requiredVersion > languageVersion)
+                {
+                    return new CSDiagnosticInfo(ErrorCode.ERR_NullableUnconstrainedTypeParameter, new CSharpRequiredLanguageVersion(requiredVersion));
+                }
+            }
+            return null;
+        }
+#nullable restore
 
         private TypeWithAnnotations BindArrayType(
             ArrayTypeSyntax node,
@@ -731,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Binds a simple name or the simple name portion of a qualified name. 
+        /// Binds a simple name or the simple name portion of a qualified name.
         /// </summary>
         private NamespaceOrTypeOrAliasSymbolWithAnnotations BindSimpleNamespaceOrTypeOrAliasSymbol(
             SimpleNameSyntax syntax,
@@ -740,10 +792,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool suppressUseSiteDiagnostics,
             NamespaceOrTypeSymbol qualifierOpt = null)
         {
-            // Note that the comment above is a small lie; there is no such thing as the "simple name portion" of 
+            // Note that the comment above is a small lie; there is no such thing as the "simple name portion" of
             // a qualified alias member expression. A qualified alias member expression has the form
             // "identifier :: identifier optional-type-arguments" -- the right hand side of which
-            // happens to match  the syntactic form of a simple name. As a convenience, we analyze the 
+            // happens to match  the syntactic form of a simple name. As a convenience, we analyze the
             // right hand side of the "::" here because it is so similar to a simple name; the left hand
             // side is in qualifierOpt.
 
@@ -793,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var identifierValueText = node.Identifier.ValueText;
 
             // If we are here in an error-recovery scenario, say, "goo<int, >(123);" then
-            // we might have an 'empty' simple name. In that case do not report an 
+            // we might have an 'empty' simple name. In that case do not report an
             // 'unable to find ""' error; we've already reported an error in the parser so
             // just bail out with an error symbol.
 
@@ -919,9 +971,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (SyntaxFacts.IsAttributeName(node))
             {
-                //  SPEC:   By convention, attribute classes are named with a suffix of Attribute. 
+                //  SPEC:   By convention, attribute classes are named with a suffix of Attribute.
                 //  SPEC:   An attribute-name of the form type-name may either include or omit this suffix.
-                //  SPEC:   If an attribute class is found both with and without this suffix, an ambiguity 
+                //  SPEC:   If an attribute class is found both with and without this suffix, an ambiguity
                 //  SPEC:   is present, and a compile-time error results. If the attribute-name is spelled
                 //  SPEC:   such that its right-most identifier is a verbatim identifier (§2.4.2), then only
                 //  SPEC:   an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved.
@@ -944,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private NamespaceOrTypeOrAliasSymbolWithAnnotations UnwrapAlias(NamespaceOrTypeOrAliasSymbolWithAnnotations symbol, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<TypeSymbol> basesBeingResolved = null)
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations UnwrapAlias(in NamespaceOrTypeOrAliasSymbolWithAnnotations symbol, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (symbol.IsAlias)
             {
@@ -955,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private NamespaceOrTypeOrAliasSymbolWithAnnotations UnwrapAlias(NamespaceOrTypeOrAliasSymbolWithAnnotations symbol, out AliasSymbol alias, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<TypeSymbol> basesBeingResolved = null)
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations UnwrapAlias(in NamespaceOrTypeOrAliasSymbolWithAnnotations symbol, out AliasSymbol alias, DiagnosticBag diagnostics, SyntaxNode syntax, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (symbol.IsAlias)
             {
@@ -1010,10 +1062,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // us an identifier followed by a type argument list. Therefore they
             // must expect the result to be a generic type, and not a namespace or alias.
 
-            // The result of this method will therefore always be a type symbol of the 
+            // The result of this method will therefore always be a type symbol of the
             // correct arity, though it might have to be an error type.
 
-            // We might be asked to bind a generic simple name of the form "T<,,,>", 
+            // We might be asked to bind a generic simple name of the form "T<,,,>",
             // which is only legal in the context of "typeof(T<,,,>)". If we are given
             // no type arguments and we are not in such a context, we'll give an error.
 
@@ -1025,15 +1077,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // * Lookup could fail to find anything at all.
             // * Lookup could find a type of the wrong arity
             // * Lookup could find something but it is not a type.
-            // 
+            //
             // Second, we could be asked to resolve an unbound type T<,,,> when
-            // not in a context where it is legal to do so. Note that this is 
-            // intended an improvement over the analysis performed by the 
-            // native compiler; in the native compiler we catch bad uses of unbound 
+            // not in a context where it is legal to do so. Note that this is
+            // intended an improvement over the analysis performed by the
+            // native compiler; in the native compiler we catch bad uses of unbound
             // types at parse time, not at semantic analysis time. That means that
             // we end up giving confusing "unexpected comma" or "expected type"
             // errors when it would be more informative to the user to simply
-            // tell them that an unbound type is not legal in this position. 
+            // tell them that an unbound type is not legal in this position.
             //
             // This also means that we can get semantic analysis of the open
             // type in the IDE even in what would have been a syntax error case
@@ -1046,11 +1098,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a partially unbound type.
             //
             // The heuristic we will use is that the former kind of error takes priority
-            // over the latter; if the meaning of "Bogus<>" cannot be successfully 
+            // over the latter; if the meaning of "Bogus<>" cannot be successfully
             // determined then there is no point telling the user that in addition,
             // it is syntactically wrong. Moreover, at this point we do not know what they
-            // mean by the remainder ".Blah<int>" of the expression and so it seems wrong to 
-            // deduce more errors from it. 
+            // mean by the remainder ".Blah<int>" of the expression and so it seems wrong to
+            // deduce more errors from it.
 
             var plainName = node.Identifier.ValueText;
 
@@ -1088,9 +1140,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // It's not an unbound type expression, so we must have type arguments, and we have a 
-                // generic type of the correct arity in hand (possibly an error type). Bind the type 
-                // arguments and construct the final result. 
+                // It's not an unbound type expression, so we must have type arguments, and we have a
+                // generic type of the correct arity in hand (possibly an error type). Bind the type
+                // arguments and construct the final result.
                 resultType = ConstructNamedType(
                     unconstructedType,
                     node,
@@ -1146,12 +1198,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In the third case we will be given back the symbol -- say, a local variable symbol.
             //
             // In all three cases the appropriate error has already been reported. (That the
-            // type was not found, that the generic type found does not have that arity, that 
+            // type was not found, that the generic type found does not have that arity, that
             // the non-generic type found cannot be used with a type argument list, or that
             // the symbol found is not something that takes type arguments. )
 
             // The first thing to do is to make sure that we have some sort of generic type in hand.
-            // (Note that an error type symbol is always a generic type.) 
+            // (Note that an error type symbol is always a generic type.)
 
             NamedTypeSymbol type = lookupResultSymbol as NamedTypeSymbol;
 
@@ -1355,15 +1407,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // convert right to an unbound generic type.
             if (isLeftUnboundGenericType)
             {
+                return convertToUnboundGenericType();
+            }
+
+            return right;
+
+            // This part is moved into a local function to reduce the method's stack frame size
+            NamespaceOrTypeOrAliasSymbolWithAnnotations convertToUnboundGenericType()
+            {
                 var namedTypeRight = right.Symbol as NamedTypeSymbol;
                 if ((object)namedTypeRight != null && namedTypeRight.IsGenericType)
                 {
                     TypeWithAnnotations type = right.TypeWithAnnotations;
-                    right = type.WithTypeAndModifiers(namedTypeRight.AsUnboundGenericType(), type.CustomModifiers);
+                    return type.WithTypeAndModifiers(namedTypeRight.AsUnboundGenericType(), type.CustomModifiers);
                 }
-            }
 
-            return right;
+                return right;
+            }
         }
 
         internal NamedTypeSymbol GetSpecialType(SpecialType typeId, DiagnosticBag diagnostics, SyntaxNode node)
@@ -1376,6 +1436,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
             ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            return typeSymbol;
+        }
+
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
+            ReportUseSiteDiagnostics(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
 
@@ -1447,9 +1515,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
+            return GetWellKnownType(type, diagnostics, node.Location);
+        }
+
+        /// <summary>
+        /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
+        /// type isn't found.
+        /// </summary>
+        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, Location location)
+        {
+            return GetWellKnownType(this.Compilation, type, diagnostics, location);
+        }
+
+        /// <summary>
+        /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
+        /// type isn't found.
+        /// </summary>
+        internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
+        {
+            return GetWellKnownType(compilation, type, diagnostics, node.Location);
+        }
+
+        internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, Location location)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
-            ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            ReportUseSiteDiagnostics(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
 
@@ -1836,7 +1927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Compilation.IsAttributeType((NamedTypeSymbol)first) &&
                                     Compilation.IsAttributeType((NamedTypeSymbol)second))
                                 {
-                                    //  SPEC:   If an attribute class is found both with and without Attribute suffix, an ambiguity 
+                                    //  SPEC:   If an attribute class is found both with and without Attribute suffix, an ambiguity
                                     //  SPEC:   is present, and a compile-time error results.
 
                                     info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
@@ -1904,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (singleResult.Kind == SymbolKind.ErrorType)
                             {
-                                // We want to report ERR_CircularBase error on the spot to make sure 
+                                // We want to report ERR_CircularBase error on the spot to make sure
                                 // that the right location is used for it.
                                 var errorType = (ErrorTypeSymbol)singleResult;
 
@@ -2285,7 +2376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="name">The name of the (potentially) forwarded type.</param>
         /// <param name="arity">The arity of the forwarded type.</param>
         /// <param name="qualifierOpt">The namespace of the potentially forwarded type. If none is provided, will
-        /// try Usings of the current import for eligible namespaces and return the namespace of the found forwarder, 
+        /// try Usings of the current import for eligible namespaces and return the namespace of the found forwarder,
         /// if any.</param>
         /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
         /// <param name="location">Location to report errors on.</param>
@@ -2299,8 +2390,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we are in the process of binding assembly level attributes, we might get into an infinite cycle
             // if any of the referenced assemblies forwards type to this assembly. Since forwarded types
             // are specified through assembly level attributes, an attempt to resolve the forwarded type
-            // might require us to examine types forwarded by this assembly, thus binding assembly level 
-            // attributes again. And the cycle continues. 
+            // might require us to examine types forwarded by this assembly, thus binding assembly level
+            // attributes again. And the cycle continues.
             // So, we won't do the analysis in this case, at the expense of better diagnostics.
             if ((this.Flags & BinderFlags.InContextualAttributeBinder) != 0)
             {

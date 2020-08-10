@@ -3,13 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+#endif
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override TypeSyntax DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
 
-            private TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
+            private static TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
                 where TTypeSyntax : TypeSyntax
             {
                 syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var elementTypeSyntax = underlyingType.GenerateTypeSyntax();
-                var ranks = new List<ArrayRankSpecifierSyntax>();
+                using var _ = ArrayBuilder<ArrayRankSpecifierSyntax>.GetInstance(out var ranks);
 
                 var arrayType = symbol;
                 while (arrayType != null && !arrayType.Equals(underlyingType))
@@ -104,10 +108,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitDynamicType(IDynamicTypeSymbol symbol)
+                => AddInformationTo(SyntaxFactory.IdentifierName("dynamic"), symbol);
+
+            public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, out TypeSyntax syntax)
             {
-                return AddInformationTo(
-                    SyntaxFactory.IdentifierName("dynamic"), symbol);
+#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
+                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                if (symbol.IsNativeIntegerType)
+                {
+                    syntax = SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
+                    return true;
+                }
+#endif
+
+                syntax = null;
+                return false;
             }
+
+#if !CODE_STYLE
+
+            public override TypeSyntax VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/39865): generate the calling convention once exposed through the API
+                var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind)))
+                    .Concat(SpecializedCollections.SingletonEnumerable((
+                        Type: symbol.Signature.ReturnType,
+                        RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
+                    .SelectAsArray(t => SyntaxFactory.Parameter(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)).WithModifiers(t.RefKindModifiers).WithType(t.Type.GenerateTypeSyntax()));
+
+                return AddInformationTo(
+                    SyntaxFactory.FunctionPointerType(SyntaxFactory.SeparatedList(parameters)), symbol);
+            }
+
+#endif
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
             {
@@ -115,9 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var syntax = TryCreateSpecializedNamedTypeSyntax(symbol);
                     if (syntax != null)
-                    {
                         return syntax;
-                    }
                 }
 
                 if (symbol.IsTupleType && symbol.TupleUnderlyingType != null && !symbol.Equals(symbol.TupleUnderlyingType))
@@ -161,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private static IdentifierNameSyntax CreateGlobalIdentifier()
                 => SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
 
-            private TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
+            private static TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
             {
                 if (symbol.SpecialType == SpecialType.System_Void)
                 {
@@ -172,14 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return CreateTupleTypeSyntax(symbol);
                 }
-
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
-                if (symbol.IsNativeIntegerType)
-                {
-                    return SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
-                }
-#endif
 
                 if (symbol.IsNullable())
                 {
@@ -195,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            private TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
+            private static TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
             {
                 var list = new SeparatedSyntaxList<TupleElementSyntax>();
 
@@ -210,11 +233,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override TypeSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                var typeSyntax = CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
-                {
+                if (TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
-                }
+
+                typeSyntax = CreateSimpleTypeSyntax(symbol);
+                if (!(typeSyntax is SimpleNameSyntax))
+                    return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
                 if (symbol.ContainingType != null)
@@ -286,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             /// will then be trimmed off if possible by calls to 
             /// <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)"/>
             /// </summary>
-            private TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
+            private static TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(
                     SyntaxFactory.AliasQualifiedName(

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // elsewhere as "paramName:" or "paramName:=".  We can narrow the search by
             // filtering down to matches of that form.  For now we just return any document
             // that references something with this name.
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name);
         }
 
         protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol.Name, document, semanticModel, symbolsMatch, cancellationToken);
+                symbol, symbol.Name, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
-        private Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(
+        private static Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(
             IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
         {
             // Get the standard function for comparing parameters.  This function will just 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutableAndFree();
         }
 
-        private async Task CascadeBetweenAnonymousFunctionParametersAsync(
+        private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
             Solution solution,
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results,
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private void CascadeBetweenAnonymousFunctionParameters(
+        private static void CascadeBetweenAnonymousFunctionParameters(
             Document document,
             SemanticModel semanticModel,
             SyntaxNode container,
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
+        private static bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
         {
             for (var i = 0; i < methodSymbol1.Parameters.Length; i++)
             {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        private SyntaxNode GetContainer(SemanticModel semanticModel, SyntaxNode parameterNode, ISyntaxFactsService syntaxFactsService)
+        private static SyntaxNode GetContainer(SemanticModel semanticModel, SyntaxNode parameterNode, ISyntaxFactsService syntaxFactsService)
         {
             for (var current = parameterNode; current != null; current = current.Parent)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return syntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration(parameterNode);
         }
 
-        private void CascadeBetweenPropertyAndAccessorParameters(
+        private static void CascadeBetweenPropertyAndAccessorParameters(
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results)
         {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private void CascadeBetweenDelegateMethodParameters(
+        private static void CascadeBetweenDelegateMethodParameters(
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results)
         {
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private void CascadeBetweenPartialMethodParameters(
+        private static void CascadeBetweenPartialMethodParameters(
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results)
         {

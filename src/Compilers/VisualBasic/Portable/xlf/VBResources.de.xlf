@@ -127,6 +127,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -211,7 +212,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic-Compileroptionen
+        <target state="needs-review-translation">                  Visual Basic-Compileroptionen
 
                                   - AUSGABEDATEI -
 -out:&lt;Datei&gt;                       Gibt den Ausgabedateinamen an.
@@ -376,9 +377,14 @@
 </target>
         <note />
       </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">Es sind keine Funktionszeigertypen in VB vorhanden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">Es sind keine nativen Integer-Typen in VB vorhanden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -783,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">Das stdin-Argument "-" ist angegeben, aber die Eingabe wurde nicht vom Standardeingabestream umgeleitet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">

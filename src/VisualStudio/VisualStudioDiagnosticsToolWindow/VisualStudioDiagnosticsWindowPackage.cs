@@ -37,7 +37,6 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     [Description("Roslyn Diagnostics Window")]
     public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
     {
-        private ForceLowMemoryMode _forceLowMemoryMode;
         private IThreadingContext _threadingContext;
 
         /// <summary>
@@ -80,22 +79,22 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             _threadingContext = componentModel.GetService<IThreadingContext>();
 
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
+            _ = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             if (menuCommandService is OleMenuCommandService mcs)
             {
                 // Create the command for the tool window
-                CommandID toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);
-                MenuCommand menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
+                var toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);
+                var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
             }
 
             // set logger at start up
             var optionService = componentModel.GetService<IGlobalOptionService>();
-            var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
+            var remoteClientProvider = workspace.Services.GetService<IRemoteHostClientProvider>();
 
-            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService);
+            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteClientProvider);
         }
         #endregion
 

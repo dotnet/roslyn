@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string GoToImplementation = nameof(GoToImplementation);
         public const string GraphProvider = nameof(GraphProvider);
         public const string InfoBar = nameof(InfoBar);
+        public const string InlineParameterNameHints = nameof(InlineParameterNameHints);
+        public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
         public const string KeywordHighlighting = nameof(KeywordHighlighting);
         public const string LightBulb = nameof(LightBulb);
         public const string LineSeparators = nameof(LineSeparators);
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
         public const string Rename = nameof(Rename);
         public const string RenameTracking = nameof(RenameTracking);
-        public const string RemoteHostClient = nameof(RemoteHostClient);
+        public const string SolutionChecksumUpdater = nameof(SolutionChecksumUpdater);
         public const string RuleSetEditor = nameof(RuleSetEditor);
         public const string SignatureHelp = nameof(SignatureHelp);
         public const string Snippets = nameof(Snippets);

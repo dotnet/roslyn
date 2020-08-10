@@ -700,9 +700,6 @@ Do you want to proceed?</value>
   <data name="Brace_Completion" xml:space="preserve">
     <value>Brace Completion</value>
   </data>
-  <data name="Fix_all_occurrences_in" xml:space="preserve">
-    <value>Fix all occurrences in</value>
-  </data>
   <data name="Cannot_apply_operation_while_a_rename_session_is_active" xml:space="preserve">
     <value>Cannot apply operation while a rename session is active.</value>
   </data>
@@ -898,8 +895,9 @@ Do you want to proceed?</value>
   <data name="_0_bases" xml:space="preserve">
     <value>'{0}' bases</value>
   </data>
-  <data name="Rename_file" xml:space="preserve">
-    <value>Rename _file</value>
+  <data name="Rename_symbols_file" xml:space="preserve">
+    <value>Rename symbol's _file</value>
+    <comment>Indicates that the file a symbol is defined in will also be renamed</comment>
   </data>
   <data name="Rename_file_partial_type" xml:space="preserve">
     <value>Rename _file (not allowed on partial types)</value>
@@ -934,5 +932,14 @@ Do you want to proceed?</value>
   </data>
   <data name="external" xml:space="preserve">
     <value>(external)</value>
+  </data>
+  <data name="Inline_Parameter_Name_Hints" xml:space="preserve">
+    <value>Inline Parameter Name Hints</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider '{0}'</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider</value>
   </data>
 </root>

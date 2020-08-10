@@ -43,13 +43,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-
 public class [|C|]
 {{
     public nint i;
     public nuint i2;
 
     public C();
+}}");
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestInitOnlyProperty()
+            {
+                var metadataSource = @"public class C { public int Property { get; init; } }
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit { }
+}
+";
+                var symbolName = "C";
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview",
+                    expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|C|]
+{{
+    public C();
+
+    public int Property {{ get; init; }}
 }}");
             }
 

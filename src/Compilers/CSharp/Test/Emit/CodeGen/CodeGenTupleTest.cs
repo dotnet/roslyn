@@ -20,6 +20,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static TestResources.NetFX.ValueTuple;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -3540,8 +3541,9 @@ static class C
 }
 ";
 
-            CompileAndVerifyWithMscorlib40(source,
-                references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerify(source,
+                targetFramework: TargetFramework.Mscorlib45,
+                references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef },
                 expectedOutput: @"42 Alice");
         }
 
@@ -3826,7 +3828,7 @@ public static class Extensions
     public static string a(this (int, int) self) { return ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
@@ -5405,7 +5407,7 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1001: Identifier expected
                 // using VT2 = (int, int);
@@ -5413,12 +5415,12 @@ using VT2 = (int, int);
                 // (2,13): error CS1002: ; expected
                 // using VT2 = (int, int);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,22): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,14): error CS1525: Invalid expression term 'int'
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(2, 22),
-                // (2,23): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
+                // (2,19): error CS1525: Invalid expression term 'int'
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(2, 23),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using VT2 = (int, int);
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using VT2 = ").WithLocation(2, 1)
@@ -10740,7 +10742,7 @@ CS0151ERR_IntegralTypeValueExpected}
                 // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7.0").WithLocation(6, 24),
-                // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // (8,36): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)
                 );
@@ -18600,7 +18602,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -18639,7 +18641,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -19374,7 +19376,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenMethodWithDifferentTupleNamesInParameters()
+        public void OverriddenMethodWithDifferentTupleNamesInParameters()
         {
             var source = @"
 public class Base
@@ -19446,7 +19448,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenPropertiesWithDifferentTupleNames()
+        public void OverriddenPropertiesWithDifferentTupleNames()
         {
             var source = @"
 public class Base
@@ -19506,7 +19508,7 @@ public class Derived : Base
         }
 
         [Fact]
-        public void OverridenEventsWithDifferentTupleNames()
+        public void OverriddenEventsWithDifferentTupleNames()
         {
             var source = @"
 using System;
@@ -20628,10 +20630,10 @@ public class Derived : Base<(int a, int b)>
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base class are not allowed
+                // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base type are not allowed
                 //     public static explicit operator Derived(Base<(int, int)> x)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Derived").WithArguments("Derived.explicit operator Derived(Base<(int, int)>)").WithLocation(9, 37),
-                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base class are not allowed
+                // (5,37): error CS0553: 'Derived.explicit operator Base<(int, int)>(Derived)': user-defined conversions to or from a base type are not allowed
                 //     public static explicit operator Base<(int, int)>(Derived x)
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "Base<(int, int)>").WithArguments("Derived.explicit operator Base<(int, int)>(Derived)").WithLocation(5, 37)
                 );
@@ -27372,6 +27374,38 @@ class C
             Assert.True(underlyingField.RequiresCompletion);
             Assert.True(field.HasComplete(CompletionPart.All));
             Assert.True(underlyingField.HasComplete(CompletionPart.All));
+        }
+
+        [Theory, WorkItem(43857, "https://github.com/dotnet/roslyn/issues/43857")]
+        [InlineData("(Z a, Z b)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})")]
+        [InlineData("(Z, Z b)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, ""b""})")]
+        [InlineData("(Z a, Z)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", null})")]
+        [InlineData("(Z, Z)*", null)]
+        [InlineData("((Z a, Z b), Z c)*", @"System.Runtime.CompilerServices.TupleElementNamesAttribute({null, ""c"", ""a"", ""b""})")]
+        public void PointerTypeDecoding(string type, string expectedAttribute)
+        {
+            var comp = CompileAndVerify($@"
+unsafe struct Z
+{{
+    public {type} F;
+}}
+", options: TestOptions.UnsafeReleaseDll, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("Z");
+                var field = c.GetField("F");
+                if (expectedAttribute == null)
+                {
+                    Assert.Empty(field.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal(expectedAttribute, field.GetAttributes().Single().ToString());
+                }
+
+                Assert.Equal(type, field.Type.ToTestDisplayString());
+            }
         }
     }
 }

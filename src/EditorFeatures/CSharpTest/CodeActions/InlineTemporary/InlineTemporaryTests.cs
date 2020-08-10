@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         private async Task TestFixOneAsync(string initial, string expected)
             => await TestInRegularAndScript1Async(GetTreeText(initial), GetTreeText(expected));
 
-        private string GetTreeText(string initial)
+        private static string GetTreeText(string initial)
         {
             return @"class C
 {
@@ -29,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 }";
         }
 
-        private SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
+        private static SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
             => initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
 
-        private SyntaxNode GetFixedNode(dynamic fixedRoot)
+        private static SyntaxNode GetFixedNode(dynamic fixedRoot)
             => fixedRoot.Members[0].Members[0].BodyOpt;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4922,7 +4923,7 @@ class C
 
         [WorkItem(22540, "https://github.com/dotnet/roslyn/issues/22540")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DoNotQualifyWhenInliningIntoPattern()
+        public async Task DoNotQualifyWhenInliningIntoPattern_01()
         {
             await TestInRegularAndScriptAsync(@"
 using Syntax;
@@ -4960,6 +4961,51 @@ static class Goo
     {
 
         if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax parenthesizedExpression))
+            return;
+    }
+}");
+        }
+
+        [WorkItem(45661, "https://github.com/dotnet/roslyn/issues/45661")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotQualifyWhenInliningIntoPattern_02()
+        {
+            await TestInRegularAndScriptAsync(@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+        ExpressionSyntax [||]expression = awaitExpression.Expression;
+
+        if (!(expression is ParenthesizedExpressionSyntax { } parenthesizedExpression))
+            return;
+    }
+}",
+@"
+using Syntax;
+
+namespace Syntax
+{
+    class AwaitExpressionSyntax : ExpressionSyntax { public ExpressionSyntax Expression; }
+    class ExpressionSyntax { }
+    class ParenthesizedExpressionSyntax : ExpressionSyntax { }
+}
+
+static class Goo
+{
+    static void Bar(AwaitExpressionSyntax awaitExpression)
+    {
+
+        if (!(awaitExpression.Expression is ParenthesizedExpressionSyntax { } parenthesizedExpression))
             return;
     }
 }");
@@ -5169,6 +5215,110 @@ class C
         return new C();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoWithExpression()
+        {
+            await TestInRegularAndScriptAsync(@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        string [||]x = """";
+        _ = p with { Name = x };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}",
+@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        _ = p with { Name = """" };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        public async Task Call_TopLevelStatement()
+        {
+            var code = @"
+using System;
+
+int [||]x = 1 + 1;
+x.ToString();
+";
+
+            var expected = @"
+using System;
+
+(1 + 1).ToString();
+";
+
+            // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
+            // tested because global statements in script code are field declarations, which are not considered
+            // temporary.
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TopLevelStatement()
+        {
+            // Note: we should simplify 'global' as well
+            // https://github.com/dotnet/roslyn/issues/44420
+            var code = @"
+int val = 0;
+int [||]val2 = val + 1;
+System.Console.WriteLine(val2);
+";
+
+            var expected = @"
+int val = 0;
+global::System.Console.WriteLine(val + 1);
+";
+
+            // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
+            // tested because global statements in script code are field declarations, which are not considered
+            // temporary.
+            await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TopLevelStatement_InScope()
+        {
+            // Note: we should simplify 'global' as well
+            // https://github.com/dotnet/roslyn/issues/44420
+            await TestAsync(@"
+{
+    int val = 0;
+    int [||]val2 = val + 1;
+    System.Console.WriteLine(val2);
+}
+",
+@"
+{
+    int val = 0;
+    global::System.Console.WriteLine(val + 1);
+}
+",
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

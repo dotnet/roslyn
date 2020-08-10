@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     friend MustInherit class AbstractOrdinaryMethodSignatureHelpProvider
         inherits AbstractVisualBasicSignatureHelpProvider
 
-        Protected Function ConvertMemberGroupMember(document As Document,
+        Protected Shared Function ConvertMemberGroupMember(document As Document,
                                                     member As ISymbol,
                                                     position As Integer,
                                                     semanticModel As SemanticModel) As SignatureHelpItem
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
         End Function
 
-        Private Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
 
             AddExtensionPreamble(symbol, result)
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetMemberGroupPostambleParts(symbol As ISymbol,
+        Private Shared Function GetMemberGroupPostambleParts(symbol As ISymbol,
                                                       semanticModel As SemanticModel,
                                                       position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)

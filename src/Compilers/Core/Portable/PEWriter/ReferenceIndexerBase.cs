@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -13,8 +12,8 @@ namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>();
-        private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>();
+        private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
+        private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
         protected bool typeReferenceNeedsToken;
 
         internal ReferenceIndexerBase(EmitContext context)
@@ -143,22 +142,8 @@ namespace Microsoft.Cci
             }
 
             this.Visit((ITypeMemberReference)methodReference);
-            ISpecializedMethodReference specializedMethodReference = methodReference.AsSpecializedMethodReference;
-            if (specializedMethodReference != null)
-            {
-                IMethodReference unspecializedMethodReference = specializedMethodReference.UnspecializedVersion;
-                this.Visit(unspecializedMethodReference.GetType(Context));
-                this.Visit(unspecializedMethodReference.GetParameters(Context));
-                this.Visit(unspecializedMethodReference.RefCustomModifiers);
-                this.Visit(unspecializedMethodReference.ReturnValueCustomModifiers);
-            }
-            else
-            {
-                this.Visit(methodReference.GetType(Context));
-                this.Visit(methodReference.GetParameters(Context));
-                this.Visit(methodReference.RefCustomModifiers);
-                this.Visit(methodReference.ReturnValueCustomModifiers);
-            }
+
+            VisitSignature(methodReference.AsSpecializedMethodReference?.UnspecializedVersion ?? methodReference);
 
             if (methodReference.AcceptsExtraArguments)
             {
@@ -166,6 +151,14 @@ namespace Microsoft.Cci
             }
 
             ReserveMethodToken(methodReference);
+        }
+
+        public void VisitSignature(ISignature signature)
+        {
+            this.Visit(signature.GetType(Context));
+            this.Visit(signature.GetParameters(Context));
+            this.Visit(signature.RefCustomModifiers);
+            this.Visit(signature.ReturnValueCustomModifiers);
         }
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);

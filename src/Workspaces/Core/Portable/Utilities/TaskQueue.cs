@@ -37,7 +37,7 @@ namespace Roslyn.Utilities
         private IAsyncToken BeginOperation(string taskName)
             => Listener.BeginAsyncOperation(taskName);
 
-        private TTask EndOperation<TTask>(IAsyncToken token, TTask task) where TTask : Task
+        private static TTask EndOperation<TTask>(IAsyncToken token, TTask task) where TTask : Task
         {
             // send the notification on operation being complete but do not wait for the notification to be delivered
             _ = task.CompletesAsyncOperation(token);

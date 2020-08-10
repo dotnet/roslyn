@@ -16,41 +16,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            var result = await TryFindAndCacheRemoteTypesAsync(
+            var result = await TryFindRemoteTypesAsync(
                 type, solution, projects, transitive,
                 FunctionId.DependentTypeFinder_FindAndCacheImplementingTypesAsync,
-                nameof(IRemoteDependentTypeFinder.FindAndCacheImplementingTypesAsync),
+                nameof(IRemoteDependentTypeFinder.FindImplementingTypesAsync),
                 cancellationToken).ConfigureAwait(false);
 
             if (result.HasValue)
                 return result.Value;
 
-            return await FindAndCacheImplementingTypesInCurrentProcessAsync(
+            return await FindImplementingTypesInCurrentProcessAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheImplementingTypesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects,
-                transitive ? s_typeToTransitivelyImplementingTypesMap : s_typeToImmediatelyImplementingTypesMap,
-                c => FindWithoutCachingImplementingTypesAsync(type, solution, projects, transitive, c),
-                cancellationToken);
-        }
-
-        private static async Task<ImmutableArray<(INamedTypeSymbol, Project)>> FindWithoutCachingImplementingTypesAsync(
+        private static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementingTypesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -90,13 +76,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // FindDerivedInterfacesAsync.  Delegates/Enums only happen in a few corner cases.  For example, enums
                 // implement IComparable, and delegates implement ICloneable.
                 return allTypes.WhereAsArray(
-                    t => t.type.TypeKind == TypeKind.Class ||
-                         t.type.TypeKind == TypeKind.Struct ||
-                         t.type.TypeKind == TypeKind.Delegate ||
-                         t.type.TypeKind == TypeKind.Enum);
+                    t => t.TypeKind == TypeKind.Class ||
+                         t.TypeKind == TypeKind.Struct ||
+                         t.TypeKind == TypeKind.Delegate ||
+                         t.TypeKind == TypeKind.Enum);
             }
 
-            return ImmutableArray<(INamedTypeSymbol, Project)>.Empty;
+            return ImmutableArray<INamedTypeSymbol>.Empty;
         }
     }
 }

@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return CreateAdjustNewLinesOperation(lines.Value, AdjustNewLinesOption.ForceLines)
         End Function
 
-        Private Function AfterLastImportStatement(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function AfterLastImportStatement(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
             ' in between two imports
             If nextToken.Kind = SyntaxKind.ImportsKeyword Then
                 Return False
@@ -245,24 +245,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return True
         End Function
 
-        Private Function AfterLastInheritsOrImplements(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function AfterLastInheritsOrImplements(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
             Dim inheritsOrImplements = token.GetAncestor(Of InheritsOrImplementsStatementSyntax)()
             Dim nextInheritsOrImplements = nextToken.GetAncestor(Of InheritsOrImplementsStatementSyntax)()
 
             Return inheritsOrImplements IsNot Nothing AndAlso nextInheritsOrImplements Is Nothing
         End Function
 
-        Private Function IsBeginStatement(Of TStatement As StatementSyntax, TBlock As StatementSyntax)(node As StatementSyntax) As Boolean
+        Private Shared Function IsBeginStatement(Of TStatement As StatementSyntax, TBlock As StatementSyntax)(node As StatementSyntax) As Boolean
             Return TryCast(node, TStatement) IsNot Nothing AndAlso TryCast(node.Parent, TBlock) IsNot Nothing
         End Function
 
-        Private Function IsEndBlockStatement(node As StatementSyntax) As Boolean
+        Private Shared Function IsEndBlockStatement(node As StatementSyntax) As Boolean
             Return TryCast(node, EndBlockStatementSyntax) IsNot Nothing OrElse
                 TryCast(node, LoopStatementSyntax) IsNot Nothing OrElse
                 TryCast(node, NextStatementSyntax) IsNot Nothing
         End Function
 
-        Private Function LineBreaksAfter(previousToken As SyntaxToken, currentToken As SyntaxToken) As Integer?
+        Private Shared Function LineBreaksAfter(previousToken As SyntaxToken, currentToken As SyntaxToken) As Integer?
             If currentToken.Kind = SyntaxKind.None OrElse
                previousToken.Kind = SyntaxKind.None Then
                 Return 0
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function GetActualLines(token1 As SyntaxToken, token2 As SyntaxToken, lines As Integer, Optional leadingBlankLines As Integer = 0) As Integer
+        Private Shared Function GetActualLines(token1 As SyntaxToken, token2 As SyntaxToken, lines As Integer, Optional leadingBlankLines As Integer = 0) As Integer
             If leadingBlankLines = 0 Then
                 Return Math.Max(lines, 0)
             End If
@@ -359,11 +359,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Math.Max(lines, 0)
         End Function
 
-        Private Function GetNumberOfLines(list As IEnumerable(Of SyntaxTrivia)) As Integer
+        Private Shared Function GetNumberOfLines(list As IEnumerable(Of SyntaxTrivia)) As Integer
             Return list.Sum(Function(t) t.ToFullString().Replace(vbCrLf, vbCr).OfType(Of Char).Count(Function(c) SyntaxFacts.IsNewLine(c)))
         End Function
 
-        Private Function TopLevelStatement(statement As StatementSyntax) As Boolean
+        Private Shared Function TopLevelStatement(statement As StatementSyntax) As Boolean
             Return TypeOf statement Is MethodStatementSyntax OrElse
                    TypeOf statement Is SubNewStatementSyntax OrElse
                    TypeOf statement Is LambdaHeaderSyntax OrElse

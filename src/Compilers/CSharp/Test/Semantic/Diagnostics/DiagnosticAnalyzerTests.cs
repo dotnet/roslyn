@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1595,7 +1596,7 @@ class NonGeneratedCode{0}
             analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "auto"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
-            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable());
+            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), CompilerAnalyzerConfigOptions.Empty);
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
 
             // Verify no compiler diagnostics.
@@ -2390,7 +2391,7 @@ internal class C : MyInterface
         FieldForAddHandler = 11, FieldForRemoveHandler = 12, FieldForProperty = 13, FieldForPropertyGetter = 14, FieldForPropertySetter = 15,
         FieldForIndexer = 16, FieldForIndexerGetter = 17, FieldForIndexerSetter = 18, FieldForExpressionBodiedMethod = 19, FieldForExpressionBodiedProperty = 20,
         FieldForMethodParameter = 21, FieldForDelegateParameter = 22, FieldForIndexerParameter = 23, FieldForMethodTypeParameter = 24, FieldForTypeTypeParameter = 25,
-        FieldForDelegateTypeParameter = 26, FieldForMethodReturnType = 27, FieldForAssembly = 28, FieldForModule = 29;
+        FieldForDelegateTypeParameter = 26, FieldForMethodReturnType = 27, FieldForAssembly = 28, FieldForModule = 29, FieldForPropertyInitSetter = 30;
 
     [MyAttribute(FieldForStruct)]
     private struct S<[MyAttribute(FieldForTypeTypeParameter)] T> { }
@@ -2454,10 +2455,15 @@ internal class C : MyInterface
 
     [MyAttribute(FieldForExpressionBodiedProperty)]
     private int P2 => 0;
+
+    private int P3
+    {
+        [MyAttribute(FieldForPropertyInitSetter)]
+        init { }
+    }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                 // (51,32): warning CS0067: The event 'C.MyEvent' is never used
                 //     public event Delegate<int> MyEvent;
@@ -2470,46 +2476,47 @@ internal class C : MyInterface
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field3").WithArguments("C.field3").WithLocation(34, 29));
 
             // Test RegisterOperationBlockAction
-            TestFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: true);
+            testFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: true);
 
             // Test RegisterOperationAction
-            TestFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: false);
-        }
+            testFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: false);
 
-        private static void TestFieldReferenceAnalyzer_InAttributes_Core(Compilation compilation, bool doOperationBlockAnalysis)
-        {
-            var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
-                Diagnostic("ID", "FieldForClass").WithArguments("FieldForClass", "1").WithLocation(17, 14),
-                Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(27, 18),
-                Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(30, 18),
-                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
-                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
-                Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(37, 18),
-                Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(40, 18),
-                Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(43, 22),
-                Diagnostic("ID", "FieldForDelegate").WithArguments("FieldForDelegate", "8").WithLocation(47, 18),
-                Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "9").WithLocation(50, 18),
-                Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "10").WithLocation(53, 18),
-                Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "11").WithLocation(56, 22),
-                Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "12").WithLocation(60, 22),
-                Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "13").WithLocation(66, 18),
-                Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "14").WithLocation(69, 22),
-                Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "15").WithLocation(71, 22),
-                Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "16").WithLocation(75, 18),
-                Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "17").WithLocation(78, 22),
-                Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "18").WithLocation(80, 22),
-                Diagnostic("ID", "FieldForExpressionBodiedMethod").WithArguments("FieldForExpressionBodiedMethod", "19").WithLocation(84, 18),
-                Diagnostic("ID", "FieldForExpressionBodiedProperty").WithArguments("FieldForExpressionBodiedProperty", "20").WithLocation(87, 18),
-                Diagnostic("ID", "FieldForMethodParameter").WithArguments("FieldForMethodParameter", "21").WithLocation(38, 79),
-                Diagnostic("ID", "FieldForDelegateParameter").WithArguments("FieldForDelegateParameter", "22").WithLocation(48, 95),
-                Diagnostic("ID", "FieldForIndexerParameter").WithArguments("FieldForIndexerParameter", "23").WithLocation(76, 35),
-                Diagnostic("ID", "FieldForMethodTypeParameter").WithArguments("FieldForMethodTypeParameter", "24").WithLocation(38, 34),
-                Diagnostic("ID", "FieldForTypeTypeParameter").WithArguments("FieldForTypeTypeParameter", "25").WithLocation(28, 35),
-                Diagnostic("ID", "FieldForDelegateTypeParameter").WithArguments("FieldForDelegateTypeParameter", "26").WithLocation(48, 48),
-                Diagnostic("ID", "FieldForMethodReturnType").WithArguments("FieldForMethodReturnType", "27").WithLocation(36, 26),
-                Diagnostic("ID", "C.FieldForAssembly").WithArguments("FieldForAssembly", "28").WithLocation(4, 24),
-                Diagnostic("ID", "C.FieldForModule").WithArguments("FieldForModule", "29").WithLocation(5, 22));
+            static void testFieldReferenceAnalyzer_InAttributes_Core(Compilation compilation, bool doOperationBlockAnalysis)
+            {
+                var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
+                compilation.VerifyAnalyzerDiagnostics(analyzers, null, null,
+                    Diagnostic("ID", "FieldForPropertyInitSetter").WithArguments("FieldForPropertyInitSetter", "30").WithLocation(92, 22),
+                    Diagnostic("ID", "FieldForClass").WithArguments("FieldForClass", "1").WithLocation(17, 14),
+                    Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(27, 18),
+                    Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(30, 18),
+                    Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
+                    Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
+                    Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(37, 18),
+                    Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(40, 18),
+                    Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(43, 22),
+                    Diagnostic("ID", "FieldForDelegate").WithArguments("FieldForDelegate", "8").WithLocation(47, 18),
+                    Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "9").WithLocation(50, 18),
+                    Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "10").WithLocation(53, 18),
+                    Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "11").WithLocation(56, 22),
+                    Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "12").WithLocation(60, 22),
+                    Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "13").WithLocation(66, 18),
+                    Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "14").WithLocation(69, 22),
+                    Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "15").WithLocation(71, 22),
+                    Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "16").WithLocation(75, 18),
+                    Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "17").WithLocation(78, 22),
+                    Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "18").WithLocation(80, 22),
+                    Diagnostic("ID", "FieldForExpressionBodiedMethod").WithArguments("FieldForExpressionBodiedMethod", "19").WithLocation(84, 18),
+                    Diagnostic("ID", "FieldForExpressionBodiedProperty").WithArguments("FieldForExpressionBodiedProperty", "20").WithLocation(87, 18),
+                    Diagnostic("ID", "FieldForMethodParameter").WithArguments("FieldForMethodParameter", "21").WithLocation(38, 79),
+                    Diagnostic("ID", "FieldForDelegateParameter").WithArguments("FieldForDelegateParameter", "22").WithLocation(48, 95),
+                    Diagnostic("ID", "FieldForIndexerParameter").WithArguments("FieldForIndexerParameter", "23").WithLocation(76, 35),
+                    Diagnostic("ID", "FieldForMethodTypeParameter").WithArguments("FieldForMethodTypeParameter", "24").WithLocation(38, 34),
+                    Diagnostic("ID", "FieldForTypeTypeParameter").WithArguments("FieldForTypeTypeParameter", "25").WithLocation(28, 35),
+                    Diagnostic("ID", "FieldForDelegateTypeParameter").WithArguments("FieldForDelegateTypeParameter", "26").WithLocation(48, 48),
+                    Diagnostic("ID", "FieldForMethodReturnType").WithArguments("FieldForMethodReturnType", "27").WithLocation(36, 26),
+                    Diagnostic("ID", "C.FieldForAssembly").WithArguments("FieldForAssembly", "28").WithLocation(4, 24),
+                    Diagnostic("ID", "C.FieldForModule").WithArguments("FieldForModule", "29").WithLocation(5, 22));
+            }
         }
 
         [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
@@ -3128,6 +3135,45 @@ namespace N5
                 Diagnostic("SymbolStartRuleId").WithArguments("f1", "Analyzer6").WithLocation(1, 1));
         }
 
+        [Fact]
+        public void TestInitOnlyProperty()
+        {
+            string source1 = @"
+class C
+{
+    int P1 { get; init; }
+    int P2 { get; set; }
+}";
+
+            var compilation = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+
+            var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
+                    SymbolKind.Property, SymbolKind.Event, SymbolKind.Field, SymbolKind.Parameter };
+
+            var analyzers = new DiagnosticAnalyzer[symbolKinds.Length];
+            for (int i = 0; i < symbolKinds.Length; i++)
+            {
+                analyzers[i] = new SymbolStartAnalyzer(topLevelAction: false, symbolKinds[i], OperationKind.VariableDeclarationGroup, analyzerId: i + 1);
+            }
+
+            var expected = new[] {
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("IsExternalInit", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("P2", "Analyzer4").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer4").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P2", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P2", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("CompilerServices", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("Runtime", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("System", "Analyzer2").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
         [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
         public void TestInvocationInPartialMethod()
         {
@@ -3252,9 +3298,9 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify suppressed analyzer diagnostic and callback with suppression on second file.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress)));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
@@ -3295,9 +3341,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3346,9 +3393,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same diagnostics and callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3472,6 +3520,232 @@ class B
                     Diagnostic("ID0001", "B").WithLocation(5, 12),
                     Diagnostic("ID0001", "B").WithLocation(7, 12)
                 });
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetAnalysisResultAsync(bool syntax, bool singleAnalyzer)
+        {
+            string source1 = @"
+partial class B
+{
+    private int _field1 = 1;
+}";
+            string source2 = @"
+partial class B
+{
+    private int _field2 = 2;
+}";
+            string source3 = @"
+class C
+{
+    private int _field3 = 3;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2, source3 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var field1 = tree1.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Single().Declaration.Variables.Single().Identifier;
+            var semanticModel1 = compilation.GetSemanticModel(tree1);
+            var analyzer1 = new FieldAnalyzer("ID0001", syntax);
+            var analyzer2 = new FieldAnalyzer("ID0002", syntax);
+            var allAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(allAnalyzers);
+
+            // Invoke "GetAnalysisResultAsync" for a single analyzer on a single tree and
+            // ensure that the API respects the requested analysis scope:
+            // 1. It only reports diagnostics for the requested analyzer.
+            // 2. It only reports diagnostics for the requested tree.
+
+            var analyzersToQuery = singleAnalyzer ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1) : allAnalyzers;
+
+            AnalysisResult analysisResult;
+            if (singleAnalyzer)
+            {
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, analyzersToQuery, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, analyzersToQuery, CancellationToken.None);
+            }
+            else
+            {
+                analysisResult = syntax ?
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(tree1, CancellationToken.None) :
+                    await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, CancellationToken.None);
+            }
+
+            var diagnosticsMap = syntax ? analysisResult.SyntaxDiagnostics : analysisResult.SemanticDiagnostics;
+            var diagnostics = diagnosticsMap.TryGetValue(tree1, out var value) ? value : ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
+
+            foreach (var analyzer in allAnalyzers)
+            {
+                if (analyzersToQuery.Contains(analyzer))
+                {
+                    Assert.True(diagnostics.ContainsKey(analyzer));
+                    var diagnostic = Assert.Single(diagnostics[analyzer]);
+                    Assert.Equal(((FieldAnalyzer)analyzer).Descriptor.Id, diagnostic.Id);
+                    Assert.Equal(field1.GetLocation(), diagnostic.Location);
+                }
+                else
+                {
+                    Assert.False(diagnostics.ContainsKey(analyzer));
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestAdditionalFileAnalyzer(bool registerFromInitialize)
+        {
+            var tree = CSharpSyntaxTree.ParseText(string.Empty);
+            var compilation = CreateCompilation(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            AdditionalText additionalFile = new TestAdditionalText("Additional File Text");
+            var options = new AnalyzerOptions(ImmutableArray.Create(additionalFile));
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan);
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+
+            var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+            verifyDiagnostics(diagnostics);
+
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics());
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
+
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics());
+            verifyDiagnostics(analysisResult.AdditionalFileDiagnostics[additionalFile][analyzer]);
+
+            void verifyDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+            {
+                var diagnostic = Assert.Single(diagnostics);
+                Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
+                Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
+                var location = (ExternalFileLocation)diagnostic.Location;
+                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(diagnosticSpan, location.SourceSpan);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestMultipleAdditionalFileAnalyzers(bool registerFromInitialize, bool additionalFilesHaveSamePaths, bool firstAdditionalFileHasNullPath)
+        {
+            var tree = CSharpSyntaxTree.ParseText(string.Empty);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var path1 = firstAdditionalFileHasNullPath ? null : @"c:\file.txt";
+            var path2 = additionalFilesHaveSamePaths ? path1 : @"file2.txt";
+
+            AdditionalText additionalFile1 = new TestAdditionalText("Additional File1 Text", path: path1);
+            AdditionalText additionalFile2 = new TestAdditionalText("Additional File2 Text", path: path2);
+            var additionalFiles = ImmutableArray.Create(additionalFile1, additionalFile2);
+            var options = new AnalyzerOptions(additionalFiles);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer1 = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001");
+            var analyzer2 = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0002");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+
+            var diagnostics = await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+            verifyDiagnostics(diagnostics, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+
+            var analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, analyzers, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
+
+            var singleAnalyzerArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile1, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile1), diagnosticSpan, additionalFilesHaveSamePaths);
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile2, singleAnalyzerArray, CancellationToken.None);
+            verifyAnalysisResult(analysisResult, singleAnalyzerArray, ImmutableArray.Create(additionalFile2), diagnosticSpan, additionalFilesHaveSamePaths);
+
+            analysisResult = await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None);
+            verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+
+            if (!additionalFilesHaveSamePaths)
+            {
+                verifyAnalysisResult(analysisResult, analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths, verifyGetAllDiagnostics: false);
+            }
+
+            return;
+
+            static void verifyDiagnostics(
+                ImmutableArray<Diagnostic> diagnostics,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths)
+            {
+                foreach (AdditionalFileAnalyzer analyzer in analyzers)
+                {
+                    var fileIndex = 0;
+                    foreach (var additionalFile in additionalFiles)
+                    {
+                        var applicableDiagnostics = diagnostics.WhereAsArray(
+                            d => d.Id == analyzer.Descriptor.Id && PathUtilities.Comparer.Equals(d.Location.GetLineSpan().Path, additionalFile.Path));
+                        if (additionalFile.Path == null)
+                        {
+                            Assert.Empty(applicableDiagnostics);
+                            continue;
+                        }
+
+                        var expectedCount = additionalFilesHaveSamePaths ? additionalFiles.Length : 1;
+                        Assert.Equal(expectedCount, applicableDiagnostics.Length);
+
+                        foreach (var diagnostic in applicableDiagnostics)
+                        {
+                            Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
+                            var location = (ExternalFileLocation)diagnostic.Location;
+                            Assert.Equal(diagnosticSpan, location.SourceSpan);
+                        }
+
+                        fileIndex++;
+                        if (!additionalFilesHaveSamePaths || fileIndex == additionalFiles.Length)
+                        {
+                            diagnostics = diagnostics.RemoveRange(applicableDiagnostics);
+                        }
+                    }
+                }
+
+                Assert.Empty(diagnostics);
+            }
+
+            static void verifyAnalysisResult(
+                AnalysisResult analysisResult,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<AdditionalText> additionalFiles,
+                TextSpan diagnosticSpan,
+                bool additionalFilesHaveSamePaths,
+                bool verifyGetAllDiagnostics = true)
+            {
+                if (verifyGetAllDiagnostics)
+                {
+                    verifyDiagnostics(analysisResult.GetAllDiagnostics(), analyzers, additionalFiles, diagnosticSpan, additionalFilesHaveSamePaths);
+                }
+
+                foreach (var analyzer in analyzers)
+                {
+                    var singleAnalyzerArray = ImmutableArray.Create(analyzer);
+                    foreach (var additionalFile in additionalFiles)
+                    {
+                        var reportedDiagnostics = getReportedDiagnostics(analysisResult, analyzer, additionalFile);
+                        verifyDiagnostics(reportedDiagnostics, singleAnalyzerArray, ImmutableArray.Create(additionalFile), diagnosticSpan, additionalFilesHaveSamePaths);
+                    }
+                }
+
+                return;
+
+                static ImmutableArray<Diagnostic> getReportedDiagnostics(AnalysisResult analysisResult, DiagnosticAnalyzer analyzer, AdditionalText additionalFile)
+                {
+                    if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFile, out var diagnosticsMap) &&
+                        diagnosticsMap.TryGetValue(analyzer, out var diagnostics))
+                    {
+                        return diagnostics;
+                    }
+
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+            }
         }
     }
 }

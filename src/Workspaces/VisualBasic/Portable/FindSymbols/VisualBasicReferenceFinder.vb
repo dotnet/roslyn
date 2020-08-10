@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
             End If
         End Function
 
-        Private Async Function DetermineCascadedSymbolsAsync(
+        Private Shared Async Function DetermineCascadedSymbolsAsync(
                 [property] As IPropertySymbol,
                 project As Project,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
                 ImmutableArray.Create(relatedSymbol))
         End Function
 
-        Private Async Function DetermineCascadedSymbolsAsync(
+        Private Shared Async Function DetermineCascadedSymbolsAsync(
                 namedType As INamedTypeSymbol,
                 project As Project,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
                 Distinct().ToImmutableArray()
         End Function
 
-        Private Function GetMatchingMyPropertySymbols(
+        Private Shared Function GetMatchingMyPropertySymbols(
                 namedType As INamedTypeSymbol,
                 compilation As Compilation,
                 cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
         }
 
-        protected PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> GetLanguageOption(PrecedenceKind precedenceKind)
+        protected static PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> GetLanguageOption(PrecedenceKind precedenceKind)
         {
             switch (precedenceKind)
             {

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
-    [NativeInteger({ False, True })] System.UIntPtr[] F2
+    [NativeInteger] System.UIntPtr[] F2
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
-    [NativeInteger({ False, True })] System.UIntPtr[] F2
+    [NativeInteger] System.UIntPtr[] F2
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -211,11 +211,328 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
+        public void Metadata_ZeroElements()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
+}
+.class public A<T, U>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public B
+{
+  .method public static void F0(native int x, native uint y)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0]
+    .param [2]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0]
+    ret
+  }
+  .method public static void F1(class A<native int, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0]
+    ret
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class Program
+{
+    static void F()
+    {
+        B.F0(default, default);
+        B.F1(new A<System.IntPtr, System.UIntPtr>());
+    }
+}";
+
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0570: 'B.F0(?, ?)' is not supported by the language
+                //         B.F0(default, default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F0").WithArguments("B.F0(?, ?)").WithLocation(5, 11),
+                // (6,11): error CS0570: 'B.F1(?)' is not supported by the language
+                //         B.F1(new A<System.IntPtr, System.UIntPtr>());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(6, 11));
+            verify(comp);
+
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0570: 'B.F0(?, ?)' is not supported by the language
+                //         B.F0(default, default);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F0").WithArguments("B.F0(?, ?)").WithLocation(5, 11),
+                // (6,11): error CS0570: 'B.F1(?)' is not supported by the language
+                //         B.F1(new A<System.IntPtr, System.UIntPtr>());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(6, 11));
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0( x,  y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1( a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+
+                var expected =
+    @"B
+    void F0(? x, ? y)
+        [NativeInteger({  })] ? x
+        [NativeInteger({  })] ? y
+    void F1(? a)
+        [NativeInteger({  })] ? a
+";
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
+        }
+
+        [Fact]
+        public void Metadata_OneElementFalse()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
+}
+.class public A<T, U>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public B
+{
+  .method public static void F0(native int x, native uint y)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
+    .param [2]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
+    ret
+  }
+  .method public static void F1(class A<int32, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
+    ret
+  }
+  .method public static void F2(class A<native int, uint32> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false }
+    ret
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class Program
+{
+    static void F()
+    {
+        B.F0(default, default);
+        B.F1(new A<int, System.UIntPtr>());
+        B.F2(new A<System.IntPtr, uint>());
+    }
+}";
+
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0(System.IntPtr x, System.UIntPtr y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1(A<int, System.UIntPtr> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<System.IntPtr, uint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+
+                var expected =
+    @"B
+    void F0(System.IntPtr x, System.UIntPtr y)
+        [NativeInteger({ False })] System.IntPtr x
+        [NativeInteger({ False })] System.UIntPtr y
+    void F1(A<System.Int32, System.UIntPtr> a)
+        [NativeInteger({ False })] A<System.Int32, System.UIntPtr> a
+    void F2(A<System.IntPtr, System.UInt32> a)
+        [NativeInteger({ False })] A<System.IntPtr, System.UInt32> a
+";
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
+        }
+
+        [Fact]
+        public void Metadata_OneElementTrue()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
+}
+.class public A<T, U>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public B
+{
+  .method public static void F0(native int x, native uint y)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
+    .param [2]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
+    ret
+  }
+  .method public static void F1(class A<int32, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
+    ret
+  }
+  .method public static void F2(class A<native int, uint32> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }
+    ret
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class Program
+{
+    static void F()
+    {
+        B.F0(default, default);
+        B.F1(new A<int, nuint>());
+        B.F2(new A<nint, uint>());
+    }
+}";
+
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         B.F1(new A<int, nuint>());
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 25),
+                // (7,20): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         B.F2(new A<nint, uint>());
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(7, 20));
+            verify(comp);
+
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0(nint x, nuint y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1(A<int, nuint> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<nint, uint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+
+                var expected =
+    @"B
+    void F0(System.IntPtr x, System.UIntPtr y)
+        [NativeInteger({ True })] System.IntPtr x
+        [NativeInteger({ True })] System.UIntPtr y
+    void F1(A<System.Int32, System.UIntPtr> a)
+        [NativeInteger({ True })] A<System.Int32, System.UIntPtr> a
+    void F2(A<System.IntPtr, System.UInt32> a)
+        [NativeInteger({ True })] A<System.IntPtr, System.UInt32> a
+";
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
+        }
+
+        [Fact]
+        public void Metadata_AllFalse()
+        {
+            var source0 =
+@".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
+}
+.class public A<T, U>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public B
+{
+  .method public static void F0(native int x, native uint y)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false } 
+    .param [2]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false } 
+    ret
+  }
+  .method public static void F1(class A<int32, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 00 00 00 ) // new[] { false } 
+    ret
+  }
+  .method public static void F2(class A<native int, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 00 00 00 ) // new[] { false, false }
+    ret
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class Program
+{
+    static void F()
+    {
+        B.F0(default, default);
+        B.F1(new A<int, System.UIntPtr>());
+        B.F2(new A<System.IntPtr, System.UIntPtr>());
+    }
+}";
+
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F0(System.IntPtr x, System.UIntPtr y)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1(A<int, System.UIntPtr> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<System.IntPtr, System.UIntPtr> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+
+                var expected =
+    @"B
+    void F0(System.IntPtr x, System.UIntPtr y)
+        [NativeInteger({ False })] System.IntPtr x
+        [NativeInteger({ False })] System.UIntPtr y
+    void F1(A<System.Int32, System.UIntPtr> a)
+        [NativeInteger({ False })] A<System.Int32, System.UIntPtr> a
+    void F2(A<System.IntPtr, System.UIntPtr> a)
+        [NativeInteger({ False, False })] A<System.IntPtr, System.UIntPtr> a
+";
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
+        }
+
+        [Fact]
         public void Metadata_TooFewAndTooManyTransformFlags()
         {
             var source0 =
 @".class private System.Runtime.CompilerServices.NativeIntegerAttribute extends [mscorlib]System.Attribute
 {
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
   .method public hidebysig specialname rtspecialname instance void .ctor(bool[] b) cil managed { ret }
 }
 .class public A<T, U>
@@ -223,22 +540,34 @@ using System.Runtime.CompilerServices;
 }
 .class public B
 {
+  .method public static void F(class A<native int, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor() = ( 01 00 00 00 ) // no array, too few
+    ret
+  }
+  .method public static void F0(class A<native int, native uint> a)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 00 00 00 00 00 00 ) // new bool[0], too few
+    ret
+  }
   .method public static void F1(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 01 00 00 00 01 00 00 ) // new[] { true }, too few
     ret
   }
   .method public static void F2(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) // new[] { false, true }, valid
     ret
   }
   .method public static void F3(class A<native int, native uint> a)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 04 00 00 00 00 00 01 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 ) // new[] { false, true, true }, too many
     ret
   }
 }";
@@ -248,6 +577,8 @@ using System.Runtime.CompilerServices;
 {
     static void F(A<nint, nuint> a)
     {
+        B.F(a);
+        B.F0(a);
         B.F1(a);
         B.F2(a);
         B.F3(a);
@@ -262,38 +593,60 @@ using System.Runtime.CompilerServices;
                 // (3,27): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void F(A<nint, nuint> a)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(3, 27),
-                // (6,11): error CS0570: 'B.F2(?)' is not supported by the language
-                //         B.F2(a);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("B.F2(?)").WithLocation(6, 11),
-                // (7,11): error CS0570: 'B.F3(?)' is not supported by the language
+                // (5,11): error CS0570: 'B.F(?)' is not supported by the language
+                //         B.F(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("B.F(?)").WithLocation(5, 11),
+                // (6,11): error CS0570: 'B.F0(?)' is not supported by the language
+                //         B.F0(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F0").WithArguments("B.F0(?)").WithLocation(6, 11),
+                // (7,11): error CS0570: 'B.F1(?)' is not supported by the language
+                //         B.F1(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(7, 11),
+                // (9,11): error CS0570: 'B.F3(?)' is not supported by the language
                 //         B.F3(a);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(7, 11));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(9, 11));
+            verify(comp);
 
             comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,11): error CS0570: 'B.F2(?)' is not supported by the language
-                //         B.F2(a);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("B.F2(?)").WithLocation(6, 11),
-                // (7,11): error CS0570: 'B.F3(?)' is not supported by the language
+                // (5,11): error CS0570: 'B.F(?)' is not supported by the language
+                //         B.F(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("B.F(?)").WithLocation(5, 11),
+                // (6,11): error CS0570: 'B.F0(?)' is not supported by the language
+                //         B.F0(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F0").WithArguments("B.F0(?)").WithLocation(6, 11),
+                // (7,11): error CS0570: 'B.F1(?)' is not supported by the language
+                //         B.F1(a);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("B.F1(?)").WithLocation(7, 11),
+                // (9,11): error CS0570: 'B.F3(?)' is not supported by the language
                 //         B.F3(a);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(7, 11)
-            );
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("B.F3(?)").WithLocation(9, 11));
+            verify(comp);
 
-            var type = comp.GetTypeByMetadataName("B");
-            Assert.Equal("void B.F1(A<nint, nuint> a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F2( a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
-            Assert.Equal("void B.F3( a)", type.GetMember("F3").ToDisplayString(FormatWithSpecialTypes));
+            static void verify(CSharpCompilation comp)
+            {
+                var type = comp.GetTypeByMetadataName("B");
+                Assert.Equal("void B.F( a)", type.GetMember("F").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F0( a)", type.GetMember("F0").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F1( a)", type.GetMember("F1").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F2(A<System.IntPtr, nuint> a)", type.GetMember("F2").ToDisplayString(FormatWithSpecialTypes));
+                Assert.Equal("void B.F3( a)", type.GetMember("F3").ToDisplayString(FormatWithSpecialTypes));
 
-            var expected =
-@"B
-    void F1(A<System.IntPtr, System.UIntPtr> a)
-        [NativeInteger({ False, True, True })] A<System.IntPtr, System.UIntPtr> a
-    void F2(? a)
-        [NativeInteger({ False, True })] ? a
+                var expected =
+    @"B
+    void F(? a)
+        [NativeInteger] ? a
+    void F0(? a)
+        [NativeInteger({  })] ? a
+    void F1(? a)
+        [NativeInteger({ True })] ? a
+    void F2(A<System.IntPtr, System.UIntPtr> a)
+        [NativeInteger({ False, True })] A<System.IntPtr, System.UIntPtr> a
     void F3(? a)
-        [NativeInteger({ False, False, True, True })] ? a
+        [NativeInteger({ False, True, True })] ? a
 ";
-            AssertNativeIntegerAttributes(type.ContainingModule, expected);
+                AssertNativeIntegerAttributes(type.ContainingModule, expected);
+            }
         }
 
         [Fact]
@@ -319,19 +672,19 @@ using System.Runtime.CompilerServices;
   .method public static void F2(object[] x)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) // new[] { false, true }
     ret
   }
   .method public static void F3(class A<class B> y)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 00 01 00 00 ) // new[] { false, true } 
     ret
   }
   .method public static void F4(native int[] z)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 01 01 00 00 ) 
+    .custom instance void System.Runtime.CompilerServices.NativeIntegerAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 01 01 00 00 ) // new[] { true, true }
     ret
   }
 }";
@@ -414,7 +767,7 @@ public class B : A<nint, nuint[]>
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var expected =
-@"[NativeInteger({ False, True, False, True })] B
+@"[NativeInteger({ True, True })] B
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -454,16 +807,18 @@ public class C<T>
     public C<nuint>.I<T> F2;
     public C<E>.D<nint> F3;
     public C<nuint>.D<dynamic> F4;
-    public C<nint>.F F5;
+    public C<C<nuint>.D<System.IntPtr>>.F F5;
+    public C<C<System.UIntPtr>.F>.D<nint> F6;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var expected =
 @"C<T>
-    [NativeInteger({ False, False, True })] C<T>.S<System.IntPtr> F1
-    [NativeInteger({ False, True, False })] C<System.UIntPtr>.I<T> F2
-    [NativeInteger({ False, False, True })] C<E>.D<System.IntPtr> F3
-    [NativeInteger({ False, True, False })] C<System.UIntPtr>.D<dynamic> F4
-    [NativeInteger({ False, True })] C<System.IntPtr>.F F5
+    [NativeInteger] C<T>.S<System.IntPtr> F1
+    [NativeInteger] C<System.UIntPtr>.I<T> F2
+    [NativeInteger] C<E>.D<System.IntPtr> F3
+    [NativeInteger] C<System.UIntPtr>.D<dynamic> F4
+    [NativeInteger({ True, False })] C<C<System.UIntPtr>.D<System.IntPtr>>.F F5
+    [NativeInteger({ False, True })] C<C<System.UIntPtr>.F>.D<System.IntPtr> F6
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -514,13 +869,13 @@ public class D
 @"public class Program
 {
     public nint F1;
-    public nuint[] F2;
+    public (System.IntPtr, nuint[]) F2;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
-    [NativeInteger({ False, True })] System.UIntPtr[] F2
+    [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) F2
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -531,12 +886,12 @@ public class D
             var source =
 @"public class Program
 {
-    public nuint[] F() => null;
+    public (System.IntPtr, nuint[]) F() => default;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var expected =
 @"Program
-    [NativeInteger({ False, True })] System.UIntPtr[] F()
+    [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) F()
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -565,13 +920,13 @@ public class D
             var source =
 @"public class Program
 {
-    public nuint[] P => null;
+    public (System.IntPtr, nuint[]) P => default;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var expected =
 @"Program
-    [NativeInteger({ False, True })] System.UIntPtr[] P { get; }
-        [NativeInteger({ False, True })] System.UIntPtr[] P.get
+    [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) P { get; }
+        [NativeInteger({ False, True })] (System.IntPtr, System.UIntPtr[]) P.get
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -582,17 +937,17 @@ public class D
             var source =
 @"public class Program
 {
-    public object this[nint x, nuint[] y] => null;
+    public object this[nint x, (nuint[], System.IntPtr) y] => null;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var expected =
 @"Program
-    System.Object this[System.IntPtr x, System.UIntPtr[] y] { get; }
+    System.Object this[System.IntPtr x, (System.UIntPtr[], System.IntPtr) y] { get; }
         [NativeInteger] System.IntPtr x
-        [NativeInteger({ False, True })] System.UIntPtr[] y
-        System.Object this[System.IntPtr x, System.UIntPtr[] y].get
+        [NativeInteger({ True, False })] (System.UIntPtr[], System.IntPtr) y
+        System.Object this[System.IntPtr x, (System.UIntPtr[], System.IntPtr) y].get
             [NativeInteger] System.IntPtr x
-            [NativeInteger({ False, True })] System.UIntPtr[] y
+            [NativeInteger({ True, False })] (System.UIntPtr[], System.IntPtr) y
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -609,11 +964,11 @@ public class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             var expected =
 @"Program
-    [NativeInteger({ False, False, True })] event System.EventHandler<System.UIntPtr[]> E
+    [NativeInteger] event System.EventHandler<System.UIntPtr[]> E
         void E.add
-            [NativeInteger({ False, False, True })] System.EventHandler<System.UIntPtr[]> value
+            [NativeInteger] System.EventHandler<System.UIntPtr[]> value
         void E.remove
-            [NativeInteger({ False, False, True })] System.EventHandler<System.UIntPtr[]> value
+            [NativeInteger] System.EventHandler<System.UIntPtr[]> value
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -646,7 +1001,7 @@ public class Program
             var expected =
 @"C
     C operator +(C a, System.UIntPtr[] b)
-        [NativeInteger({ False, True })] System.UIntPtr[] b
+        [NativeInteger] System.UIntPtr[] b
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -675,10 +1030,10 @@ public class Program
 @"D
     void Invoke(System.IntPtr x, System.UIntPtr[] y)
         [NativeInteger] System.IntPtr x
-        [NativeInteger({ False, True })] System.UIntPtr[] y
+        [NativeInteger] System.UIntPtr[] y
     System.IAsyncResult BeginInvoke(System.IntPtr x, System.UIntPtr[] y, System.AsyncCallback callback, System.Object @object)
         [NativeInteger] System.IntPtr x
-        [NativeInteger({ False, True })] System.UIntPtr[] y
+        [NativeInteger] System.UIntPtr[] y
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -829,10 +1184,10 @@ unsafe public class Program
             var expected =
 @"Program
     [NativeInteger] System.IntPtr F1
-    [NativeInteger({ False, True })] System.UIntPtr[] F2
-    [NativeInteger({ False, True })] System.IntPtr* F3
-    [NativeInteger({ False, True, True })] A<System.IntPtr>.B<System.UIntPtr> F4
-    [NativeInteger({ False, True, True })] (System.IntPtr, System.UIntPtr) F5
+    [NativeInteger] System.UIntPtr[] F2
+    [NativeInteger] System.IntPtr* F3
+    [NativeInteger({ True, True })] A<System.IntPtr>.B<System.UIntPtr> F4
+    [NativeInteger({ True, True })] (System.IntPtr, System.UIntPtr) F5
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -846,14 +1201,14 @@ unsafe public class Program
 }
 unsafe public class B
 {
-    public A<(object, (nint, nuint, nint[], nuint, nint, nuint*[], nint, nuint))> F1;
-    public A<(nint, object, nuint[], object, nint, object, (nint, nuint), object, nuint)> F2;
+    public A<(object, (nint, nuint, nint[], nuint, nint, nuint*[], nint, System.UIntPtr))> F1;
+    public A<(nint, object, nuint[], object, nint, object, (System.IntPtr, nuint), object, nuint)> F2;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
             var expected =
 @"B
-    [NativeInteger({ False, False, False, False, True, True, False, True, True, True, False, False, True, True, False, True })] A<(System.Object, (System.IntPtr, System.UIntPtr, System.IntPtr[], System.UIntPtr, System.IntPtr, System.UIntPtr*[], System.IntPtr, System.UIntPtr))> F1
-    [NativeInteger({ False, False, True, False, False, True, False, True, False, False, True, True, False, False, True })] A<(System.IntPtr, System.Object, System.UIntPtr[], System.Object, System.IntPtr, System.Object, (System.IntPtr, System.UIntPtr), System.Object, System.UIntPtr)> F2
+    [NativeInteger({ True, True, True, True, True, True, True, False })] A<(System.Object, (System.IntPtr, System.UIntPtr, System.IntPtr[], System.UIntPtr, System.IntPtr, System.UIntPtr*[], System.IntPtr, System.UIntPtr))> F1
+    [NativeInteger({ True, True, True, False, True, True })] A<(System.IntPtr, System.Object, System.UIntPtr[], System.Object, System.IntPtr, System.Object, (System.IntPtr, System.UIntPtr), System.Object, System.UIntPtr)> F2
 ";
             AssertNativeIntegerAttributes(comp, expected);
         }
@@ -864,7 +1219,7 @@ unsafe public class B
             var source1 =
 @"public interface IA { }
 public interface IB<T> { }
-public class C : IA, IB<(nint, object, nuint[], object, nint, object, (nint, nuint), object, nuint)>
+public class C : IA, IB<(nint, object, nuint[], object, nint, object, (System.IntPtr, nuint), object, nuint)>
 {
 }";
             var comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
@@ -876,7 +1231,7 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (nint, nui
                 var customAttributes = interfaceImpl.GetCustomAttributes();
                 AssertAttributes(reader, customAttributes, "MethodDefinition:Void System.Runtime.CompilerServices.NativeIntegerAttribute..ctor(Boolean[])");
                 var customAttribute = GetAttributeByConstructorName(reader, customAttributes, "MethodDefinition:Void System.Runtime.CompilerServices.NativeIntegerAttribute..ctor(Boolean[])");
-                AssertEx.Equal(ImmutableArray.Create(false, false, true, false, false, true, false, true, false, false, true, true, false, false, true), reader.ReadBoolArray(customAttribute.Value));
+                AssertEx.Equal(ImmutableArray.Create(true, true, true, false, true, true), reader.ReadBoolArray(customAttribute.Value));
             });
             var ref1 = comp.EmitToImageReference();
 
@@ -919,10 +1274,10 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (nint, nui
         public void NoPublicMembers()
         {
             var source =
-@"class A<T>
+@"class A<T, U>
 {
 }
-class B : A<nint>
+class B : A<System.UIntPtr, nint>
 {
 }";
             var comp = CreateCompilation(
@@ -990,6 +1345,7 @@ class B : A<nint>
             var comp = CompileAndVerify(@"
 class C<T, U, V>
 {
+    public C<dynamic, T, nint> F0;
     public C<dynamic, nint, System.IntPtr> F1;
     public C<dynamic, nuint, System.UIntPtr> F2;
     public C<T, nint, System.IntPtr> F3;
@@ -1001,15 +1357,17 @@ class C<T, U, V>
             {
                 var expectedAttributes = @"
 C<T, U, V>
-    [NativeInteger({ False, False, True, False })] C<dynamic, System.IntPtr, System.IntPtr> F1
-    [NativeInteger({ False, False, True, False })] C<dynamic, System.UIntPtr, System.UIntPtr> F2
-    [NativeInteger({ False, False, True, False })] C<T, System.IntPtr, System.IntPtr> F3
-    [NativeInteger({ False, False, True, False })] C<T, System.UIntPtr, System.UIntPtr> F4
+    [NativeInteger] C<dynamic, T, System.IntPtr> F0
+    [NativeInteger({ True, False })] C<dynamic, System.IntPtr, System.IntPtr> F1
+    [NativeInteger({ True, False })] C<dynamic, System.UIntPtr, System.UIntPtr> F2
+    [NativeInteger({ True, False })] C<T, System.IntPtr, System.IntPtr> F3
+    [NativeInteger({ True, False })] C<T, System.UIntPtr, System.UIntPtr> F4
 ";
 
                 AssertNativeIntegerAttributes(module, expectedAttributes);
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
+                assert("C<dynamic, T, nint>", "F0");
                 assert("C<dynamic, nint, System.IntPtr>", "F1");
                 assert("C<dynamic, nuint, System.UIntPtr>", "F2");
                 assert("C<T, nint, System.IntPtr>", "F3");
@@ -1017,6 +1375,61 @@ C<T, U, V>
 
                 void assert(string expectedType, string fieldName)
                 {
+                    Assert.Equal(expectedType, c.GetField(fieldName).Type.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void FunctionPointersWithNativeIntegerTypes()
+        {
+            var comp = CompileAndVerify(@"
+unsafe class C
+{
+    public delegate*<nint, object, object> F0;
+    public delegate*<nint, nint, nint> F1;
+    public delegate*<System.IntPtr, System.IntPtr, nint> F2;
+    public delegate*<nint, System.IntPtr, System.IntPtr> F3;
+    public delegate*<System.IntPtr, nint, System.IntPtr> F4;
+    public delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint> F5;
+    public delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6;
+    public delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr> F7;
+    public delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>> F8;
+}
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+
+            static void symbolValidator(ModuleSymbol module)
+            {
+                var expectedAttributes = @"
+C
+    [NativeInteger] delegate*<System.IntPtr, System.Object, System.Object> F0
+    [NativeInteger({ True, True, True })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F1
+    [NativeInteger({ True, False, False })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F2
+    [NativeInteger({ False, True, False })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F3
+    [NativeInteger({ False, False, True })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F4
+    [NativeInteger({ True, False, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F5
+    [NativeInteger({ False, False, False, True })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6
+    [NativeInteger({ False, True, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F7
+    [NativeInteger({ False, False, True, False })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F8
+";
+
+                AssertNativeIntegerAttributes(module, expectedAttributes);
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                assert("delegate*<nint, System.Object, System.Object>", "F0");
+                assert("delegate*<nint, nint, nint>", "F1");
+                assert("delegate*<System.IntPtr, System.IntPtr, nint>", "F2");
+                assert("delegate*<nint, System.IntPtr, System.IntPtr>", "F3");
+                assert("delegate*<System.IntPtr, nint, System.IntPtr>", "F4");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint>", "F5");
+                assert("delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F6");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr>", "F7");
+                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>>", "F8");
+
+                void assert(string expectedType, string fieldName)
+                {
+                    var field = c.GetField(fieldName);
+                    FunctionPointerUtilities.CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)field.Type);
                     Assert.Equal(expectedType, c.GetField(fieldName).Type.ToTestDisplayString());
                 }
             }

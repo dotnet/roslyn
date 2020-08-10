@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 Task.Run(() => { return 1; });";
         private const string ExampleCode2Line2 =
 @"Task.Run(() => { return 1; });";
-        private const string ExampleCode3 =
-@"Console.WriteLine(
-    ""InteractiveCommandHandlerExample"");";
-
         private const string ExampleMultiline =
 @"namespace N {
     void goo() {
@@ -40,34 +36,32 @@ Task.Run(() => { return 1; });";
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithoutSelection()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
+            AssertExecuteInInteractive(Caret, new string[0]);
 
-            AssertExecuteInInteractive(exportProvider, Caret, new string[0]);
             AssertExecuteInInteractive(
-                exportProvider,
 @"var x = 1;
 $$
 var y = 2;", new string[0]);
-            AssertExecuteInInteractive(exportProvider, ExampleCode1 + Caret, ExampleCode1);
-            AssertExecuteInInteractive(exportProvider, ExampleCode1.Insert(3, Caret), ExampleCode1);
-            AssertExecuteInInteractive(exportProvider, ExampleCode2 + Caret, ExampleCode2Line2);
-            AssertExecuteInInteractive(exportProvider, ExampleMultiline, ExpectedMultilineSelection);
+
+            AssertExecuteInInteractive(ExampleCode1 + Caret, ExampleCode1);
+            AssertExecuteInInteractive(ExampleCode1.Insert(3, Caret), ExampleCode1);
+            AssertExecuteInInteractive(ExampleCode2 + Caret, ExampleCode2Line2);
+            AssertExecuteInInteractive(ExampleMultiline, ExpectedMultilineSelection);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithEmptyBuffer()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
-
             AssertExecuteInInteractive(
-                exportProvider,
 @"{|Selection:|}var x = 1;
 {|Selection:$$|}var y = 2;", new string[0]);
-            AssertExecuteInInteractive(exportProvider, $@"{{|Selection:{ExampleCode1}$$|}}", ExampleCode1);
-            AssertExecuteInInteractive(exportProvider, $@"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
+
+            AssertExecuteInInteractive($@"{{|Selection:{ExampleCode1}$$|}}", ExampleCode1);
+
+            AssertExecuteInInteractive($@"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
+
             AssertExecuteInInteractive(
-                exportProvider,
 $@"var o = new object[] {{ 1, 2, 3 }};
 Console.WriteLine(o);
 {{|Selection:{ExampleCode2}$$|}}
@@ -79,24 +73,21 @@ Console.WriteLine(x);", ExampleCode2);
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithBoxSelection()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
-
             var expectedBoxSubmissionResult = @"int x;
 int y;";
             AssertExecuteInInteractive(
-                exportProvider,
 $@"some text {{|Selection:$$int x;|}} also here
 text some {{|Selection:int y;|}} here also", expectedBoxSubmissionResult);
+
             AssertExecuteInInteractive(
-                exportProvider,
 $@"some text {{|Selection:int x;$$|}} also here
 text some {{|Selection:int y;|}} here also", expectedBoxSubmissionResult);
+
             AssertExecuteInInteractive(
-                exportProvider,
 $@"some text {{|Selection:int x;|}} also here
 text some {{|Selection:$$int y;|}} here also", expectedBoxSubmissionResult);
+
             AssertExecuteInInteractive(
-                exportProvider,
 $@"some text {{|Selection:int x;|}} also here
 text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         }
@@ -105,12 +96,9 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestExecuteInInteractiveWithNonEmptyBuffer()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
-
             // Execute in interactive clears the existing current buffer before execution.
             // Therefore `var x = 1;` will not be executed.
             AssertExecuteInInteractive(
-                exportProvider,
                 @"{|Selection:var y = 2;$$|}",
                 "var y = 2;",
                 submissionBuffer: "var x = 1;");
@@ -119,8 +107,6 @@ text some {{|Selection:int y;$$|}} here also", expectedBoxSubmissionResult);
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/23200")]
         public void TestExecuteInInteractiveWithDefines()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
-
             var exampleWithIfDirective =
 @"#if DEF
 public void $$Run()
@@ -128,14 +114,14 @@ public void $$Run()
 }
 #endif";
 
-            AssertExecuteInInteractive(exportProvider, exampleWithIfDirective,
+            AssertExecuteInInteractive(exampleWithIfDirective,
 @"public void Run()");
 
             var exampleWithDefine =
 $@"#define DEF
 {exampleWithIfDirective}";
 
-            AssertExecuteInInteractive(exportProvider, exampleWithDefine,
+            AssertExecuteInInteractive(exampleWithDefine,
 @"public void Run()
 {
 }");
@@ -145,17 +131,16 @@ $@"#define DEF
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractiveWithoutSelection()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
+            AssertCopyToInteractive(Caret, "");
 
-            AssertCopyToInteractive(exportProvider, Caret, "");
-            AssertCopyToInteractive(exportProvider, $"{ExampleCode2}$$", ExampleCode2Line2);
+            AssertCopyToInteractive($"{ExampleCode2}$$", ExampleCode2Line2);
+
             AssertCopyToInteractive(
-                exportProvider,
                 code: ExampleCode2 + Caret,
                 submissionBuffer: ExampleCode1,
                 expectedBufferText: ExampleCode1 + "\r\n" + ExampleCode2Line2);
+
             AssertCopyToInteractive(
-                exportProvider,
                 code: ExampleCode2 + Caret,
                 submissionBuffer: "x = 2;",
                 expectedBufferText: "x = 2;\r\n" + ExampleCode2Line2);
@@ -165,45 +150,43 @@ $@"#define DEF
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractive()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
-
-            AssertCopyToInteractive(exportProvider, $"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
+            AssertCopyToInteractive($"{{|Selection:{ExampleCode2}$$|}}", ExampleCode2);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TestCopyToInteractiveWithNonEmptyBuffer()
         {
-            var exportProvider = InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider();
-
             // Copy to interactive does not clear the existing buffer.
             // Therefore `var x = 1;` will still be present in the final buffer.
             AssertCopyToInteractive(
-                exportProvider,
                 $"{{|Selection:{ExampleCode2}$$|}}",
                 $"var x = 1;\r\n{ExampleCode2}",
                 submissionBuffer: "var x = 1;");
         }
 
-        private static void AssertCopyToInteractive(ExportProvider exportProvider, string code, string expectedBufferText, string submissionBuffer = null)
+        private static void AssertCopyToInteractive(string code, string expectedBufferText, string submissionBuffer = null)
         {
-            using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code);
+            using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(code);
             PrepareSubmissionBuffer(submissionBuffer, workspace);
             workspace.SendCopyToInteractive();
             Assert.Equal(expectedBufferText, workspace.WindowCurrentLanguageBuffer.CurrentSnapshot.GetText());
         }
 
-        private static void AssertExecuteInInteractive(ExportProvider exportProvider, string code, string expectedSubmission, string submissionBuffer = null)
+        private static void AssertExecuteInInteractive(string code, string expectedSubmission, string submissionBuffer = null)
         {
-            AssertExecuteInInteractive(exportProvider, code, new string[] { expectedSubmission }, submissionBuffer);
+            AssertExecuteInInteractive(code, new string[] { expectedSubmission }, submissionBuffer);
         }
 
-        private static void AssertExecuteInInteractive(ExportProvider exportProvider, string code, string[] expectedSubmissions, string submissionBuffer = null)
+        private static void AssertExecuteInInteractive(string code, string[] expectedSubmissions, string submissionBuffer = null)
         {
             var submissions = new List<string>();
-            void appendSubmission(object _, string item) { submissions.Add(item.TrimEnd()); }
+            void appendSubmission(object _, string item)
+            {
+                submissions.Add(item.TrimEnd());
+            }
 
-            using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code);
+            using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(code);
             PrepareSubmissionBuffer(submissionBuffer, workspace);
             Assert.Equal(CommandState.Available, workspace.GetStateForExecuteInInteractive());
 

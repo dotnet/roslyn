@@ -427,7 +427,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }
@@ -591,7 +591,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }
@@ -709,6 +709,10 @@ class A
     private A[] aarray;
     private K* kptr;
     private A* aptr;
+    private delegate*<A, A, K> kinreturnfuncptr;
+    private delegate*<K, A, A> kinparamfuncptr1;
+    private delegate*<A, K, A> kinparamfuncptr2;
+    private delegate*<A, A> afuncptr;
     private IEnumerable<K> kenum;
     private IEnumerable<A> aenum;
     void M()
@@ -746,6 +750,10 @@ class ADerived2: A
             ITypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as IFieldSymbol).Type;
             ITypeSymbol kptrType = (classA.GetMembers("kptr").Single() as IFieldSymbol).Type;
             ITypeSymbol aptrType = (classA.GetMembers("aptr").Single() as IFieldSymbol).Type;
+            ITypeSymbol kinreturnfuncptrType = (classA.GetMembers("kinreturnfuncptr").Single() as IFieldSymbol).Type;
+            ITypeSymbol kinparamfuncptr1Type = (classA.GetMembers("kinparamfuncptr1").Single() as IFieldSymbol).Type;
+            ITypeSymbol kinparamfuncptr2Type = (classA.GetMembers("kinparamfuncptr2").Single() as IFieldSymbol).Type;
+            ITypeSymbol afuncptrType = (classA.GetMembers("afuncptr").Single() as IFieldSymbol).Type;
             ITypeSymbol kenumType = (classA.GetMembers("kenum").Single() as IFieldSymbol).Type;
             ITypeSymbol aenumType = (classA.GetMembers("aenum").Single() as IFieldSymbol).Type;
             var discards = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken).ToArray();
@@ -774,6 +782,14 @@ class ADerived2: A
             Assert.False(compilation.IsSymbolAccessibleWithin(kptrType, classB));
             Assert.True(Symbol.IsSymbolAccessible(aptrType.GetSymbol(), classB.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aptrType, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kinreturnfuncptrType.GetSymbol(), classB.GetSymbol()));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kinreturnfuncptrType, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kinparamfuncptr1Type.GetSymbol(), classB.GetSymbol()));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kinparamfuncptr1Type, classB));
+            Assert.False(Symbol.IsSymbolAccessible(kinparamfuncptr2Type.GetSymbol(), classB.GetSymbol()));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kinparamfuncptr2Type, classB));
+            Assert.True(Symbol.IsSymbolAccessible(afuncptrType.GetSymbol(), classB.GetSymbol()));
+            Assert.True(compilation.IsSymbolAccessibleWithin(afuncptrType, classB));
             Assert.False(Symbol.IsSymbolAccessible(kdiscard.GetSymbol(), classB.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kdiscard, classB));
             Assert.True(Symbol.IsSymbolAccessible(adiscard.GetSymbol(), classB.GetSymbol()));
@@ -811,8 +827,16 @@ class ADerived2: A
             Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, sourceAssem));
             Assert.True(Symbol.IsSymbolAccessible(aptrType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(aptrType, sourceAssem));
+            Assert.True(Symbol.IsSymbolAccessible(afuncptrType.GetSymbol(), sourceAssem.GetSymbol()));
+            Assert.True(compilation.IsSymbolAccessibleWithin(afuncptrType, sourceAssem));
             Assert.False(Symbol.IsSymbolAccessible(kptrType.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.False(compilation.IsSymbolAccessibleWithin(kptrType, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(kinreturnfuncptrType.GetSymbol(), sourceAssem.GetSymbol()));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kinreturnfuncptrType, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(kinparamfuncptr1Type.GetSymbol(), sourceAssem.GetSymbol()));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kinparamfuncptr1Type, sourceAssem));
+            Assert.False(Symbol.IsSymbolAccessible(kinparamfuncptr2Type.GetSymbol(), sourceAssem.GetSymbol()));
+            Assert.False(compilation.IsSymbolAccessibleWithin(kinparamfuncptr2Type, sourceAssem));
             Assert.True(Symbol.IsSymbolAccessible(adiscard.GetSymbol(), sourceAssem.GetSymbol()));
             Assert.True(compilation.IsSymbolAccessibleWithin(adiscard, sourceAssem));
             Assert.False(Symbol.IsSymbolAccessible(kdiscard.GetSymbol(), sourceAssem.GetSymbol()));
@@ -1477,6 +1501,27 @@ class A { }";
                 // (5,13): error CS0122: 'A' is inaccessible due to its protection level
                 //         new A();
                 Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void FunctionPointerTypesFromOtherInaccessibleAssembly()
+        {
+            var comp = CreateCompilation(@"
+unsafe class A
+{
+    internal delegate*<A> ptr1;
+    internal delegate*<A, object> ptr2;
+}", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            var ptr1 = comp.GetMember<FieldSymbol>("A.ptr1").Type.GetPublicSymbol();
+            var ptr2 = comp.GetMember<FieldSymbol>("A.ptr2").Type.GetPublicSymbol();
+
+            var comp2 = CreateCompilation("class B {}");
+
+            var b = comp2.GetMember("B").GetPublicSymbol();
+
+            Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr1, b));
+            Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr2, b));
         }
     }
 }

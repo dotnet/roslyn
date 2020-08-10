@@ -4,7 +4,6 @@
 
 #nullable enable
 
-
 namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
@@ -29,7 +28,9 @@ namespace Microsoft.CodeAnalysis
             public GeneratorDriver? GeneratorDriver { get; }
             public bool NeedsFullGeneration { get; }
 
-            /* PROTOTYPE: re-enable when PendingEdit is public again
+            // TODO: re-enable when PendingEdit is public again
+            // https://github.com/dotnet/roslyn/issues/46419
+#if false
             
             public TrackedGeneratorDriver WithPendingEdit(PendingEdit pendingEdit)
             {
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis
                     needsFullGeneration: false);
             }
 
-            */
+#endif
         }
     }
 }

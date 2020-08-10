@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -43,10 +43,9 @@ class 123 { }
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
-                Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), diagnosticService, foregroundService, listenerProvider)
+                Dim provider = workspace.ExportProvider.GetExportedValues(Of ITaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
 
                 Using disposable = TryCast(tagger, IDisposable)
@@ -102,7 +101,7 @@ class A
             End Using
         End Function
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/45877")>
         Public Async Function TestDefaultDiagnosticProviderSemantic() As Task
             Dim code = <code>
 class A
@@ -133,8 +132,10 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Single(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
+                Dim diagnostics = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None)
+
+                ' error CS0246: The type or namespace name 'M' could not be found
+                AssertEx.Equal({"CS0246"}, diagnostics.Select(Function(d) d.Id))
             End Using
         End Function
 
@@ -169,12 +170,15 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Equal(2,
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count())
+                Dim diagnostics = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None)
+
+                ' error CS1002: ; expected
+                ' error CS0246: The type or namespace name 'M' could not be found
+                AssertEx.SetEqual({"CS1002", "CS0246"}, diagnostics.Select(Function(d) d.Id))
             End Using
         End Function
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/45877")>
         Public Async Function TestDefaultDiagnosticProviderRemove() As Task
             Dim code = <code>
 class A
@@ -207,7 +211,7 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Empty(
+                AssertEx.Empty(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
             End Using
         End Function
@@ -282,7 +286,11 @@ End Class
             Dim analyzerMap = ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New DiagnosticAnalyzerWithSemanticError()))
 
-            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True)
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(NoCompilationContentTypeDefinitions))
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=Composition)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(analyzerMap)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 

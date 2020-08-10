@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInForEachClause(CSharpSyntaxContext context)
+        private static bool IsValidContextInForEachClause(CSharpSyntaxContext context)
         {
             // cases:
             //   foreach (var v |
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInFromClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContextInFromClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var token = context.TargetToken;
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInJoinClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContextInJoinClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var token = context.TargetToken;
 

@@ -43,22 +43,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsTypeOfExpressionContext ||
                 syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken) ||
                 context.IsDelegateReturnTypeContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 IsUnsafeLocalVariableDeclarationContext(context) ||
                 IsUnsafeParameterTypeContext(context) ||
                 IsUnsafeCastTypeContext(context) ||
                 IsUnsafeDefaultExpressionContext(context) ||
                 context.IsFixedVariableDeclarationContext ||
+                context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, SyntaxKindSet.AllLocalFunctionModifiers, cancellationToken);
         }
 
-        private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
                 context.SyntaxTree.IsDefaultExpressionContext(context.Position, context.LeftToken);
         }
 
-        private bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -79,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
                 context.IsParameterTypeContext;
         }
 
-        private bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -98,14 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;
             return
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
         }

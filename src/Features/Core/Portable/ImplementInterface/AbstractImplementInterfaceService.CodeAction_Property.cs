@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             /// We never want to place it in source code.
             /// Same thing for the Dynamic attribute.
             /// </summary>
-            private INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
+            private static INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
             {
                 return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(),
                     compilation.DynamicAttributeType(), compilation.NativeIntegerAttributeType() }.WhereNotNull().ToArray()!;

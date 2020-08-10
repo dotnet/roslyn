@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _badAnalyzers.Sort(this);
             }
 
-            private double? TryGetLocalOutlierFactor(
+            private static double? TryGetLocalOutlierFactor(
                 List<List<double>> allDistances, List<List<int>> kNeighborIndices, List<double> kDistances, int analyzerIndex)
             {
                 var rowKNeighborsIndices = kNeighborIndices[analyzerIndex];
@@ -258,13 +258,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return (lrdb / rowKNeighborsIndices.Count) / lrda;
             }
 
-            private double GetReachabilityDistance(
+            private static double GetReachabilityDistance(
                 List<List<double>> allDistances, List<double> kDistances, int analyzerIndex1, int analyzerIndex2)
             {
                 return Math.Max(allDistances[analyzerIndex1][analyzerIndex2], kDistances[analyzerIndex2]);
             }
 
-            private double? TryGetLocalReachabilityDensity(
+            private static double? TryGetLocalReachabilityDensity(
                 List<List<double>> allDistances, List<List<int>> kNeighborIndices, List<double> kDistances, int analyzerIndex)
             {
                 var rowKNeighborsIndices = kNeighborIndices[analyzerIndex];

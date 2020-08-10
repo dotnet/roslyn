@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             var (document, span, cancellationToken) = context;
 
-            var action = RenameTrackingTaggerProvider.TryGetCodeAction(
+            var (action, renameSpan) = RenameTrackingTaggerProvider.TryGetCodeAction(
                 document, span, _refactorNotifyServices, _undoHistoryRegistry, cancellationToken);
 
             if (action != null)
-                context.RegisterRefactoring(action);
+                context.RegisterRefactoring(action, renameSpan);
 
             return Task.CompletedTask;
         }

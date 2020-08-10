@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CodeGenerationNamedTypeSymbol constructedFrom,
             ImmutableArray<ITypeSymbol> typeArguments,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
-            : base(constructedFrom.ContainingType, constructedFrom.GetAttributes(),
+            : base(constructedFrom.ContainingAssembly, constructedFrom.ContainingType, constructedFrom.GetAttributes(),
                    constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
                    constructedFrom.Name, constructedFrom.SpecialType, constructedFrom.NullableAnnotation, typeMembers)
         {

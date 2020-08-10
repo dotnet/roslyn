@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
 
         <HandleProcessCorruptedStateExceptions()>
         Friend Function CreateLibraryManager(definition As XElement) As TestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
             Dim result As TestState = Nothing
 
             Try

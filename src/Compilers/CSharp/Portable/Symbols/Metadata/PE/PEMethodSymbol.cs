@@ -89,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int DoesNotReturnBit = 0x1 << 21;
             private const int IsDoesNotReturnPopulatedBit = 0x1 << 22;
             private const int IsMemberNotNullPopulatedBit = 0x1 << 23;
+            private const int IsInitOnlyBit = 0x1 << 24;
+            private const int IsInitOnlyPopulatedBit = 0x1 << 25;
 
             private int _bits;
 
@@ -122,6 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool DoesNotReturn => (_bits & DoesNotReturnBit) != 0;
             public bool IsDoesNotReturnPopulated => (_bits & IsDoesNotReturnPopulatedBit) != 0;
             public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
+            public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
+            public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -216,6 +220,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsMemberNotNullPopulatedBit);
             }
+
+            public void InitializeIsInitOnly(bool isInitOnly)
+            {
+                int bitsToSet = (isInitOnly ? IsInitOnlyBit : 0) | IsInitOnlyPopulatedBit;
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
         }
 
         /// <summary>
@@ -233,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyNotNullMembers;
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
+            public MethodSymbol _lazyExplicitClassOverride;
         }
 
         private UncommonFields CreateUncommonFields()
@@ -274,6 +286,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 retVal._lazyNotNullMembers = ImmutableArray<string>.Empty;
                 retVal._lazyNotNullMembersWhenTrue = ImmutableArray<string>.Empty;
                 retVal._lazyNotNullMembersWhenFalse = ImmutableArray<string>.Empty;
+            }
+
+            if (_packedFlags.IsExplicitOverrideIsPopulated)
+            {
+                retVal._lazyExplicitClassOverride = null;
             }
 
             return retVal;
@@ -1183,9 +1200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         anyToRemove = true;
                         sawObjectFinalize =
-                            (method.ContainingType.SpecialType == SpecialType.System_Object &&
-                             method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
-                             method.MethodKind == MethodKind.Destructor);
+                           (method.ContainingType.SpecialType == SpecialType.System_Object &&
+                            method.Name == WellKnownMemberNames.DestructorName && // Cheaper than MethodKind.
+                            method.MethodKind == MethodKind.Destructor);
                     }
 
                     if (anyToRemove && sawObjectFinalize)
@@ -1193,13 +1210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
                     }
                 }
-
-                // CONSIDER: could assert that we're writing the existing value if it's already there
-                // CONSIDER: what we'd really like to do is set this bit only in cases where the explicitly
-                // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
-                // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
-                // which depend on this property) to determine which method OverriddenMethod will return.
-                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: anyToRemove);
 
                 explicitInterfaceImplementations = explicitlyOverriddenMethods;
 
@@ -1215,9 +1225,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
 
                     explicitInterfaceImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree();
+
+                    MethodSymbol uniqueClassOverride = null;
+                    foreach (MethodSymbol method in explicitlyOverriddenMethods)
+                    {
+                        if (method.ContainingType.IsClassType())
+                        {
+                            if (uniqueClassOverride is { })
+                            {
+                                // not unique
+                                uniqueClassOverride = null;
+                                break;
+                            }
+
+                            uniqueClassOverride = method;
+                        }
+                    }
+
+                    if (uniqueClassOverride is { })
+                    {
+                        Interlocked.CompareExchange(ref AccessUncommonFields()._lazyExplicitClassOverride, uniqueClassOverride, null);
+                    }
                 }
 
+                // CONSIDER: what we'd really like to do is set this bit only in cases where the explicitly
+                // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
+                // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
+                // which depend on this property) to determine which method OverriddenMethod will return.
+                _packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: anyToRemove);
+
                 return InterlockedOperations.Initialize(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations);
+            }
+        }
+
+        /// <summary>
+        /// If a methodimpl record indicates a unique overridden method, that method. Otherwise null.
+        /// </summary>
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
+        {
+            get
+            {
+                return IsExplicitClassOverride ? AccessUncommonFields()._lazyExplicitClassOverride : null;
             }
         }
 
@@ -1236,6 +1284,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _packedFlags.InitializeIsReadOnly(isReadOnly);
                 }
                 return _packedFlags.IsReadOnly;
+            }
+        }
+
+        internal override bool IsInitOnly
+        {
+            get
+            {
+                if (!_packedFlags.IsInitOnlyPopulated)
+                {
+                    bool isInitOnly = !this.IsStatic &&
+                        this.MethodKind == MethodKind.PropertySet &&
+                        ReturnTypeWithAnnotations.CustomModifiers.HasIsExternalInitModifier();
+                    _packedFlags.InitializeIsInitOnly(isInitOnly);
+                }
+                return _packedFlags.IsInitOnly;
             }
         }
 

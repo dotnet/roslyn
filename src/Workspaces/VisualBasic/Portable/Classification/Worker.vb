@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Next
         End Sub
 
-        Private Function IsXmlNode(node As SyntaxNode) As Boolean
+        Private Shared Function IsXmlNode(node As SyntaxNode) As Boolean
             Return TypeOf node Is XmlNodeSyntax OrElse
                    TypeOf node Is XmlNamespaceImportsClauseSyntax OrElse
                    TypeOf node Is XmlMemberAccessExpressionSyntax OrElse

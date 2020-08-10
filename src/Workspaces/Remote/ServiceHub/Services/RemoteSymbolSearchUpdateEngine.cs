@@ -11,16 +11,15 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine : ServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
+    internal partial class RemoteSymbolSearchUpdateEngine : ServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService
     {
-        private readonly SymbolSearchUpdateEngine _updateEngine;
+        private readonly ISymbolSearchUpdateEngine _updateEngine;
 
         public RemoteSymbolSearchUpdateEngine(
             Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
-            _updateEngine = new SymbolSearchUpdateEngine(
-                logService: this, progressService: this);
+            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess(logService: this);
 
             StartService();
         }
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // In non-test scenarios, we're not cancellable.  Our lifetime will simply be that
                 // of the OOP process itself.  i.e. when it goes away, it will just tear down our
                 // update-loop itself.  So we don't need any additional controls over it.
-                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, CancellationToken.None);
+                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
             }, CancellationToken.None);
         }
 

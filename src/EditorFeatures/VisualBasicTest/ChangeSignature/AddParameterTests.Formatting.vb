@@ -28,7 +28,7 @@ End Class
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(5),
                 New AddedParameterOrExistingIndex(4),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(3),
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
@@ -61,7 +61,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -88,7 +88,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -112,7 +112,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -143,7 +143,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -180,7 +180,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -220,7 +220,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -257,7 +257,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 <Custom(2,
@@ -281,7 +281,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -306,7 +306,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -336,7 +336,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -365,7 +365,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -392,7 +392,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C

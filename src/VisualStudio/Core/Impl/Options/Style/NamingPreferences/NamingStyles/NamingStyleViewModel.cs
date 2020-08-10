@@ -97,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             }
         }
 
-
         private string _requiredSuffix;
         public string RequiredSuffix
         {

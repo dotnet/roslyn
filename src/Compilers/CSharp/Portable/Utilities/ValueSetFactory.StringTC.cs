@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
             {
-                var result = constantValue.StringValue;
+                var result = constantValue.IsBad ? string.Empty : constantValue.StringValue;
                 Debug.Assert(result != null);
                 return result;
             }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
             {
                 Debug.Assert(count > 0);
-                Debug.Assert(scope > count);
+                Debug.Assert(scope >= count);
                 string[] result = new string[count];
                 int next = 0;
                 for (int i = 0; i < scope; i++)

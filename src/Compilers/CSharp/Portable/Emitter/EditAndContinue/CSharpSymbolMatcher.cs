@@ -561,6 +561,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return new PointerTypeSymbol(symbol.PointedAtTypeWithAnnotations.WithTypeAndModifiers(otherPointedAtType, otherModifiers));
             }
 
+            public override Symbol VisitFunctionPointerType(FunctionPointerTypeSymbol symbol)
+            {
+                var sig = symbol.Signature;
+
+                var otherReturnType = (TypeSymbol)Visit(sig.ReturnType);
+                if (otherReturnType is null)
+                {
+                    return null;
+                }
+
+                var otherRefCustomModifiers = VisitCustomModifiers(sig.RefCustomModifiers);
+                var otherReturnTypeWithAnnotations = sig.ReturnTypeWithAnnotations.WithTypeAndModifiers(otherReturnType, VisitCustomModifiers(sig.ReturnTypeWithAnnotations.CustomModifiers));
+
+                var otherParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+                ImmutableArray<ImmutableArray<CustomModifier>> otherParamRefCustomModifiers = default;
+
+                if (sig.ParameterCount > 0)
+                {
+                    var otherParamsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(sig.ParameterCount);
+                    var otherParamRefCustomModifiersBuilder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(sig.ParameterCount);
+
+                    foreach (var param in sig.Parameters)
+                    {
+                        var otherType = (TypeSymbol)Visit(param.Type);
+                        if (otherType is null)
+                        {
+                            otherParamsBuilder.Free();
+                            otherParamRefCustomModifiersBuilder.Free();
+                            return null;
+                        }
+
+                        otherParamRefCustomModifiersBuilder.Add(VisitCustomModifiers(param.RefCustomModifiers));
+                        otherParamsBuilder.Add(param.TypeWithAnnotations.WithTypeAndModifiers(otherType, VisitCustomModifiers(param.TypeWithAnnotations.CustomModifiers)));
+                    }
+
+                    otherParameterTypes = otherParamsBuilder.ToImmutableAndFree();
+                    otherParamRefCustomModifiers = otherParamRefCustomModifiersBuilder.ToImmutableAndFree();
+                }
+
+                return symbol.SubstituteTypeSymbol(otherReturnTypeWithAnnotations, otherParameterTypes, otherRefCustomModifiers, otherParamRefCustomModifiers);
+            }
+
             public override Symbol VisitProperty(PropertySymbol symbol)
             {
                 return this.VisitNamedTypeMember(symbol, ArePropertiesEqual);
@@ -736,6 +778,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return AreTypesEqual(type.PointedAtType, other.PointedAtType);
             }
 
+            private bool AreFunctionPointerTypesEqual(FunctionPointerTypeSymbol type, FunctionPointerTypeSymbol other)
+            {
+                var sig = type.Signature;
+                var otherSig = other.Signature;
+
+                ValidateFunctionPointerParamOrReturn(sig.ReturnTypeWithAnnotations, sig.RefKind, sig.RefCustomModifiers, allowOut: false);
+                ValidateFunctionPointerParamOrReturn(otherSig.ReturnTypeWithAnnotations, otherSig.RefKind, otherSig.RefCustomModifiers, allowOut: false);
+                if (sig.RefKind != otherSig.RefKind || !AreTypesEqual(sig.ReturnTypeWithAnnotations, otherSig.ReturnTypeWithAnnotations))
+                {
+                    return false;
+                }
+
+                return sig.Parameters.SequenceEqual(otherSig.Parameters, AreFunctionPointerParametersEqual);
+            }
+
+            private bool AreFunctionPointerParametersEqual(ParameterSymbol param, ParameterSymbol otherParam)
+            {
+                ValidateFunctionPointerParamOrReturn(param.TypeWithAnnotations, param.RefKind, param.RefCustomModifiers, allowOut: true);
+                ValidateFunctionPointerParamOrReturn(otherParam.TypeWithAnnotations, otherParam.RefKind, otherParam.RefCustomModifiers, allowOut: true);
+
+                return param.RefKind == otherParam.RefKind && AreTypesEqual(param.TypeWithAnnotations, otherParam.TypeWithAnnotations);
+            }
+
+            [Conditional("DEBUG")]
+            private static void ValidateFunctionPointerParamOrReturn(TypeWithAnnotations type, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, bool allowOut)
+            {
+                Debug.Assert(type.CustomModifiers.IsEmpty);
+                Debug.Assert(verifyRefModifiers(refCustomModifiers, refKind, allowOut));
+
+                static bool verifyRefModifiers(ImmutableArray<CustomModifier> modifiers, RefKind refKind, bool allowOut)
+                {
+                    Debug.Assert(RefKind.RefReadOnly == RefKind.In);
+                    switch (refKind)
+                    {
+                        case RefKind.RefReadOnly:
+                        case RefKind.Out when allowOut:
+                            return modifiers.Length == 1;
+                        default:
+                            return modifiers.IsEmpty;
+                    }
+                }
+            }
+
             private bool ArePropertiesEqual(PropertySymbol property, PropertySymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(property.MetadataName, other.MetadataName));
@@ -780,6 +865,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     case SymbolKind.PointerType:
                         return ArePointerTypesEqual((PointerTypeSymbol)type, (PointerTypeSymbol)other);
+
+                    case SymbolKind.FunctionPointerType:
+                        return AreFunctionPointerTypesEqual((FunctionPointerTypeSymbol)type, (FunctionPointerTypeSymbol)other);
 
                     case SymbolKind.NamedType:
                     case SymbolKind.ErrorType:
@@ -913,6 +1001,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var translatedPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
                 var translatedModifiers = VisitCustomModifiers(symbol.PointedAtTypeWithAnnotations.CustomModifiers);
                 return new PointerTypeSymbol(symbol.PointedAtTypeWithAnnotations.WithTypeAndModifiers(translatedPointedAtType, translatedModifiers));
+            }
+
+            public override Symbol VisitFunctionPointerType(FunctionPointerTypeSymbol symbol)
+            {
+                var sig = symbol.Signature;
+                var translatedReturnType = (TypeSymbol)Visit(sig.ReturnType);
+                var translatedReturnTypeWithAnnotations = sig.ReturnTypeWithAnnotations.WithTypeAndModifiers(translatedReturnType, VisitCustomModifiers(sig.ReturnTypeWithAnnotations.CustomModifiers));
+                var translatedRefCustomModifiers = VisitCustomModifiers(sig.RefCustomModifiers);
+
+                var translatedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+                ImmutableArray<ImmutableArray<CustomModifier>> translatedParamRefCustomModifiers = default;
+
+                if (sig.ParameterCount > 0)
+                {
+                    var translatedParamsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(sig.ParameterCount);
+                    var translatedParamRefCustomModifiersBuilder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(sig.ParameterCount);
+
+                    foreach (var param in sig.Parameters)
+                    {
+                        var translatedParamType = (TypeSymbol)Visit(param.Type);
+                        translatedParamsBuilder.Add(param.TypeWithAnnotations.WithTypeAndModifiers(translatedParamType, VisitCustomModifiers(param.TypeWithAnnotations.CustomModifiers)));
+                        translatedParamRefCustomModifiersBuilder.Add(VisitCustomModifiers(param.RefCustomModifiers));
+                    }
+
+                    translatedParameterTypes = translatedParamsBuilder.ToImmutableAndFree();
+                    translatedParamRefCustomModifiers = translatedParamRefCustomModifiersBuilder.ToImmutableAndFree();
+                }
+
+                return symbol.SubstituteTypeSymbol(translatedReturnTypeWithAnnotations, translatedParameterTypes, translatedRefCustomModifiers, translatedParamRefCustomModifiers);
             }
 
             public override Symbol VisitTypeParameter(TypeParameterSymbol symbol)

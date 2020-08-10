@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return toExpressionBodyRefactorings.AddRange(toBlockBodyRefactorings);
         }
 
-        private async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        private static async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
             Document document, TextSpan span, ExpressionBodyPreference option, CancellationToken cancellationToken)
         {
             var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return result.ToImmutable();
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

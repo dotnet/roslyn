@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Shared
         bool SupportsNavigationToAnyPosition(Document document);
     }
 
-
     [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Default), Shared]
     internal class DefaultDocumentSupportsFeatureService : IDocumentSupportsFeatureService
     {

@@ -1471,5 +1471,625 @@ dotnet_diagnostic.cs000.severity = warning", "/.editorconfig"));
         }
 
         #endregion
+
+        #region Processing of Global configs
+
+        [Fact]
+        public void IsReportedAsGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true ", "/.editorconfig"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
+
+            Assert.Empty(configs);
+            Assert.NotNull(globalConfig);
+            configs.Free();
+        }
+
+        [Fact]
+        public void IsNotGlobalIfInSection()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+is_global = true ", "/.editorconfig"));
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out _);
+
+            Assert.Single(configs);
+            Assert.Null(globalConfig);
+            configs.Free();
+        }
+
+        [Fact]
+        public void FilterReturnsSingleGlobalConfig()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"option2 = value2", "/.editorconfig1"));
+            configs.Add(Parse(@"option3 = value3", "/.editorconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+
+            diagnostics.Verify();
+            Assert.Equal(2, configs.Count);
+            Assert.NotNull(globalConfig);
+            Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
+            configs.Free();
+        }
+
+        [Fact]
+        public void FilterReturnsSingleCombinedGlobalConfig()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+option2 = value2", "/.globalconfig2"));
+
+            configs.Add(Parse(@"option3 = value3", "/.editorconfig1"));
+            configs.Add(Parse(@"option4 = value4", "/.editorconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+
+            diagnostics.Verify();
+            Assert.Equal(2, configs.Count);
+            Assert.NotNull(globalConfig);
+            Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
+            Assert.Equal("value2", globalConfig.GlobalSection.Properties["option2"]);
+            configs.Free();
+        }
+
+        [Fact]
+        public void FilterCombinesSections()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1
+
+[c:/path/to/file1.cs]
+option1 = value1
+
+[c:/path/to/file2.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+option2 = value2
+
+[c:/path/to/file1.cs]
+option2 = value2
+
+[c:/path/to/file3.cs]
+option1 = value1",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+
+            diagnostics.Verify();
+            Assert.Empty(configs);
+            Assert.NotNull(globalConfig);
+            Assert.Equal("value1", globalConfig.GlobalSection.Properties["option1"]);
+            Assert.Equal("value2", globalConfig.GlobalSection.Properties["option2"]);
+
+            var file1Section = globalConfig.NamedSections[0];
+            var file2Section = globalConfig.NamedSections[1];
+            var file3Section = globalConfig.NamedSections[2];
+
+            Assert.Equal(@"c:/path/to/file1.cs", file1Section.Name);
+            Assert.Equal(2, file1Section.Properties.Count);
+            Assert.Equal("value1", file1Section.Properties["option1"]);
+            Assert.Equal("value2", file1Section.Properties["option2"]);
+
+            Assert.Equal(@"c:/path/to/file2.cs", file2Section.Name);
+            Assert.Equal(1, file2Section.Properties.Count);
+            Assert.Equal("value1", file2Section.Properties["option1"]);
+
+            Assert.Equal(@"c:/path/to/file3.cs", file3Section.Name);
+            Assert.Equal(1, file3Section.Properties.Count);
+            Assert.Equal("value1", file3Section.Properties["option1"]);
+            configs.Free();
+        }
+
+        [Fact]
+        public void DuplicateOptionsInGlobalConfigsAreUnset()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+option1 = value2", "/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "Global Section", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void DuplicateOptionsInGlobalConfigsSectionsAreUnset()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value2",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void DuplicateGlobalOptionsInNonGlobalConfigsAreKept()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+option1 = value2", "/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify();
+        }
+
+        [Fact]
+        public void DuplicateSectionOptionsInNonGlobalConfigsAreKept()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+[c:/path/to/file1.cs]
+option1 = value2",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify();
+        }
+
+        [Fact]
+        public void GlobalConfigsPropertiesAreGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1
+", "/.globalconfig1"));
+
+            var options = GetAnalyzerConfigOptions(
+                 new[] { "/file1.cs", "/path/to/file1.cs", "c:/path/to/file1.cs", "/file1.vb" },
+                 configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new[] { ("option1", "value1") },
+                    new[] { ("option1", "value1") },
+                    new[] { ("option1", "value1") },
+                    new[] { ("option1", "value1") }
+              },
+              options);
+        }
+
+        [Fact]
+        public void GlobalConfigsSectionsMustBeFullPath()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value1
+
+[*.cs]
+option2 = value2
+
+[.*/path/*.cs]
+option3 = value3
+
+[c:/.*/*.cs]
+option4 = value4
+", "/.globalconfig1"));
+
+            var options = GetAnalyzerConfigOptions(
+                 new[] { "/file1.cs", "/path/to/file1.cs", "c:/path/to/file1.cs", "/file1.vb" },
+                 configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new (string, string)[] { },
+                    new (string, string)[] { },
+                    new (string, string)[]
+                    {
+                        ("option1", "value1")
+                    },
+                    new (string, string)[] { }
+              },
+              options);
+        }
+
+        [Fact]
+        public void GlobalConfigsSectionsAreOverriddenByNonGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = global
+
+[/path/to/file1.cs]
+option2 = global
+option3 = global
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+[*.cs]
+option2 = config1
+", "/.editorconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+option3 = config2
+", "/path/.editorconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+option2 = config3
+", "/path/to/.editorconfig"));
+
+
+            var options = GetAnalyzerConfigOptions(
+                 new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
+                 configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config3"), // overridden by config3
+                        ("option3", "config2")  // overridden by config2
+                    },
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config1"),
+                        ("option3", "config2")
+                    },
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config1")
+                    }
+              },
+              options);
+        }
+
+        [Fact]
+        public void GlobalConfigSectionsAreCaseSensitive()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+[c:/pAth/To/fiLe1.cs]
+option1 = value2",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify();
+
+            Assert.Equal(2, globalConfig.NamedSections.Length);
+            configs.Free();
+        }
+
+        [Fact]
+        public void GlobalConfigSectionsPropertiesAreNotCaseSensitive()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+opTioN1 = value2",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "c:/path/to/file1.cs", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
+            configs.Free();
+        }
+
+        [Fact]
+        public void GlobalConfigPropertiesAreNotCaseSensitive()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"is_global = true
+opTioN1 = value2",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "Global Section", "/.globalconfig1, /.globalconfig2").WithLocation(1, 1)
+                );
+            configs.Free();
+        }
+
+        [Fact]
+        public void GlobalConfigSectionPathsMustBeNormalized()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+[c:/path/to/file1.cs]
+option1 = value1
+
+[c:\path\to\file2.cs]
+option1 = value1
+
+", "/.globalconfig1"));
+
+            var options = GetAnalyzerConfigOptions(
+                 new[] { "c:/path/to/file1.cs", "c:/path/to/file2.cs" },
+                 configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[]
+                {
+                    new []
+                    {
+                        ("option1", "value1")
+                    },
+                    new (string, string) [] { }
+                },
+                options);
+        }
+
+        [Fact]
+        public void GlobalConfigCanSetSeverity()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = none
+dotnet_diagnostic.cs001.severity = error
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress),
+                                                   ("cs001", ReportDiagnostic.Error)),
+                         options[0].TreeOptions);
+        }
+
+        [Fact]
+        public void GlobalConfigCanSetSeverityInSection()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+
+[c:/path/to/file.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "c:/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+
+            Assert.Equal(new[] {
+                SyntaxTree.EmptyDiagnosticOptions,
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error))
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void GlobalConfigInvalidSeverity()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = foo
+
+[c:/path/to/file.cs]
+dotnet_diagnostic.cs001.severity = bar
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "c:/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+            options[0].Diagnostics.Verify(
+                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1)
+                );
+
+            options[1].Diagnostics.Verify(
+                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs000", "foo", "<Global Config>").WithLocation(1, 1),
+                Diagnostic("InvalidSeverityInAnalyzerConfig").WithArguments("cs001", "bar", "<Global Config>").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void GlobalConfigCanSeverityInSectionOverridesGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = none
+
+[c:/path/to/file.cs]
+dotnet_diagnostic.cs000.severity = error
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "c:/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                options[0].TreeOptions);
+        }
+
+        [Fact]
+        public void GlobalConfigSeverityIsOverriddenByEditorConfig()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+dotnet_diagnostic.cs000.severity = error
+", "/.globalconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = none
+", "/.editorconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = warning
+", "/path/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/path/file.cs" },
+                configs);
+            configs.Free();
+
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Warn))
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void GlobalKeyIsNotSkippedIfInSection()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+[/path/to/file.cs]
+is_global = true
+", "/.globalconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/file.cs", "/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new (string,string)[] { },
+                    new[] { ("is_global", "true") }
+              },
+              options);
+        }
+
+        [Fact]
+        public void GlobalConfigIsNotClearedByRootEditorConfig()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"is_global = true
+option1 = global
+
+[/path/to/file1.cs]
+option2 = global
+option3 = global
+
+[/path/file1.cs]
+option2 = global
+option3 = global
+
+[/file1.cs]
+option2 = global
+option3 = global
+
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+root = true
+[*.cs]
+option2 = config1
+", "/.editorconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+option3 = config2
+", "/path/.editorconfig"));
+
+            configs.Add(Parse(@"
+root = true
+[*.cs]
+option2 = config3
+", "/path/to/.editorconfig"));
+
+
+            var options = GetAnalyzerConfigOptions(
+                 new[] { "/path/to/file1.cs", "/path/file1.cs", "/file1.cs" },
+                 configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config3"), // overridden by config3
+                        ("option3", "global") // not overridden by config2, because config3 is root
+                    },
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config1"),
+                        ("option3", "config2")
+                    },
+                    new []
+                    {
+                        ("option1", "global"),
+                        ("option2", "config1"),
+                        ("option3", "global")
+                    }
+              },
+              options);
+        }
+
+
+        #endregion
     }
 }

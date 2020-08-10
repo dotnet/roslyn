@@ -127,11 +127,15 @@ my_option2 = my_val2")
 
             Dim comp = cmd.Compilation
             Dim tree = comp.SyntaxTrees.Single()
-            AssertEx.SetEqual({
-                KeyValuePairUtil.Create("bc42024", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning03", ReportDiagnostic.Suppress)
-                }, tree.DiagnosticOptions)
+            Dim syntaxTreeOptions = comp.Options.SyntaxTreeOptionsProvider
+            Dim report As ReportDiagnostic
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "BC42024", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning01", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning03", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.False(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning02", report))
 
             Dim provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider
             Dim options = provider.GetOptions(tree)
@@ -4887,7 +4891,7 @@ End Class
 
         <Fact()>
         Public Sub BinaryFile()
-            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path
+            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestMetadata.ResourcesNet451.mscorlib).Path
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", binaryPath}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
@@ -8789,6 +8793,61 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
+        Public Sub SkipAnalyzersParse()
+            Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/SKIPANALYZERS+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers-", "/skipanalyzers+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers", "/skipanalyzers-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
+        Public Sub SkipAnalyzersSemantics(skipAnalyzers As Boolean)
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+            Dim skipAnalyzersFlag = "/skipanalyzers" + If(skipAnalyzers, "+", "-")
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, source})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            If skipAnalyzers Then
+                Assert.DoesNotContain(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+                Assert.DoesNotContain(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Else
+                Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+                Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            End If
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
         <WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")>
         Public Sub AnalyzerDiagnosticThrowsInGetMessage()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -9936,7 +9995,7 @@ End Class"
                 defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog
 
             ' We use an analyzer that throws an exception on every analyzer callback.
-            ' So an AD0001 analyzer exeption diagnostic is reported if analyzer executed, otherwise not.
+            ' So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
             Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=True)
 
             Dim dir = Temp.CreateDirectory()
@@ -9959,6 +10018,31 @@ End Class")
             Else
                 Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'", output, StringComparison.Ordinal)
             End If
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub TestAdditionalFileAnalyzer(registerFromInitialize As Boolean)
+            Dim srcDirectory = Temp.CreateDirectory()
+
+            Dim source = "
+Class C
+End Class"
+            Dim srcFile = srcDirectory.CreateFile("a.vb")
+            srcFile.WriteAllText(source)
+
+            Dim additionalText = "Additional Text"
+            Dim additionalFile = srcDirectory.CreateFile("b.txt")
+            additionalFile.WriteAllText(additionalText)
+
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer As DiagnosticAnalyzer = New AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan)
+
+            Dim output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags:={"/additionalfile:" & additionalFile.Path},
+                                      analyzers:=ImmutableArray.Create(analyzer))
+            Assert.Contains("b.txt(1) : warning ID0001", output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(srcDirectory.Path)
         End Sub
     End Class
 

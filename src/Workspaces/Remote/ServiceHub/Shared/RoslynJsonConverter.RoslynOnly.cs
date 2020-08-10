@@ -20,7 +20,12 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class AggregateJsonConverter : JsonConverter
     {
+#pragma warning disable CA1822 // Mark members as static
+        // this type is shared by multiple teams such as Razor, LUT and etc which have either 
+        // separated/shared/shim repo so some types might not available to those context. this 
+        // partial method let us add Roslyn specific types without breaking them
         partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder)
+#pragma warning restore CA1822 // Mark members as static
         {
             Add(builder, new HighlightSpanJsonConverter());
             Add(builder, new TaggedTextJsonConverter());

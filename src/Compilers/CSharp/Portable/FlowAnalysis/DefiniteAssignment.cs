@@ -17,10 +17,10 @@
 #define REFERENCE_STATE
 #endif
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -123,13 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol member,
             BoundNode node,
+            bool strictAnalysis,
             bool trackUnassignments = false,
             HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false,
             bool trackStaticMembers = false)
             : base(compilation, member, node,
-                   compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
+                   strictAnalysis ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation),
                    trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
@@ -149,9 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
             HashSet<Symbol> initiallyAssignedVariables = null)
-            : base(compilation, member, node,
-                   emptyStructs ?? (compilation.FeatureStrictEnabled ? EmptyStructTypeCache.CreatePrecise() : EmptyStructTypeCache.CreateForDev12Compatibility(compilation)),
-                   trackUnassignments)
+            : base(compilation, member, node, emptyStructs, trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
@@ -378,42 +377,121 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
         /// </summary>
-        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
+        public static void Analyze(
+            CSharpCompilation compilation,
+            MethodSymbol member,
+            BoundNode node,
+            DiagnosticBag diagnostics,
+            bool requireOutParamsAssigned = true)
         {
             Debug.Assert(diagnostics != null);
 
-            var walker = new DefiniteAssignmentPass(
-                compilation,
-                member,
-                node,
-                requireOutParamsAssigned: requireOutParamsAssigned);
-            walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
-
-            try
+            // Run the strongest version of analysis
+            DiagnosticBag strictDiagnostics = analyze(strictAnalysis: true);
+            if (strictDiagnostics.IsEmptyWithoutResolution)
             {
-                bool badRegion = false;
-                walker.Analyze(ref badRegion, diagnostics);
-                Debug.Assert(!badRegion);
-            }
-            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
-            {
-                ex.AddAnError(diagnostics);
-            }
-            finally
-            {
-                walker.Free();
+                // If it reports nothing, there is nothing to report and we are done.
+                strictDiagnostics.Free();
+                return;
             }
 
-            if (compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() && compilation.ShouldRunNullableWalker)
+            // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
+            // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
+            DiagnosticBag compatDiagnostics = analyze(strictAnalysis: false);
+
+            // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
+            // So we just report the compat ones including that error.
+            if (compatDiagnostics.AsEnumerable().Any(d => (ErrorCode)d.Code == ErrorCode.ERR_InsufficientStack))
             {
-                NullableWalker.Analyze(compilation, member, node, diagnostics);
+                diagnostics.AddRangeAndFree(compatDiagnostics);
+                strictDiagnostics.Free();
+                return;
             }
-#if DEBUG
-            else
+
+            // If the compat diagnostics did not overflow and we have the same number of diagnostics, we just report the stricter set.
+            // It is OK if the strict analysis had an overflow here, causing the sets to be incomparable: the reported diagnostics will
+            // include the error reporting that fact.
+            if (strictDiagnostics.Count == compatDiagnostics.Count)
             {
-                NullableWalker.Analyze(compilation, member, node, new DiagnosticBag());
+                diagnostics.AddRangeAndFree(strictDiagnostics);
+                compatDiagnostics.Free();
+                return;
             }
-#endif
+
+            HashSet<Diagnostic> compatDiagnosticSet = new HashSet<Diagnostic>(compatDiagnostics.AsEnumerable(), SameDiagnosticComparer.Instance);
+            compatDiagnostics.Free();
+            foreach (var diagnostic in strictDiagnostics.AsEnumerable())
+            {
+                // If it is a warning (e.g. WRN_AsyncLacksAwaits), or an error that would be reported by the compatible analysis, just report it.
+                if (diagnostic.Severity != DiagnosticSeverity.Error || compatDiagnosticSet.Contains(diagnostic))
+                {
+                    diagnostics.Add(diagnostic);
+                    continue;
+                }
+
+                // Otherwise downgrade the error to a warning.
+                ErrorCode oldCode = (ErrorCode)diagnostic.Code;
+                ErrorCode newCode = oldCode switch
+                {
+#pragma warning disable format
+                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
+                    _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
+#pragma warning restore format
+                };
+
+                // We don't know any other way this can happen, but if it does we recover gracefully in production.
+                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
+
+                var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
+                diagnostics.Add(newCode, diagnostic.Location, args);
+            }
+
+            strictDiagnostics.Free();
+            return;
+
+            DiagnosticBag analyze(bool strictAnalysis)
+            {
+                DiagnosticBag result = DiagnosticBag.GetInstance();
+                var walker = new DefiniteAssignmentPass(
+                    compilation,
+                    member,
+                    node,
+                    strictAnalysis: strictAnalysis,
+                    requireOutParamsAssigned: requireOutParamsAssigned);
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
+
+                try
+                {
+                    bool badRegion = false;
+                    walker.Analyze(ref badRegion, result);
+                    Debug.Assert(!badRegion);
+                }
+                catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+                {
+                    ex.AddAnError(result);
+                }
+                finally
+                {
+                    walker.Free();
+                }
+
+                return result;
+            }
+        }
+
+        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
+        {
+            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
+            public override bool Equals([AllowNull] Diagnostic x, [AllowNull] Diagnostic y) => x.Equals(y);
+            public override int GetHashCode([DisallowNull] Diagnostic obj) =>
+                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
         }
 
         /// <summary>
@@ -584,11 +662,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // unless the written value is always a constant. The reasons for this
                     // unusual behavior are:
                     //
-                    // * The debugger does not make it easy to see the returned value of 
+                    // * The debugger does not make it easy to see the returned value of
                     //   a method. Often a call whose returned value would normally be
                     //   discarded is written into a local variable so that it can be
                     //   easily inspected in the debugger.
-                    // 
+                    //
                     // * An otherwise unread local variable that contains a reference to an
                     //   object can keep the object alive longer, particularly if the jitter
                     //   is not optimizing the lifetimes of locals. (Because, for example,
@@ -597,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   the developer to more easily examine its state.
                     //
                     // * A developer who wishes to deliberately discard a value returned by
-                    //   a method can do so in a self-documenting manner via 
+                    //   a method can do so in a self-documenting manner via
                     //   "var unread = M();"
                     //
                     // We suppress the "written but not read" message on locals unless what is
@@ -623,9 +701,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value.ConstantValue != ConstantValue.Null;
             }
 
-            if ((object)type != null && type.IsPointerType())
+            if ((object)type != null && type.IsPointerOrFunctionPointer())
             {
-                // We always suppress the warning for pointer types. 
+                // We always suppress the warning for pointer types.
                 return true;
             }
 
@@ -798,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.CurrentSymbol))
                         {
                             var propSymbol = propAccess.PropertySymbol;
-                            member = (propSymbol as SourcePropertySymbol)?.BackingField;
+                            member = (propSymbol as SourcePropertySymbolBase)?.BackingField;
                             if (member is null)
                             {
                                 return false;
@@ -1023,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol))
                         {
                             var property = propertyAccess.PropertySymbol;
-                            var backingField = (property as SourcePropertySymbol)?.BackingField;
+                            var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                             if (backingField != null)
                             {
                                 if (!MayRequireTracking(propertyAccess.ReceiverOpt, backingField) || IsAssigned(propertyAccess.ReceiverOpt, out unassignedSlot))
@@ -1695,10 +1773,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
+            LocalSymbol localSymbol = node.LocalSymbol;
+            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                // Since we've already reported a use of the variable where not permitted, we
+                // suppress the diagnostic that the variable may not be assigned where used.
+                int slot = GetOrCreateSlot(node.LocalSymbol);
+                _alreadyReported[slot] = true;
+            }
+
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
             // an assignment (if a simple variable or this-qualified or deconstruction variables) or an out parameter.
             // That's because this code assumes the variable is being read, not written.
-            LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
 
             if (localSymbol.IsFixed && this.CurrentSymbol is MethodSymbol currentMethod &&
@@ -2036,7 +2122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (Binder.AccessingAutoPropertyFromConstructor(node, this.CurrentSymbol))
             {
                 var property = node.PropertySymbol;
-                var backingField = (property as SourcePropertySymbol)?.BackingField;
+                var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)
                 {
                     if (MayRequireTracking(node.ReceiverOpt, backingField))

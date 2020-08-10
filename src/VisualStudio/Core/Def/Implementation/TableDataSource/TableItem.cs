@@ -67,6 +67,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return null;
             }
         }
-
     }
 }

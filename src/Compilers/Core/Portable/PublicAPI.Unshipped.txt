@@ -1,29 +1,38 @@
-Microsoft.CodeAnalysis.Compilation.CreateNativeIntegerTypeSymbol(bool signed) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AssemblyLoader.get -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference other) -> bool
-Microsoft.CodeAnalysis.INamedTypeSymbol.NativeIntegerUnderlyingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Microsoft.CodeAnalysis.ITypeSymbol.IsNativeIntegerType.get -> bool
-Microsoft.CodeAnalysis.OperationKind.BinaryPattern = 110 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.NegatedPattern = 109 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.RelationalPattern = 112 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.TypePattern = 111 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.CommonConversion.IsNullable.get -> bool
-Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation
-Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.LeftPattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
-Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.OperatorKind.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
-Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation.RightPattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
-Microsoft.CodeAnalysis.Operations.INegatedPatternOperation
-Microsoft.CodeAnalysis.Operations.INegatedPatternOperation.NegatedPattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
-Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation
-Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.OperatorKind.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
-Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Operations.ITypePatternOperation
-Microsoft.CodeAnalysis.Operations.ITypePatternOperation.MatchedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitBinaryPattern(Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitNegatedPattern(Microsoft.CodeAnalysis.Operations.INegatedPatternOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRelationalPattern(Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitTypePattern(Microsoft.CodeAnalysis.Operations.ITypePatternOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitBinaryPattern(Microsoft.CodeAnalysis.Operations.IBinaryPatternOperation operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitNegatedPattern(Microsoft.CodeAnalysis.Operations.INegatedPatternOperation operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRelationalPattern(Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitTypePattern(Microsoft.CodeAnalysis.Operations.ITypePatternOperation operation, TArgument argument) -> TResult
+Microsoft.CodeAnalysis.CommandLineArguments.SkipAnalyzers.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AdditionalFile.get -> Microsoft.CodeAnalysis.AdditionalText
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AdditionalFileDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.AdditionalText, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText file, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText file, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.get -> int
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AdditionalFileActionsCount.set -> void
+Microsoft.CodeAnalysis.GeneratorDriverRunResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.GeneratorDriverRunResult.GeneratedTrees.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SyntaxTree>
+Microsoft.CodeAnalysis.GeneratorDriverRunResult.Results.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratorRunResult>
+Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
+Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.SyntaxTreeOptionsProvider() -> void
+abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.IsGenerated(Microsoft.CodeAnalysis.SyntaxTree tree) -> bool?
+abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(Microsoft.CodeAnalysis.SyntaxTree tree, string diagnosticId, out Microsoft.CodeAnalysis.ReportDiagnostic severity) -> bool
+Microsoft.CodeAnalysis.GeneratorRunResult.GeneratedSources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
+const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointMethodName = "<Main>$" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.TopLevelStatementsEntryPointTypeName = "<Program>$" -> string
+Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider.get -> Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
+Microsoft.CodeAnalysis.CompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.Operations.IPatternOperation.NarrowedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterAdditionalFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext> action) -> void
+Microsoft.CodeAnalysis.GeneratedSourceResult
+Microsoft.CodeAnalysis.GeneratedSourceResult.HintName.get -> string
+Microsoft.CodeAnalysis.GeneratedSourceResult.SourceText.get -> Microsoft.CodeAnalysis.Text.SourceText
+Microsoft.CodeAnalysis.GeneratedSourceResult.SyntaxTree.get -> Microsoft.CodeAnalysis.SyntaxTree
+Microsoft.CodeAnalysis.GeneratorDriver.GetRunResult() -> Microsoft.CodeAnalysis.GeneratorDriverRunResult
+Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation compilation, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver
+Microsoft.CodeAnalysis.GeneratorDriverRunResult
+Microsoft.CodeAnalysis.GeneratorRunResult
+Microsoft.CodeAnalysis.GeneratorRunResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.GeneratorRunResult.Exception.get -> System.Exception
+Microsoft.CodeAnalysis.GeneratorRunResult.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator

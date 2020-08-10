@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var typeAndLocation = GetInitializedType(document, semanticModel, position, cancellationToken);
 
             if (typeAndLocation == null)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
-        private bool IsLegalFieldOrProperty(ISymbol symbol)
+        private static bool IsLegalFieldOrProperty(ISymbol symbol)
         {
             return symbol.IsWriteableFieldOrProperty()
                 || CanSupportObjectInitializer(symbol);

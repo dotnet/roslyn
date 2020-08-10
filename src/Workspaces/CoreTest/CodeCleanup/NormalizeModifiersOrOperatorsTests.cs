@@ -1069,7 +1069,7 @@ End Module";
             await VerifyAsync(code, expected);
         }
 
-        private async Task VerifyAsync(string codeWithMarker, string expectedResult)
+        private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);

@@ -11,21 +11,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IRemoteDependentTypeFinder
     {
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheDerivedClassesAsync(
+        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindDerivedClassesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId type,
             ProjectId[] projects,
             bool transitive,
             CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheDerivedInterfacesAsync(
+        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindDerivedInterfacesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId type,
             ProjectId[] projects,
             bool transitive,
             CancellationToken cancellationToken);
 
-        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingTypesAsync(
+        Task<ImmutableArray<SerializableSymbolAndProjectId>> FindImplementingTypesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId type,
             ProjectId[] projects,

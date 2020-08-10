@@ -90,7 +90,7 @@
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
         <target state="translated">_XML-Dokumentationskommentare generieren für '''</target>
-        <note />
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">Hinweise in QuickInfo anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">

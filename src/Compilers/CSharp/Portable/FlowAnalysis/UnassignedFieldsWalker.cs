@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
 
         private UnassignedFieldsWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
-            : base(compilation, method, node, trackClassFields: true, trackStaticMembers: method.MethodKind == MethodKind.StaticConstructor)
+            : base(compilation, method, node, strictAnalysis: true, trackClassFields: true, trackStaticMembers: method.MethodKind == MethodKind.StaticConstructor)
         {
             _diagnostics = diagnostics;
         }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                if (!fieldType.NullableAnnotation.IsNotAnnotated() && !fieldType.Type.IsTypeParameterDisallowingAnnotation())
+                if (!fieldType.NullableAnnotation.IsNotAnnotated())
                 {
                     continue;
                 }
@@ -280,6 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
                     _ => member
                 };
+                if ((symbol.GetFlowAnalysisAnnotations() & FlowAnalysisAnnotations.MaybeNull) != 0)
+                {
+                    continue;
+                }
                 var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrNone();
                 diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
             }

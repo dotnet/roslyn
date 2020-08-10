@@ -19,16 +19,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     internal sealed class RazorLanguageServiceClient
     {
         private readonly RemoteHostClient _client;
-        private readonly string _serviceName;
+        private readonly RemoteServiceName _serviceName;
 
         internal RazorLanguageServiceClient(RemoteHostClient client, string serviceName)
         {
             _client = client;
-            _serviceName = serviceName;
+            _serviceName = new RemoteServiceName(serviceName);
         }
 
-        public Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
-            => _client.TryRunRemoteAsync<T>(_serviceName, targetName, solution, arguments, callbackTarget, cancellationToken);
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+            => await _client.RunRemoteAsync<T>(_serviceName, targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
 
         [Obsolete("Use TryRunRemoteAsync instead")]
         public async Task<Session?> CreateSessionAsync(Solution solution, object? callbackTarget = null, CancellationToken cancellationToken = default)
@@ -39,23 +39,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var keepAliveSession = await _client.TryCreateKeepAliveSessionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            if (keepAliveSession == null)
-            {
-                return null;
-            }
+            var connection = await _client.CreateConnectionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
             SessionWithSolution? session = null;
             try
             {
                 // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(keepAliveSession, solution, cancellationToken).ConfigureAwait(false);
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 if (session == null)
                 {
-                    keepAliveSession.Dispose();
+                    connection.Dispose();
                 }
             }
 

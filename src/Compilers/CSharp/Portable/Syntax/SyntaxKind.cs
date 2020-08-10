@@ -201,9 +201,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         OrKeyword = 8438,
         AndKeyword = 8439,
         NotKeyword = 8440,
+        DataKeyword = 8441,
+        WithKeyword = 8442,
+        InitKeyword = 8443,
+        RecordKeyword = 8444,
+
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
+        /// <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
 
         // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords
@@ -609,5 +615,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
+        FunctionPointerType = 9056,
+        DefaultConstraint = 9057,
+
+        InitAccessorDeclaration = 9060,
+
+        WithExpression = 9061,
+        WithInitializerExpression = 9062,
+        RecordDeclaration = 9063,
+
+        PrimaryConstructorBaseType = 9065,
     }
 }

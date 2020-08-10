@@ -359,11 +359,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return nextFunc.Invoke(previousToken, currentToken)
         End Function
 
-        Private Function PrecedingTriviaContainsLineBreak(previousToken As SyntaxToken) As Boolean
+        Private Shared Function PrecedingTriviaContainsLineBreak(previousToken As SyntaxToken) As Boolean
             Return ContainsLineBreak(previousToken.LeadingTrivia) OrElse ContainsLineBreak(previousToken.GetPreviousToken(includeZeroWidth:=True).TrailingTrivia)
         End Function
 
-        Private Function ContainsLineBreak(triviaList As SyntaxTriviaList) As Boolean
+        Private Shared Function ContainsLineBreak(triviaList As SyntaxTriviaList) As Boolean
             Return triviaList.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
         End Function
     End Class

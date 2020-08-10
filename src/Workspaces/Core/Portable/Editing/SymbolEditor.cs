@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return projectIds;
         }
 
-        private async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
+        private static async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
         {
             var project = solution.GetProject(projectId);
             if (project.SupportsCompilation)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editing
             cancellationToken);
         }
 
-        private void CheckSymbolArgument(ISymbol currentSymbol, ISymbol argSymbol)
+        private static void CheckSymbolArgument(ISymbol currentSymbol, ISymbol argSymbol)
         {
             if (currentSymbol == null)
             {
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     var newDeclaration = model.SyntaxTree.GetRoot(cancellationToken).GetCurrentNode(decl);
                     if (newDeclaration != null)
                     {
-                        var newSymbol = model.GetDeclaredSymbol(newDeclaration);
+                        var newSymbol = model.GetDeclaredSymbol(newDeclaration, cancellationToken);
                         if (newSymbol != null)
                         {
                             return newSymbol;

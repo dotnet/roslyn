@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             // of projects. First, let's just compute the new set of transitive references. It's possible while doing so we'll discover that we don't
             // know the transitive project references for one of our new references. In that case, we'll use null as a sentinel to mean "we don't know" and
             // we propagate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
-            HashSet<ProjectId>? newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
+            var newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
 
             foreach (var referencedProjectId in referencedProjectIds)
             {

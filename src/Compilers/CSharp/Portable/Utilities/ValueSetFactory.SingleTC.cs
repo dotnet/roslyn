@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             float FloatingTC<float>.NaN => float.NaN;
 
+            float INumericTC<float>.Zero => 0;
+
             /// <summary>
             /// The implementation of Next depends critically on the internal representation of an IEEE floating-point
             /// number.  Every bit sequence between the representation of 0 and MaxValue represents a distinct
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            float INumericTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.SingleValue;
+            float INumericTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0.0F : constantValue.SingleValue;
 
             ConstantValue INumericTC<float>.ToConstantValue(float value) => ConstantValue.Create(value);
 

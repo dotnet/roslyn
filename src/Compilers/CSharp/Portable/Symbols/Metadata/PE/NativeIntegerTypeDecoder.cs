@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal struct NativeIntegerTypeDecoder
     {
-        private class ErrorTypeException : Exception { }
+        private sealed class ErrorTypeException : Exception { }
 
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
@@ -75,9 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformArrayType((ArrayTypeSymbol)type);
                 case TypeKind.Pointer:
                     return TransformPointerType((PointerTypeSymbol)type);
+                case TypeKind.FunctionPointer:
+                    return TransformFunctionPointerType((FunctionPointerTypeSymbol)type);
                 case TypeKind.TypeParameter:
                 case TypeKind.Dynamic:
-                    IgnoreIndex();
                     return type;
                 case TypeKind.Class:
                 case TypeKind.Struct:
@@ -93,16 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol type)
         {
-            int index = Increment();
-
             if (!type.IsGenericType)
             {
-                return _transformFlags[index] ? TransformTypeDefinition(type) : type;
-            }
-
-            if (_transformFlags[index])
-            {
-                throw new UnsupportedSignatureContent();
+                switch (type.SpecialType)
+                {
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        if (_index >= _transformFlags.Length)
+                        {
+                            throw new UnsupportedSignatureContent();
+                        }
+                        return _transformFlags[_index++] ? type.AsNativeInteger() : type;
+                }
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -127,43 +130,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol TransformArrayType(ArrayTypeSymbol type)
         {
-            IgnoreIndex();
             return type.WithElementType(TransformTypeWithAnnotations(type.ElementTypeWithAnnotations));
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol type)
         {
-            IgnoreIndex();
             return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations));
         }
 
-        private int Increment()
+        private FunctionPointerTypeSymbol TransformFunctionPointerType(FunctionPointerTypeSymbol type)
         {
-            if (_index < _transformFlags.Length)
-            {
-                return _index++;
-            }
-            throw new UnsupportedSignatureContent();
-        }
+            var transformedReturnType = TransformTypeWithAnnotations(type.Signature.ReturnTypeWithAnnotations);
+            var transformedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+            var paramsModified = false;
 
-        private void IgnoreIndex()
-        {
-            var index = Increment();
-            if (_transformFlags[index])
+            if (type.Signature.ParameterCount > 0)
             {
-                throw new UnsupportedSignatureContent();
-            }
-        }
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(type.Signature.ParameterCount);
+                foreach (var param in type.Signature.Parameters)
+                {
+                    var transformedParam = TransformTypeWithAnnotations(param.TypeWithAnnotations);
+                    paramsModified = paramsModified || !transformedParam.IsSameAs(param.TypeWithAnnotations);
+                    builder.Add(transformedParam);
+                }
 
-        private static NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
-        {
-            switch (type.SpecialType)
+                if (paramsModified)
+                {
+                    transformedParameterTypes = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    transformedParameterTypes = type.Signature.ParameterTypesWithAnnotations;
+                    builder.Free();
+                }
+            }
+
+            if (paramsModified || !transformedReturnType.IsSameAs(type.Signature.ReturnTypeWithAnnotations))
             {
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
-                    return type.AsNativeInteger();
-                default:
-                    throw new UnsupportedSignatureContent();
+                return type.SubstituteTypeSymbol(transformedReturnType, transformedParameterTypes, refCustomModifiers: default, paramRefCustomModifiers: default);
+            }
+            else
+            {
+                return type;
             }
         }
     }

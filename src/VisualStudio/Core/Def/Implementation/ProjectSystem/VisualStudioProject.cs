@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,9 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -144,11 +143,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Language = language;
             _displayName = displayName;
 
-            if (filePath != null)
+            var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
+
+            if (filePath != null && fileExtensionToWatch != null)
             {
-                // TODO: use filePath to create a directory watcher. For now, there's perf hits due to the flood of events we'll need to sort out later.
-                // _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContextForDirectory(Path.GetDirectoryName(filePath));
-                _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
+                // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
+                // having to add explicit file watches everywhere.
+                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
+                _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
             }
             else
             {
@@ -262,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => ChangeProjectOutputPath(
                        ref _compilationOutputAssemblyFilePath,
                        value,
-                       s => s.WithProjectCompilationOutputFilePaths(Id, s.GetRequiredProject(Id).CompilationOutputFilePaths.WithAssemblyPath(value)));
+                       s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
         }
 
         public string? OutputFilePath
@@ -349,7 +351,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             set => _workspace.SetMaxLanguageVersion(Id, value);
         }
-
 
         #region Batching
 

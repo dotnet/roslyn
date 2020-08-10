@@ -17,41 +17,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedClassesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            var result = await TryFindAndCacheRemoteTypesAsync(
+            var result = await TryFindRemoteTypesAsync(
                 type, solution, projects, transitive,
                 FunctionId.DependentTypeFinder_FindAndCacheDerivedClassesAsync,
-                nameof(IRemoteDependentTypeFinder.FindAndCacheDerivedClassesAsync),
+                nameof(IRemoteDependentTypeFinder.FindDerivedClassesAsync),
                 cancellationToken).ConfigureAwait(false);
 
             if (result.HasValue)
                 return result.Value;
 
-            return await FindAndCacheDerivedClassesInCurrentProcessAsync(
+            return await FindDerivedClassesInCurrentProcessAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
         }
 
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedClassesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects,
-                transitive ? s_typeToTransitivelyDerivedClassesMap : s_typeToImmediatelyDerivedClassesMap,
-                c => FindWithoutCachingDerivedClassesAsync(type, solution, projects, transitive, c),
-                cancellationToken);
-        }
-
-        private static Task<ImmutableArray<(INamedTypeSymbol, Project)>> FindWithoutCachingDerivedClassesAsync(
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -70,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken: cancellationToken);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<(INamedTypeSymbol, Project)>();
+            return SpecializedTasks.EmptyImmutableArray<INamedTypeSymbol>();
         }
     }
 }

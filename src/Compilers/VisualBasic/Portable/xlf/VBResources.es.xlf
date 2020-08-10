@@ -127,6 +127,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -211,7 +212,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opciones del compilador de Visual Basic
+        <target state="needs-review-translation">                  Opciones del compilador de Visual Basic
 
                                   - ARCHIVO DE SALIDA -
 -out:&lt;archivo&gt;                       Especificar nombre del archivo de salida.
@@ -376,9 +377,14 @@
 </target>
         <note />
       </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">No hay tipos de punteros de función en VB.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">No hay tipos enteros nativos en VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -783,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">Se ha especificado el argumento stdin "-", pero la entrada no se ha redirigido desde el flujo de entrada estándar.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">

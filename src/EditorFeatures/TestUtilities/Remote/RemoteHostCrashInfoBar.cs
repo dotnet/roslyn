@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -12,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// </summary>
     internal static class RemoteHostCrashInfoBar
     {
-        public static void ShowInfoBar(Workspace workspace, Exception ex = null)
+        public static void ShowInfoBar(HostWorkspaceServices _1, Exception _2 = null)
         {
             // do nothing
         }

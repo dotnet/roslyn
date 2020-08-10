@@ -57,6 +57,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            if (expression is StackAllocArrayCreationExpressionSyntax ||
+                expression is ImplicitStackAllocArrayCreationExpressionSyntax)
+            {
+                // var span = (stackalloc byte[8]);
+                // https://github.com/dotnet/roslyn/issues/44629
+                // The code semantics changes if the parenthesis removed.
+                // With parenthesis:    variable span is of type `Span<byte>`.
+                // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
+                return false;
+            }
+
             // (throw ...) -> throw ...
             if (expression.IsKind(SyntaxKind.ThrowExpression))
                 return true;

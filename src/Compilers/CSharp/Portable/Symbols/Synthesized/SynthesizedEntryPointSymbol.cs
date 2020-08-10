@@ -218,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
+        internal sealed override bool IsInitOnly => false;
+
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;

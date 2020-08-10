@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
-            var tmpWorkspace = workspace ?? new AdhocWorkspace(DesktopMefHostServices.DefaultServices);
+            var tmpWorkspace = workspace ?? new AdhocWorkspace();
             var languageServices = tmpWorkspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
             // and names the compilation after the file that contains it. We don't want to create a compilation, 
             // bind Mains etc. here. Besides the msbuild always includes /out in the command line it produces.
             // So if we don't have the /out argument we name the compilation "<anonymous>".
-            string assemblyName = (commandLineArguments.OutputFileName != null) ?
+            var assemblyName = (commandLineArguments.OutputFileName != null) ?
                 Path.GetFileNameWithoutExtension(commandLineArguments.OutputFileName) : "<anonymous>";
 
             // TODO (tomat): what should be the assemblyName when compiling a netmodule? Should it be /moduleassemblyname

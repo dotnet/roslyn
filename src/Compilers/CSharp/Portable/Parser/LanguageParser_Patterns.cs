@@ -87,12 +87,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Given tk, the type of the current token, does this look like the type of a pattern?
         /// </summary>
-        private bool LooksLikeTypeOfPattern(SyntaxKind tk)
+        private bool LooksLikeTypeOfPattern()
         {
-            return SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
-                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
-                LooksLikeTupleArrayType();
+            var tk = CurrentToken.Kind;
+            if (SyntaxFacts.IsPredefinedType(tk))
+            {
+                return true;
+            }
+
+            if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
+                (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+            {
+                return true;
+            }
+
+            if (LooksLikeTupleArrayType())
+            {
+                return true;
+            }
+
+            // We'll parse the function pointer, but issue an error in semantic analysis
+            if (IsFunctionPointerStart())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private PatternSyntax ParseConjunctivePattern(Precedence precedence, bool afterIs, bool whenIsKeyword)
@@ -203,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 TypeSyntax type = null;
-                if (LooksLikeTypeOfPattern(tk))
+                if (LooksLikeTypeOfPattern())
                 {
                     type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
                     if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
@@ -288,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
+                    subPatterns.SeparatorCount == 0 &&
                     subPatterns[0].NameColon == null)
                 {
                     var subpattern = subPatterns[0].Pattern;

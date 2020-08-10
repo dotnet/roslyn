@@ -79,7 +79,6 @@ class C { }
 
         End Sub
 
-
 #End Region
 
 #Region "GetEndPoint() tests"

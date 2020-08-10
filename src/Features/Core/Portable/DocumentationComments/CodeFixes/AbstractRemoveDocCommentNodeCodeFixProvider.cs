@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
         }
 
-        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span)
+        private static TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span)
         {
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement

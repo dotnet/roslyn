@@ -538,10 +538,10 @@ abstract class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                // (6,16): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         C x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(6, 16),
-                // (7,21): error CS0144: Cannot create an instance of the abstract class or interface 'C'
+                // (7,21): error CS0144: Cannot create an instance of the abstract type or interface 'C'
                 //         var x1 = (C)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("C").WithLocation(7, 21)
                 );
@@ -563,10 +563,10 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,16): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (7,16): error CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         I x0 = new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("I").WithLocation(7, 16),
-                // (8,21): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (8,21): error CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         var x1 = (I)new();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("I").WithLocation(8, 21)
                 );
@@ -1022,9 +1022,9 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (8,20): error CS0117: 'new()' does not contain a definition for 'field'
+                // (6,13): error CS8754: There is no target type for 'new()'
                 //        _ = (new()).field;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("new()", "field").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 13)
                 );
         }
 
@@ -2074,7 +2074,7 @@ class C
                 // (10,24): error CS8754: There is no target type for 'new()'
                 //         using (var x = new())
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(10, 24),
-                // (14,39): error CS0144: Cannot create an instance of the abstract class or interface 'IDisposable'
+                // (14,39): error CS0144: Cannot create an instance of the abstract type or interface 'IDisposable'
                 //         using (System.IDisposable x = new())
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
                 );
@@ -2444,9 +2444,9 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,15): error CS0117: 'new()' does not contain a definition for 'ToString'
+                // (6,9): error CS8754: There is no target type for 'new()'
                 //         new().ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("new()", "ToString").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 9),
                 // (7,9): error CS8754: There is no target type for 'new()'
                 //         new()[0].ToString();
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 9)
@@ -4058,9 +4058,9 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,30): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'new()' and 'new()'
+                // (7,24): error CS0121: The call is ambiguous between the following methods or properties: 'Console.Write(bool)' and 'Console.Write(char)'
                 //         System.Console.Write(flag ? new() : new());
-                Diagnostic(ErrorCode.ERR_InvalidQM, "flag ? new() : new()").WithArguments("new()", "new()").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Write").WithArguments("System.Console.Write(bool)", "System.Console.Write(char)").WithLocation(7, 24)
                 );
         }
 

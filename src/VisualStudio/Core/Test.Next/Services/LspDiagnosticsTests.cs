@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace("", out _);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
             // Create a mock that returns a diagnostic for the document.
             SetupMockWithDiagnostics(diagnosticsMock, document.Id, await CreateMockDiagnosticDataAsync(document, "id").ConfigureAwait(false));
 
@@ -62,7 +62,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace("", out _);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
             // Create two mapped diagnostics for the document.
             SetupMockWithDiagnostics(diagnosticsMock, document.Id,
                 await CreateMockDiagnosticDatasWithMappedLocationAsync(document, ("id1", document.FilePath + "m1"), ("id2", document.FilePath + "m2")).ConfigureAwait(false));
@@ -89,7 +89,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
             var documents = workspace.CurrentSolution.Projects.First().Documents.ToImmutableArray();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
             // Create diagnostic for the first document that has a mapped location.
             var mappedFilePath = documents[0].FilePath + "m1";
             var documentOneDiagnostic = await CreateMockDiagnosticDatasWithMappedLocationAsync(documents[0], ("doc1Diagnostic", mappedFilePath)).ConfigureAwait(false);
@@ -125,7 +125,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace("", out _);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
             // Setup the mock so the first call for a document returns a diagnostic, but the second returns empty.
             SetupMockDiagnosticSequence(diagnosticsMock, document.Id,
                 await CreateMockDiagnosticDataAsync(document, "id").ConfigureAwait(false),
@@ -157,7 +157,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace("", out _);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
 
             var mappedFilePathM1 = document.FilePath + "m1";
             var mappedFilePathM2 = document.FilePath + "m2";
@@ -208,7 +208,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
             var documents = workspace.CurrentSolution.Projects.First().Documents.ToImmutableArray();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
             // Create diagnostic for the first document that has a mapped location.
             var mappedFilePath = documents[0].FilePath + "m1";
             var documentOneDiagnostic = await CreateMockDiagnosticDatasWithMappedLocationAsync(documents[0], ("doc1Diagnostic", mappedFilePath)).ConfigureAwait(false);
@@ -256,7 +256,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace("", out _);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
             var mappedFilePathM1 = document.FilePath + "m1";
             var mappedFilePathM2 = document.FilePath + "m2";
             // Create two mapped diagnostics for the document on first call.
@@ -302,7 +302,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
             var documents = workspace.CurrentSolution.Projects.First().Documents.ToImmutableArray();
 
-            var diagnosticsMock = new Mock<IDiagnosticService>();
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
             // Create diagnostic for the first document that has a mapped location.
             var mappedFilePath = documents[0].FilePath + "m1";
             var documentOneDiagnostic = await CreateMockDiagnosticDatasWithMappedLocationAsync(documents[0], ("doc1Diagnostic", mappedFilePath)).ConfigureAwait(false);
@@ -378,7 +378,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var protocol = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<LanguageServerProtocol>();
 
-                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: "RazorCSharp", supportsHover: false);
+                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: null);
                 return languageServer;
             }
         }

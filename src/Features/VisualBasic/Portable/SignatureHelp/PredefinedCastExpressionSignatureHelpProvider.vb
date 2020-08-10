@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))(GetIntrinsicOperatorDocumentationImplAsync(node, document, cancellationToken))
         End Function
 
-        Private Async Function GetIntrinsicOperatorDocumentationImplAsync(node As PredefinedCastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
+        Private Shared Async Function GetIntrinsicOperatorDocumentationImplAsync(node As PredefinedCastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
             Return SpecializedCollections.SingletonEnumerable(New PredefinedCastExpressionDocumentation(node.Keyword.Kind, Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)))
         End Function
 

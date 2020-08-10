@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 }
             }
 
-            private string GetNewText<TSyntax>(SyntaxList<TSyntax> organizedList)
+            private static string GetNewText<TSyntax>(SyntaxList<TSyntax> organizedList)
                 where TSyntax : SyntaxNode
             {
                 return string.Join(string.Empty, organizedList.Select(t => t.ToFullString()));
             }
 
-            private TextSpan GetTextSpan<TSyntax>(SyntaxList<TSyntax> list)
+            private static TextSpan GetTextSpan<TSyntax>(SyntaxList<TSyntax> list)
                 where TSyntax : SyntaxNode
             {
                 return TextSpan.FromBounds(list.First().FullSpan.Start, list.Last().FullSpan.End);

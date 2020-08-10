@@ -26,6 +26,7 @@ usage()
   echo "Test actions:"     
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
+  echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -58,6 +59,7 @@ pack=false
 publish=false
 test_core_clr=false
 test_mono=false
+test_ioperation=false
 
 configuration="Debug"
 verbosity='minimal'
@@ -121,6 +123,9 @@ while [[ $# > 0 ]]; do
     --testmono)
       test_mono=true
       ;;
+    --testioperation)
+      test_ioperation=true
+      ;;
     --ci)
       ci=true
       ;;
@@ -129,7 +134,7 @@ while [[ $# > 0 ]]; do
       # Bootstrap requires restore
       restore=true
       ;;
-    --runAnalyzers)
+    --runanalyzers)
       run_analyzers=true
       ;;
     --preparemachine)
@@ -235,6 +240,14 @@ function BuildSolution {
     disable_parallel_restore=true
   fi
 
+  if [[ "$test_ioperation" == true ]]; then
+    export ROSLYN_TEST_IOPERATION="true"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
+  fi
+
   local test=false
   local test_runtime=""
   local mono_tool=""
@@ -253,7 +266,7 @@ function BuildSolution {
     test_runtime_args="--debug"
   elif [[ "$test_core_clr" == true ]]; then
     test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.1"
+    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=net5.0%3Bnetcoreapp3.1"
     mono_tool=""
   fi
 

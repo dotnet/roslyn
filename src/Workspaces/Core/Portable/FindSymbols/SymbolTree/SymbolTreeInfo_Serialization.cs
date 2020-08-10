@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("19");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("20");
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Get the unique key to identify our data.
                     var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                     using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
-                    using (var reader = ObjectReader.TryGetReader(stream))
+                    using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
                     {
                         if (reader != null)
                         {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     return await createAsync().ConfigureAwait(false);
                 }
-            };
+            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -158,18 +158,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            if (_simpleTypeNameToExtensionMethodMap == null)
+            if (_receiverTypeNameToExtensionMethodMap == null)
             {
                 writer.WriteInt32(0);
             }
             else
             {
-                writer.WriteInt32(_simpleTypeNameToExtensionMethodMap.Count);
-                foreach (var key in _simpleTypeNameToExtensionMethodMap.Keys)
+                writer.WriteInt32(_receiverTypeNameToExtensionMethodMap.Count);
+                foreach (var key in _receiverTypeNameToExtensionMethodMap.Keys)
                 {
                     writer.WriteString(key);
 
-                    var values = _simpleTypeNameToExtensionMethodMap[key];
+                    var values = _receiverTypeNameToExtensionMethodMap[key];
                     writer.WriteInt32(values.Count);
 
                     foreach (var value in values)
@@ -179,21 +179,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
-
-            writer.WriteInt32(_extensionMethodOfComplexType.Length);
-            foreach (var methodInfo in _extensionMethodOfComplexType)
-            {
-                writer.WriteString(methodInfo.FullyQualifiedContainerName);
-                writer.WriteString(methodInfo.Name);
-            }
-        }
-
-        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
-            ObjectReader reader, Checksum checksum)
-        {
-            return TryReadSymbolTreeInfo(reader, checksum,
-                (names, nodes) => Task.FromResult(
-                    new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
@@ -230,17 +215,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToExtensionMethodMap;
-                ImmutableArray<ExtensionMethodInfo> extensionMethodOfComplexType;
+                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap;
 
                 var keyCount = reader.ReadInt32();
                 if (keyCount == 0)
                 {
-                    simpleTypeNameToExtensionMethodMap = null;
+                    receiverTypeNameToExtensionMethodMap = null;
                 }
                 else
                 {
-                    simpleTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                    receiverTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
 
                     for (var i = 0; i < keyCount; i++)
                     {
@@ -252,34 +236,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             var containerName = reader.ReadString();
                             var name = reader.ReadString();
 
-                            simpleTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
+                            receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                         }
                     }
-                }
-
-                var arrayLength = reader.ReadInt32();
-                if (arrayLength == 0)
-                {
-                    extensionMethodOfComplexType = ImmutableArray<ExtensionMethodInfo>.Empty;
-                }
-                else
-                {
-                    var builder = ArrayBuilder<ExtensionMethodInfo>.GetInstance(arrayLength);
-                    for (var i = 0; i < arrayLength; ++i)
-                    {
-                        var containerName = reader.ReadString();
-                        var name = reader.ReadString();
-                        builder.Add(new ExtensionMethodInfo(containerName, name));
-                    }
-
-                    extensionMethodOfComplexType = builder.ToImmutableAndFree();
                 }
 
                 var nodeArray = nodes.ToImmutableAndFree();
                 var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
                 return new SymbolTreeInfo(
                     checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap,
-                    extensionMethodOfComplexType, simpleTypeNameToExtensionMethodMap);
+                    receiverTypeNameToExtensionMethodMap);
             }
             catch
             {
@@ -287,6 +253,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return null;
+        }
+
+        internal readonly partial struct TestAccessor
+        {
+            internal static SymbolTreeInfo ReadSymbolTreeInfo(
+                ObjectReader reader, Checksum checksum)
+            {
+                return TryReadSymbolTreeInfo(reader, checksum,
+                    (names, nodes) => Task.FromResult(
+                        new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
+            }
         }
     }
 }

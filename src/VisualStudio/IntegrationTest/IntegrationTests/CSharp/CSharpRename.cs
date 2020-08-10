@@ -25,8 +25,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
 
-        public CSharpRename(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpRename))
+        public CSharpRename(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpRename))
         {
         }
 
@@ -159,8 +159,8 @@ class stomAttribute : Attribute
             SetUpEditor(markup);
             InlineRenameDialog.Invoke();
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
             VisualStudio.Editor.SendKeys("Custom");
             VisualStudio.Editor.Verify.TextContains(@"
@@ -196,8 +196,8 @@ class [|$$stom|]Attribute : Attribute
             SetUpEditor(markup);
             InlineRenameDialog.Invoke();
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
             VisualStudio.Editor.SendKeys("Custom");
             VisualStudio.Editor.Verify.TextContains(@"
@@ -505,7 +505,6 @@ $$class RenameRocks
             VisualStudio.SolutionExplorer.AddFile(project2, "Class2.cs", @"");
             VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
 
-
             VisualStudio.Editor.SetText(@"
 public class Class2 { static void Main(string [] args) { } }");
 
@@ -525,7 +524,7 @@ class RenameRocks
     }
 }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project2, "y.cs");
             VisualStudio.Editor.Verify.TextContains(@"
 public class y { static void Main(string [] args) { } }");
         }

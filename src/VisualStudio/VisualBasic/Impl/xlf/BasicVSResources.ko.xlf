@@ -89,8 +89,8 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">''에 대해 XML 문서 주석 생성(_G)</target>
-        <note />
+        <target state="translated">'''에 대해 XML 문서 주석 생성(_G)</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">요약 정보에 설명 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">

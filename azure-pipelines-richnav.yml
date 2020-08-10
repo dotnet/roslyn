@@ -1,0 +1,32 @@
+trigger: none
+pr: none
+
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight (UTC) RichNav indexer run
+  branches:
+    include:
+    - master
+
+jobs:
+- job: RichCodeNav_Indexing
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.Open
+  variables:
+    EnableRichCodeNavigation: true
+  timeoutInMinutes: 200
+
+  steps:
+    - script: eng/cibuild.cmd -configuration Debug -prepareMachine
+      displayName: Build
+
+    - task: RichCodeNavIndexer@0
+      displayName: RichCodeNav Upload
+      inputs:
+        languages: 'csharp'
+        environment: production
+        richNavLogOutputDirectory: $(Build.SourcesDirectory)/artifacts/bin
+      continueOnError: true
+      env:
+        DOTNET_ROOT: $(Build.SourcesDirectory)/.dotnet

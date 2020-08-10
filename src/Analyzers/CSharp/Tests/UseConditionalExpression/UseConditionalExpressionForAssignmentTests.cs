@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             => (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForAssignmentCodeFixProvider());
 
-        private OptionsCollection PreferImplicitTypeAlways => new OptionsCollection(LanguageNames.CSharp)
+        private static OptionsCollection PreferImplicitTypeAlways => new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement },
             { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement },
@@ -866,7 +866,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44036"), Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -896,7 +896,7 @@ class C
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44036"), Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw2()
         {
             await TestInRegularAndScript1Async(

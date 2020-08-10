@@ -1938,7 +1938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 exprType is null ||
                 exprType.IsNullableTypeOrTypeParameter() ||
                 !exprType.IsValueType ||
-                exprType.IsPointerType());
+                exprType.IsPointerOrFunctionPointer());
 
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 

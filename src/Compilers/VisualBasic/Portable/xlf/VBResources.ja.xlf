@@ -127,6 +127,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -211,7 +212,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic コンパイラのオプション
+        <target state="needs-review-translation">                  Visual Basic コンパイラのオプション
 
                                   - 出力ファイル -
 -out:&lt;file&gt;                       出力ファイル名を指定します。
@@ -376,9 +377,14 @@
 </target>
         <note />
       </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">VB に関数ポインター型はありません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">VB にネイティブの整数型はありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -783,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">stdin 引数 '-' が指定されていますが、入力が標準入力ストリームからリダイレクトされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">

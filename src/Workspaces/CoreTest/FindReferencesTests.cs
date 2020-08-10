@@ -2,37 +2,56 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class FindReferencesTests : ServicesTestBase
+    [UseExportProvider]
+    public class FindReferencesTests : TestBase
     {
-        private Solution CreateSolution()
-            => new AdhocWorkspace().CurrentSolution;
+        private static Workspace CreateWorkspace(Type[] additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
-        private Solution GetSingleDocumentSolution(string sourceText)
+        private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
+        {
+            var suffix = languageName == LanguageNames.CSharp ? "cs" : "vb";
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+            var pi = ProjectInfo.Create(
+                pid,
+                VersionStamp.Default,
+                projectName,
+                projectName,
+                languageName,
+                metadataReferences: new[] { metadataReference },
+                projectReferences: projectReferences.Select(p => new ProjectReference(p)));
+            return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
+        }
+
+        private static Solution GetSingleDocumentSolution(Workspace workspace, string sourceText)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
-            return CreateSolution()
+            return workspace.CurrentSolution
                     .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
 
-        private Solution GetMultipleDocumentSolution(string[] sourceTexts)
+        private static Solution GetMultipleDocumentSolution(Workspace workspace, string[] sourceTexts)
         {
             var pid = ProjectId.CreateNewId();
 
-            var solution = CreateSolution()
+            var solution = workspace.CurrentSolution
                     .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
 
@@ -60,7 +79,8 @@ public class C {
    }
 }
 ";
-            var solution = GetSingleDocumentSolution(text);
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
             var project = solution.Projects.First();
             var symbol = (await project.GetCompilationAsync()).GetTypeByMetadataName("C").GetMembers("X").First();
 
@@ -77,9 +97,10 @@ public class C {
    public string X;
 }
 ";
+            using var workspace = CreateWorkspace();
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
-            var solution = CreateSolution()
+            var solution = workspace.CurrentSolution
                            .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                            .AddMetadataReference(pid, MscorlibRef)
                            .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(new[] { "X" }))
@@ -129,7 +150,7 @@ Module Module1
             var prj1Id = ProjectId.CreateNewId();
             var docId = DocumentId.CreateNewId(prj1Id);
 
-            var sln = new AdhocWorkspace().CurrentSolution
+            var sln = CreateWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
@@ -200,7 +221,7 @@ static class Module1
             var prj1Id = ProjectId.CreateNewId();
             var docId = DocumentId.CreateNewId(prj1Id);
 
-            var sln = new AdhocWorkspace().CurrentSolution
+            var sln = CreateWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.CSharp)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
@@ -246,7 +267,8 @@ class B : C, A
    public void Bar() { Boo(); } // Line 14
 }
 ";
-            var solution = GetSingleDocumentSolution(text);
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
             var project = solution.Projects.First();
             var comp = await project.GetCompilationAsync();
 
@@ -287,7 +309,7 @@ class B : C, A
         [Fact, WorkItem(28827, "https://github.com/dotnet/roslyn/issues/28827")]
         public async Task FindReferences_DifferingAssemblies()
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var solution = CreateWorkspace().CurrentSolution;
 
             solution = AddProjectWithMetadataReferences(solution, "NetStandardProject", LanguageNames.CSharp, @"
 namespace N
@@ -358,7 +380,8 @@ namespace N2
     }
 }";
 
-            var solution = GetMultipleDocumentSolution(new[] { implText, interface1Text, interface2Text });
+            using var workspace = CreateWorkspace();
+            var solution = GetMultipleDocumentSolution(workspace, new[] { implText, interface1Text, interface2Text });
             solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), new[] { MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref });
 
             var project = solution.Projects.Single();
@@ -380,7 +403,7 @@ namespace N2
         [Fact]
         public async Task OverriddenMethodsFromPortableToDesktop()
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var solution = CreateWorkspace().CurrentSolution;
 
             // create portable assembly with a virtual method
             solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
@@ -438,7 +461,8 @@ interface unmanaged                             // Line 1
 abstract class C<T> where T : unmanaged         // Line 4
 {
 }";
-            var solution = GetSingleDocumentSolution(text);
+            using var workspace = CreateWorkspace();
+            var solution = GetSingleDocumentSolution(workspace, text);
             var project = solution.Projects.First();
             var comp = await project.GetCompilationAsync();
 

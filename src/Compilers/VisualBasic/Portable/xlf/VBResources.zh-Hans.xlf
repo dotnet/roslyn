@@ -127,6 +127,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -211,7 +212,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic 编译器选项
+        <target state="needs-review-translation">                  Visual Basic 编译器选项
 
                                   - 输出文件 -
 -out:&lt;file&gt;                       指定输出文件名称。
@@ -376,9 +377,14 @@
 </target>
         <note />
       </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">VB 中没有任何函数指针类型。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">VB 中没有任何本机整数类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -783,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">已指定 stdin 参数 "-"，但尚未从标准输入流重定向输入。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">

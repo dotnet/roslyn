@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline parameter name hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -112,7 +113,7 @@ Using 指令；
 为 /// 生成 XML 文档注释；
 在写入 /* */ 注释时在新行开头插入 *；
 显示重命名跟踪的预览；
-在按 Enter 时拆分字符串字面量；
+在按 Enter 时拆分字符串文本；
 报告 string.Format 调用中的无效占位符；
 提取方法；
 不要在自定义结构上放置 ref 或 out；
@@ -123,9 +124,10 @@ Using 指令；
 在生成属性时；
 首选引发属性；
 首选自动属性；
-regex;
+regex；
 正则表达式；
-使用增强色；</target>
+使用增强色；
+编辑器配色方案；</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -286,9 +288,10 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">更改完成列表设置;预先选择最近使用过的成员; 完成列表;
+        <target state="translated">更改完成列表设置;预先选择最近使用过的成员;完成列表;
 在键入字符后显示完成列表;
 在删除字符后显示完成列表;
+自动显示参数列表中的完成列表(实验性);
 突出显示完成列表项的匹配部分;
 显示完成项筛选器;
 片段行为;
@@ -299,7 +302,8 @@ Show items from unimported namespaces (experimental);</source>
 永不在按 Enter 时添加新行;
 仅在完整键入的字词结尾后按 Enter 时才添加新行;
 总是在按 Enter 时添加新行;
-显示名称建议;</target>
+显示名称建议;
+显示未导入的命名空间中的项(实验性);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

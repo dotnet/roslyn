@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return UnderlyingAssemblySymbol.ResolveForwardedType(fullyQualifiedMetadataName).GetPublicSymbol();
         }
 
+        ImmutableArray<INamedTypeSymbol> IAssemblySymbol.GetForwardedTypes()
+        {
+            return UnderlyingAssemblySymbol.GetAllTopLevelForwardedTypes().Select(t => t.GetPublicSymbol()).
+                   OrderBy(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat)).AsImmutable();
+        }
+
         bool IAssemblySymbol.GivesAccessTo(IAssemblySymbol assemblyWantingAccess)
         {
             if (Equals(this, assemblyWantingAccess))

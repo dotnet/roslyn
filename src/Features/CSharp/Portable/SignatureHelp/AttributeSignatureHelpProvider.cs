@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attribute, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attribute, cancellationToken).ConfigureAwait(false);
             if (!(semanticModel.GetTypeInfo(attribute, cancellationToken).Type is INamedTypeSymbol attributeType))
             {
                 return null;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             IMethodSymbol constructor,
             ISymbol within,
             AttributeSyntax attribute,
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return item;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetParameters(
+        private static IList<SignatureHelpSymbolParameter> GetParameters(
             IMethodSymbol constructor,
             SemanticModel semanticModel,
             int position,
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private IList<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts()
+        private static IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

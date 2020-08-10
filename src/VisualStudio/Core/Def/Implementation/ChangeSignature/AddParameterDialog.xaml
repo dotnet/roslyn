@@ -124,6 +124,11 @@
                          VerticalContentAlignment="Center" 
                          IsChecked="{Binding IsCallsiteTodo, Mode=TwoWay}"
                          Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>
+                    <RadioButton x:Name="InferArgumentRadioButton" 
+                         Margin="5,10,0,0" 
+                         GroupName="CallsiteKind"
+                         IsChecked="{Binding IsCallsiteInferred, Mode=TwoWay}"
+                         Content="{Binding ElementName=dialog, Path=InferFromContext}" />
                     <RadioButton x:Name="OmitArgumentRadioButton" 
                          Margin="5,10,0,0" 
                          GroupName="CallsiteKind" 

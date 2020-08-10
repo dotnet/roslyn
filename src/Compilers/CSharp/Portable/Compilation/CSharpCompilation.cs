@@ -16,6 +16,8 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -56,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
+
+        // The type of host object model if available.
+        private TypeSymbol? _lazyHostObjectTypeSymbol;
 
         // All imports (using directives and extern aliases) in syntax trees in this compilation.
         // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
@@ -245,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get;
         }
 
-        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity)
         {
             return new ExtendedErrorTypeSymbol(
                        container.EnsureCSharpSymbolOrNull(nameof(container)),
@@ -274,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">The compiler options to use.</param>
         /// <returns>A new compilation.</returns>
         public static CSharpCompilation Create(
-            string assemblyName,
+            string? assemblyName,
             IEnumerable<SyntaxTree>? syntaxTrees = null,
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null)
@@ -612,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Metadata references are inherited from the previous submission,
             // so we can only reuse the manager if we can guarantee that these references are the same.
-            // Check if the previous script compilation doesn't change. 
+            // Check if the previous script compilation doesn't change.
 
             // TODO: Consider comparing the metadata references if they have been bound already.
             // https://github.com/dotnet/roslyn/issues/43397
@@ -1460,8 +1465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        // The type of host object model if available.
-        private TypeSymbol? _lazyHostObjectTypeSymbol;
+        protected override ITypeSymbol? CommonScriptGlobalsType
+            => GetHostObjectTypeSymbol()?.GetPublicSymbol();
 
         internal TypeSymbol? GetHostObjectTypeSymbol()
         {
@@ -1537,34 +1542,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal new MethodSymbol? GetEntryPoint(CancellationToken cancellationToken)
         {
-            EntryPoint? entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
-            return entryPoint?.MethodSymbol;
+            EntryPoint entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
+            return entryPoint.MethodSymbol;
         }
 
-        internal EntryPoint? GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
+        internal EntryPoint GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
         {
-            if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
-            {
-                return null;
-            }
-
-            if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
-            {
-                Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
-                return new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
-            }
-
             if (_lazyEntryPoint == null)
             {
-                ImmutableArray<Diagnostic> diagnostics;
-                var entryPoint = FindEntryPoint(cancellationToken, out diagnostics);
-                Interlocked.CompareExchange(ref _lazyEntryPoint, new EntryPoint(entryPoint, diagnostics), null);
+                EntryPoint? entryPoint;
+                MethodSymbol? simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
+
+                if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
+                {
+                    if (simpleProgramEntryPointSymbol is object)
+                    {
+                        var diagnostics = DiagnosticBag.GetInstance();
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, NoLocation.Singleton);
+                        entryPoint = new EntryPoint(null, diagnostics.ToReadOnlyAndFree());
+                    }
+                    else
+                    {
+                        entryPoint = EntryPoint.None;
+                    }
+                }
+                else
+                {
+                    entryPoint = null;
+
+                    if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
+                    {
+                        Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
+                        entryPoint = EntryPoint.None;
+                    }
+
+                    if (entryPoint is null)
+                    {
+                        ImmutableArray<Diagnostic> diagnostics;
+                        var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
+                        entryPoint = new EntryPoint(entryPointMethod, diagnostics);
+                    }
+
+                    if (this.Options.MainTypeName != null && simpleProgramEntryPointSymbol is object)
+                    {
+                        var diagnostics = DiagnosticBag.GetInstance();
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
+                        entryPoint = new EntryPoint(entryPoint.MethodSymbol, entryPoint.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()));
+                    }
+                }
+
+                Interlocked.CompareExchange(ref _lazyEntryPoint, entryPoint, null);
             }
 
             return _lazyEntryPoint;
         }
 
-        private MethodSymbol? FindEntryPoint(CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
+        private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -1575,11 +1608,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 string? mainTypeName = this.Options.MainTypeName;
                 NamespaceSymbol globalNamespace = this.SourceModule.GlobalNamespace;
+                var scriptClass = this.ScriptClass;
 
                 if (mainTypeName != null)
                 {
                     // Global code is the entry point, ignore all other Mains.
-                    var scriptClass = this.ScriptClass;
                     if (scriptClass is object)
                     {
                         // CONSIDER: we could use the symbol instead of just the name.
@@ -1612,14 +1645,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.GetSymbolsWithNameCore(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken));
 
                     // Global code is the entry point, ignore all other Mains.
-                    var scriptClass = this.ScriptClass;
-                    if (scriptClass is object)
+                    if (scriptClass is object || simpleProgramEntryPointSymbol is object)
                     {
                         foreach (var main in entryPointCandidates)
                         {
                             diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
                         }
-                        return scriptClass.GetScriptEntryPoint();
+
+                        if (scriptClass is object)
+                        {
+                            return scriptClass.GetScriptEntryPoint();
+                        }
+
+                        RoslynDebug.Assert(simpleProgramEntryPointSymbol is object);
+                        entryPointCandidates.Clear();
+                        entryPointCandidates.Add(simpleProgramEntryPointSymbol);
                     }
                 }
 
@@ -1809,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        private (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
+        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
         {
             if (method.IsVararg)
             {
@@ -1865,6 +1905,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly MethodSymbol? MethodSymbol;
             public readonly ImmutableArray<Diagnostic> Diagnostics;
+
+            public static readonly EntryPoint None = new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
 
             public EntryPoint(MethodSymbol? methodSymbol, ImmutableArray<Diagnostic> diagnostics)
             {
@@ -1927,9 +1969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversion(source, destination).ToCommonConversion();
         }
 
-        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol? destination, out Optional<object> constantValue)
+        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol? destination, out ConstantValue? constantValue)
         {
-            constantValue = default;
+            constantValue = null;
 
             if (destination is null)
             {
@@ -1938,11 +1980,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ITypeSymbol sourceType = source.Type;
 
+            ConstantValue? sourceConstantValue = source.GetConstantValue();
             if (sourceType is null)
             {
-                if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
+                if (sourceConstantValue is { IsNull: true } && destination.IsReferenceType)
                 {
-                    constantValue = source.ConstantValue;
+                    constantValue = sourceConstantValue;
                     return Conversion.NullLiteral;
                 }
 
@@ -1951,9 +1994,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion result = ClassifyConversion(sourceType, destination);
 
-            if (result.IsReference && source.ConstantValue.HasValue && source.ConstantValue.Value is null)
+            if (result.IsReference && sourceConstantValue is { IsNull: true })
             {
-                constantValue = source.ConstantValue;
+                constantValue = sourceConstantValue;
             }
 
             return result;
@@ -2015,6 +2058,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw new NotImplementedException();
         }
 
+        private ConcurrentSet<MethodSymbol>? _moduleInitializerMethods;
+
+        internal void AddModuleInitializerMethod(MethodSymbol method)
+        {
+            Debug.Assert(!_declarationDiagnosticsFrozen);
+            LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
+        }
+
         #endregion
 
         #region Binding
@@ -2045,15 +2096,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         // most convenient.  We store them using weak references so that GC pressure will cause them
         // to be recycled.
         private WeakReference<BinderFactory>[]? _binderFactories;
+        private WeakReference<BinderFactory>[]? _ignoreAccessibilityBinderFactories;
 
-        internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree)
+        internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
+            if (ignoreAccessibility && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this) is object)
+            {
+                return GetBinderFactory(syntaxTree, ignoreAccessibility: true, ref _ignoreAccessibilityBinderFactories);
+            }
+
+            return GetBinderFactory(syntaxTree, ignoreAccessibility: false, ref _binderFactories);
+        }
+
+        private BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility, ref WeakReference<BinderFactory>[]? cachedBinderFactories)
+        {
+            Debug.Assert(System.Runtime.CompilerServices.Unsafe.AreSame(ref cachedBinderFactories, ref ignoreAccessibility ? ref _ignoreAccessibilityBinderFactories : ref _binderFactories));
+
             var treeNum = GetSyntaxTreeOrdinal(syntaxTree);
-            WeakReference<BinderFactory>[]? binderFactories = _binderFactories;
+            WeakReference<BinderFactory>[]? binderFactories = cachedBinderFactories;
             if (binderFactories == null)
             {
                 binderFactories = new WeakReference<BinderFactory>[this.SyntaxTrees.Length];
-                binderFactories = Interlocked.CompareExchange(ref _binderFactories, binderFactories, null) ?? binderFactories;
+                binderFactories = Interlocked.CompareExchange(ref cachedBinderFactories, binderFactories, null) ?? binderFactories;
             }
 
             BinderFactory? previousFactory;
@@ -2063,12 +2127,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return previousFactory;
             }
 
-            return AddNewFactory(syntaxTree, ref binderFactories[treeNum]);
+            return AddNewFactory(syntaxTree, ignoreAccessibility, ref binderFactories[treeNum]);
         }
 
-        private BinderFactory AddNewFactory(SyntaxTree syntaxTree, [NotNull] ref WeakReference<BinderFactory>? slot)
+        private BinderFactory AddNewFactory(SyntaxTree syntaxTree, bool ignoreAccessibility, [NotNull] ref WeakReference<BinderFactory>? slot)
         {
-            var newFactory = new BinderFactory(this, syntaxTree);
+            var newFactory = new BinderFactory(this, syntaxTree, ignoreAccessibility);
             var newWeakReference = new WeakReference<BinderFactory>(newFactory);
 
             while (true)
@@ -2588,7 +2652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree,
                     diagnostics => FilterDiagnosticsByLocation(diagnostics, syntaxTree, filterSpanWithinTree));
 
-                var syntaxDiagnostics = syntaxTree.GetDiagnostics();
+                var syntaxDiagnostics = syntaxTree.GetDiagnostics(cancellationToken);
                 syntaxDiagnostics = FilterDiagnosticsByLocation(syntaxDiagnostics, syntaxTree, filterSpanWithinTree);
                 builder.AddRange(syntaxDiagnostics);
             }
@@ -2802,6 +2866,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag))
+                {
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                }
+
                 bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
 
                 if (hasDeclarationErrors || hasMethodBodyError)
@@ -2811,6 +2880,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+        }
+
+        private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
+        {
+            Debug.Assert(_declarationDiagnosticsFrozen);
+
+            if (_moduleInitializerMethods is object)
+            {
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+
+                foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
+                {
+                    ilBuilder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+
+                    ilBuilder.EmitToken(
+                        moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
+                        CSharpSyntaxTree.Dummy.GetRoot(),
+                        methodBodyDiagnosticBag);
+                }
+
+                ilBuilder.EmitRet(isVoid: true);
+                ilBuilder.Realize();
+                moduleBeingBuilt.RootModuleType.SetStaticConstructorBody(ilBuilder.RealizedIL);
+            }
         }
 
         internal override bool GenerateResourcesAndDocumentationComments(
@@ -3163,6 +3256,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull(nameof(elementType)), elementType.NullableAnnotation.ToInternalAnnotation()).GetPublicSymbol();
         }
 
+        protected override IFunctionPointerTypeSymbol CommonCreateFunctionPointerTypeSymbol(
+            ITypeSymbol returnType,
+            RefKind returnRefKind,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds)
+        {
+            if (returnType is null)
+            {
+                throw new ArgumentNullException(nameof(returnType));
+            }
+
+            if (parameterTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterTypes));
+            }
+
+            for (int i = 0; i < parameterTypes.Length; i++)
+            {
+                if (parameterTypes[i] is null)
+                {
+                    throw new ArgumentNullException($"{nameof(parameterTypes)}[{i}]");
+                }
+            }
+
+            if (parameterRefKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterRefKinds));
+            }
+
+            if (parameterRefKinds.Length != parameterTypes.Length)
+            {
+                // Given {0} parameter types and {1} parameter ref kinds. These must be the same.
+                throw new ArgumentException(string.Format(CSharpResources.NotSameNumberParameterTypesAndRefKinds, parameterTypes.Length, parameterRefKinds.Length));
+            }
+
+            if (returnRefKind == RefKind.Out)
+            {
+                //'RefKind.Out' is not a valid ref kind for a return type.
+                throw new ArgumentException(CSharpResources.OutIsNotValidForReturn);
+            }
+
+            var returnTypeWithAnnotations = TypeWithAnnotations.Create(returnType.EnsureCSharpSymbolOrNull(nameof(returnType)), returnType.NullableAnnotation.ToInternalAnnotation());
+            var parameterTypesWithAnnotations = parameterTypes.SelectAsArray(
+                type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
+
+            return FunctionPointerTypeSymbol.CreateFromParts(returnTypeWithAnnotations, returnRefKind, parameterTypesWithAnnotations, parameterRefKinds, this).GetPublicSymbol();
+        }
+
         protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)
         {
             return CreateNativeIntegerTypeSymbol(signed).GetPublicSymbol();
@@ -3483,6 +3624,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
             EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
+        }
+
+        internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
+        {
+            // LanguageVersion should already be mapped to a specific version
+            Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
+            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+
+            if (Options.CheckOverflow)
+            {
+                WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+            }
+
+            if (Options.NullableContextOptions != NullableContextOptions.Disable)
+            {
+                WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+            }
+
+            if (Options.AllowUnsafe)
+            {
+                WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+            }
+
+            var preprocessorSymbols = GetPreprocessorSymbols();
+            if (preprocessorSymbols.Any())
+            {
+                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+            }
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        private ImmutableArray<string> GetPreprocessorSymbols()
+        {
+            CSharpSyntaxTree? firstTree = (CSharpSyntaxTree?)SyntaxTrees.FirstOrDefault();
+
+            if (firstTree is null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            return firstTree.Options.PreprocessorSymbolNames.ToImmutableArray();
         }
 
         /// <summary>

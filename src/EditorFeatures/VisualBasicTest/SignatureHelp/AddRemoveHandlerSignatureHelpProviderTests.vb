@@ -60,7 +60,6 @@ End Class
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationForRemoveHandler() As Task
             Dim markup = <a><![CDATA[

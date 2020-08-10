@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -4714,11 +4715,6 @@ class A
 }");
         }
 
-        private static MetadataReference AsReference(CSharpCompilation comp, bool useCompilationReference)
-        {
-            return useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
-        }
-
         [Theory]
         [InlineData("")]
         [InlineData("unchecked")]
@@ -4922,6 +4918,216 @@ class Program
                 // (41,22): error CS0266: Cannot implicitly convert type 'nuint' to 'nint'. An explicit conversion exists (are you missing a cast?)
                 //             nint n = nu;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nu").WithArguments("nuint", "nint").WithLocation(41, 22));
+        }
+
+        [WorkItem(42955, "https://github.com/dotnet/roslyn/issues/42955")]
+        [WorkItem(45525, "https://github.com/dotnet/roslyn/issues/45525")]
+        [Fact]
+        public void ConstantConversions_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        const nint y = checked((nint)x);
+        Console.WriteLine(y);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0133: The expression being assigned to 'y' must be constant
+                //         const nint y = checked((nint)x);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "checked((nint)x)").WithArguments("y").WithLocation(7, 24),
+                // (7,32): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' at runtime (use 'unchecked' syntax to override)
+                //         const nint y = checked((nint)x);
+                Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, "(nint)x").WithArguments("1152921504606846975", "nint").WithLocation(7, 32));
+
+            source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        try
+        {
+            nint y = checked((nint)x);
+            Console.WriteLine(y);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType());
+        }
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,30): warning CS8778: Constant value '1152921504606846975' may overflow 'nint' at runtime (use 'unchecked' syntax to override)
+                //             nint y = checked((nint)x);
+                Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, "(nint)x").WithArguments("1152921504606846975", "nint").WithLocation(9, 30));
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "1152921504606846975");
+        }
+
+        [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
+        [Fact]
+        public void ConstantConversions_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        const nint y = unchecked((nint)x);
+        Console.WriteLine(y);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0133: The expression being assigned to 'y' must be constant
+                //         const nint y = unchecked((nint)x);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "unchecked((nint)x)").WithArguments("y").WithLocation(7, 24));
+
+            source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const long x = 0xFFFFFFFFFFFFFFFL;
+        nint y = unchecked((nint)x);
+        Console.WriteLine(y);
+    }
+}";
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-1" : "1152921504606846975");
+        }
+
+        [WorkItem(42955, "https://github.com/dotnet/roslyn/issues/42955")]
+        [WorkItem(45525, "https://github.com/dotnet/roslyn/issues/45525")]
+        [WorkItem(45531, "https://github.com/dotnet/roslyn/issues/45531")]
+        [Fact]
+        public void ConstantConversions_03()
+        {
+            using var _ = new EnsureInvariantCulture();
+
+            constantConversions("sbyte", "nint", "-1", null, "-1", "-1", null, "-1", "-1");
+            constantConversions("sbyte", "nint", "sbyte.MinValue", null, "-128", "-128", null, "-128", "-128");
+            constantConversions("sbyte", "nint", "sbyte.MaxValue", null, "127", "127", null, "127", "127");
+            constantConversions("byte", "nint", "byte.MaxValue", null, "255", "255", null, "255", "255");
+            constantConversions("short", "nint", "-1", null, "-1", "-1", null, "-1", "-1");
+            constantConversions("short", "nint", "short.MinValue", null, "-32768", "-32768", null, "-32768", "-32768");
+            constantConversions("short", "nint", "short.MaxValue", null, "32767", "32767", null, "32767", "32767");
+            constantConversions("ushort", "nint", "ushort.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("char", "nint", "char.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("int", "nint", "int.MinValue", null, "-2147483648", "-2147483648", null, "-2147483648", "-2147483648");
+            constantConversions("int", "nint", "int.MaxValue", null, "2147483647", "2147483647", null, "2147483647", "2147483647");
+            constantConversions("uint", "nint", "(int.MaxValue + 1U)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("uint", "nint", "uint.MaxValue", warningOutOfRangeChecked("nint", "4294967295"), "System.OverflowException", "4294967295", null, "-1", "4294967295");
+            constantConversions("long", "nint", "(int.MinValue - 1L)", warningOutOfRangeChecked("nint", "-2147483649"), "System.OverflowException", "-2147483649", null, "2147483647", "-2147483649");
+            constantConversions("long", "nint", "(int.MaxValue + 1L)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("long", "nint", "long.MinValue", warningOutOfRangeChecked("nint", "-9223372036854775808"), "System.OverflowException", "-9223372036854775808", null, "0", "-9223372036854775808");
+            constantConversions("long", "nint", "long.MaxValue", warningOutOfRangeChecked("nint", "9223372036854775807"), "System.OverflowException", "9223372036854775807", null, "-1", "9223372036854775807");
+            constantConversions("ulong", "nint", "(int.MaxValue + 1UL)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("ulong", "nint", "ulong.MaxValue", errorOutOfRangeChecked("nint", "18446744073709551615"), "System.OverflowException", "System.OverflowException", null, "-1", "-1");
+            constantConversions("decimal", "nint", "(int.MinValue - 1M)", errorOutOfRange("nint", "-2147483649M"), "System.OverflowException", "-2147483649", errorOutOfRange("nint", "-2147483649M"), "2147483647", "-2147483649");
+            constantConversions("decimal", "nint", "(int.MaxValue + 1M)", errorOutOfRange("nint", "2147483648M"), "System.OverflowException", "2147483648", errorOutOfRange("nint", "2147483648M"), "-2147483648", "2147483648");
+            constantConversions("decimal", "nint", "decimal.MinValue", errorOutOfRange("nint", "-79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nint", "-79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("decimal", "nint", "decimal.MaxValue", errorOutOfRange("nint", "79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nint", "79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("nint", "nint", "int.MinValue", null, "-2147483648", "-2147483648", null, "-2147483648", "-2147483648");
+            constantConversions("nint", "nint", "int.MaxValue", null, "2147483647", "2147483647", null, "2147483647", "2147483647");
+            constantConversions("nuint", "nint", "(int.MaxValue + (nuint)1)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("sbyte", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("sbyte", "nuint", "sbyte.MinValue", errorOutOfRangeChecked("nuint", "-128"), "System.OverflowException", "System.OverflowException", null, "4294967168", "18446744073709551488");
+            constantConversions("sbyte", "nuint", "sbyte.MaxValue", null, "127", "127", null, "127", "127");
+            constantConversions("byte", "nuint", "byte.MaxValue", null, "255", "255", null, "255", "255");
+            constantConversions("short", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("short", "nuint", "short.MinValue", errorOutOfRangeChecked("nuint", "-32768"), "System.OverflowException", "System.OverflowException", null, "4294934528", "18446744073709518848");
+            constantConversions("short", "nuint", "short.MaxValue", null, "32767", "32767", null, "32767", "32767");
+            constantConversions("ushort", "nuint", "ushort.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("char", "nuint", "char.MaxValue", null, "65535", "65535", null, "65535", "65535");
+            constantConversions("int", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("int", "nuint", "int.MinValue", errorOutOfRangeChecked("nuint", "-2147483648"), "System.OverflowException", "System.OverflowException", null, "2147483648", "18446744071562067968");
+            constantConversions("int", "nuint", "int.MaxValue", null, "2147483647", "2147483647", null, "2147483647", "2147483647");
+            constantConversions("uint", "nuint", "uint.MaxValue", null, "4294967295", "4294967295", null, "4294967295", "4294967295");
+            constantConversions("long", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("long", "nuint", "uint.MaxValue + 1L", warningOutOfRangeChecked("nuint", "4294967296"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("long", "nuint", "long.MinValue", errorOutOfRangeChecked("nuint", "-9223372036854775808"), "System.OverflowException", "System.OverflowException", null, "0", "9223372036854775808");
+            constantConversions("long", "nuint", "long.MaxValue", warningOutOfRangeChecked("nuint", "9223372036854775807"), "System.OverflowException", "9223372036854775807", null, "4294967295", "9223372036854775807");
+            constantConversions("ulong", "nuint", "uint.MaxValue + 1UL", warningOutOfRangeChecked("nuint", "4294967296"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("ulong", "nuint", "ulong.MaxValue", warningOutOfRangeChecked("nuint", "18446744073709551615"), "System.OverflowException", "18446744073709551615", null, "4294967295", "18446744073709551615");
+            constantConversions("decimal", "nuint", "-1", errorOutOfRange("nuint", "-1M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nuint", "-1M"), "System.OverflowException", "System.OverflowException");
+            constantConversions("decimal", "nuint", "(uint.MaxValue + 1M)", errorOutOfRange("nuint", "4294967296M"), "System.OverflowException", "4294967296", errorOutOfRange("nuint", "4294967296M"), "-1", "4294967296");
+            constantConversions("decimal", "nuint", "decimal.MinValue", errorOutOfRange("nuint", "-79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nuint", "-79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("decimal", "nuint", "decimal.MaxValue", errorOutOfRange("nuint", "79228162514264337593543950335M"), "System.OverflowException", "System.OverflowException", errorOutOfRange("nuint", "79228162514264337593543950335M"), "-1", "-1");
+            constantConversions("nint", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("nuint", "nuint", "uint.MaxValue", null, "4294967295", "4294967295", null, "4294967295", "4294967295");
+            if (!ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                // There are differences in floating point precision across platforms
+                // so floating point tests are limited to one platform.
+                return;
+            }
+            constantConversions("float", "nint", "(int.MinValue - 10000F)", warningOutOfRangeChecked("nint", "-2.147494E+09"), "System.OverflowException", "-2147493632", null, "-2147483648", "-2147493632");
+            constantConversions("float", "nint", "(int.MaxValue + 10000F)", warningOutOfRangeChecked("nint", "2.147494E+09"), "System.OverflowException", "2147493632", null, "-2147483648", "2147493632");
+            constantConversions("float", "nint", "float.MinValue", errorOutOfRangeChecked("nint", "-3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("float", "nint", "float.MaxValue", errorOutOfRangeChecked("nint", "3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("double", "nint", "(int.MinValue - 1D)", warningOutOfRangeChecked("nint", "-2147483649"), "System.OverflowException", "-2147483649", null, "-2147483648", "-2147483649");
+            constantConversions("double", "nint", "(int.MaxValue + 1D)", warningOutOfRangeChecked("nint", "2147483648"), "System.OverflowException", "2147483648", null, "-2147483648", "2147483648");
+            constantConversions("double", "nint", "double.MinValue", errorOutOfRangeChecked("nint", "-1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("double", "nint", "double.MaxValue", errorOutOfRangeChecked("nint", "1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "-2147483648", "-9223372036854775808");
+            constantConversions("float", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("float", "nuint", "(uint.MaxValue + 1F)", warningOutOfRangeChecked("nuint", "4.294967E+09"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("float", "nuint", "float.MinValue", errorOutOfRangeChecked("nuint", "-3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "0", "9223372036854775808");
+            constantConversions("float", "nuint", "float.MaxValue", errorOutOfRangeChecked("nuint", "3.402823E+38"), "System.OverflowException", "System.OverflowException", null, "0", "0");
+            constantConversions("double", "nuint", "-1", errorOutOfRangeChecked("nuint", "-1"), "System.OverflowException", "System.OverflowException", null, "4294967295", "18446744073709551615");
+            constantConversions("double", "nuint", "(uint.MaxValue + 1D)", warningOutOfRangeChecked("nuint", "4294967296"), "System.OverflowException", "4294967296", null, "0", "4294967296");
+            constantConversions("double", "nuint", "double.MinValue", errorOutOfRangeChecked("nuint", "-1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "0", "9223372036854775808");
+            constantConversions("double", "nuint", "double.MaxValue", errorOutOfRangeChecked("nuint", "1.79769313486232E+308"), "System.OverflowException", "System.OverflowException", null, "0", "0");
+
+            static DiagnosticDescription errorOutOfRangeChecked(string destinationType, string value) => Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, $"({destinationType})x").WithArguments(value, destinationType);
+            static DiagnosticDescription errorOutOfRange(string destinationType, string value) => Diagnostic(ErrorCode.ERR_ConstOutOfRange, $"({destinationType})x").WithArguments(value, destinationType);
+            static DiagnosticDescription warningOutOfRangeChecked(string destinationType, string value) => Diagnostic(ErrorCode.WRN_ConstOutOfRangeChecked, $"({destinationType})x").WithArguments(value, destinationType);
+
+            void constantConversions(string sourceType, string destinationType, string sourceValue, DiagnosticDescription checkedError, string checked32, string checked64, DiagnosticDescription uncheckedError, string unchecked32, string unchecked64)
+            {
+                constantConversion(sourceType, destinationType, sourceValue, useChecked: true, checkedError, IntPtr.Size == 4 ? checked32 : checked64);
+                constantConversion(sourceType, destinationType, sourceValue, useChecked: false, uncheckedError, IntPtr.Size == 4 ? unchecked32 : unchecked64);
+            }
+
+            void constantConversion(string sourceType, string destinationType, string sourceValue, bool useChecked, DiagnosticDescription expectedError, string expectedOutput)
+            {
+                var source =
+$@"using System;
+class Program
+{{
+    static void Main()
+    {{
+        const {sourceType} x = {sourceValue};
+        object y;
+        try
+        {{
+            y = {(useChecked ? "checked" : "unchecked")}(({destinationType})x);
+        }}
+        catch (Exception e)
+        {{
+            y = e.GetType();
+        }}
+        Console.Write(y);
+    }}
+}}";
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(expectedError is null ? Array.Empty<DiagnosticDescription>() : new[] { expectedError });
+                if (expectedError == null || ErrorFacts.IsWarning((ErrorCode)expectedError.Code))
+                {
+                    CompileAndVerify(comp, expectedOutput: expectedOutput);
+                }
+            }
         }
 
         [Fact]

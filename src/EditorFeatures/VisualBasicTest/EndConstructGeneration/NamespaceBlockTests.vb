@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
     Public Class NamespaceBlockTests
@@ -32,7 +31,6 @@ End Namespace",
                 afterCaret:={2, -1})
         End Sub
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyRecommit()
             VerifyStatementEndConstructNotApplied(
@@ -40,7 +38,6 @@ End Namespace",
 End Namespace",
                 caret:={0, -1})
         End Sub
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidNSInMethod()
@@ -52,7 +49,6 @@ End Namespace",
 End Class",
                 caret:={2, -1})
         End Sub
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidNSInModule()

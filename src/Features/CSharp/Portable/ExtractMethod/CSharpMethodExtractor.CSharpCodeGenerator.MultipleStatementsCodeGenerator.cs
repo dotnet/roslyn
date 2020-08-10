@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                private SyntaxList<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
+                private static SyntaxList<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
                 {
                     Contract.ThrowIfNull(node);
                     Contract.ThrowIfFalse(node.IsStatementContainerNode());

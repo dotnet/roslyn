@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 properties: null));
         }
 
-        private bool WouldCauseDefiniteAssignmentErrors(
+        private static bool WouldCauseDefiniteAssignmentErrors(
             SemanticModel semanticModel,
             LocalDeclarationStatementSyntax localStatement,
             BlockSyntax enclosingBlock,
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
         }
 
-        private SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
+        private static SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
         {
             for (var current = argumentExpression; current != null; current = current.Parent)
             {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return null;
         }
 
-        private bool IsAccessed(
+        private static bool IsAccessed(
             SemanticModel semanticModel,
             ISymbol outSymbol,
             BlockSyntax enclosingBlockOfLocalStatement,

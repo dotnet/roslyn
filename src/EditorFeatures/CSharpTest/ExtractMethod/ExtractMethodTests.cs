@@ -10387,7 +10387,7 @@ namespace ClassLibrary9
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", LanguageNames.CSharp).GetProject(projectId);
 
-            var document = project.AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+            var document = project.AddMetadataReference(TestMetadata.Net451.mscorlib)
                                   .AddDocument("Document", SourceText.From(""));
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
@@ -10400,10 +10400,6 @@ namespace ClassLibrary9
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractMethodCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
-                .CreateExportProvider();
-
             using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
@@ -10411,7 +10407,7 @@ namespace ClassLibrary9
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider);
+                composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
             workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
@@ -11109,17 +11105,17 @@ class Program
             var code = @"
 interface Program
 {
-    void Foo();
+    void Goo();
 
     void Test()
     {
-        [|Foo();|]
+        [|Goo();|]
     }
 }";
             var expected = @"
 interface Program
 {
-    void Foo();
+    void Goo();
 
     void Test()
     {
@@ -11128,7 +11124,7 @@ interface Program
 
     void NewMethod()
     {
-        Foo();
+        Goo();
     }
 }";
             await TestExtractMethodAsync(code, expected);
@@ -11139,18 +11135,18 @@ interface Program
         public async Task ExtractMethodInExpressionBodiedConstructors()
         {
             var code = @"
-class Foo
+class Goo
 {
     private readonly string _bar;
 
-    private Foo(string bar) => _bar = [|bar|];
+    private Goo(string bar) => _bar = [|bar|];
 }";
             var expected = @"
-class Foo
+class Goo
 {
     private readonly string _bar;
 
-    private Foo(string bar) => _bar = GetBar(bar);
+    private Goo(string bar) => _bar = GetBar(bar);
 
     private static string GetBar(string bar)
     {
@@ -11165,24 +11161,180 @@ class Foo
         public async Task ExtractMethodInExpressionBodiedFinalizers()
         {
             var code = @"
-class Foo
+class Goo
 {
     bool finalized;
 
-    ~Foo() => finalized = [|true|];
+    ~Goo() => finalized = [|true|];
 }";
             var expected = @"
-class Foo
+class Goo
 {
     bool finalized;
 
-    ~Foo() => finalized = NewMethod();
+    ~Goo() => finalized = NewMethod();
 
     private static bool NewMethod()
     {
         return true;
     }
 }";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInvolvingFunctionPointer()
+        {
+            var code = @"
+class C
+{
+    void M(delegate*<delegate*<ref string, ref readonly int>> ptr1)
+    {
+        string s = null;
+        _ = [|ptr1()|](ref s);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M(delegate*<delegate*<ref string, ref readonly int>> ptr1)
+    {
+        string s = null;
+        _ = NewMethod(ptr1)(ref s);
+    }
+
+    private static delegate*<ref string, ref readonly int> NewMethod(delegate*<delegate*<ref string, ref readonly int>> ptr1)
+    {
+        return ptr1();
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInvolvingFunctionPointerWithTypeParameter()
+        {
+            var code = @"
+class C
+{
+    void M<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        _ = [|ptr1|]();
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        _ = GetPtr1(ptr1)();
+    }
+
+    private static delegate*<T1, T2> GetPtr1<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        return ptr1;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_ValueInAssignment()
+        {
+            var code = @"
+bool local;
+local = [|true|];
+";
+            var expected = @"
+bool local;
+local = NewMethod();
+
+bool NewMethod()
+{
+    return true;
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_ArgumentInInvocation()
+        {
+            // Note: the cast should be simplified 
+            // https://github.com/dotnet/roslyn/issues/44260
+
+            var code = @"
+System.Console.WriteLine([|""string""|]);
+";
+            var expected = @"
+System.Console.WriteLine((string)NewMethod());
+
+string NewMethod()
+{
+    return ""string"";
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Theory]
+        [InlineData("unsafe")]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(4950, "https://github.com/dotnet/roslyn/issues/4950")]
+        public async Task ExtractMethodInvolvingUnsafeBlock(string keyword)
+        {
+            var code = $@"
+using System;
+
+class Program {{
+    static void Main(string[] args)
+    {{
+        object value = args;
+
+        [|
+        IntPtr p;
+        {keyword}
+        {{
+            object t = value;
+            p = IntPtr.Zero;
+        }}
+        |]
+
+        Console.WriteLine(p);
+    }}
+}}
+";
+            var expected = $@"
+using System;
+
+class Program {{
+    static void Main(string[] args)
+    {{
+        object value = args;
+
+        IntPtr p = NewMethod(value);
+
+        Console.WriteLine(p);
+    }}
+
+    private static IntPtr NewMethod(object value)
+    {{
+        IntPtr p;
+        {keyword}
+        {{
+            object t = value;
+            p = IntPtr.Zero;
+        }}
+
+        return p;
+    }}
+}}
+";
             await TestExtractMethodAsync(code, expected);
         }
     }

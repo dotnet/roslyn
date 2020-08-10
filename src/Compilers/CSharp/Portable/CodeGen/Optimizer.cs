@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // a conversion (because the RHS will actually be typed as a native u/int in IL), so
                 // we should not optimize away the local (i.e. schedule it on the stack).
                 if (CanScheduleToStack(localSymbol) &&
-                    assignmentLocal.Type.IsPointerType() && right.Kind == BoundKind.Conversion &&
+                    assignmentLocal.Type.IsPointerOrFunctionPointer() && right.Kind == BoundKind.Conversion &&
                     ((BoundConversion)right).ConversionKind.IsPointerConversion())
                 {
                     ShouldNotSchedule(localSymbol);
@@ -1048,6 +1048,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
+                    return true;
+
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)lhs).FunctionPointer.Signature.RefKind == RefKind.Ref, "only ref returning function pointers are assignable");
                     return true;
 
                 case BoundKind.ConditionalOperator:
@@ -1362,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type);
+            return node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasCompilerGenerated, node.Type);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
@@ -1590,6 +1594,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _counter++;
             }
 
+            BoundStatementList filterPrologue;
+            if (node.ExceptionFilterPrologueOpt != null)
+            {
+                EnsureOnlyEvalStack();
+                filterPrologue = (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt);
+            }
+            else
+            {
+                filterPrologue = null;
+            }
+
             BoundExpression boundFilter;
             if (node.ExceptionFilterOpt != null)
             {
@@ -1610,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var boundBlock = (BoundBlock)this.Visit(node.Body);
             var exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
 
-            return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, boundFilter, boundBlock, node.IsSynthesizedAsyncCatchAll);
+            return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, filterPrologue, boundFilter, boundBlock, node.IsSynthesizedAsyncCatchAll);
         }
 
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
@@ -2070,6 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var exceptionSource = node.ExceptionSourceOpt;
             var type = node.ExceptionTypeOpt;
+            var filterPrologue = node.ExceptionFilterPrologueOpt;
             var filter = node.ExceptionFilterOpt;
             var body = node.Body;
 
@@ -2099,6 +2115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _nodeCounter++;
             }
 
+            filterPrologue = (filterPrologue != null) ? (BoundStatementList)this.Visit(filterPrologue) : null;
+
             if (filter != null)
             {
                 filter = (BoundExpression)this.Visit(filter);
@@ -2110,7 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             body = (BoundBlock)this.Visit(body);
             type = this.VisitType(type);
 
-            return node.Update(node.Locals, exceptionSource, type, filter, body, node.IsSynthesizedAsyncCatchAll);
+            return node.Update(node.Locals, exceptionSource, type, filterPrologue, filter, body, node.IsSynthesizedAsyncCatchAll);
         }
     }
 

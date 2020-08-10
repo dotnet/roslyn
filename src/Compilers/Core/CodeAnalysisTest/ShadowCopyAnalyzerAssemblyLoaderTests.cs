@@ -57,8 +57,9 @@ public abstract class AbstractTestAnalyzer : DiagnosticAnalyzer
                    new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerDependencySource) },
                    new MetadataReference[]
                    {
-                    TestReferences.NetStandard20.NetStandard,
-                    TestReferences.NetStandard20.SystemRuntimeRef,
+                    TestMetadata.NetStandard20.mscorlib,
+                    TestMetadata.NetStandard20.netstandard,
+                    TestMetadata.NetStandard20.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(microsoftCodeAnalysis.Path)
                    },
@@ -83,11 +84,12 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
                    new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerMainSource) },
                    new MetadataReference[]
                    {
-                    TestReferences.NetStandard20.NetStandard,
-                    TestReferences.NetStandard20.SystemRuntimeRef,
-                    MetadataReference.CreateFromFile(immutable.Path),
-                    MetadataReference.CreateFromFile(microsoftCodeAnalysis.Path),
-                    MetadataReference.CreateFromFile(analyzerDependency.Path)
+                        TestMetadata.NetStandard20.mscorlib,
+                        TestMetadata.NetStandard20.netstandard,
+                        TestMetadata.NetStandard20.SystemRuntime,
+                        MetadataReference.CreateFromFile(immutable.Path),
+                        MetadataReference.CreateFromFile(microsoftCodeAnalysis.Path),
+                        MetadataReference.CreateFromFile(analyzerDependency.Path)
                    },
                    new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 

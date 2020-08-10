@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename;
@@ -98,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, SerializableSymbolAndProjectId[] nonConflictSymbolIds, CancellationToken cancellationToken)
+        [return: NotNullIfNotNull("nonConflictSymbolIds")]
+        private static async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, SerializableSymbolAndProjectId[]? nonConflictSymbolIds, CancellationToken cancellationToken)
         {
             if (nonConflictSymbolIds == null)
                 return null;

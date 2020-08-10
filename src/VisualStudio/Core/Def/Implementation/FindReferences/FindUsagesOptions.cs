@@ -38,5 +38,4 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FindUsagesOptions.DefinitionGroupingPriority);
     }
-
 }

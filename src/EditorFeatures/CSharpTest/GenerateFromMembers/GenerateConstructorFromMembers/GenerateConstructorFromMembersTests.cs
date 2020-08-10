@@ -730,7 +730,6 @@ class X
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task Tuple()
         {

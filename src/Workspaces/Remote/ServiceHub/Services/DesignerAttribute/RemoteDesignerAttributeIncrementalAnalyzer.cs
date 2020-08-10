@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private async Task<(Document, DesignerAttributeData?, bool changed)> ComputeDesignerAttributeDataAsync(
+        private static async Task<(Document, DesignerAttributeData?, bool changed)> ComputeDesignerAttributeDataAsync(
             IPersistentStorage storage, VersionStamp projectVersion, INamedTypeSymbol? designerCategoryType,
             Document document, CancellationToken cancellationToken)
         {

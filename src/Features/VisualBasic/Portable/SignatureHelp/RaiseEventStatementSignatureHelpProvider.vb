@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function TryGetRaiseEventStatement(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef statement As RaiseEventStatementSyntax) As Boolean
+        Private Shared Function TryGetRaiseEventStatement(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef statement As RaiseEventStatementSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, statement) Then
                 Return False
             End If
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Function Convert(
+        Private Overloads Shared Function Convert(
             eventSymbol As IEventSymbol,
             raiseEventStatement As RaiseEventStatementSyntax,
             semanticModel As SemanticModel,
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Function GetPreambleParts(
+        Private Shared Function GetPreambleParts(
             eventSymbol As IEventSymbol,
             semanticModel As SemanticModel,
             position As Integer
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetPostambleParts() As IList(Of SymbolDisplayPart)
+        Private Shared Function GetPostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

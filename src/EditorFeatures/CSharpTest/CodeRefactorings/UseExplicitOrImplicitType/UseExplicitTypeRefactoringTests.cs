@@ -93,7 +93,6 @@ class C
     }
 }";
 
-
             await TestMissingInRegularAndScriptAsync(code);
         }
 

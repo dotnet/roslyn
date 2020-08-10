@@ -26,6 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property SingleLineCommentTrivia As Integer = SyntaxKind.CommentTrivia Implements ISyntaxKinds.SingleLineCommentTrivia
         Private ReadOnly Property MultiLineCommentTrivia As Integer? = Nothing Implements ISyntaxKinds.MultiLineCommentTrivia
 
+        Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
+        Public ReadOnly Property ColonToken As Integer = SyntaxKind.ColonToken Implements ISyntaxKinds.ColonToken
         Public ReadOnly Property CharacterLiteralToken As Integer = SyntaxKind.CharacterLiteralToken Implements ISyntaxKinds.CharacterLiteralToken
         Public ReadOnly Property DotToken As Integer = SyntaxKind.DotToken Implements ISyntaxKinds.DotToken
         Public ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken Implements ISyntaxKinds.InterpolatedStringTextToken
@@ -87,5 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator Implements ISyntaxKinds.VariableDeclarator
 
         Public ReadOnly Property TypeArgumentList As Integer = SyntaxKind.TypeArgumentList Implements ISyntaxKinds.TypeArgumentList
+        Public ReadOnly Property GlobalStatement As Integer? = Nothing Implements ISyntaxKinds.GlobalStatement
+
+        Public ReadOnly Property Interpolation As Integer = SyntaxKind.Interpolation Implements ISyntaxKinds.Interpolation
     End Class
 End Namespace

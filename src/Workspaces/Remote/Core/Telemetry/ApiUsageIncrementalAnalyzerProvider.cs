@@ -38,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             private const int Max = 2000;
 
             private const string EventName = "vs/compilers/api";
-            private const string PropertyName = "vs.compilers.api.pii";
+            private const string ApiPropertyName = "vs.compilers.api.pii";
+            private const string ProjectIdPropertyName = "vs.solution.project.projectid";
+            private const string SessionIdPropertyName = "vs.solution.solutionsessionid";
 
             private readonly HashSet<ProjectId> _reported = new HashSet<ProjectId>();
 
@@ -124,9 +126,14 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 {
                     if (_reported.Add(project.Id))
                     {
+                        var solutionSessionId = project.Solution.State.SolutionAttributes.TelemetryId.ToString("B");
+                        var projectGuid = project.State.ProjectInfo.Attributes.TelemetryId.ToString("B");
+
                         // use telemetry API directly rather than Logger abstraction for PII data
                         var telemetryEvent = new TelemetryEvent(EventName);
-                        telemetryEvent.Properties[PropertyName] = new TelemetryComplexProperty(apiPerAssembly);
+                        telemetryEvent.Properties[ApiPropertyName] = new TelemetryComplexProperty(apiPerAssembly);
+                        telemetryEvent.Properties[SessionIdPropertyName] = new TelemetryPiiProperty(solutionSessionId);
+                        telemetryEvent.Properties[ProjectIdPropertyName] = new TelemetryPiiProperty(projectGuid);
 
                         try
                         {
@@ -183,8 +190,8 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     var root = model.SyntaxTree.GetRoot(cancellationToken);
 
                     // go through all nodes until we find first node that has IOperation
-                    foreach (var rootOperation in root.DescendantNodes(n => model.GetOperation(n) == null)
-                                                     .Select(n => model.GetOperation(n))
+                    foreach (var rootOperation in root.DescendantNodes(n => model.GetOperation(n, cancellationToken) == null)
+                                                     .Select(n => model.GetOperation(n, cancellationToken))
                                                      .Where(o => o != null))
                     {
                         foreach (var operation in rootOperation.DescendantsAndSelf())
