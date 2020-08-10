@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (currentToken.Parent is InitializerExpressionSyntax ||
                 currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                currentToken.Parent?.Parent is ParenthesizedLambdaExpressionSyntax or SimpleLambdaExpressionSyntax)
+                currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax)
             {
                 return 0;
             }
