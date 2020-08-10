@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -608,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
                         }
-                        else
+                        else if (!hasNoExplicitReturnType)
                         {
                             blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
                         }
@@ -2672,6 +2673,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)returnType == LambdaSymbol.ReturnTypeIsBeingInferred)
                 {
                     return null;
+                }
+                else if(returnType?.IsErrorType() == true)
+                {
+                    // check if the local function has no return type specified
+                    if(symbol is LocalFunctionSymbol localFuncSymbol)
+                    {
+                        var returnTypeSyntax = localFuncSymbol.Syntax.ReturnType;
+                        if(returnTypeSyntax.Kind() == SyntaxKind.IdentifierName && returnTypeSyntax.Width == 0)
+                        {
+                            return null;
+                        }
+                    }
+                    else if(symbol is SourceOrdinaryMethodSymbol methodSymbol)
+                    {
+                        var returnTypeSyntax = methodSymbol.GetSyntax().ReturnType;
+                        if (returnTypeSyntax.Kind() == SyntaxKind.IdentifierName && returnTypeSyntax.Width == 0)
+                        {
+                            return null;
+                        }
+                    }
+                    /*else if (this.ContainingMemberOrLambda is SourcePropertySymbol propSymbol)
+                    {
+                    // TODO: property
+                    }*/
                 }
 
                 return returnType;
