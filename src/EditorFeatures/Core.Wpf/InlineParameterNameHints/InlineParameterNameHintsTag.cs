@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly SnapshotSpan _span;
         private readonly SymbolKey _key;
         private readonly IThreadingContext _threadingContext;
-        private readonly Lazy<IStreamingFindUsagesPresenter> StreamingPresenter;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         private InlineParameterNameHintsTag(FrameworkElement adornment, ITextView textView, SnapshotSpan span,
                                             SymbolKey key, InlineParameterNameHintsTaggerProvider taggerProvider)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _textView = textView;
             _span = span;
             _key = key;
-            StreamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
+            _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
             _threadingContext = taggerProvider.ThreadingContext;
             _toolTipService = taggerProvider.ToolTipService;
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             }
 
             var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
-                document, _threadingContext, StreamingPresenter);
+                document, _threadingContext, _streamingPresenter);
             return uiCollection;
         }
 
@@ -176,7 +176,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// </summary>
         private async Task StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
         {
-            var uiList = await CreateDescriptionAsync(CancellationToken.None).ConfigureAwait(false);
+            var uiList = await await Task.Run(() => CreateDescriptionAsync(CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
         }
     }
