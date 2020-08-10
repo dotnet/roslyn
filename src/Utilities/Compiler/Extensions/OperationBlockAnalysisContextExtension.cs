@@ -2,6 +2,7 @@
 
 #if HAS_IOPERATION
 
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -63,6 +64,19 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
+
+        /// <summary>
+        /// Auto-properties (readonly, get, set) marked with an attribute have a block context callback while they don't if
+        /// there is no attribute (see https://github.com/dotnet/roslyn/issues/46132).
+        /// Auto-properties only have 'OperationKind.None' operations.
+        /// </summary>
+#pragma warning disable RS1012 // Start action has no registered actions.
+        public static bool IsAutoProperty(this OperationBlockStartAnalysisContext context)
+#pragma warning restore RS1012 // Start action has no registered actions.
+            => context.OwningSymbol is IMethodSymbol methodSymbol
+            && methodSymbol.IsPropertyAccessor()
+            && !context.OperationBlocks.IsEmpty
+            && !context.OperationBlocks.Where(op => op.Kind != OperationKind.None).Any();
     }
 }
 
