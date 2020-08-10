@@ -33,5 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return Update(attributeLists: default, modifiers, returnType, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
         }
+
+        public bool HasExplicitReturnType()
+        {
+            var noExplicitReturnType = ReturnType.Kind() == SyntaxKind.IdentifierName && ReturnType.Width == 0;
+            return !noExplicitReturnType;
+        }
     }
 }

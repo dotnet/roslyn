@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
             }
         }
+
+        public bool HasExplicitReturnType()
+        {
+            var noExplicitReturnType = ReturnType.Kind() == SyntaxKind.IdentifierName && ReturnType.Width == 0;
+            return !noExplicitReturnType;
+        }
     }
 }
 
