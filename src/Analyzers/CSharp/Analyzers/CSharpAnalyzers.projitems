@@ -45,6 +45,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\RemoveUnreachableCodeHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\CSharpSimplifyConditionalDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpressions\CSharpSimplifyLinqExpressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\CSharpUseAutoPropertyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />

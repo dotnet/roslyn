@@ -87,6 +87,11 @@
         <target state="translated">简化 "default" 表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_linq_expressions">
+        <source>Simplify linq expressions</source>
+        <target state="new">Simplify linq expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
         <target state="translated">Struct 包含对构造函数之外的 "this" 的赋值。使只读字段可写</target>
