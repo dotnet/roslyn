@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task MetadataReference_RoundTrip_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -358,13 +358,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task OptionSet_Serialization()
         {
-            await VerifyOptionSetsAsync(_ => { }).ConfigureAwait(false);
+            using var workspace = new AdhocWorkspace()
+                .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
+                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic)
+                .Solution.Workspace;
+            await VerifyOptionSetsAsync(workspace, _ => { }).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task OptionSet_Serialization_CustomValue()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
 
             var newQualifyFieldAccessValue = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
             var newQualifyMethodAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
@@ -400,7 +404,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Missing_Metadata_Serialization_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new MissingMetadataReference();
@@ -414,7 +418,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Missing_Analyzer_Serialization_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
@@ -428,7 +432,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Missing_Analyzer_Serialization_Desktop_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
@@ -443,7 +447,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task RoundTrip_Analyzer_Serialization_Test()
         {
             using var tempRoot = new TempRoot();
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // actually shadow copy content
@@ -464,7 +468,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var tempRoot = new TempRoot();
 
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // actually shadow copy content
@@ -639,7 +643,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestEncodingSerialization()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // test with right serializable encoding
@@ -706,15 +710,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 Assert.Equal(original, recovered);
             }
-        }
-
-        private static Task VerifyOptionSetsAsync(Action<OptionSet> verifyOptionValues)
-        {
-            var workspace = new AdhocWorkspace()
-                .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
-                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic)
-                .Solution.Workspace;
-            return VerifyOptionSetsAsync(workspace, verifyOptionValues);
         }
 
         private static async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
