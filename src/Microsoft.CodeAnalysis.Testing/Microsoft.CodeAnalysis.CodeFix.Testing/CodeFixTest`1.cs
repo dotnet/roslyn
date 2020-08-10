@@ -469,8 +469,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 previousDiagnostics = analyzerDiagnostics;
 
-                var fixableDiagnostics = analyzerDiagnostics.Where(
-                    diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.Id))).ToImmutableArray();
+                var fixableDiagnostics = analyzerDiagnostics
+                    .Where(diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.Id)))
+                    .Where(diagnostic => project.GetDocument(diagnostic.Location.SourceTree) is object)
+                    .ToImmutableArray();
 
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {
@@ -603,14 +605,15 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     foreach (var codeFixProvider in codeFixProviders)
                     {
-                        if (!codeFixProvider.FixableDiagnosticIds.Contains(diagnostic.Id))
+                        if (!codeFixProvider.FixableDiagnosticIds.Contains(diagnostic.Id)
+                            || !(project.GetDocument(diagnostic.Location.SourceTree) is { } document))
                         {
                             // do not pass unsupported diagnostics to a code fix provider
                             continue;
                         }
 
                         var actionsBuilder = ImmutableArray.CreateBuilder<CodeAction>();
-                        var context = new CodeFixContext(project.GetDocument(diagnostic.Location.SourceTree), diagnostic, (a, d) => actionsBuilder.Add(a), cancellationToken);
+                        var context = new CodeFixContext(document, diagnostic, (a, d) => actionsBuilder.Add(a), cancellationToken);
                         await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
                         actions.AddRange(FilterCodeActions(actionsBuilder.ToImmutable()).Select(action => (action, codeFixProvider)));
                     }
