@@ -268,6 +268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_implicit_object_creation_when_type_is_apparent",
             "TextEditor.CSharp.Specific.ImplicitObjectCreationWhenTypeIsApparent");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferNamespaceMatchFolderStructure = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceMatchFolderStructure),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_namespace_match_folder_structure_preference"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferNamespaceMatchFolderStructure)}")});
 #if false
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
@@ -277,7 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "TextEditor.CSharp.Specific.UseImplicitTypeWherePossible");
 
 #endif
-
         static CSharpCodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

@@ -67,6 +67,16 @@
         <target state="translated">Ustaw funkcję lokalną jako „static”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespace_must_match_folder_structure">
+        <source>Namespace must match folder structure</source>
+        <target state="new">Namespace must match folder structure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_named_incorrectly">
+        <source>Namespace named incorrectly</source>
+        <target state="new">Namespace named incorrectly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
         <target state="translated">Neguj wyrażenie (zmienia semantykę)</target>

@@ -305,4 +305,10 @@
   <data name="Remove_unnessary_discard" xml:space="preserve">
     <value>Remove unnecessary discard</value>
   </data>
+  <data name="Namespace_must_match_folder_structure" xml:space="preserve">
+    <value>Namespace must match folder structure</value>
+  </data>
+  <data name="Namespace_named_incorrectly" xml:space="preserve">
+    <value>Namespace named incorrectly</value>
+  </data>
 </root>

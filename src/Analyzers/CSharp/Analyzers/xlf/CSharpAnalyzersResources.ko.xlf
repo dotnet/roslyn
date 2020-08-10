@@ -67,6 +67,16 @@
         <target state="translated">로컬 함수를 '정적'으로 지정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Namespace_must_match_folder_structure">
+        <source>Namespace must match folder structure</source>
+        <target state="new">Namespace must match folder structure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_named_incorrectly">
+        <source>Namespace named incorrectly</source>
+        <target state="new">Namespace named incorrectly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
         <target state="translated">식 부정(의미 체계를 변경함)</target>
