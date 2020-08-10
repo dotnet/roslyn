@@ -3334,7 +3334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var internalType = type.EnsureCSharpSymbolOrNull($"{nameof(callingConventionTypes)}[{index}]");
-                if (!FunctionPointerTypeSymbol.IsCallingConventionModifier(internalType) || @this.Assembly.CorLibrary != internalType.ContainingAssembly.CorLibrary)
+                if (!FunctionPointerTypeSymbol.IsCallingConventionModifier(internalType) || @this.Assembly.CorLibrary != internalType.ContainingAssembly)
                 {
                     throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypeIsInvalid, type.ToDisplayString()));
                 }

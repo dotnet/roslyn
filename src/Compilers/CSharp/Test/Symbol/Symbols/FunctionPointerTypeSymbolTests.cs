@@ -1655,6 +1655,10 @@ unsafe class C
             AssertEx.Equal("delegate* unmanaged[Cdecl, Stdcall]<System.String modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall)>", ptr.ToTestDisplayString());
             ptr = comp.CreateFunctionPointerTypeSymbol(@string, returnRefKind: RefKind.RefReadOnly, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, SignatureCallingConvention.Unmanaged, ImmutableArray.Create(cdeclType, stdcallType)!);
             AssertEx.Equal("delegate* unmanaged[Cdecl, Stdcall]<ref readonly modopt(System.Runtime.CompilerServices.CallConvCdecl) modopt(System.Runtime.CompilerServices.CallConvStdcall) modreq(System.Runtime.InteropServices.InAttribute) System.String>", ptr.ToTestDisplayString());
+
+            ptr = comp.CreateFunctionPointerTypeSymbol(@string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, SignatureCallingConvention.Unmanaged, ImmutableArray.Create(cdeclType)!);
+            AssertEx.Equal("delegate* unmanaged[Cdecl]<System.String modopt(System.Runtime.CompilerServices.CallConvCdecl)>", ptr.ToTestDisplayString());
+            Assert.Equal(SignatureCallingConvention.Unmanaged, ptr.Signature.CallingConvention);
         }
 
         [Fact]
@@ -1959,11 +1963,11 @@ namespace System
 }
 ", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
 
-            var mainComp = CreateCompilation("", references: new[] { otherCorLib.ToMetadataReference() });
+            var mainComp = CreateCompilation("");
             var returnType = mainComp.GetSpecialType(SpecialType.System_String).GetPublicSymbol();
             var testConvention = otherCorLib.GetTypeByMetadataName("System.Runtime.CompilerServices.CallConvTest");
             Assert.NotNull(testConvention);
-            Assert.True((object)testConvention!.ContainingAssembly.CorLibrary != mainComp.Assembly.CorLibrary);
+            Assert.NotSame(testConvention!.ContainingAssembly.CorLibrary, mainComp.Assembly.CorLibrary);
             Assert.True(FunctionPointerTypeSymbol.IsCallingConventionModifier(testConvention));
 
             Assert.Throws<ArgumentException>(() => mainComp.CreateFunctionPointerTypeSymbol(
