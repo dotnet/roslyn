@@ -10952,6 +10952,7 @@ tryAgain:
                             return true;
                         }
                         // ( x!! , [...]
+                        // PROTOTYPE(BangBang): https://github.com/dotnet/roslyn/pull/46520#discussion_r466650228
                         if (after.Kind == SyntaxKind.ExclamationToken
                             && this.PeekToken(3).Kind == SyntaxKind.ExclamationToken
                             && after.GetTrailingTriviaWidth() == 0
