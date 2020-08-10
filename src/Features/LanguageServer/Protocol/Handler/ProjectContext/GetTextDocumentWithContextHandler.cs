@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _solutionProvider = solutionProvider;
         }
 
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => null;
+
         public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);

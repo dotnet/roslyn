@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal abstract class AbstractRequestHandler<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType>
     {
-        public virtual TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request) => null;
+        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }

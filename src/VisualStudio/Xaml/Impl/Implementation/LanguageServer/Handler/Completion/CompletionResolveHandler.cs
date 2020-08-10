@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -34,6 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public CompletionResolveHandler()
         {
         }
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
 
         public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {

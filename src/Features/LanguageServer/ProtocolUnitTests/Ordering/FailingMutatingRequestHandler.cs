@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
@@ -19,10 +20,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FailingMutatingRequestHandler(ILspSolutionProvider solutionProvider)
-            : base(solutionProvider)
+        public FailingMutatingRequestHandler()
         {
         }
+
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
         public override async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
