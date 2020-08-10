@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +28,16 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// Check if the <param name="calleeMethodDeclarationSyntaxNode"/> has only one expression or it is using arrow expression.
         /// </summary>
         protected abstract bool IsMethodContainsOneStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
-
         protected abstract SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
+        protected abstract IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, SyntaxNode argumentSyntaxNode, CancellationToken cancellationToken);
+        protected abstract bool IsExpressionSyntax(SyntaxNode syntaxNode);
+        protected abstract SyntaxNode GenerateLocalDeclarationStatement(string identifierTokenName, ITypeSymbol type);
+        protected abstract SyntaxNode GenerateIdentifierNameSyntaxNode(string name);
+        protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
+        protected abstract bool IsEmbeddedStatementOwner(SyntaxNode syntaxNode);
+        protected abstract bool ShouldCheckTheExpressionPrecedenceInCallee(SyntaxNode syntaxNode);
+        protected abstract bool NeedWrapInParenthesisWhenPrecedenceAreEqual(SyntaxNode calleeInvocationSyntaxNode);
+        protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
 
         protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, IPrecedenceService precedenceService)
         {
@@ -133,18 +142,35 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             var syntaxNodeToReplace = inlineContext.SyntaxNodeToReplace;
             var inlineSyntaxNode = inlineContext.InlineSyntaxNode;
-            if (inlineSyntaxNode == null && calleeMethodSymbol.ReturnsVoid)
+            if (inlineSyntaxNode == null)
             {
                 // When it has only one return statement in the callee & return void, just remove the whole statement.
                 documentEditor.RemoveNode(syntaxNodeToReplace);
+                return documentEditor.GetChangedDocument();
             }
             else
             {
                 documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
             }
 
-            var x = documentEditor.GetChangedDocument();
-            return x;
+            return documentEditor.GetChangedDocument();
+        }
+
+        private SyntaxNode GetInvokingStatement(SyntaxNode syntaxNode)
+        {
+            for (var node = syntaxNode; node != null; node = node!.Parent)
+            {
+                // Is there anything missed here?
+                if (node != null && (
+                    _syntaxFacts.IsLocalDeclarationStatement(node)
+                    || IsEmbeddedStatementOwner(syntaxNode)
+                    || _syntaxFacts.IsExpressionStatement(node)))
+                {
+                    return node;
+                }
+            }
+
+            return syntaxNode;
         }
     }
 }

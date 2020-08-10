@@ -21,15 +21,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal partial class AbstractInlineMethodRefactoringProvider
     {
-        protected abstract IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, SyntaxNode argumentSyntaxNode, CancellationToken cancellationToken);
-        protected abstract bool IsExpressionSyntax(SyntaxNode syntaxNode);
-        protected abstract SyntaxNode GenerateLocalDeclarationStatement(string identifierTokenName, ITypeSymbol type);
-        protected abstract SyntaxNode GenerateIdentifierNameSyntaxNode(string name);
-        protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
-        protected abstract bool IsEmbeddedStatementOwner(SyntaxNode syntaxNode);
-        protected abstract bool ShouldCheckTheExpressionPrecedenceInCallee(SyntaxNode syntaxNode);
-        protected abstract bool NeedWrapInParenthesisWhenPrecedenceAreEqual(SyntaxNode calleeInvocationSyntaxNode);
-        protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
 
         private class MethodInvocationInfo
         {
@@ -52,29 +43,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 SyntaxNode calleeInvocationSyntaxNode)
             {
-                var statementInvokesCallee = GetInvokingStatement(syntaxFacts, inlineMethodRefactoringProvider, calleeInvocationSyntaxNode);
+                var statementInvokesCallee = inlineMethodRefactoringProvider.GetInvokingStatement(calleeInvocationSyntaxNode);
                 var parent = calleeInvocationSyntaxNode.Parent;
                 var isCalleeSingleInvoked = syntaxFacts.IsLocalDeclarationStatement(parent) || syntaxFacts.IsExpressionStatement(parent);
                 var assignedToVariable = syntaxFacts.IsLocalDeclarationStatement(parent);
                 return new MethodInvocationInfo(statementInvokesCallee, isCalleeSingleInvoked, assignedToVariable);
-            }
-
-            private static SyntaxNode GetInvokingStatement(
-                ISyntaxFacts syntaxFacts, AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider, SyntaxNode syntaxNode)
-            {
-                for (var node = syntaxNode; node != null; node = node!.Parent)
-                {
-                    // Is there anything missed here?
-                    if (node != null && (
-                        syntaxFacts.IsLocalDeclarationStatement(node)
-                        || inlineMethodRefactoringProvider.IsEmbeddedStatementOwner(syntaxNode)
-                        || syntaxFacts.IsExpressionStatement(node)))
-                    {
-                        return node;
-                    }
-                }
-
-                return syntaxNode;
             }
         }
 

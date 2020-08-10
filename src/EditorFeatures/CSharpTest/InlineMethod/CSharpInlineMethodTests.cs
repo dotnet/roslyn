@@ -74,6 +74,78 @@ System.Console.WriteLine(i + j);
 }");
 
         [Fact]
+        public Task TestMinusExpressionWithAddAsLeftValue()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return Ca[||]llee(1, 2) - 1;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return 1 + 2 - 1;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
+        public Task TestMinusExpressionWithAddAsRightValue()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return 1 - Ca[||]llee(1, 2);
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return 1 - (1 + 2);
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
         public Task TestAddExpressionWithMultiply()
             => TestInRegularAndScript1Async(
                 @"
