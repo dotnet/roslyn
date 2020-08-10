@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             return new GlobalFlowStateAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg,
                 invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
                 pointsToAnalysisResult, valueContentAnalysisResult, TryGetOrComputeAnalysisResult,
-                ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicateOpt);
+                ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicate);
         }
 
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)

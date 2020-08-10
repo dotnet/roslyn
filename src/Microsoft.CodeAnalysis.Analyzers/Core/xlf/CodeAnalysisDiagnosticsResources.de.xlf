@@ -68,7 +68,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
-        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign</source>
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
         <target state="needs-review-translation">Die Diagnosebeschreibung sollte mindestens einen Satz umfassen und auf ein Satzzeichen enden.</target>
         <note />
       </trans-unit>
@@ -78,7 +78,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
-        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
         <target state="needs-review-translation">Die Diagnosemeldung darf keine Zeilenvorschubzeichen enthalten und muss entweder einen einzelnen Satz ohne Satzendepunkt oder mehrere Sätze mit Satzendepunkt umfassen.</target>
         <note />
       </trans-unit>
@@ -88,8 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
-        <source>The diagnostic title should not contain a period or any line return character</source>
-        <target state="translated">Der Titel der Diagnosemeldung darf keinen Satzendepunkt oder ein Zeilenvorschubzeichen enthalten.</target>
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="needs-review-translation">Der Titel der Diagnosemeldung darf keinen Satzendepunkt oder ein Zeilenvorschubzeichen enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">

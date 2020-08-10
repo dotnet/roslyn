@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 var coreAnalysisDomain = new CoreCopyAnalysisDataDomain(CopyAbstractValueDomain.Default, GetDefaultCopyValue);
                 AnalysisDomain = new CopyAnalysisDomain(coreAnalysisDomain);
 
-                analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData.AssertValidCopyAnalysisData();
+                analysisContext.InterproceduralAnalysisData?.InitialAnalysisData.AssertValidCopyAnalysisData();
             }
 
             public CopyAnalysisDomain AnalysisDomain { get; }
@@ -248,9 +248,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 if (assignedValue != null)
                 {
                     var assignedEntities = assignedValue.Value.AnalysisEntities;
-                    if (assignedValue.AnalysisEntityOpt != null && !assignedEntities.Contains(assignedValue.AnalysisEntityOpt))
+                    if (assignedValue.AnalysisEntity != null && !assignedEntities.Contains(assignedValue.AnalysisEntity))
                     {
-                        assignedEntities = assignedEntities.Add(assignedValue.AnalysisEntityOpt);
+                        assignedEntities = assignedEntities.Add(assignedValue.AnalysisEntity);
                     }
 
                     var newAnalysisEntities = assignedEntities;
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     {
                         newKind = assignedValue.Value.Kind;
                     }
-                    else if (assignedValue.AnalysisEntityOpt == null || assignedValue.AnalysisEntityOpt.Type.IsValueType)
+                    else if (assignedValue.AnalysisEntity == null || assignedValue.AnalysisEntity.Type.IsValueType)
                     {
                         newKind = CopyAbstractValueKind.KnownValueCopy;
                     }
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 var returnValueAndPredicateKind = base.GetReturnValueAndPredicateKind();
                 if (returnValueAndPredicateKind.HasValue &&
                     returnValueAndPredicateKind.Value.Value.Kind.IsKnown() &&
-                    DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
+                    DataFlowAnalysisContext.InterproceduralAnalysisData != null)
                 {
                     var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
                     var copyValue = returnValueAndPredicateKind.Value.Value;
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAnalysisData GetInitialInterproceduralAnalysisData(
                 IMethodSymbol invokedMethod,
-                (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstance,
+                (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? invocationInstance,
                 (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCaller,
                 ImmutableDictionary<IParameterSymbol, ArgumentInfo<CopyAbstractValue>> argumentValuesMap,
                 IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValues,
