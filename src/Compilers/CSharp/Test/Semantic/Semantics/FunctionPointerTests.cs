@@ -3062,5 +3062,35 @@ unsafe static class C
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Ptr").WithArguments("C.Ptr").WithLocation(5, 65)
             );
         }
+
+        [Fact, WorkItem(46688, "https://github.com/dotnet/roslyn/issues/46688")]
+        public void NewAfterPtrDeclaration()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M1()
+    {
+        delegate*<void> ptr = new () => {};
+    }
+
+    void M2()
+    {
+        delegate*<void> ptr = new();
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,38): error CS1003: Syntax error, ',' expected
+                //         delegate*<void> ptr = new () => {};
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 38),
+                // (6,41): error CS1002: ; expected
+                //         delegate*<void> ptr = new () => {};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),
+                // (11,31): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
+                //         delegate*<void> ptr = new();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("delegate*<void>").WithLocation(11, 31)
+            );
+        }
     }
 }
