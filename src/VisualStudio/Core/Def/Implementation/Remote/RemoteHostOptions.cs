@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(OOP64Bit)));
 
         public static bool IsServiceHubProcess64Bit(HostWorkspaceServices services)
-            => services.GetRequiredService<IOptionService>().GetOption(OOP64Bit);
+            => Environment.Is64BitOperatingSystem && services.GetRequiredService<IOptionService>().GetOption(OOP64Bit);
     }
 
     [ExportOptionProvider, Shared]
