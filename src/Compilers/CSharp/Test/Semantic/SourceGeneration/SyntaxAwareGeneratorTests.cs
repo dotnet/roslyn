@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -282,22 +283,23 @@ class C
         [Fact]
         public void Syntax_Receiver_Exception_During_Visit_Stops_Visits_On_Other_Trees()
         {
-            var source = @"
+            var source1 = @"
 class C 
 {
     int Property { get; set; }
 }
-
+";
+            var source2 = @"
 class D
 {
     public void Method() { }
 }
 ";
             var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            Assert.Single(compilation.SyntaxTrees);
+            Assert.Equal(2, compilation.SyntaxTrees.Count());
 
             TestSyntaxReceiver receiver1 = new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is PropertyDeclarationSyntax) throw new Exception("Test Exception"); });
             var testGenerator1 = new CallbackGenerator(
