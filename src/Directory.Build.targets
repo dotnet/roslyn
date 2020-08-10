@@ -1,8 +1,3 @@
 <Project>
-  <PropertyGroup>
-    <!-- Workaround https://github.com/dotnet/wpf/issues/1718 -->
-    <EmbedUntrackedSources Condition=" '$(UseWPF)' == 'true' ">false</EmbedUntrackedSources>
-  </PropertyGroup>
-
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.targets))\Directory.Build.targets" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.targets))' != '' " />
 </Project>
