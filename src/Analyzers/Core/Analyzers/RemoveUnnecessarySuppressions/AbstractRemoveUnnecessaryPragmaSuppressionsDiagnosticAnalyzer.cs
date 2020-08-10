@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 var methodInfo = compilerAnalyzerType.GetMethod("GetSupportedErrorCodes", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 var compilerAnalyzerInstance = Activator.CreateInstance(compilerAnalyzerType);
                 var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, Array.Empty<object>()) as IEnumerable<int>;
-                return supportedCodes.ToImmutableHashSet();
+                return supportedCodes?.ToImmutableHashSet() ?? ImmutableHashSet<int>.Empty;
             }
             catch (Exception ex)
             {
@@ -99,7 +99,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Bail out if analyzer is suppressed on this file or project.
             // NOTE: Normally, we would not require this check in the analyzer as the analyzer driver has this optimization.
             // However, this is a special analyzer that is directly invoked by the analysis host (IDE), so we do this check here.
-            if (tree.DiagnosticOptions.TryGetValue(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, out var severity) ||
+            ReportDiagnostic severity;
+            if (
+#if !CODE_STYLE
+                compilationWithAnalyzers.Compilation.Options.SyntaxTreeOptionsProvider != null &&
+                compilationWithAnalyzers.Compilation.Options.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(tree, IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, out severity) ||
+#endif
                 compilationWithAnalyzers.Compilation.Options.SpecificDiagnosticOptions.TryGetValue(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, out severity))
             {
                 if (severity == ReportDiagnostic.Suppress)

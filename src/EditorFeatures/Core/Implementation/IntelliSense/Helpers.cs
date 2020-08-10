@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             ImmutableArray<TaggedText> taggedTexts,
             ref int index,
             Document document,
-            IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+            IThreadingContext? threadingContext,
+            Lazy<IStreamingFindUsagesPresenter>? streamingPresenter)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 {
                     // This is tagged text getting added to the current line we are building.
                     var style = GetClassifiedTextRunStyle(part.Style);
-                    if (part.NavigationTarget is object)
+                    if (part.NavigationTarget is object && streamingPresenter != null && threadingContext != null)
                     {
                         if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
                         {

@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities, string? clientName,
-            CancellationToken cancellationToken)
-            => GetTextEditsAsync(request.TextDocument, clientName, cancellationToken, range: request.Range);
+        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
+            => GetTextEditsAsync(request.TextDocument, context, cancellationToken, range: request.Range);
     }
 }
