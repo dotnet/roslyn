@@ -11,14 +11,13 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
-using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionsTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
+        [WpfFact]
         public async Task TestCodeActionHandlerAsync()
         {
             var markup =
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expected, useImplicitType);
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestCodeActionHandlerAsync_NestedAction()
         {
             var markup =
