@@ -1885,14 +1885,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UseDefViolationOut = 8886,
         WRN_UseDefViolation = 8887,
 
+        ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 8888,
+        ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 8889,
+        ERR_TypeNotFound = 8890,
+        ERR_TypeMustBePublic = 8801,
+
         #endregion diagnostics introduced for C# 9.0
-
-        // PROTOTYPE(func-ptr): Pack before merge
-
-        ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 9500,
-        ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 9501,
-        ERR_TypeNotFound = 9502,
-        ERR_TypeMustBePublic = 9503,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

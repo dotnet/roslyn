@@ -6313,8 +6313,8 @@ unsafe class Derived2 : Base
     public override delegate* unmanaged[Stdcall, Stdcall, Thiscall]<ref string> M4() => throw null;
 }
 ";
-            // PROTOTYPE(func-ptr): When we have a p8 runtime, verify output on these, that the correct overload
-            // is called.
+            // https://github.com/dotnet/roslyn/issues/46676: When we have a p8 runtime, verify output
+            // on these, that the correct overload is called.
 
             var allSourceComp = CreateCompilationWithFunctionPointers(source1 + source2);
 

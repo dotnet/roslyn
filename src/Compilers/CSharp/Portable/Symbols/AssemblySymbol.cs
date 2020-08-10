@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is object;
         }
 
-        // PROTOTYPE(func-ptr): Remove when we have a runtime that supports this to test with
+        // https://github.com/dotnet/roslyn/issues/46676: Remove when we have a runtime that supports this to test with
         private bool _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
         internal void SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention()
             => _overrideRuntimeSupportUnmanagedSignatureCallingConvention = true;
