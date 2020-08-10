@@ -1525,9 +1525,9 @@ class C {
         public void TestNullCheckedSyntaxCorrection6()
         {
             UsingDeclaration("Func<string, string> func6 = x !!= > x;", options: TestOptions.RegularPreview,
-                    // (1,36): error CS1525: Invalid expression term 'x'
+                    // (1,36): error CS1525: Invalid expression term '>'
                     // Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments("x").WithLocation(1, 36));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 36));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1631,11 +1631,10 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection8()
         {
-            // PROTOTYPE(BangBang) - States that the invalid expression term is >
             UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview,
-                    // (1,33): error CS1525: Invalid expression term '>'
+                    // (1,33): error CS1525: Invalid expression term '!'
                     // Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments(">").WithLocation(1, 33));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1688,9 +1687,9 @@ class C {
         public void TestNullCheckedSyntaxCorrection9()
         {
             UsingDeclaration("Func<string, string> func9 = x! ! => x;", options: TestOptions.RegularPreview,
-                    // (1,33): error CS1525: Invalid expression term '=>'
+                    // (1,33): error CS1525: Invalid expression term '!'
                     // Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=>").WithLocation(1, 33));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 33));
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);

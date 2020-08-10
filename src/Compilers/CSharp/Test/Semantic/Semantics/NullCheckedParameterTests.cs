@@ -135,20 +135,29 @@ partial class C
     void M3(string name ! !=null) { }
     void M4(string name ! ! =null) { }
     void M5(string name! ! =null) { }
+    void M6(string name! != null) { }
+    void M7(string name!
+    != null) { }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                    // (6,26): error CS1525: Invalid expression term 'null'
+                    // (6,26): error CS1525: Invalid expression term '!'
                     //     void M1(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(6, 26),
-                    // (8,27): error CS1525: Invalid expression term 'null'
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(6, 26),
+                    // (8,27): error CS1525: Invalid expression term '!'
                     //     void M3(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(8, 27),
-                    // (9,27): error CS1525: Invalid expression term '='
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(8, 27),
+                    // (9,27): error CS1525: Invalid expression term '!'
                     //     void M4(string name ! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(9, 27),
-                    // (10,26): error CS1525: Invalid expression term '='
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(9, 27),
+                    // (10,26): error CS1525: Invalid expression term '!'
                     //     void M5(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(10, 26));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(10, 26),
+                    // (11,26): error CS1525: Invalid expression term '!'
+                    //     void M6(string name! != null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(11, 26),
+                    // (13,5): error CS1525: Invalid expression term '!'
+                    //     != null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(13, 5));
         }
 
         [Fact]
@@ -522,15 +531,15 @@ class C
                     // (11,45): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         Func<string, string> func4 = x ! => x;
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(11, 45),
-                    // (13,44): error CS1525: Invalid expression term 'x'
+                    // (13,44): error CS1525: Invalid expression term '>'
                     //         Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments("x").WithLocation(13, 44),
-                    // (15,41): error CS1525: Invalid expression term '>'
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(13, 44),
+                    // (15,41): error CS1525: Invalid expression term '!'
                     //         Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments(">").WithLocation(15, 41),
-                    // (16,41): error CS1525: Invalid expression term '=>'
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(15, 41),
+                    // (16,41): error CS1525: Invalid expression term '!'
                     //         Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=>").WithLocation(16, 41));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(16, 41));
         }
 
         [Fact]

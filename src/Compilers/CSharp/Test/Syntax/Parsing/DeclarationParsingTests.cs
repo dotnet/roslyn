@@ -7481,11 +7481,10 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceInbetween()
         {
-            // PROTOTYPE(BangBang) - add single ! tests 
             UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
-                    // (1,21): error CS1525: Invalid expression term 'null'
+                    // (1,21): error CS1525: Invalid expression term '!'
                     // void M(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(1, 21));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7568,9 +7567,9 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSpaceAfterBangs()
         {
             UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
-                    // (1,21): error CS1525: Invalid expression term '='
+                    // (1,21): error CS1525: Invalid expression term '!'
                     // void M(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("=").WithLocation(1, 21));
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 21));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7611,11 +7610,10 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgWithSpaceBeforeBangs()
         {
-            // PROTOTYPE(BangBang) - States that the invalid expression term is null
             UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
-                    // (1,22): error CS1525: Invalid expression term 'null'
-                    // void M(string name ! !=null) { }           
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("null").WithLocation(1, 22));
+                    // (1,22): error CS1525: Invalid expression term '!'
+                    // void M(string name ! !=null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(1, 22));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);

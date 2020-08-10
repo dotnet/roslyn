@@ -10902,7 +10902,7 @@ tryAgain:
             //  case 2:  ( x ) =>
             if (IsTrueIdentifier(this.PeekToken(1)))
             {
-                // allow for       a) =>      or     a!) =>
+                // allow for       a) =>      or     a!!) =>
                 var skipIndex = 2;
                 if (PeekToken(skipIndex).Kind == SyntaxKind.ExclamationToken
                     && this.PeekToken(skipIndex + 1).Kind == SyntaxKind.ExclamationToken)
@@ -12968,7 +12968,7 @@ tryAgain:
             }
             else
             {
-                s2 = this.AddError(s2, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
+                s2 = this.AddError(s2, ErrorCode.ERR_InvalidExprTerm, s2.Text);
                 s1 = AddTrailingSkippedSyntax(s1, s2);
             }
 
