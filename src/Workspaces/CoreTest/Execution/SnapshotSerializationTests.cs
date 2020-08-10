@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -269,7 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task MetadataReference_RoundTrip_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -360,15 +358,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task OptionSet_Serialization()
         {
-            var workspace = new AdhocWorkspace();
-
+            using var workspace = new AdhocWorkspace()
+                .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
+                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic)
+                .Solution.Workspace;
             await VerifyOptionSetsAsync(workspace, _ => { }).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task OptionSet_Serialization_CustomValue()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
 
             var newQualifyFieldAccessValue = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
             var newQualifyMethodAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Missing_Metadata_Serialization_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new MissingMetadataReference();
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Missing_Analyzer_Serialization_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Missing_Analyzer_Serialization_Desktop_Test()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task RoundTrip_Analyzer_Serialization_Test()
         {
             using var tempRoot = new TempRoot();
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // actually shadow copy content
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var tempRoot = new TempRoot();
 
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // actually shadow copy content
@@ -559,6 +559,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var recovered = await validator.GetSolutionAsync(snapshot).ConfigureAwait(false);
         }
 
+        [Fact, WorkItem(44791, "https://github.com/dotnet/roslyn/issues/44791")]
+        public async Task UnknownLanguageOptionsTest()
+        {
+            var hostServices = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
+            using var workspace = new AdhocWorkspace(hostServices);
+            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName)
+                .Solution.AddProject("Project2", "Project2.dll", LanguageNames.CSharp);
+            workspace.TryApplyChanges(project.Solution);
+
+            await VerifyOptionSetsAsync(workspace, verifyOptionValues: _ => { });
+        }
+
         [Fact]
         public async Task EmptyAssetChecksumTest()
         {
@@ -631,7 +643,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestEncodingSerialization()
         {
-            var workspace = new AdhocWorkspace();
+            using var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // test with right serializable encoding
@@ -702,10 +714,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
         {
-            var solution = new AdhocWorkspace()
-                .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
-                .Solution.AddProject("Project2", "Project.dll", LanguageNames.VisualBasic)
-                .Solution;
+            var solution = workspace.CurrentSolution;
+
             verifyOptionValues(workspace.Options);
             verifyOptionValues(solution.Options);
 
@@ -725,6 +735,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             verifyOptionValues(workspace.Options);
             verifyOptionValues(recoveredSolution.Options);
+
+            // checksum for recovered solution should be the same.
+            using var recoveredSnapshot = await validator.RemotableDataService.CreatePinnedRemotableDataScopeAsync(recoveredSolution, CancellationToken.None).ConfigureAwait(false);
+            var recoveredChecksum = recoveredSnapshot.SolutionChecksum;
+            Assert.Equal(checksum, recoveredChecksum);
         }
 
         private static async Task<RemotableData> CloneAssetAsync(ISerializerService serializer, RemotableData asset)
