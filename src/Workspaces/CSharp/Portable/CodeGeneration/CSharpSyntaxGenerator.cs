@@ -2494,12 +2494,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return WithAccessorList(declaration, newList);
         }
 
-        private static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
-            => declaration.Kind() switch
+        internal static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
+            => declaration switch
             {
-                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).AccessorList,
-                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).AccessorList,
-                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).AccessorList,
+                PropertyDeclarationSyntax property => property.AccessorList,
+                IndexerDeclarationSyntax indexer => indexer.AccessorList,
+                EventDeclarationSyntax @event => @event.AccessorList,
                 _ => null,
             };
 

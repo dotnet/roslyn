@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -14,22 +13,20 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
     internal abstract class AbstractSemanticModelReuseLanguageService<
+        TMemberDeclarationSyntax,
         TBaseMethodDeclarationSyntax,
-        TAccessorDeclarationSyntax,
-        TPropertyDeclarationSyntax,
-        TEventDeclarationSyntax> : ISemanticModelReuseLanguageService
-        where TBaseMethodDeclarationSyntax : SyntaxNode
+        TAccessorDeclarationSyntax> : ISemanticModelReuseLanguageService
+        where TMemberDeclarationSyntax : SyntaxNode
+        where TBaseMethodDeclarationSyntax : TMemberDeclarationSyntax
         where TAccessorDeclarationSyntax : SyntaxNode
-        where TPropertyDeclarationSyntax : SyntaxNode
-        where TEventDeclarationSyntax : SyntaxNode
     {
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public abstract SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node);
 
         protected abstract Task<SemanticModel?> TryGetSpeculativeSemanticModelWorkerAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken);
-        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TPropertyDeclarationSyntax property);
-        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TEventDeclarationSyntax @event);
+        protected abstract SyntaxList<TAccessorDeclarationSyntax> GetAccessors(TMemberDeclarationSyntax member);
+        protected abstract TMemberDeclarationSyntax GetAccessorContainerDeclaration(TAccessorDeclarationSyntax currentAccessor);
 
         public Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
         {
@@ -48,11 +45,17 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 // in the case of an accessor, have to find the previous accessor in the previous prop/event corresponding
                 // to the current prop/event.
 
-                var currentContainer = currentBodyNode.Ancestors().First(a => a is TEventDeclarationSyntax || a is TPropertyDeclarationSyntax);
+                var currentContainer = GetAccessorContainerDeclaration(currentAccessor);
                 var previousContainer = GetPreviousBodyNode(previousRoot, currentRoot, currentContainer);
 
+                if (previousContainer is not TMemberDeclarationSyntax previousMember)
+                {
+                    Debug.Fail("Previous container didn't map back to a normal accessor container.");
+                    return null;
+                }
+
                 var currentAccessors = GetAccessors(currentContainer);
-                var previousAccessors = GetAccessors(previousContainer);
+                var previousAccessors = GetAccessors(previousMember);
 
                 if (currentAccessors.Count != previousAccessors.Count)
                 {
@@ -81,16 +84,6 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                 return previousMembers[index];
             }
-        }
-
-        private SyntaxList<TAccessorDeclarationSyntax> GetAccessors(SyntaxNode container)
-        {
-            return container switch
-            {
-                TPropertyDeclarationSyntax currentProperty => GetAccessors(currentProperty),
-                TEventDeclarationSyntax currentEvent => GetAccessors(currentEvent),
-                _ => throw ExceptionUtilities.Unreachable,
-            };
         }
     }
 }

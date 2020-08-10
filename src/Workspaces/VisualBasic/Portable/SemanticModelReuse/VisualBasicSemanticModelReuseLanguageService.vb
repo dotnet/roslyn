@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SemanticModelReuse
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,7 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
     <ExportLanguageService(GetType(ISemanticModelReuseLanguageService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSemanticModelReuseLanguageService
         Inherits AbstractSemanticModelReuseLanguageService(Of
-            MethodBlockBaseSyntax, AccessorBlockSyntax, PropertyBlockSyntax, EventBlockSyntax)
+            DeclarationStatementSyntax,
+            MethodBlockBaseSyntax,
+            AccessorBlockSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -23,12 +26,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
-        Protected Overrides Function GetAccessors([event] As EventBlockSyntax) As SyntaxList(Of AccessorBlockSyntax)
-            Return [event].Accessors
+        Protected Overrides Function GetAccessorContainerDeclaration(currentAccessor As AccessorBlockSyntax) As DeclarationStatementSyntax
+            Dim container = currentAccessor.Parent
+            Contract.ThrowIfFalse(TypeOf container Is PropertyBlockSyntax OrElse
+                                  TypeOf container Is EventBlockSyntax)
+            Return DirectCast(container, DeclarationStatementSyntax)
         End Function
 
-        Protected Overrides Function GetAccessors([property] As PropertyBlockSyntax) As SyntaxList(Of AccessorBlockSyntax)
-            Return [property].Accessors
+        Protected Overrides Function GetAccessors(member As DeclarationStatementSyntax) As SyntaxList(Of AccessorBlockSyntax)
+            Contract.ThrowIfFalse(TypeOf member Is PropertyBlockSyntax OrElse
+                                  TypeOf member Is EventBlockSyntax)
+            Return VisualBasicSyntaxGenerator.GetAccessorList(member)
         End Function
 
         Public Overrides Function TryGetContainingMethodBodyForSpeculation(node As SyntaxNode) As SyntaxNode
