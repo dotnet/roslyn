@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
         public CSharpSimplifyLinqExpressionsCodeFixProvider()
         {
         }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.SimplifyLinqExpressionsDiagnosticId);
 
