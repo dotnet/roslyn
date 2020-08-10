@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public CodeActionsHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider)
-            : base(solutionProvider)
+            ICodeRefactoringService codeRefactoringService)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;

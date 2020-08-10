@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, ILspSolutionProvider solutionProvider)
-            : base(metadataAsSourceFileService, solutionProvider)
+        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
+            : base(metadataAsSourceFileService)
         {
         }
 

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FoldingRangesHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FoldingRangesHandler()
         {
         }
 

@@ -20,15 +20,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
     internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider)
         {
+            _solutionProvider = solutionProvider;
         }
 
         public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = SolutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
             if (!documents.Any())
             {

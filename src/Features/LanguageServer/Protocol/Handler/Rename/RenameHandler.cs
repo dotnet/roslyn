@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public RenameHandler()
         {
         }
 

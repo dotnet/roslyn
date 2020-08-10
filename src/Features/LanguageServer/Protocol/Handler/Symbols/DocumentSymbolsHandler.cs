@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentSymbolsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public DocumentSymbolsHandler()
         {
         }
 

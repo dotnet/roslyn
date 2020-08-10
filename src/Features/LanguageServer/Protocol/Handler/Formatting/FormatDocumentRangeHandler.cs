@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FormatDocumentRangeHandler()
         {
         }
 

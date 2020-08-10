@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceSymbolsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public WorkspaceSymbolsHandler()
         {
         }
 
