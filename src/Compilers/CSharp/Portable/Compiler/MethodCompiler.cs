@@ -607,8 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundBlock.SynthesizedNoLocals(containingType.GetNonNullSyntaxNode()),
                     _diagnostics,
                     useConstructorExitWarnings: true,
-                    initialNullableState: null,
-                    out processedStaticInitializers.AfterInitializersState);
+                    initialNullableState: null);
             }
 
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
@@ -962,7 +961,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
 
-                    NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, initializerStatements, diagsForCurrentMethod, useConstructorExitWarnings: false, initialNullableState: null, out processedInitializers.AfterInitializersState);
+                    NullableWalker.AnalyzeIfNeeded(
+                        _compilation,
+                        methodSymbol,
+                        initializerStatements,
+                        diagsForCurrentMethod,
+                        useConstructorExitWarnings: false,
+                        initialNullableState: null,
+                        getFinalNullableState: true,
+                        out processedInitializers.AfterInitializersState);
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
                     DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
@@ -985,8 +992,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (methodSymbol.IsConstructor() && processedInitializers.AfterInitializersState is null)
                     {
-                        // TODO: should there be a state which indicates that we don't have an after initializers state and also don't want one?
-                        NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, analyzedInitializers ?? BoundBlock.SynthesizedNoLocals(methodSymbol.GetNonNullSyntaxNode()), diagsForCurrentMethod, useConstructorExitWarnings: false, initialNullableState: null, out processedInitializers.AfterInitializersState);
+                        NullableWalker.AnalyzeIfNeeded(
+                            _compilation,
+                            methodSymbol,
+                            analyzedInitializers ?? BoundBlock.SynthesizedNoLocals(methodSymbol.GetNonNullSyntaxNode()),
+                            diagsForCurrentMethod,
+                            useConstructorExitWarnings: false,
+                            initialNullableState: null,
+                            getFinalNullableState: true,
+                            out processedInitializers.AfterInitializersState);
                     }
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, processedInitializers.AfterInitializersState, out importChain, out originalBodyNested, out forSemanticModel);
                     if (diagsForCurrentMethod.HasAnyErrors() && body != null)
@@ -1690,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics, useConstructorExitWarnings: true, nullableInitialState, out _);
+                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics, useConstructorExitWarnings: true, nullableInitialState);
                     }
 
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
@@ -1764,7 +1778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsConstructor() && method.IsImplicitlyDeclared && nullableInitialState is object)
             {
-                NullableWalker.AnalyzeIfNeeded(compilationState.Compilation, method, body ?? BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode()), diagnostics, useConstructorExitWarnings: true, nullableInitialState, out _);
+                NullableWalker.AnalyzeIfNeeded(compilationState.Compilation, method, body ?? BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode()), diagnostics, useConstructorExitWarnings: true, nullableInitialState);
             }
 
             if (method.MethodKind == MethodKind.Destructor && body != null)

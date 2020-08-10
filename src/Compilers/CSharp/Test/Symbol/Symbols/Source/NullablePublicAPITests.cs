@@ -4596,6 +4596,11 @@ class C
     {
         Prop.ToString();
     }
+
+    public C(string s) : this()
+    {
+        Prop.ToString();
+    }
 }
 ";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -4603,14 +4608,20 @@ class C
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var receiver = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
 
+            var memberAccesses = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToArray();
+            Assert.Equal(2, memberAccesses.Length);
+
+            var receiver = memberAccesses[0].Expression;
             var info = model.GetTypeInfo(receiver);
-            Assert.Equal(PublicNullableAnnotation.Annotated, info.Nullability.Annotation);
-            // TODO: flow state should be not null here.
-            Assert.Equal(PublicNullableFlowState.MaybeNull, info.Nullability.FlowState);
-        }
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, info.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableFlowState.NotNull, info.Nullability.FlowState);
 
+            receiver = memberAccesses[1].Expression;
+            info = model.GetTypeInfo(receiver);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, info.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableFlowState.NotNull, info.Nullability.FlowState);
+        }
 
         private class AutoPropInitializer_02_Analyzer : DiagnosticAnalyzer
         {
@@ -4651,6 +4662,11 @@ class C
     {
         Prop.ToString();
     }
+
+    public C(string s) : this()
+    {
+        Prop.ToString();
+    }
 }
 ";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -4658,7 +4674,43 @@ class C
 
             var analyzer = new AutoPropInitializer_02_Analyzer();
             comp.GetAnalyzerDiagnostics(new[] { analyzer }).Verify();
-            Assert.Equal(1, analyzer.HitCount);
+            Assert.Equal(2, analyzer.HitCount);
+        }
+
+        [Fact]
+        public void AutoPropInitializer_Speculation()
+        {
+            var source = @"
+class C
+{
+    public string Prop { get; set; } = ""a"";
+    public C()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var ctorDecl = tree.GetRoot()
+                .DescendantNodes()
+                .OfType<ConstructorDeclarationSyntax>()
+                .Single();
+            var spanStart = ctorDecl
+                .Body
+                .OpenBraceToken
+                .SpanStart;
+
+            var newBody = SyntaxFactory.ParseStatement("Prop.ToString();");
+            Assert.True(model.TryGetSpeculativeSemanticModel(spanStart, newBody, out var speculativeModel));
+
+            var newAccess = newBody.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            var typeInfo = speculativeModel.GetTypeInfo(newAccess.Expression);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
         }
     }
 }

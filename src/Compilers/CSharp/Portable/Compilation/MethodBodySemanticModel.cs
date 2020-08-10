@@ -298,8 +298,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            // TODO: do we need to somehow thread the initial state into here?
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+            NullableWalker.VariableState afterInitializersState = null;
+
+            if (MemberSymbol is MethodSymbol method && method.IsConstructor() && !method.HasThisConstructorInitializer()
+                && method.ContainingType is SourceMemberContainerTypeSymbol containingType)
+            {
+                var unusedDiagnostics = DiagnosticBag.GetInstance();
+
+                Binder.ProcessedFieldInitializers initializers = default;
+                Binder.BindFieldInitializers(Compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, unusedDiagnostics, ref initializers);
+                NullableWalker.AnalyzeIfNeeded(
+                    Compilation,
+                    method,
+                    InitializerRewriter.RewriteConstructor(initializers.BoundInitializers, method),
+                    unusedDiagnostics,
+                    useConstructorExitWarnings: false,
+                    initialNullableState: null,
+                    getFinalNullableState: true,
+                    out afterInitializersState);
+
+                unusedDiagnostics.Free();
+            }
+
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
 #if DEBUG

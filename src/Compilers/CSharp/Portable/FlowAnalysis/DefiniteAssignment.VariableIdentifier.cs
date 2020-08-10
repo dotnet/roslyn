@@ -11,14 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalDataFlowPass<TLocalState, TLocalFunctionState>
     {
-
-        protected static bool HasInitializer(Symbol field) => field switch
-        {
-            SourceMemberFieldSymbol f => f.HasInitializer,
-            SynthesizedBackingFieldSymbol f => f.HasInitializer,
-            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
-            _ => false
-        };
         internal readonly struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
             public readonly Symbol Symbol;

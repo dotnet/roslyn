@@ -695,16 +695,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     default:
                                         break;
                                 }
-                                var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
+                                var memberSlot = getSlotForFieldOrProperty(memberToInitialize);
                                 if (memberSlot > 0)
                                 {
-                                    var type = memberToInitialize switch
-                                    {
-                                        FieldSymbol f => f.Type,
-                                        PropertySymbol p => p.Type,
-                                        EventSymbol e => e.Type,
-                                        _ => throw ExceptionUtilities.UnexpectedValue(memberToInitialize)
-                                    };
+                                    var type = memberToInitialize.GetTypeOrReturnType().Type;
                                     this.State[memberSlot] = type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
                                 }
                             }
@@ -843,40 +837,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // TODO: can this be folded into 'getSlotForFieldOrProperty'?
-            int getSlotForFieldOrPropertyOrEvent(Symbol member)
+            int getSlotForFieldOrProperty(Symbol member)
             {
                 if (member.Kind != SymbolKind.Field &&
                     member.Kind != SymbolKind.Property &&
                     member.Kind != SymbolKind.Event)
-                {
-                    return -1;
-                }
-
-                int thisSlot = -1;
-                bool isStatic = member.IsStatic;
-
-                if (!isStatic)
-                {
-                    if (MethodThisParameter is null)
-                    {
-                        return -1;
-                    }
-                    thisSlot = GetOrCreateSlot(MethodThisParameter);
-                    if (thisSlot < 0)
-                    {
-                        return -1;
-                    }
-                    Debug.Assert(thisSlot > 0);
-                }
-
-                return GetOrCreateSlot(member, isStatic ? 0 : thisSlot);
-            }
-
-            int getSlotForFieldOrProperty(Symbol member)
-            {
-                if (member.Kind != SymbolKind.Field &&
-                    member.Kind != SymbolKind.Property)
                 {
                     return -1;
                 }
@@ -912,6 +877,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Analyzes a method body if settings indicate we should, discarding the final nullable state.
+        /// </summary>
+        internal static void AnalyzeIfNeeded(
+            CSharpCompilation compilation,
+            MethodSymbol method,
+            BoundNode node,
+            DiagnosticBag diagnostics,
+            bool useConstructorExitWarnings,
+            VariableState? initialNullableState)
+        {
+            AnalyzeIfNeeded(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState: false, out _);
+        }
+
         internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             MethodSymbol method,
@@ -919,6 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
             VariableState? initialNullableState,
+            bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
@@ -926,7 +906,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 // Always run analysis in debug builds so that we can more reliably catch
                 // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-                Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, out _);
+                // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
+                Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
 #endif
                 // TODO: is it necessary to suppress the final nullable state in debug mode when nullable is not enabled?
                 // it feels like otherwise it could result in a behavior difference in semantic model between debug and release mode.
@@ -934,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, out finalNullableState);
+            Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, out finalNullableState);
         }
 
         internal static void Analyze(
@@ -944,6 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
             VariableState? initialNullableState,
+            bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !method.IsScriptInitializer)
@@ -969,6 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
+                getFinalNullableState,
                 finalNullableState: out finalNullableState);
         }
 
@@ -1040,6 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilities,
                 snapshotBuilder,
                 returnTypesOpt: null,
+                getFinalNullableState: false,
                 out _);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
@@ -1135,6 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
+                getFinalNullableState: false,
                 out _);
         }
 
@@ -1163,6 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt,
                 snapshotBuilderOpt,
                 returnTypesOpt,
+                getFinalNullableState: false,
                 out _);
         }
 
@@ -1180,6 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
             SnapshotManager.Builder? snapshotBuilderOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
+            bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
             Debug.Assert(diagnostics != null);
@@ -1200,8 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
-                // we only go to the trouble of saving the final state if we're analyzing field initializers
-                if (symbol is MethodSymbol method && method.IsConstructor() && initialState is null && !useConstructorExitWarnings)
+                if (getFinalNullableState)
                 {
                     Debug.Assert(!walker.IsConditionalState);
                     finalNullableState = walker.GetVariableState(walker.State);

@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
             {
                 Debug.Assert(boundRoot.Syntax is TypeSyntax);
-                // TODO: do we need to somehow thread the initial state in here?
                 return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
             }
 
