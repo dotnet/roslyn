@@ -239,6 +239,20 @@ namespace Microsoft.CodeAnalysis.Testing
             await VerifySuppressionDiagnosticsAsync(analyzers, sources, additionalFiles, additionalProjects, additionalMetadataReferences, expected, verifier, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Checks each of the actual <see cref="Diagnostic"/>s found and compares them with the corresponding
+        /// <see cref="DiagnosticResult"/> based on custom test requirements not yet supported by the test framework.
+        /// </summary>
+        /// <param name="analyzers">The analyzers that have been run on the sources.</param>
+        /// <param name="actual">The <see cref="Diagnostic"/>s found by the compiler after running the analyzer
+        /// on the source code.</param>
+        /// <param name="expected">The <see cref="DiagnosticResult"/>s describing the expected
+        /// diagnostics for the sources.</param>
+        /// <param name="verifier">The verifier to use for test assertions.</param>
+        protected virtual void VerifyDiagnosticCustom(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic actual, DiagnosticResult expected, IVerifier verifier)
+        {
+        }
+
         private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
             if (TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedCodeCheck)
@@ -371,6 +385,8 @@ namespace Microsoft.CodeAnalysis.Testing
                         StringComparer.Ordinal,
                         message);
                 }
+
+                VerifyDiagnosticCustom(analyzers, actual, expected, verifier);
             }
         }
 
