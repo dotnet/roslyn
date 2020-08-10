@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly SnapshotSpan _span;
         private readonly SymbolKey _key;
         private readonly IThreadingContext _threadingContext;
-        public readonly Lazy<IStreamingFindUsagesPresenter> StreamingPresenter;
+        private readonly Lazy<IStreamingFindUsagesPresenter> StreamingPresenter;
 
         private InlineParameterNameHintsTag(FrameworkElement adornment, ITextView textView, SnapshotSpan span,
                                             SymbolKey key, InlineParameterNameHintsTaggerProvider taggerProvider)
@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             _toolTipService = taggerProvider.ToolTipService;
 
             // Sets the tooltip to a string so that the tool tip opening event can be triggered
-            // Tooltip value does not matter at this point
+            // Tooltip value does not matter at this point because it immediately gets overwritten by the correct
+            // information in the Border_ToolTipOpening event handler
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
         }
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
             if (document != null)
             {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = _key.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
 
                 if (symbol != null)
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     var workspace = document.Project.Solution.Workspace;
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-                    var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
+                    var formatter = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
                     var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
                     textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
                     if (formatter != null)
