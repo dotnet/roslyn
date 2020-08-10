@@ -8789,6 +8789,7 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
         Public Sub SkipAnalyzersParse()
             Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             ParsedArgs.Errors.Verify()
@@ -8820,6 +8821,7 @@ End Class
         End Sub
 
         <Theory, CombinatorialData>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
         Public Sub SkipAnalyzersSemantics(skipAnalyzers As Boolean)
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Class C

@@ -9130,6 +9130,7 @@ public class C { }
         }
 
         [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersParse()
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
@@ -9162,6 +9163,7 @@ public class C { }
         }
 
         [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersSemantics(bool skipAnalyzers)
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");

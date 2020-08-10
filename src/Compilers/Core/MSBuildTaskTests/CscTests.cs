@@ -483,6 +483,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersFlag()
         {
             var csc = new Csc();
