@@ -8,12 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -210,10 +212,13 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService)
         {
-            var serializableOptionKeys = GetRegisteredSerializableOptions(languages);
-            var serializableOptionValues = GetSerializableOptionValues(serializableOptionKeys, languages);
-            var changedOptionsKeys = _changedOptionKeys.Where(key => serializableOptionKeys.Contains(key.Option)).ToImmutableHashSet();
-            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues, changedOptionsKeys);
+            Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
+            var serializableOptions = GetRegisteredSerializableOptions(languages);
+            var serializableOptionValues = GetSerializableOptionValues(serializableOptions, languages);
+            var changedOptionsKeysSerializable = _changedOptionKeys
+                .Where(key => serializableOptions.Contains(key.Option) && (!key.Option.IsPerLanguage || languages.Contains(key.Language!)))
+                .ToImmutableHashSet();
+            return new SerializableOptionSet(languages, optionService, serializableOptions, serializableOptionValues, changedOptionsKeysSerializable);
         }
 
         private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
