@@ -27,6 +27,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
 
+        Private Shared Function GetDefaultDiagnosticAnalyzerService(workspace As TestWorkspace) As DefaultDiagnosticAnalyzerService
+            Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
+            Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
+            Return Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+        End Function
+
         <WpfFact>
         Public Async Function TestMiscSquiggles() As Task
             Dim code = <code>
@@ -39,9 +45,7 @@ class 123 { }
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -88,9 +92,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -127,9 +129,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic)
@@ -167,9 +167,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
@@ -208,9 +206,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
@@ -240,9 +236,7 @@ class 123 { }
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
@@ -271,9 +265,7 @@ End Class
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
@@ -316,9 +308,7 @@ End Class
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.ScriptSemantic)
