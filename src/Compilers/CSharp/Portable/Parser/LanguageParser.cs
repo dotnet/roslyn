@@ -2281,9 +2281,7 @@ tryAgain:
                 TypeSyntax type;
                 bool hasExplicitType;
                 // Before parsing the return type, check if it looks like a method
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                    // check if following is a "(" or a "<" ... then it's most likely the name we are at!
-                    (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.PeekToken(1).Kind == SyntaxKind.LessThanToken))
+                if (IsPossibleMethodDeclarationStart() || IsPossibleGetterPropertyDeclarationStart())
                 {
                     // it's more likely to be a method - without any return type defined
                     var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
@@ -2676,11 +2674,7 @@ parse_member_name:;
                 // check if following is a "{ get " or a "{ set "
                 if(peeked1.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    var peeked2 = this.PeekToken(2);
-                    if(peeked2.Kind == SyntaxKind.GetKeyword || peeked2.Kind == SyntaxKind.SetKeyword)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -3536,8 +3530,8 @@ parse_member_name:;
                     var getAccessor = ParseAccessorDeclaration(isEvent: false, isGetterAccessor: true);
                     builder.Add(getAccessor);
                     var accessors = builder.ToList();
-                    var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken);
-                    var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken);
+                    var openBrace = SyntaxFactory.FakeToken(SyntaxKind.OpenBraceToken, "{");
+                    var closeBrace = SyntaxFactory.FakeToken(SyntaxKind.CloseBraceToken, "}");
                     accessorList = _syntaxFactory.AccessorList(openBrace, accessors, closeBrace);
                 }
             }
@@ -3917,7 +3911,7 @@ parse_member_name:;
                     _pool.Free(attributes);
 
                     // this is explicitly defined as a getter ... so no "get" is needed... we will however set a fake name
-                    accessorName = SyntaxFactory.Token(SyntaxKind.GetKeyword);
+                    accessorName = SyntaxFactory.FakeToken(SyntaxKind.GetKeyword, "get");
                 }
 
                 var accessorKind = GetAccessorKind(accessorName);
