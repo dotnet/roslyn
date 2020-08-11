@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             });
 
         private static readonly ImmutableArray<SyntaxKind> s_syntaxKindsNeedsToCheckThePrecedence =
-            ImmutableArray.CreateRange(new []
+            ImmutableArray.CreateRange(new[]
             {
                 SyntaxKind.AddExpression,
                 SyntaxKind.SubtractExpression,
@@ -74,9 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.LogicalNotExpression,
                 SyntaxKind.BitwiseNotExpression,
                 SyntaxKind.CastExpression,
-                SyntaxKind.AddressOfExpression,
-                SyntaxKind.PointerIndirectionExpression,
-                SyntaxKind.PointerMemberAccessExpression,
                 SyntaxKind.IsPatternExpression,
                 SyntaxKind.AsExpression,
                 SyntaxKind.CoalesceExpression,
@@ -223,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
                 // Same for right associative expression, if the original invocation is the right child,
                 // it is safe to replace it.
-                if (parent is BinaryExpressionSyntax rightAssociativeBinaryExpressionSyntax)
+                if (parent.IsKind(SyntaxKind.CoalesceExpression)
+                    && parent is BinaryExpressionSyntax rightAssociativeBinaryExpressionSyntax)
                 {
                     return rightAssociativeBinaryExpressionSyntax.Right != calleeInvocationSyntaxNode;
                 }

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Precedence;
@@ -25,16 +26,16 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private class MethodInvocationInfo
         {
             public SyntaxNode StatementContainsCalleeInvocationExpression { get; }
-            public bool IsCalleeSingleInvoked { get; }
+            public bool IsCalleeSingleInvokedAsStatementOrDeclaration { get; }
             public bool AssignedToVariable { get; }
 
             private MethodInvocationInfo(
                 SyntaxNode statementContainsCalleeInvocationExpression,
-                bool isCalleeSingleInvoked,
+                bool isCalleeSingleInvokedAsStatementOrDeclaration,
                 bool assignedToVariable)
             {
                 StatementContainsCalleeInvocationExpression = statementContainsCalleeInvocationExpression;
-                IsCalleeSingleInvoked = isCalleeSingleInvoked;
+                IsCalleeSingleInvokedAsStatementOrDeclaration = isCalleeSingleInvokedAsStatementOrDeclaration;
                 AssignedToVariable = assignedToVariable;
             }
 
@@ -97,14 +98,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 SyntaxNode calleeInvocationSyntaxNode,
                 IMethodSymbol calleeMethodSymbol,
                 SyntaxNode calleeMethodDeclarationSyntaxNode,
-                SyntaxNode? rawInlineSyntaxNode,
                 MethodParametersInfo methodParametersInfo,
                 MethodInvocationInfo methodInvocationInfo,
                 CancellationToken cancellationToken)
             {
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                var inlineSyntaxNode = rawInlineSyntaxNode;
+                var inlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
                 // Compute the replacement syntax node for needed symbols(variables and parameters) in the callee.
                 var parametersWithIdentifierArgumentToName = methodParametersInfo.ParametersWithIdentifierArgument
                     .Select(parameterAndArgument =>
@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     replacementTable,
                     cancellationToken).ConfigureAwait(false);
 
-                var shouldWrapInParenthesis = false;
-                if (methodInvocationInfo.IsCalleeSingleInvoked
+                var parent = calleeInvocationSyntaxNode.Parent;
+                if (methodInvocationInfo.IsCalleeSingleInvokedAsStatementOrDeclaration
                     && !calleeMethodSymbol.ReturnsVoid
                     && !methodInvocationInfo.AssignedToVariable)
                 {
@@ -222,12 +222,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         methodInvocationInfo.StatementContainsCalleeInvocationExpression);
                 }
                 // Check if parenthesis is needed.
-                else if (calleeInvocationSyntaxNode.Parent != null
+                else if (parent != null
                      && !syntaxFacts.IsParenthesizedExpression(inlineSyntaxNode)
                      && inlineMethodRefactoringProvider.IsExpressionSyntax(inlineSyntaxNode)
-                     && inlineMethodRefactoringProvider.IsExpressionSyntax(calleeInvocationSyntaxNode.Parent)
+                     && inlineMethodRefactoringProvider.IsExpressionSyntax(parent)
                      && inlineMethodRefactoringProvider.ShouldCheckTheExpressionPrecedenceInCallee(inlineSyntaxNode))
                 {
+                    var shouldWrapInParenthesis = false;
                     var precedenceOfInlineExpression = precedenceService.GetOperatorPrecedence(inlineSyntaxNode);
                     var precedenceOfInvocation = precedenceService.GetOperatorPrecedence(calleeInvocationSyntaxNode.Parent);
                     if (precedenceOfInlineExpression != 0 && precedenceOfInvocation != 0)
@@ -246,17 +247,19 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                             shouldWrapInParenthesis = inlineMethodRefactoringProvider.NeedWrapInParenthesisWhenPrecedenceAreEqual(calleeInvocationSyntaxNode);
                         }
                     }
-                }
 
-                if (shouldWrapInParenthesis)
-                {
-                    inlineSyntaxNode = syntaxGenerator.AddParentheses(inlineSyntaxNode);
+                    if (shouldWrapInParenthesis)
+                    {
+                        inlineSyntaxNode = syntaxGenerator.AddParentheses(inlineSyntaxNode);
+                    }
                 }
 
                 return new InlineMethodContext(
                     localDeclarationStatementsNeedInsert,
                     methodInvocationInfo.StatementContainsCalleeInvocationExpression,
-                    inlineSyntaxNode,
+                    inlineSyntaxNode
+                        .WithLeadingTrivia(calleeInvocationSyntaxNode.GetLeadingTrivia())
+                        .WithTrailingTrivia(calleeInvocationSyntaxNode.GetTrailingTrivia()),
                     calleeInvocationSyntaxNode);
             }
 

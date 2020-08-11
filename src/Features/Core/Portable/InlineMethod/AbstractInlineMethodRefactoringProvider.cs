@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 calleeMethodInvocationSyntaxNode,
                 calleeMethodSymbol,
                 calleeMethodDeclarationSyntaxNode,
-                GetInlineStatement(calleeMethodDeclarationSyntaxNode),
                 methodParametersInfo,
                 methodInvocationInfo,
                 cancellationToken).ConfigureAwait(false);

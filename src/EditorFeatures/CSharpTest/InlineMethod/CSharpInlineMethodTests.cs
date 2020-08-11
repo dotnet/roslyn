@@ -66,119 +66,11 @@ public class TestClass
 {
     private void Caller(int i, int j)
     {
-System.Console.WriteLine(i + j);
+        System.Console.WriteLine(i + j);
     }
 
     private void Callee(int i, int j)
         => System.Console.WriteLine(i + j);
-}");
-
-        [Fact]
-        public Task TestMinusExpressionWithAddAsLeftValue()
-            => TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return Ca[||]llee(1, 2) - 1;
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return 1 + 2 - 1;
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}");
-
-        [Fact]
-        public Task TestMinusExpressionWithAddAsRightValue()
-            => TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return 1 - Ca[||]llee(1, 2);
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return 1 - (1 + 2);
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}");
-
-        [Fact]
-        public Task TestAddExpressionWithMultiply()
-            => TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return Ca[||]llee(1, 2) * 2;
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public int Caller
-    {
-        get
-        {
-            return (1 + 2) * 2;
-        }
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
 }");
 
         [Fact]
@@ -297,12 +189,12 @@ public class TestClass
 {
     private void Caller(int m)
     {
-        Cal[||]lee(10, m, k: ""Hello"")
+        Cal[||]lee(10, m, k: ""Hello"");
     }
 
     private void Callee(int i, int j = 100, string k = null)
     {
-        System.Console.WriteLine(i + j + (k ?? ""));
+        System.Console.WriteLine(i + j + (k ?? """"));
     }
 }",
                 @"
@@ -310,12 +202,12 @@ public class TestClass
 {
     private void Caller(int m)
     {
-        System.Console.WriteLine(10 + m + (""Hello"" ?? ""));
+        System.Console.WriteLine(10 + m + (""Hello"" ?? """"));
     }
 
     private void Callee(int i, int j = 100, string k = null)
     {
-        System.Console.WriteLine(i + j + (k ?? ""));
+        System.Console.WriteLine(i + j + (k ?? """"));
     }
 }");
 
@@ -778,5 +670,614 @@ public class TestClass
         System.Console.WriteLine(typeof(T).Name.Length + i.Length + typeof(U).Name.Length);
     }
 }");
+
+        #region parenthesisTest
+
+        [Fact]
+        public Task TestInlineExpressionAsLeftValueInLeftAssociativeExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return Ca[||]llee(1, 2) - 1;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return 1 + 2 - 1;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
+        public Task TestInlineExpressionAsRightValueInRightAssociativeExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return 1 - Ca[||]llee(1, 2);
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return 1 - (1 + 2);
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
+        public Task TestAddExpressionWithMultiply()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return Ca[||]llee(1, 2) * 2;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller
+    {
+        get
+        {
+            return (1 + 2) * 2;
+        }
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
+        public Task TestIsExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public bool Caller(int i, int j)
+    {
+        return Ca[||]llee(i, j) is int;
+    }
+
+    private bool Callee(int i, int j)
+    {
+        return i == j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public bool Caller(int i, int j)
+    {
+        return (i == j) is int;
+    }
+
+    private bool Callee(int i, int j)
+    {
+        return i == j;
+    }
+}");
+
+        [Fact]
+        public Task TestUnaryPlusOperator()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller()
+    {
+        return +Call[||]ee();
+    }
+
+    private int Callee()
+    {
+        return 1 + 2;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller()
+    {
+        return +(1 + 2);
+    }
+
+    private int Callee()
+    {
+        return 1 + 2;
+    }
+}");
+
+        [Fact]
+        public Task TestLogicalNotExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public bool Caller(int i, int j)
+    {
+        return !Ca[||]llee(i, j);
+    }
+
+    private bool Callee(int i, int j)
+    {
+        return i == j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public bool Caller(int i, int j)
+    {
+        return !(i == j);
+    }
+
+    private bool Callee(int i, int j)
+    {
+        return i == j;
+    }
+}");
+
+        [Fact]
+        public Task TestBitWiseNotExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public bool Caller(int i, int j)
+    {
+        return ~Call[||]ee(i, j);
+    }
+
+    private bool Callee(int i, int j)
+    {
+        return i == j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public bool Caller(int i, int j)
+    {
+        return ~(i == j);
+    }
+
+    private bool Callee(int i, int j)
+    {
+        return i == j;
+    }
+}");
+
+        [Fact]
+        public Task TestCastExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public char Caller(int i, int j)
+    {
+        return (char)Call[||]ee(i, j);
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public char Caller(int i, int j)
+    {
+        return (char)(i + j);
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
+        public Task TestIsPatternExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Calller()
+    {
+        if (Ca[||]llee() is int i)
+        {
+        }
+    }
+
+    private int Callee()
+    {
+        return 1 | 2;
+    }
+}",
+                @"
+public class TestClass
+{
+    public void Calller()
+    {
+        if ((1 | 2) is int i)
+        {
+        }
+    }
+
+    private int Callee()
+    {
+        return 1 | 2;
+    }
+}");
+
+        [Fact]
+        public Task TestAsExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Calller()
+    {
+        var x = Cal[||]lee() as string
+    }
+
+    private int Callee()
+    {
+        return 1 | 2;
+    }
+}",
+                @"
+public class TestClass
+{
+    public void Calller()
+    {
+        var x = (1 | 2) as string
+    }
+
+    private int Callee()
+    {
+        return 1 | 2;
+    }
+}");
+
+        [Fact]
+        public Task TestCoalesceExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller(int? c)
+    {
+        return 1 + Cal[||]lee(c);
+    }
+
+    private int Callee(int? c)
+    {
+        return c ?? 1;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller(int? c)
+    {
+        return 1 + (c ?? 1);
+    }
+
+    private int Callee(int? c)
+    {
+        return c ?? 1;
+    }
+}");
+
+        [Fact]
+        public Task TestCoalesceExpressionAsRightValue()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public int Caller(int? c2)
+    {
+        return c ?? Cal[||]lee(null);
+    }
+
+    private int Callee(int? c2)
+    {
+        return c2 ?? 1;
+    }
+}",
+                @"
+public class TestClass
+{
+    public int Caller(int? c2)
+    {
+        return c ?? null ?? 1;
+    }
+
+    private int Callee(int? c2)
+    {
+        return c2 ?? 1;
+    }
+}");
+
+        [Fact(Skip = "Add await suppport")]
+        public Task TestAwaitExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public char Caller(int i, int j)
+    {
+        return (char)Call[||]ee(i, j);
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}",
+                @"
+public class TestClass
+{
+    public char Caller(int i, int j)
+    {
+        return (char)(i + j);
+    }
+
+    private int Callee(int i, int j)
+    {
+        return i + j;
+    }
+}");
+
+        [Fact]
+        public Task TestSimpleMemberAccessExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = C[||]allee().Length;
+    }
+
+    private string Callee() => ""H"" + ""L"";
+}",
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = (""H"" + ""L"").Length;
+    }
+
+    private string Callee() => ""H"" + ""L"";
+}");
+
+        [Fact(Skip = "Add Support")]
+        public Task TestInvocationExpression()
+            => Task.CompletedTask;
+
+        [Fact]
+        public Task TestElementAccessExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = C[||]allee()[0];
+    }
+
+    private string Callee() => ""H"" + ""L"";
+}",
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = (""H"" + ""L"")[0];
+    }
+
+    private string Callee() => ""H"" + ""L"";
+}");
+
+        [Fact(Skip = "No OperatorPrecedenceService for switch expression")]
+        public Task TestSwitchExpression()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private void Calller()
+    {
+        var x = C[||]allee() switch
+        {
+            1 => 1,
+            2 => 2,
+            _ => 3
+        };
+    }
+
+    private int Callee() => 1 + 2;
+}",
+                @"
+public class TestClass
+{
+    private void Calller()
+    {
+        var x = (1 + 2) switch
+        {
+            1 => 1,
+            2 => 2,
+            _ => 3
+        };
+    }
+
+    private int Callee() => 1 + 2;
+}");
+
+        [Fact]
+        public Task TestConditionalAccessExpression()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private void Calller(int x)
+    {
+        var z = true;
+        var z1 = false;
+        var y = z ? Callee(x) : z1 ? 1 : Ca[||]llee(x);
+    }
+
+    private int Callee(int x) => x = 1;
+}",
+                @"
+public class TestClass
+{
+    private void Calller(int x)
+    {
+        var z = true;
+        var z1 = false;
+        var y = z ? Callee(x) : z1 ? 1 : (x = 1);
+    }
+
+    private int Callee(int x) => x = 1;
+}");
+
+        [Fact(Skip = "No Precedence support")]
+        public Task TestSuppressNullableWarningExpression()
+            => TestInRegularAndScript1Async(@"
+#nullable enable
+public class TestClass
+{
+    private object Calller(int x)
+    {
+        return Ca[||]llee(x)!;
+    }
+
+    private object Callee(int x) => x = 1;
+}",
+                @"
+#nullable enable
+public class TestClass
+{
+    private object Calller(int x)
+    {
+        return (x = 1)!;
+    }
+
+    private object Callee(int x) => x = 1;
+}");
+
+        [Fact]
+        public Task TestSimpleAssignmentExpression()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private object Calller(int x)
+    {
+        return Ca[||]llee(x) + 1;
+    }
+
+    private object Callee(int x) => x = 1;
+}",
+                @"
+public class TestClass
+{
+    private object Calller(int x)
+    {
+        return (x = 1) + 1;
+    }
+
+    private object Callee(int x) => x = 1;
+}");
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        [InlineData("%")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("^")]
+        [InlineData(">>")]
+        [InlineData("<<")]
+        public Task TestAssignmentExpression(string op)
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    private object Calller(int x)
+    {
+        return 10 - Ca[||]llee(x);
+    }
+
+    private object Callee(int x) => x (op)= 1;
+}".Replace("(op)", op),
+                @"
+public class TestClass
+{
+    private object Calller(int x)
+    {
+        return 10 - (x (op)= 1);
+    }
+
+    private object Callee(int x) => x (op)= 1;
+}".Replace("(op)", op));
+
+        #endregion
     }
 }
