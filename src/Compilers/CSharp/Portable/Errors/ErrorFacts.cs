@@ -468,7 +468,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MemberNotNullBadMember:
                 case ErrorCode.WRN_MemberNotNullWhen:
                 case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                case ErrorCode.WRN_GeneratorFailedDuringInitializationDeveloper:
                 case ErrorCode.WRN_GeneratorFailedDuringGeneration:
+                case ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper:
                 case ErrorCode.WRN_ParameterDisallowsNull:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:

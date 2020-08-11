@@ -323,7 +323,9 @@ class X
                         case ErrorCode.WRN_MemberNotNullWhen:
                         case ErrorCode.WRN_MemberNotNullBadMember:
                         case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                        case ErrorCode.WRN_GeneratorFailedDuringInitializationDeveloper:
                         case ErrorCode.WRN_GeneratorFailedDuringGeneration:
+                        case ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper:
                         case ErrorCode.WRN_ParameterDisallowsNull:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
@@ -385,6 +387,8 @@ class X
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
                     ErrorCode.WRN_GeneratorFailedDuringInitialization,
                     ErrorCode.WRN_GeneratorFailedDuringGeneration,
+                    ErrorCode.WRN_GeneratorFailedDuringInitializationDeveloper,
+                    ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper,
                     ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
                     ErrorCode.WRN_IsPatternAlways,
                     ErrorCode.WRN_ConstOutOfRangeChecked,
