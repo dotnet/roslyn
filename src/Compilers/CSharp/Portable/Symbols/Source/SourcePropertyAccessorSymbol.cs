@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -495,8 +496,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.MethodKind == MethodKind.PropertyGet)
             {
-                var type = _property.TypeWithAnnotations;
-                if (!ContainingType.IsInterfaceType() && type.Type.IsStatic)
+                TypeWithAnnotations type = default;
+
+                var prop = _property as SourcePropertySymbol;
+                var propDeclSyntax = prop?.CSharpSyntaxNode as PropertyDeclarationSyntax;
+
+                if (propDeclSyntax != null)
+                {
+                    if (propDeclSyntax.HasExplicitReturnType())
+                    {
+                        // use the explicit return type from property
+                        type = prop.GetExplicitReturnTypeWithAnnotations(null, null, diagnostics, out var propRefKind);
+                    }
+                    else
+                    {
+                        // infer from body if possible
+                        var bodyBinder = TryGetBodyBinder();
+                        if (bodyBinder != null)
+                        {
+                            var (blockBody, arrowBody) = Bodies;
+
+                            BoundNode boundBody = null;
+                            var bodyDiagnostics = new DiagnosticBag();
+                            if (blockBody != null)
+                                boundBody = bodyBinder.BindEmbeddedBlock(blockBody, bodyDiagnostics, bodyBinder);
+                            else if (arrowBody != null)
+                                boundBody = bodyBinder.BindExpressionBodyAsBlock(arrowBody, bodyDiagnostics, bodyBinder);
+                            bodyDiagnostics.Free();
+
+                            if (boundBody != null)
+                            {
+                                var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
+                                CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBody);
+                                if (exitPaths.Count > 0)
+                                {
+                                    // there is some return, so lets use the last return statement
+                                    var exitPath = exitPaths.Last();
+                                    type = exitPath.Item2;
+                                }
+                                exitPaths.Free();
+                            }
+                        }
+                    }
+                }
+
+                if (!ContainingType.IsInterfaceType() && type.Type?.IsStatic == true)
                 {
                     // '{0}': static types cannot be used as return types
                     diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, this.locations[0], type.Type);
