@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var whereMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
             var linqMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
 
-            var enumNamedType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Enumerable).FullName);
+            var enumFullName = typeof(Enumerable).FullName ?? "System.Linq.Enumerable";
+            var enumNamedType = context.Compilation.GetTypeByMetadataName(enumFullName);
+
             if (enumNamedType is null)
             {
                 return;
