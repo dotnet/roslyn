@@ -41,17 +41,23 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 return true;
             }
 
+            if (OriginalCodeAction.EquivalenceKey != null && otherSuggestedAction.OriginalCodeAction.EquivalenceKey != null &&
+                OriginalCodeAction.EquivalenceKey == otherSuggestedAction.OriginalCodeAction.EquivalenceKey)
+            {
+                return true;
+            }
+
             return OriginalCodeAction.Title == otherSuggestedAction.OriginalCodeAction.Title;
         }
 
         public override int GetHashCode()
         {
-            if (OriginalCodeAction.EquivalenceKey == null)
+            if (OriginalCodeAction.EquivalenceKey != null)
             {
-                return base.GetHashCode();
+                return OriginalCodeAction.EquivalenceKey.GetHashCode();
             }
 
-            return OriginalCodeAction.EquivalenceKey.GetHashCode();
+            return OriginalCodeAction.Title.GetHashCode();
         }
     }
 }

@@ -178,13 +178,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             return action;
         }
 
-        private protected static CodeActionsCache GetCodeActionsCache(Workspace workspace)
+        private static CodeActionsCache GetCodeActionsCache(Workspace workspace)
         {
             var exportProvider = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<CodeActionsCache>();
             return Assert.IsType<CodeActionsCache>(exportProvider);
         }
 
-        private protected static Document GetDocument(Workspace workspace, LSP.TextDocumentIdentifier textDocument)
+        private static Document GetDocument(Workspace workspace, LSP.TextDocumentIdentifier textDocument)
         {
             var exportProvider = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<ILspSolutionProvider>();
             var result = Assert.IsType<TestLspSolutionProvider>(exportProvider);

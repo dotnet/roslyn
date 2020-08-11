@@ -19,32 +19,31 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
     /// <summary>
-    /// Caches code actions between calls to <see cref="CodeActionsHandler"/> and
+    /// Caches suggested action sets between calls to <see cref="CodeActionsHandler"/> and
     /// <see cref="CodeActionResolveHandler"/>.
     /// </summary>
     [Export(typeof(CodeActionsCache)), Shared]
     internal class CodeActionsCache
     {
         /// <summary>
-        /// Ensures that we aren't making concurrent modifications to the list of cached items.
+        /// Ensures we aren't making concurrent modifications to the list of cached items.
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         /// <summary>
-        /// Maximum number of code action sets cached.
+        /// Maximum number of cached items.
         /// </summary>
         private readonly int _maxCacheSize = 3;
 
         /// <summary>
-        /// List of sets of code actions.
+        /// Current list of cached items.
         /// </summary>
-        private readonly List<CodeActionsCacheItem> _cachedItems;
+        private readonly List<CodeActionsCacheItem> _cachedItems = new List<CodeActionsCacheItem>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsCache()
         {
-            _cachedItems = new List<CodeActionsCacheItem>();
         }
 
         public async Task UpdateCacheAsync(
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // If there's a value in the cache with the same document and range we're searching for,
-                // remove and replace it (if different) with our updated value.
+                // remove and replace it with our updated value if the updated value is different.
                 var previousCachedItem = _cachedItems.Where(
                     c => c.Document == document && c.Range.Start == range.Start && c.Range.End == range.End);
                 if (previousCachedItem.Any())
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         }
 
         /// <summary>
-        /// Attempts to retrieve the cached action set that matches the given document and range.
+        /// Attempts to retrieve the cached action sets that match the given document and range.
         /// Returns null if no match is found.
         /// </summary>
         public async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetCacheAsync(
@@ -104,15 +103,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         }
 
         /// <summary>
-        /// Returns the number of cache items.
+        /// Returns the current number of cached items.
         /// </summary>
-        /// <remarks>
-        /// Used primarily for testing purposes.
-        /// </remarks>
-        internal int GetNumCacheItems() => _cachedItems.Count;
+        public int GetNumCacheItems() => _cachedItems.Count;
 
         /// <summary>
-        /// Contains the necessary information for each cache item.
+        /// Contains the necessary information for each cached item.
         /// </summary>
         private readonly struct CodeActionsCacheItem
         {
