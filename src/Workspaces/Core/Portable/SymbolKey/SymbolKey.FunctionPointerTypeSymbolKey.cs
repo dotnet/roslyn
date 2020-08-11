@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
+#nullable enable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.Signature.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var callingConvention = (SignatureCallingConvention)reader.ReadInteger();
 

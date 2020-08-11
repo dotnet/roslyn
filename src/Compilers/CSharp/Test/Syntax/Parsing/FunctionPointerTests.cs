@@ -1234,6 +1234,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 // (1,9): error CS1514: { expected
                 // delegate* unmanaged.Name[Dotted]<void> ptr;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(1, 9),
+                // (1,9): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
+                // delegate* unmanaged.Name[Dotted]<void> ptr;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(1, 9),
                 // (1,34): error CS1525: Invalid expression term 'void'
                 // delegate* unmanaged.Name[Dotted]<void> ptr;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(1, 34));

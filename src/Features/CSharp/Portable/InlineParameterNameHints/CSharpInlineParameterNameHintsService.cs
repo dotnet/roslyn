@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                 // We want to adorn literals no matter what
                 return true;
             }
+            if (arg is InterpolatedStringExpressionSyntax)
+            {
+                // We want to adorn all types of strings
+                return true;
+            }
             if (arg is ObjectCreationExpressionSyntax)
             {
                 // We want to adorn object invocations that exist as arguments because they are not declared anywhere

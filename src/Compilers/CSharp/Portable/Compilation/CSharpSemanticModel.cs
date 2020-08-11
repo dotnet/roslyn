@@ -5106,34 +5106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpDeclarationComputer.ComputeDeclarationsInNode(this, associatedSymbol, node, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
-        internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
-        {
-            if (declaredNode is CompilationUnitSyntax unit && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            {
-                switch (declaredSymbol.Kind)
-                {
-                    case SymbolKind.Namespace:
-                        Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
-                        // Do not include top level global statements into a global namespace
-                        return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
-
-                    case SymbolKind.Method:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
-                        // Include only global statements at the top level
-                        return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
-
-                    case SymbolKind.NamedType:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
-                        return (node) => false;
-
-                    default:
-                        ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                        break;
-                }
-            }
-
-            return base.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-        }
+        internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
@@ -5289,7 +5262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
+            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider)
+                ? NullableContextOptions.Disable
+                : Compilation.Options.NullableContextOptions;
 
             NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
             context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);

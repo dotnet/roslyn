@@ -8894,7 +8894,7 @@ class C : B
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (10,7): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (10,7): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"));
         }
 
@@ -11319,7 +11319,7 @@ namespace x
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (6,10): error CS0574: Name of destructor must match name of class
+                // (6,10): error CS0574: Name of destructor must match name of type
                 //         ~iiii(){}
                 Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
@@ -12573,6 +12573,29 @@ namespace TestNamespace
                 // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d2 = delegate() { } as Del; // CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
+                );
+            CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (10,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b1 = (() => { }) is Del;   // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(() => { }) is Del").WithLocation(10, 23),
+                // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (11,38): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(11, 38),
+                // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (12,32): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(12, 32),
+                // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22),
+                // (13,37): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(13, 37)
                 );
         }
 
@@ -14419,9 +14442,9 @@ public class MyCollection
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is either static or not public.
+                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not a public instance or extension method.
                 //         foreach (int i in col)   // CS1579
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
                 // (45,27): error CS1579: foreach statement cannot operate on variables of type 'MyCollection' because 'MyCollection' does not contain a public definition for 'GetEnumerator'
                 //         foreach (int i in col)   // CS1579
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "col").WithArguments("MyCollection", "GetEnumerator"));
@@ -19501,8 +19524,8 @@ public class myTest : IEnumerable
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is either static or not public.
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
+                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is not a public instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
         }
 
         [Fact]
