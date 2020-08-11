@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
     internal sealed class CSharpInlineMethodRefactoringProvider : AbstractInlineMethodRefactoringProvider
     {
         private static readonly ImmutableArray<SyntaxKind> s_leftAssociativeSyntaxKinds =
-            ImmutableArray.CreateRange(new[]
-            {
+            ImmutableArray.Create(
                 SyntaxKind.AddExpression,
                 SyntaxKind.SubtractExpression,
                 SyntaxKind.MultiplyExpression,
@@ -44,12 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.LessThanExpression,
                 SyntaxKind.LessThanOrEqualExpression,
                 SyntaxKind.GreaterThanExpression,
-                SyntaxKind.GreaterThanOrEqualExpression,
-            });
+                SyntaxKind.GreaterThanOrEqualExpression);
 
         private static readonly ImmutableArray<SyntaxKind> s_syntaxKindsNeedsToCheckThePrecedence =
-            ImmutableArray.CreateRange(new[]
-            {
+            ImmutableArray.Create(
                 SyntaxKind.AddExpression,
                 SyntaxKind.SubtractExpression,
                 SyntaxKind.MultiplyExpression,
@@ -78,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.AsExpression,
                 SyntaxKind.CoalesceExpression,
                 SyntaxKind.AwaitExpression,
+                SyntaxKind.ConditionalAccessExpression,
                 SyntaxKind.SimpleMemberAccessExpression,
                 // Example: Func<int, int, int> Add() => (i, j) => i + j;
                 // var x = Add()(1, 2);
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.ElementAccessExpression,
                 // Example: switch Callee() { ... }
                 SyntaxKind.SwitchExpression,
-                SyntaxKind.ConditionalAccessExpression,
+                SyntaxKind.ConditionalExpression,
                 SyntaxKind.SuppressNullableWarningExpression,
                 SyntaxKind.RangeExpression,
                 SyntaxKind.SimpleAssignmentExpression,
@@ -99,12 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.OrAssignmentExpression,
                 SyntaxKind.ExclusiveOrAssignmentExpression,
                 SyntaxKind.RightShiftAssignmentExpression,
-                SyntaxKind.LeftShiftAssignmentExpression,
-            });
+                SyntaxKind.LeftShiftAssignmentExpression
+            );
 
-        private static ImmutableArray<SyntaxKind> s_syntaxKindsConsideredAsStatementInvokesCallee =
-            ImmutableArray.Create(new[]
-            {
+        private static readonly ImmutableArray<SyntaxKind> s_syntaxKindsConsideredAsStatementInvokesCallee =
+            ImmutableArray.Create(
                 SyntaxKind.DoStatement,
                 SyntaxKind.ExpressionStatement,
                 SyntaxKind.ForStatement,
@@ -117,8 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.WhileStatement,
                 SyntaxKind.TryStatement,
                 SyntaxKind.UsingStatement,
-                SyntaxKind.YieldReturnStatement,
-            });
+                SyntaxKind.YieldReturnStatement);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -250,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 }
             }
 
-            // In case some cases are missing, always put a 'safe' parenthesis around
+            // In other cases, always put a 'safe' parenthesis around
             return true;
         }
 

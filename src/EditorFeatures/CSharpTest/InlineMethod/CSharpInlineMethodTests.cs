@@ -1557,7 +1557,7 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestConditionalAccessExpression()
+        public Task TestConditionalExpressionSyntax()
             => TestInRegularAndScript1Async(@"
 public class TestClass
 {
@@ -1629,6 +1629,30 @@ public class TestClass
     }
 
     private object Callee(int x) => x = 1;
+}");
+
+        [Fact]
+        public Task TestConditionalAccessExpression()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee()?.Length;
+    }
+
+    private string Callee() => ""Hello"" + ""World"";
+}",
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = (""Hello"" + ""World"")?.Length;
+    }
+
+    private string Callee() => ""Hello"" + ""World"";
 }");
 
         [Theory]
