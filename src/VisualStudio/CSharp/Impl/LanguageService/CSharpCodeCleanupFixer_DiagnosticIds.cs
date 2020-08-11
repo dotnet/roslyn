@@ -214,8 +214,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition UseCollectionInitializerDiagnosticId;
 
         [Export]
+        [FixId(FormatDocumentFixId)]
+        [Name(FormatDocumentFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [ExportMetadata("EnableByDefault", true)]
+        [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Format_document))]
+        public static readonly FixIdDefinition FormatDocument;
+
+        [Export]
         [FixId(RemoveUnusedImportsFixId)]
         [Name(RemoveUnusedImportsFixId)]
+        [Order(After = FormatDocumentFixId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]

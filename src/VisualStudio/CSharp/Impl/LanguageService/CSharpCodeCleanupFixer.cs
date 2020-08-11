@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
+        private const string FormatDocumentFixId = nameof(FormatDocumentFixId);
         private const string RemoveUnusedImportsFixId = "RemoveUnusedImportsFixId";
         private const string SortImportsFixId = "SortImportsFixId";
 
@@ -324,9 +325,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 }
             }
 
+            var isFormatDocumentEnabled = enabledFixIds.IsFixIdEnabled(FormatDocumentFixId);
             var isRemoveUnusedUsingsEnabled = enabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
             var isSortUsingsEnabled = enabledFixIds.IsFixIdEnabled(SortImportsFixId);
-            var enabledDiagnostics = new EnabledDiagnosticOptions(enabedDiagnosticSets.ToImmutableArray(),
+            var enabledDiagnostics = new EnabledDiagnosticOptions(
+                isFormatDocumentEnabled,
+                enabedDiagnosticSets.ToImmutableArray(),
                 new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
             return await codeCleanupService.CleanupAsync(
