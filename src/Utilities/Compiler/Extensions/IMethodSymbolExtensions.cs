@@ -672,5 +672,13 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
+
+        /// <summary>
+        /// Check if a method is an auto-property accessor.
+        /// </summary>
+        public static bool IsAutoPropertyAccessor(this IMethodSymbol methodSymbol)
+            => methodSymbol.IsPropertyAccessor()
+            && methodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol
+            && propertySymbol.IsAutoProperty();
     }
 }
