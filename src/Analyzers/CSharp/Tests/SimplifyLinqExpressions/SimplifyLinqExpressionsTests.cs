@@ -533,6 +533,7 @@ namespace demo
 }";
             await TestMissingInRegularAndScriptAsync(source);
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
         public async Task TestComplicatedLambda()
 
@@ -556,6 +557,196 @@ class Test
 {
     IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
     var test5 = test.FirstOrDefault(a => a.Where(s => s.Equals('hello').FirstOrDefault()).Equals('hello'));
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestNestedEnumerable()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        [||]Enumerable.Where(test, (x => x == 1)).Single();
+    }
+
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        Enumerable.Single(test, (x => x == 1));
+    }
+
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestNestedEnumerable2()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        [||]Enumerable.Where(test, (x => x == 1)).First();
+    }
+
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        Enumerable.First(test, (x => x == 1));
+    }
+
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestParentheticalLambda()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        [||]test.Where((x) => x == 1).Single();
+    }
+
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        test.Single((x) => x == 1);
+    }
+
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestParentheticalLambda2()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        [||]test.Where((x, index) => (x- index) == 1).Single();
+    }
+
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        test.Single((x, index) => (x- index) == 1);
+    }
+
+}";
+            await TestInRegularAndScriptAsync(source, fixedSource);
+
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        public async Task TestParentheticalLambda3()
+
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        [||]test.Where((int x) => x == 1).First();
+    }
+
+}";
+            var fixedSource = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
+        test.First((int x) => x == 1);
+    }
+
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
 
