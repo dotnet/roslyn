@@ -51,20 +51,25 @@ class C
         }
 
         [Fact]
-        public void InitializedEvent_InitialState()
+        public void Event_InitialState()
         {
             var src = @"
 using System;
 class C
 {
     public event Action E1 = () => { };
+    public event Action E2;
     internal C()
     {
         E1.Invoke();
+        E2.Invoke(); // 1
     }
 }";
             var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         E2.Invoke(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E2").WithLocation(10, 9));
         }
 
         [Fact]
