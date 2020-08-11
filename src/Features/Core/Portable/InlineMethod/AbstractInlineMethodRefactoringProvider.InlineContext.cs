@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Precedence;
@@ -22,7 +21,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal partial class AbstractInlineMethodRefactoringProvider
     {
-
         private class MethodInvocationInfo
         {
             public SyntaxNode? StatementContainsCalleeInvocationExpression { get; }
@@ -108,7 +106,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 CancellationToken cancellationToken)
             {
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                var inlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
+                var rawInlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
+                var inlineSyntaxNode = rawInlineSyntaxNode;
                 // Compute the replacement syntax node for needed symbols(variables and parameters) in the callee.
                 var parametersWithIdentifierArgumentToName = methodParametersInfo.ParametersWithIdentifierArgument
                     .Select(parameterAndArgument =>
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 var containsAwaitExpression = inlineSyntaxNode
                     .DescendantNodesAndSelf()
                     .Any(node => node != null && syntaxFacts.IsAwaitExpression(node));
-                var parent = calleeInvocationSyntaxNode.Parent;
+
                 if (methodInvocationInfo.IsCalleeSingleInvokedAsStatementOrDeclaration
                     && !calleeMethodSymbol.ReturnsVoid
                     && !methodInvocationInfo.AssignedToVariable)
@@ -230,16 +229,17 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         methodInvocationInfo.StatementContainsCalleeInvocationExpression,
                         containsAwaitExpression);
                 }
-                // Check if parenthesis is needed.
-                else if (parent != null
-                     && !syntaxFacts.IsParenthesizedExpression(inlineSyntaxNode)
-                     && inlineMethodRefactoringProvider.IsExpressionSyntax(inlineSyntaxNode)
-                     && inlineMethodRefactoringProvider.IsExpressionSyntax(parent)
-                     && inlineMethodRefactoringProvider.ShouldCheckTheExpressionPrecedenceInCallee(inlineSyntaxNode))
+
+                // Add parenthesis if needed.
+                var parent = calleeInvocationSyntaxNode.Parent;
+                if (parent != null
+                    && !syntaxFacts.IsParenthesizedExpression(inlineSyntaxNode)
+                    && inlineMethodRefactoringProvider.ShouldCheckTheExpressionPrecedenceInCallee(parent)
+                    && inlineMethodRefactoringProvider.ShouldCheckTheExpressionPrecedenceInCallee(inlineSyntaxNode))
                 {
                     var shouldWrapInParenthesis = false;
                     var precedenceOfInlineExpression = precedenceService.GetOperatorPrecedence(inlineSyntaxNode);
-                    var precedenceOfInvocation = precedenceService.GetOperatorPrecedence(calleeInvocationSyntaxNode.Parent);
+                    var precedenceOfInvocation = precedenceService.GetOperatorPrecedence(parent);
                     if (precedenceOfInlineExpression != 0 && precedenceOfInvocation != 0)
                     {
                         if (precedenceOfInlineExpression < precedenceOfInvocation)

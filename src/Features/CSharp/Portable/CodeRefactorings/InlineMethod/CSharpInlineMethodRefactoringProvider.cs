@@ -77,12 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.AwaitExpression,
                 SyntaxKind.ConditionalAccessExpression,
                 SyntaxKind.SimpleMemberAccessExpression,
-                // Example: Func<int, int, int> Add() => (i, j) => i + j;
-                // var x = Add()(1, 2);
+                SyntaxKind.ParenthesizedLambdaExpression,
                 SyntaxKind.InvocationExpression,
-                // Example: Callee()[10]
+                SyntaxKind.SimpleLambdaExpression,
                 SyntaxKind.ElementAccessExpression,
-                // Example: switch Callee() { ... }
                 SyntaxKind.SwitchExpression,
                 SyntaxKind.ConditionalExpression,
                 SyntaxKind.SuppressNullableWarningExpression,

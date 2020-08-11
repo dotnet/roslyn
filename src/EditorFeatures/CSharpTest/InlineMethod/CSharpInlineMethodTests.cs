@@ -609,6 +609,35 @@ public class TestClass
         return i + 1;
     }
 }");
+
+        [Fact]
+        public Task TestInlineExpressionWithoutAssignedToVariable()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    public void Caller(int j)
+    {
+        Cal[||]lee(j);
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+}", @"
+public class TestClass
+{
+    public void Caller(int j)
+    {
+        int tmp = j + 1;
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+}");
+
         [Fact]
         public Task TestInlineMethodWithNullCoalescingExpression()
             => TestInRegularAndScript1Async(@"
@@ -636,6 +665,28 @@ public class TestClass
     {
         return i + 1;
     }
+}");
+
+        [Fact]
+        public Task TestInlineSimpleLambdaExpression()
+            => TestInRegularAndScript1Async(@"
+public class TestClass
+{
+    public Func<int, int, int> Caller()
+    {
+        return Ca[||]llee();
+    }
+
+    private Func<int, int, int> Callee() => (i, j) => i + j;
+}", @"
+public class TestClass
+{
+    public Func<int, int, int> Caller()
+    {
+        return (i, j) => i + j;
+    }
+
+    private Func<int, int, int> Callee() => (i, j) => i + j;
 }");
 
         [Fact]
