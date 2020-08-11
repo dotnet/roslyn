@@ -70,6 +70,7 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 failures++;
+                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsFilePath);
                             }
 
                             if (testResult.IsFromCache)
@@ -81,7 +82,7 @@ namespace RunTests
                         }
                         catch (Exception ex)
                         {
-                            ConsoleUtil.WriteLine($"Error: {ex.Message}");
+                            ConsoleUtil.WriteLine(ConsoleColor.Red, $"Error: {ex.Message}");
                             failures++;
                         }
 
