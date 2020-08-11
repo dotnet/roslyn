@@ -241,5 +241,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ExportMetadata("EnableByDefault", true)]
         [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Sort_usings))]
         public static readonly FixIdDefinition SortImports;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.FileHeaderMismatch)]
+        [Name(IDEDiagnosticIds.FileHeaderMismatch)]
+        [Order(After = SortImportsFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [ExportMetadata("EnableByDefault", true)]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_file_header_preferences))]
+        public static readonly FixIdDefinition FileHeaderMismatch;
     }
 }

@@ -84,8 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,
-                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId })
-            );
+                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId }),
+
+                new DiagnosticSet(CSharpFeaturesResources.Apply_file_header_preferences,
+                    new[] { IDEDiagnosticIds.FileHeaderMismatch }));
 
         public async Task<Document> CleanupAsync(
             Document document,
