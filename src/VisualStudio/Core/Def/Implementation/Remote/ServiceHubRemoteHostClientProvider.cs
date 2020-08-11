@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             {
-                if (!RemoteHostOptions.IsServiceHubProcess64Bit(workspaceServices)
+                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices)
                     || workspaceServices.Workspace is not VisualStudioWorkspace)
                 {
                     // Run code in the current process

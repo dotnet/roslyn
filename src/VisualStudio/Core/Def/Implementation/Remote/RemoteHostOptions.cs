@@ -32,6 +32,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public static bool IsServiceHubProcess64Bit(HostWorkspaceServices services)
             => Environment.Is64BitOperatingSystem && services.GetRequiredService<IOptionService>().GetOption(OOP64Bit);
+
+        /// <summary>
+        /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.
+        /// </summary>
+        /// <remarks>
+        /// Out-of-process execution is enabled if and only if 64-bit OOP is enabled, so we defer to
+        /// <see cref="IsServiceHubProcess64Bit"/> for this method.
+        /// </remarks>
+        public static bool IsUsingServiceHubOutOfProcess(HostWorkspaceServices services)
+            => IsServiceHubProcess64Bit(services);
     }
 
     [ExportOptionProvider, Shared]
