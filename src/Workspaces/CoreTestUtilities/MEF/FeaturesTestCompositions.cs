@@ -11,7 +11,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class FeaturesTestCompositions
     {
-        public static readonly TestComposition Features = TestComposition.Empty.AddAssemblies(MefHostServices.DefaultAssemblies);
-        public static readonly TestComposition RemoteHostFeatures = TestComposition.Empty.AddAssemblies(RoslynServices.RemoteHostAssemblies);
+        public static readonly TestComposition Features = TestComposition.Empty
+            .AddAssemblies(MefHostServices.DefaultAssemblies)
+            .AddParts(typeof(MockWorkspaceEventListenerProvider)); // by default, avoid running Solution Crawler and other services that start in workspace event listeners
+
+        public static readonly TestComposition RemoteHostFeatures = TestComposition.Empty
+            .AddAssemblies(RoslynServices.RemoteHostAssemblies);
     }
 }

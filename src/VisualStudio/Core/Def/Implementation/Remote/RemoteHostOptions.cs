@@ -17,17 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal static class RemoteHostOptions
     {
-        // Update primary workspace on OOP twice a second if VS is not running any global operation (such as build,
+        // Update primary workspace on OOP every second if VS is not running any global operation (such as build,
         // solution open/close, rename, etc.)
         //
         // Even if primary workspace is not updated, other OOP queries will work as expected. Updating primary workspace
         // on OOP should let latest data to be synced pre-emptively rather than on demand, and will kick off
         // incremental analyzer tasks.
-        //
-        // When primary workspace is staled, missing data will be synced to OOP on demand and cached for 3 min. enough
-        // for primary workspace in OOP to be synced to latest.
         public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new Option<int>(
-            nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 500,
+            nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 1000,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
         // use 64bit OOP

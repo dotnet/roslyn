@@ -339,14 +339,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // The type in `(Type)...` or `... as Type`
             var castType = semanticModel.GetTypeInfo(castNode, cancellationToken).Type;
 
+            // If we don't understand the type, we must keep it.
+            if (castType == null)
+                return true;
+
             // The type in `(...)expr` or `expr as ...`
             var castedExpressionType = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken).Type;
 
             var conversion = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
-
-            // If we don't understand the type, we must keep it.
-            if (castType == null)
-                return true;
 
             // If we've got an error for some reason, then we don't want to touch this at all.
             if (castType.IsErrorType())

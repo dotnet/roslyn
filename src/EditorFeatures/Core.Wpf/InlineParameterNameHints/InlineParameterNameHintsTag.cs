@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         /// <summary>
         /// Creates the UIElement on call
-        /// Uses PositionAffinity.Successor because we want the tag to be associated with the following character
+        /// Uses PositionAffinity.Predecessor because we want the tag to be associated with the preceding character
         /// </summary>
         /// <param name="text">The name of the parameter associated with the argument</param>
         public InlineParameterNameHintsTag(string text, double lineHeight, TextFormattingRunProperties format)
-            : base(CreateElement(text, lineHeight, format), removalCallback: null, PositionAffinity.Successor)
+            : base(CreateElement(text, lineHeight, format), removalCallback: null, PositionAffinity.Predecessor)
         {
         }
 

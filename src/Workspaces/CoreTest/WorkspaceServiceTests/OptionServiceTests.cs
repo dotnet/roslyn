@@ -5,7 +5,9 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -190,7 +193,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             TestChangedOptionsCore(
                 workspace,
                 GenerationOptions.PlaceSystemNamespaceFirst,
-                optionProvider: new GenerationOptionsProvider(),
+                optionProvider: ((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValues<IOptionProvider>().OfType<GenerationOptionsProvider>().Single(),
                 isSerializable: true);
 
             // Apply a non-serializable changed option to the option service
@@ -211,23 +214,54 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
                 var currentOptionValue = optionSet.GetOption(option, LanguageNames.CSharp);
                 var newOptionValue = !currentOptionValue;
-                var newOptionSet = optionSet.WithChangedOption(optionKey, newOptionValue);
+                var newOptionSet = (SerializableOptionSet)optionSet.WithChangedOption(optionKey, newOptionValue);
 
                 optionService.SetOptions(newOptionSet);
                 var isOptionSet = (bool?)optionService.GetOptions().GetOption(optionKey);
                 Assert.Equal(newOptionValue, isOptionSet);
 
+                // Verify the serializable option snapshot obtained option service has the changed option only if the option key is serializable.
                 var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
                 var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
-                var changedOptions = serializableOptionSet.GetChangedOptions();
-                if (isSerializable)
+                VerifyChangedOptionsCore(serializableOptionSet, optionKey, expectedChangedOption: isSerializable);
+
+                // Serialize/deserialize the option set to test round tripping.
+                serializableOptionSet = (SerializableOptionSet)serializableOptionSet.WithChangedOption(optionKey, newOptionValue);
+                using var memoryStream = new MemoryStream();
+                using var writer = new ObjectWriter(memoryStream, leaveOpen: true);
+                serializableOptionSet.Serialize(writer, CancellationToken.None);
+
+                memoryStream.Position = 0;
+                var originalChecksum = Checksum.Create(memoryStream);
+
+                memoryStream.Position = 0;
+                using var reader = ObjectReader.TryGetReader(memoryStream);
+                serializableOptionSet = SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
+
+                // Verify the option set obtained from round trip has the changed option only if the option key is serializable.
+                VerifyChangedOptionsCore(serializableOptionSet, optionKey, expectedChangedOption: isSerializable);
+
+                using var newMemoryStream = new MemoryStream();
+                using var newWriter = new ObjectWriter(newMemoryStream, leaveOpen: true);
+                serializableOptionSet.Serialize(newWriter, CancellationToken.None);
+                newMemoryStream.Position = 0;
+                var newChecksum = Checksum.Create(newMemoryStream);
+
+                Assert.Equal(originalChecksum, newChecksum);
+                return;
+
+                static void VerifyChangedOptionsCore(SerializableOptionSet serializableOptionSet, OptionKey optionKey, bool expectedChangedOption)
                 {
-                    var changedOptionKey = Assert.Single(changedOptions);
-                    Assert.Equal(optionKey, changedOptionKey);
-                }
-                else
-                {
-                    Assert.Empty(changedOptions);
+                    var changedOptions = serializableOptionSet.GetChangedOptions();
+                    if (expectedChangedOption)
+                    {
+                        var changedOptionKey = Assert.Single(changedOptions);
+                        Assert.Equal(optionKey, changedOptionKey);
+                    }
+                    else
+                    {
+                        Assert.Empty(changedOptions);
+                    }
                 }
             }
         }

@@ -819,6 +819,12 @@
   <data name="ERR_UseDefViolation" xml:space="preserve">
     <value>Use of unassigned local variable '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolation" xml:space="preserve">
+    <value>Use of unassigned local variable '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolation_Title" xml:space="preserve">
+    <value>Use of unassigned local variable</value>
+  </data>
   <data name="WRN_UnreferencedVar" xml:space="preserve">
     <value>The variable '{0}' is declared but never used</value>
   </data>
@@ -834,11 +840,29 @@
   <data name="ERR_UseDefViolationField" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationField" xml:space="preserve">
+    <value>Use of possibly unassigned field '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationField_Title" xml:space="preserve">
+    <value>Use of possibly unassigned field</value>
+  </data>
   <data name="ERR_UseDefViolationProperty" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationProperty" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationProperty_Title" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property</value>
+  </data>
   <data name="ERR_UnassignedThis" xml:space="preserve">
     <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis" xml:space="preserve">
+    <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedThis_Title" xml:space="preserve">
+    <value>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</value>
   </data>
   <data name="ERR_AmbigQM" xml:space="preserve">
     <value>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</value>
@@ -857,6 +881,12 @@
   </data>
   <data name="ERR_ParamUnassigned" xml:space="preserve">
     <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned" xml:space="preserve">
+    <value>The out parameter '{0}' must be assigned to before control leaves the current method</value>
+  </data>
+  <data name="WRN_ParamUnassigned_Title" xml:space="preserve">
+    <value>An out parameter must be assigned to before control leaves the method</value>
   </data>
   <data name="ERR_InvalidArray" xml:space="preserve">
     <value>Invalid rank specifier: expected ',' or ']'</value>
@@ -901,7 +931,13 @@
     <value>Use of default literal is not valid in this context</value>
   </data>
   <data name="ERR_UseDefViolationThis" xml:space="preserve">
-    <value>The 'this' object cannot be used before all of its fields are assigned to</value>
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis" xml:space="preserve">
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationThis_Title" xml:space="preserve">
+    <value>The 'this' object cannot be used in a constructor before all of its fields have been assigned</value>
   </data>
   <data name="ERR_ArgsInvalid" xml:space="preserve">
     <value>The __arglist construct is valid only within a variable argument method</value>
@@ -1116,6 +1152,12 @@
   <data name="ERR_UseDefViolationOut" xml:space="preserve">
     <value>Use of unassigned out parameter '{0}'</value>
   </data>
+  <data name="WRN_UseDefViolationOut" xml:space="preserve">
+    <value>Use of unassigned out parameter '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationOut_Title" xml:space="preserve">
+    <value>Use of unassigned out parameter</value>
+  </data>
   <data name="ERR_ArraySizeInDeclaration" xml:space="preserve">
     <value>Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)</value>
   </data>
@@ -1143,11 +1185,11 @@
   <data name="WRN_PatternIsAmbiguous_Title" xml:space="preserve">
     <value>Type does not implement the collection pattern; members are ambiguous</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible" xml:space="preserve">
-    <value>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</value>
+  <data name="WRN_PatternNotPublicOrNotInstance" xml:space="preserve">
+    <value>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible_Title" xml:space="preserve">
-    <value>Type does not implement the collection pattern; member is either static or not public</value>
+  <data name="WRN_PatternNotPublicOrNotInstance_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; member is is not a public instance or extension method.</value>
   </data>
   <data name="WRN_PatternBadSignature" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</value>
@@ -2249,6 +2291,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
     <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
   </data>
+  <data name="WRN_UnassignedThisAutoProperty" xml:space="preserve">
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedThisAutoProperty_Title" xml:space="preserve">
+    <value>An auto-implemented property must be fully assigned before control is returned to the caller.</value>
+  </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
   </data>
@@ -2651,16 +2699,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>#r is only allowed in scripts</value>
   </data>
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
   </data>
   <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement.</value>
@@ -4632,6 +4680,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -6164,7 +6213,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>init-only setters</value>
   </data>
   <data name="ERR_BadRecordDeclaration" xml:space="preserve">
-    <value>A positional record must have both a 'data' modifier and non-empty parameter list</value>
+    <value>A positional record must have a non-empty parameter list</value>
   </data>
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
@@ -6381,5 +6430,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
     <value>A module initializer must be an ordinary member method</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetAsyncEnumerator" xml:space="preserve">
+    <value>extension GetAsyncEnumerator</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
+    <value>extension GetEnumerator</value>
   </data>
 </root>

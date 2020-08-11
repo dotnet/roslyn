@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -24,12 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Runs a code action as a command on the server.
     /// This is done when a code action cannot be applied as a WorkspaceEdit on the LSP client.
     /// For example, all non-ApplyChangesOperations must be applied as a command.
-    /// TO-DO: Currently, any ApplyChangesOperation that adds or modifies an outside document must also be
+    /// TO-DO: Currently, any ApplyChangesOperation that adds or removes a document must also be
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>
     [ExportExecuteWorkspaceCommand(CodeActionsHandler.RunCodeActionCommandName)]
-    internal class RunCodeActionsHandler : IExecuteWorkspaceCommandHandler
+    internal class RunCodeActionHandler : IExecuteWorkspaceCommandHandler
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RunCodeActionsHandler(
+        public RunCodeActionHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             ILspSolutionProvider solutionProvider,
@@ -50,18 +49,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public async Task<object> HandleRequestAsync(
-            LSP.ExecuteCommandParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+        public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                document, _codeFixService, _codeRefactoringService, runRequest.Range, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(codeActions);
+                document, _codeFixService, _codeRefactoringService,
+                _threadingContext, runRequest.Range, cancellationToken).ConfigureAwait(false);
 
-            var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions.ToImmutableArray());
+            var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(actionToRun);
 
             var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);

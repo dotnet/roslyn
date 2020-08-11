@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -7603,6 +7604,49 @@ class A
                 Assert.Equal("j", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
                 Assert.Equal("p, i, k", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
             }
+        }
+
+        [Fact]
+        public void TestAddressOfUnassignedStructLocal_02()
+        {
+            // This test demonstrates that "data flow analysis" pays attention to private fields
+            // of structs imported from metadata.
+            var libSource = @"
+public struct Struct
+{
+    private string Field;
+}";
+
+            var libraryReference = CreateCompilation(libSource).EmitToImageReference();
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class Program
+{
+    static void Main()
+    {
+        Struct x; // considered not definitely assigned because it has a field
+
+        Struct * px = /*<bind>*/&x/*</bind>*/; // address taken of an unassigned variable
+    }
+}
+", libraryReference);
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
         #endregion

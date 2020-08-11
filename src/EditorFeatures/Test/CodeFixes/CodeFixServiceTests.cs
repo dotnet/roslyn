@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
@@ -31,16 +32,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
     [UseExportProvider]
     public class CodeFixServiceTests
     {
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
         [Fact]
         public async Task TestGetFirstDiagnosticWithFixAsync()
         {
-            var diagnosticService = new TestDiagnosticAnalyzerService();
-
             var fixers = CreateFixers();
             var code = @"
     a
 ";
-            using var workspace = TestWorkspace.CreateCSharp(code, openDocuments: true);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.GetService<IDiagnosticUpdateSourceRegistrationService>());
+            var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -197,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.False(extensionManager.IsIgnored(codefix));
         }
 
-        private static (TestWorkspace workspace, TestDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             CodeFixProvider codefix,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false)
@@ -209,11 +215,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var code = @"class Program { }";
 
-            var workspace = TestWorkspace.CreateCSharp(code, openDocuments: true);
+            var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-            var diagnosticService = new TestDiagnosticAnalyzerService();
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.GetService<IDiagnosticUpdateSourceRegistrationService>());
+            var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
             var errorLogger = logger.First().Value;
 
@@ -232,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         }
 
         private static void GetDocumentAndExtensionManager(
-            TestDiagnosticAnalyzerService diagnosticService,
+            DiagnosticAnalyzerService diagnosticService,
             TestWorkspace workspace,
             out Document document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
@@ -520,13 +527,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             MockAnalyzerReference.MockDiagnosticAnalyzer? diagnosticAnalyzer = null)
         {
             var code = @"class C { }";
-            var diagnosticService = new TestDiagnosticAnalyzerService();
 
             var vsixFixers = vsixFixer != null
                 ? SpecializedCollections.SingletonEnumerable(new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(() => vsixFixer, new CodeChangeProviderMetadata(name: nameof(VsixCodeFixProvider), languages: LanguageNames.CSharp)))
                 : SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>();
 
-            using var workspace = TestWorkspace.CreateCSharp(code, openDocuments: true);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.GetService<IDiagnosticUpdateSourceRegistrationService>());
+            var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
 
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(

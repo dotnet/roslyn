@@ -220,6 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NubExprIsConstBool2:
                 case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_PrecedenceInversion:
+                case ErrorCode.WRN_UnassignedThisAutoProperty:
+                case ErrorCode.WRN_UnassignedThis:
+                case ErrorCode.WRN_ParamUnassigned:
+                case ErrorCode.WRN_UseDefViolationProperty:
+                case ErrorCode.WRN_UseDefViolationField:
+                case ErrorCode.WRN_UseDefViolationThis:
+                case ErrorCode.WRN_UseDefViolationOut:
+                case ErrorCode.WRN_UseDefViolation:
                     // Warning level 5 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 5 (C# 9) and that can be reported for pre-existing code.
                     return 5;
@@ -266,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadRefCompareLeft:
                 case ErrorCode.WRN_BadRefCompareRight:
                 case ErrorCode.WRN_PatternIsAmbiguous:
-                case ErrorCode.WRN_PatternStaticOrInaccessible:
+                case ErrorCode.WRN_PatternNotPublicOrNotInstance:
                 case ErrorCode.WRN_PatternBadSignature:
                 case ErrorCode.WRN_SameFullNameThisNsAgg:
                 case ErrorCode.WRN_SameFullNameThisAggAgg:

@@ -278,7 +278,8 @@ class Test { }");
 
             solution = WithChangedOptionsFromRemoteWorkspace(solution);
 
-            Assert.NotEqual(
+            // No serializable remote options affect options checksum, so the checksums should match.
+            Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
                 await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
 
