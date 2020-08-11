@@ -2013,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var location in symbol.Locations)
             {
                 if (location.SourceTree != null &&
-                    IsAnalyzerSuppressedForTree(analyzer, location.SourceTree))
+                    !IsAnalyzerSuppressedForTree(analyzer, location.SourceTree))
                 {
                     return false;
                 }
