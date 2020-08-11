@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly NamingStylesTestOptionSets s_options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
 
-        protected override TestComposition GetComposition() => s_composition;
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_CorrectName()

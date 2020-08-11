@@ -1604,7 +1604,7 @@ record C(int X)
                 );
         }
 
-        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427")]
+        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427"), WorkItem(46249, "https://github.com/dotnet/roslyn/issues/46249")]
         public void WithExpr25_TypeParameterWithRecordConstraint()
         {
             var src = @"
@@ -1612,39 +1612,91 @@ record R(int X);
 
 class C
 {
-    public static void M<T>(T t) where T : R
+    public static T M<T>(T t) where T : R
     {
-        _ = t with { X = 2 };
+        return t with { X = 2 };
+    }
+
+    static void Main()
+    {
+        System.Console.Write(M(new R(-1)).X);
     }
 }";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (8,13): error CS8858: The receiver type 'T' is not a valid record type.
-                //         _ = t with { X = 2 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(8, 13)
-                );
+
+            var verifier = CompileAndVerify(src, expectedOutput: "2").VerifyDiagnostics();
+            verifier.VerifyIL("C.M<T>(T)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  callvirt   ""R R.<Clone>$()""
+  IL_000b:  unbox.any  ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  ldc.i4.2
+  IL_0017:  callvirt   ""void R.X.init""
+  IL_001c:  ret
+}
+");
         }
 
-        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427")]
+        [Fact, WorkItem(46427, "https://github.com/dotnet/roslyn/issues/46427"), WorkItem(46249, "https://github.com/dotnet/roslyn/issues/46249")]
         public void WithExpr26_TypeParameterWithRecordAndInterfaceConstraint()
         {
             var src = @"
-record R(int X);
+record R
+{
+    public int X { get; set; }
+}
 interface I { int Property { get; set; } }
+
+record T : R, I
+{
+    public int Property { get; set; }
+}
 
 class C
 {
-    public static void M<T>(T t) where T : R, I
+    public static T M<T>(T t) where T : R, I
     {
-        _ = t with { X = 2, Property = 3 };
+        return t with { X = 2, Property = 3 };
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(M(new T()).X);
+        System.Console.WriteLine(M(new T()).Property);
     }
 }";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (9,13): error CS8858: The receiver type 'T' is not a valid record type.
-                //         _ = t with { X = 2, Property = 3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(9, 13)
-                );
+
+            var verifier = CompileAndVerify(
+                new[] { src, IsExternalInitTypeDefinition },
+                parseOptions: TestOptions.RegularPreview,
+                verify: Verification.Passes,
+                expectedOutput:
+@"2
+3").VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M<T>(T)", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  callvirt   ""R R.<Clone>$()""
+  IL_000b:  unbox.any  ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  ldc.i4.2
+  IL_0017:  callvirt   ""void R.X.set""
+  IL_001c:  dup
+  IL_001d:  box        ""T""
+  IL_0022:  ldc.i4.3
+  IL_0023:  callvirt   ""void I.Property.set""
+  IL_0028:  ret
+}
+");
         }
 
         [Fact]
@@ -1724,6 +1776,190 @@ record R(int X)
                 // (7,24): error CS1002: ; expected
                 //         r with { X = 2 };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 24)
+                );
+        }
+
+        [Fact]
+        public void WithExpr30_TypeParameterNoConstraint()
+        {
+            var src = @"
+class C
+{
+    public static void M<T>(T t)
+    {
+        _ = t with { X = 2 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8858: The receiver type 'T' is not a valid record type.
+                //         _ = t with { X = 2 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(6, 13),
+                // (6,22): error CS0117: 'T' does not contain a definition for 'X'
+                //         _ = t with { X = 2 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("T", "X").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void WithExpr31_TypeParameterWithInterfaceConstraint()
+        {
+            var src = @"
+interface I { int Property { get; set; } }
+
+class C
+{
+    public static void M<T>(T t) where T : I
+    {
+        _ = t with { X = 2, Property = 3 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8858: The receiver type 'T' is not a valid record type.
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(8, 13),
+                // (8,22): error CS0117: 'T' does not contain a definition for 'X'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("T", "X").WithLocation(8, 22)
+                );
+        }
+
+        [Fact]
+        public void WithExpr32_TypeParameterWithInterfaceConstraint()
+        {
+            var ilSource = @"
+.class interface public auto ansi abstract I
+{
+    // Methods
+    .method public hidebysig specialname newslot abstract virtual 
+        instance class I '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+    } // end of method I::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance int32 get_Property () cil managed 
+    {
+    } // end of method I::get_Property
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void set_Property (
+            int32 'value'
+        ) cil managed 
+    {
+    } // end of method I::set_Property
+
+    // Properties
+    .property instance int32 Property()
+    {
+        .get instance int32 I::get_Property()
+        .set instance void I::set_Property(int32)
+    }
+
+} // end of class I
+";
+
+            var src = @"
+class C
+{
+    public static void M<T>(T t) where T : I
+    {
+        _ = t with { X = 2, Property = 3 };
+    }
+}";
+            var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8858: The receiver type 'T' is not a valid record type.
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(6, 13),
+                // (6,22): error CS0117: 'T' does not contain a definition for 'X'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("T", "X").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void WithExpr33_TypeParameterWithStructureConstraint()
+        {
+            var ilSource = @"
+.class public sequential ansi sealed beforefieldinit S
+    extends System.ValueType
+{
+    .pack 0
+    .size 1
+
+    // Methods
+    .method public hidebysig 
+        instance valuetype S '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        // Method begins at RVA 0x2150
+        // Code size 2 (0x2)
+        .maxstack 1
+        .locals init (
+            [0] valuetype S
+        )
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method S::'" + WellKnownMemberNames.CloneMethodName + @"'
+
+    .method public hidebysig specialname 
+        instance int32 get_Property () cil managed 
+    {
+        // Method begins at RVA 0x215e
+        // Code size 2 (0x2)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method S::get_Property
+
+    .method public hidebysig specialname 
+        instance void set_Property (
+            int32 'value'
+        ) cil managed 
+    {
+        // Method begins at RVA 0x215e
+        // Code size 2 (0x2)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method S::set_Property
+
+    // Properties
+    .property instance int32 Property()
+    {
+        .get instance int32 S::get_Property()
+        .set instance void S::set_Property(int32)
+    }
+} // end of class S
+";
+
+            var src = @"
+abstract class Base<T>
+{
+    public abstract void M<U>(U t) where U : T;
+}
+
+class C : Base<S>
+{
+    public override void M<U>(U t)
+    {
+        _ = t with { X = 2, Property = 3 };
+    }
+}";
+            var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8858: The receiver type 'U' is not a valid record type.
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("U").WithLocation(11, 13),
+                // (11,22): error CS0117: 'U' does not contain a definition for 'X'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("U", "X").WithLocation(11, 22),
+                // (11,29): error CS0117: 'U' does not contain a definition for 'Property'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("U", "Property").WithLocation(11, 29)
                 );
         }
 

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, cursorBuffer.CurrentSnapshot, document, threadingContext, streamingPresenter, CancellationToken.None)
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, document, threadingContext, streamingPresenter, CancellationToken.None)
             End Using
         End Function
 
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, cursorBuffer.CurrentSnapshot, document, threadingContext, streamingPresenter, CancellationToken.None)
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, document, threadingContext, streamingPresenter, CancellationToken.None)
             End Using
         End Function
     End Class

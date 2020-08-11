@@ -5,19 +5,17 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
-    internal class SuggestedActionSetComparer : IComparer<SuggestedActionSet>
+    internal class UnifiedSuggestedActionSetComparer : IComparer<UnifiedSuggestedActionSet>
     {
         private readonly TextSpan? _targetSpan;
 
-        public SuggestedActionSetComparer(TextSpan? targetSpan)
+        public UnifiedSuggestedActionSetComparer(TextSpan? targetSpan)
             => _targetSpan = targetSpan;
 
-        private static int Distance(Span? maybeA, TextSpan? maybeB)
+        private static int Distance(TextSpan? maybeA, TextSpan? maybeB)
         {
             // If we don't have a text span or target point we cannot calculate the distance between them
             if (!maybeA.HasValue || !maybeB.HasValue)
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return startsDistance + endsDistance;
         }
 
-        public int Compare(SuggestedActionSet x, SuggestedActionSet y)
+        public int Compare(UnifiedSuggestedActionSet x, UnifiedSuggestedActionSet y)
         {
             if (!_targetSpan.HasValue || !x.ApplicableToSpan.HasValue || !y.ApplicableToSpan.HasValue)
             {

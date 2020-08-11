@@ -78,13 +78,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
-        <target state="translated">L'instruction foreach asynchrone ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient aucune définition d'instance publique appropriée pour '{1}'</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">L'instruction foreach asynchrone ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient aucune définition d'instance publique appropriée pour '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
-        <target state="translated">L'instruction foreach asynchrone ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'instance publique pour '{1}'. Vouliez-vous dire 'foreach' plutôt que 'await foreach' ?</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
+        <target state="needs-review-translation">L'instruction foreach asynchrone ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'instance publique pour '{1}'. Vouliez-vous dire 'foreach' plutôt que 'await foreach' ?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -378,8 +378,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
-        <target state="translated">L'instruction foreach ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'instance publique pour '{1}'. Vouliez-vous dire 'await foreach' plutôt que 'foreach' ?</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
+        <target state="needs-review-translation">L'instruction foreach ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'instance publique pour '{1}'. Vouliez-vous dire 'await foreach' plutôt que 'foreach' ?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FuncPtrMethMustBeStatic">
@@ -1016,6 +1016,7 @@
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -1304,6 +1305,16 @@
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">instruction fixed extensible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetAsyncEnumerator">
+        <source>extension GetAsyncEnumerator</source>
+        <target state="new">extension GetAsyncEnumerator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetEnumerator">
+        <source>extension GetEnumerator</source>
+        <target state="new">extension GetEnumerator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
@@ -2439,6 +2450,16 @@
       <trans-unit id="WRN_PrecedenceInversion_Title">
         <source>Operator cannot be used here due to precedence.</source>
         <target state="new">Operator cannot be used here due to precedence.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PatternNotPublicOrNotInstance_Title">
+        <source>Type does not implement the collection pattern; member is is not a public instance or extension method.</source>
+        <target state="new">Type does not implement the collection pattern; member is is not a public instance or extension method.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -3954,16 +3975,6 @@
       <trans-unit id="WRN_PatternIsAmbiguous_Title">
         <source>Type does not implement the collection pattern; members are ambiguous</source>
         <target state="translated">Un type n'implémente pas le modèle de la collection ; les membres sont ambigus</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible">
-        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
-        <target state="translated">'{0}' n'implémente pas le modèle '{1}'. '{2}' est static ou non public.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PatternStaticOrInaccessible_Title">
-        <source>Type does not implement the collection pattern; member is either static or not public</source>
-        <target state="translated">Un type n'implémente pas le modèle de la collection ; un membre est statique ou n'est pas public</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
@@ -6420,8 +6431,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">L'instruction foreach ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'instance publique pour '{1}'</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="needs-review-translation">L'instruction foreach ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'instance publique pour '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

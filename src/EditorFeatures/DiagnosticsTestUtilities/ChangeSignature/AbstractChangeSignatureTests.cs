@@ -20,14 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
     public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
     {
-        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
-            typeof(TestChangeSignatureOptionsService));
-
         protected override ParseOptions GetScriptOptions()
             => throw new NotSupportedException();
 
         protected override TestComposition GetComposition()
-            => s_composition;
+            => base.GetComposition().AddParts(typeof(TestChangeSignatureOptionsService));
 
         internal async Task TestChangeSignatureViaCodeActionAsync(
             string markup,

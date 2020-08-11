@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine : ServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
+    internal partial class RemoteSymbolSearchUpdateEngine : ServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService
     {
         private readonly ISymbolSearchUpdateEngine _updateEngine;
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
-            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess(logService: this, progressService: this);
+            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess(logService: this);
 
             StartService();
         }

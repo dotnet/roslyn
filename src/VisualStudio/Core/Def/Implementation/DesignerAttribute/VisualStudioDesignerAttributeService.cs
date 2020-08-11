@@ -107,15 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
-            // Set a short batch time so we update VS in a timely manner.  We still want to batch things up though as we
-            // might receive many notifications about files in a project, and it would be better to notify VS of them
-            // all at once rather than saturating the UI work queue with a lot of work that keeps being processed in
-            // between everything else that is going on.
-            //
-            // In manual testing, 250 ms proved more than enough time to analyze full projects, while also making sure
-            // that updated data made it to the final UI quickly.
             _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromMilliseconds(250),
+                TimeSpan.FromSeconds(1),
                 this.NotifyProjectSystemAsync,
                 cancellationToken);
 

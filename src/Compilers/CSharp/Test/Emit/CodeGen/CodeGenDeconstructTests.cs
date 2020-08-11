@@ -2461,6 +2461,69 @@ static class D
         }
 
         [Fact]
+        public void DeconstructRefExtensionMethod()
+        {
+            // https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
+            string source = @"
+struct C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        
+        var c = new C();
+        (x, y) = c;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+static class D
+{
+    public static void Deconstruct(this ref C value, out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,9): error CS1510: A ref or out value must be an assignable variable
+                //         (x, y) = c;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x, y) = c").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        public void DeconstructInExtensionMethod()
+        {
+            string source = @"
+struct C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+        
+        (x, y) = new C();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+static class D
+{
+    public static void Deconstruct(this in C value, out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnderspecifiedDeconstructGenericExtensionMethod()
         {
             string source = @"

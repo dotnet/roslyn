@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             var condition = (BinaryExpressionSyntax)forStatement.Condition!;
             var after = forStatement.Incrementors[0];
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var generator = editor.Generator;
