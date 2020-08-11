@@ -55,15 +55,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode, cancellationToken).GetAnySymbol();
-            if (methodSymbol == null
-                || methodSymbol.DeclaredAccessibility != Accessibility.Private
-                || !methodSymbol.IsOrdinaryMethod())
+            var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode, cancellationToken).GetAnySymbol();
+            if (calleeMethodSymbol == null
+                || calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private
+                || !calleeMethodSymbol.IsOrdinaryMethod())
             {
                 return;
             }
 
-            if (methodSymbol is IMethodSymbol calleeMethodInvocationSymbol)
+            if (calleeMethodSymbol is IMethodSymbol calleeMethodInvocationSymbol)
             {
                 var calleeMethodDeclarationSyntaxNodes = await Task.WhenAll(calleeMethodInvocationSymbol.DeclaringSyntaxReferences
                     .Select(reference => reference.GetSyntaxAsync())).ConfigureAwait(false);
@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 this,
                 calleeMethodInvocationSyntaxNode);
 
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var inlineContext = await InlineMethodContext.GetInlineContextAsync(
                 this,
                 _syntaxFacts,
@@ -131,12 +132,17 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 calleeMethodDeclarationSyntaxNode,
                 methodParametersInfo,
                 methodInvocationInfo,
+                root,
                 cancellationToken).ConfigureAwait(false);
 
             var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var statementContainsCalleeInvocationExpression = inlineContext.StatementContainsCalleeInvocationExpression;
             foreach (var statement in inlineContext.DeclarationStatementsGenerated)
             {
-                documentEditor.InsertBefore(inlineContext.StatementContainsCalleeInvocationExpression, statement);
+                documentEditor.InsertBefore(
+                    statementContainsCalleeInvocationExpression,
+                    // Make sure the statement is aligned with the existing statement
+                    statement.WithLeadingTrivia(statementContainsCalleeInvocationExpression.GetLeadingTrivia()));
             }
 
             var syntaxNodeToReplace = inlineContext.SyntaxNodeToReplace;
@@ -152,6 +158,18 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
             }
 
+            // If the inline content has 'await' expression, then make sure the caller is converted to 'async' method
+            if (inlineContext.ContainsAwaitExpression)
+            {
+                var callerMethodSyntaxNode = _syntaxFacts.GetContainingMemberDeclaration(root, calleeMethodInvocationSyntaxNode.SpanStart);
+                if (semanticModel.GetDeclaredSymbol(callerMethodSyntaxNode, cancellationToken) is IMethodSymbol callerMethodSymbol
+                    && !callerMethodSymbol.IsAsync)
+                {
+                    documentEditor.SetModifiers(callerMethodSyntaxNode,
+                        DeclarationModifiers.From(calleeMethodSymbol).WithAsync(isAsync: true));
+                }
+            }
+
             return documentEditor.GetChangedDocument();
         }
 
@@ -163,7 +181,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 if (node != null && (
                     _syntaxFacts.IsLocalDeclarationStatement(node)
                     || IsEmbeddedStatementOwner(syntaxNode)
-                    || _syntaxFacts.IsExpressionStatement(node)))
+                    || _syntaxFacts.IsExpressionStatement(node)
+                    || _syntaxFacts.IsReturnStatement(node)))
                 {
                     return node;
                 }

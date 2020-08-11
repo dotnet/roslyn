@@ -671,6 +671,41 @@ public class TestClass
     }
 }");
 
+        [Fact]
+        public Task TestAwaitExpression()
+            => TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public Task Caller(bool x)
+    {
+        System.Console.Writeline("");
+        return Call[||]ee(10, x ? 1 : 2);
+    }
+
+    private async Task Callee(int i, int j)
+    {
+        return await Task.CompletedTask;
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public async Task Caller(bool x)
+    {
+        System.Console.Writeline("");
+        int j = x ? 1 : 2;
+        return await Task.CompletedTask;
+    }
+
+    private async Task Callee(int i, int j)
+    {
+        return await Task.CompletedTask;
+    }
+}");
+
         #region parenthesisTest
 
         [Fact]
@@ -1055,36 +1090,6 @@ public class TestClass
     }
 }");
 
-        [Fact(Skip = "Add await suppport")]
-        public Task TestAwaitExpression()
-            => TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    public char Caller(int i, int j)
-    {
-        return (char)Call[||]ee(i, j);
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}",
-                @"
-public class TestClass
-{
-    public char Caller(int i, int j)
-    {
-        return (char)(i + j);
-    }
-
-    private int Callee(int i, int j)
-    {
-        return i + j;
-    }
-}");
-
         [Fact]
         public Task TestSimpleMemberAccessExpression()
             => TestInRegularAndScript1Async(
@@ -1260,22 +1265,22 @@ public class TestClass
             => TestInRegularAndScript1Async(@"
 public class TestClass
 {
-    private object Calller(int x)
+    private int Calller(int x)
     {
         return 10 - Ca[||]llee(x);
     }
 
-    private object Callee(int x) => x (op)= 1;
+    private int Callee(int x) => x (op)= 1;
 }".Replace("(op)", op),
                 @"
 public class TestClass
 {
-    private object Calller(int x)
+    private int Calller(int x)
     {
         return 10 - (x (op)= 1);
     }
 
-    private object Callee(int x) => x (op)= 1;
+    private int Callee(int x) => x (op)= 1;
 }".Replace("(op)", op));
 
         #endregion

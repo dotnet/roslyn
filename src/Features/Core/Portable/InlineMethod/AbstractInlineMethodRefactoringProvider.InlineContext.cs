@@ -75,18 +75,22 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// </summary>
             public SyntaxNode SyntaxNodeToReplace { get; }
 
+            public bool ContainsAwaitExpression { get; }
+
             private const string TemporaryName = "tmp";
 
             private InlineMethodContext(
                 ImmutableArray<SyntaxNode> declarationStatementsGenerated,
                 SyntaxNode statementContainsCalleeInvocationExpression,
                 SyntaxNode? inlineSyntaxNode,
-                SyntaxNode syntaxNodeToReplace)
+                SyntaxNode syntaxNodeToReplace,
+                bool containsAwaitExpression)
             {
                 DeclarationStatementsGenerated = declarationStatementsGenerated;
                 StatementContainsCalleeInvocationExpression = statementContainsCalleeInvocationExpression;
                 InlineSyntaxNode = inlineSyntaxNode;
                 SyntaxNodeToReplace = syntaxNodeToReplace;
+                ContainsAwaitExpression = containsAwaitExpression;
             }
 
             public static async Task<InlineMethodContext> GetInlineContextAsync(
@@ -100,9 +104,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 SyntaxNode calleeMethodDeclarationSyntaxNode,
                 MethodParametersInfo methodParametersInfo,
                 MethodInvocationInfo methodInvocationInfo,
+                SyntaxNode root,
                 CancellationToken cancellationToken)
             {
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var inlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
                 // Compute the replacement syntax node for needed symbols(variables and parameters) in the callee.
@@ -164,7 +168,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         localDeclarationStatementsNeedInsert,
                         methodInvocationInfo.StatementContainsCalleeInvocationExpression,
                         null,
-                        methodInvocationInfo.StatementContainsCalleeInvocationExpression);
+                        methodInvocationInfo.StatementContainsCalleeInvocationExpression,
+                        false);
                 }
 
                 var replacementTable = ComputeReplacementTable(
@@ -183,6 +188,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     replacementTable,
                     cancellationToken).ConfigureAwait(false);
 
+                var containsAwaitExpression = inlineSyntaxNode.DescendantNodesAndSelf().Any(syntaxFacts.IsAwaitExpression);
                 var parent = calleeInvocationSyntaxNode.Parent;
                 if (methodInvocationInfo.IsCalleeSingleInvokedAsStatementOrDeclaration
                     && !calleeMethodSymbol.ReturnsVoid
@@ -219,7 +225,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         methodInvocationInfo.StatementContainsCalleeInvocationExpression,
                         syntaxGenerator
                             .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedTemporaryName, inlineSyntaxNode),
-                        methodInvocationInfo.StatementContainsCalleeInvocationExpression);
+                        methodInvocationInfo.StatementContainsCalleeInvocationExpression,
+                        containsAwaitExpression);
                 }
                 // Check if parenthesis is needed.
                 else if (parent != null
@@ -260,7 +267,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     inlineSyntaxNode
                         .WithLeadingTrivia(calleeInvocationSyntaxNode.GetLeadingTrivia())
                         .WithTrailingTrivia(calleeInvocationSyntaxNode.GetTrailingTrivia()),
-                    calleeInvocationSyntaxNode);
+                    calleeInvocationSyntaxNode,
+                    containsAwaitExpression);
             }
 
             private static ImmutableArray<SyntaxNode> GetLocalDeclarationStatementsNeedInsert(
