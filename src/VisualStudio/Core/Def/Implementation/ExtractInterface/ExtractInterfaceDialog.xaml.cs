@@ -36,12 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             _viewModel = viewModel;
             SetCommandBindings();
 
+            DestinationControl = new NewTypeDestinationSelection(_viewModel.DestinationViewModel);
+            Loaded += ExtractInterfaceDialog_Loaded;
+
             InitializeComponent();
             DataContext = viewModel;
-
-            DestinationControl = new NewTypeDestinationSelection(_viewModel.DestinationViewModel);
-
-            Loaded += ExtractInterfaceDialog_Loaded;
         }
 
         private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
