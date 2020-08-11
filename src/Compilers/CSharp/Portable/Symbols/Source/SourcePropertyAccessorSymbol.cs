@@ -534,6 +534,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     var exitPath = exitPaths.Last();
                                     type = exitPath.Item2;
                                 }
+                                else
+                                {
+                                    // no exit paths available... so fallback to some "error" by using the explicit type of the property...
+                                    type = prop.GetExplicitReturnTypeWithAnnotations(null, null, diagnostics, out var propRefKind);
+                                }
                                 exitPaths.Free();
                             }
                         }
