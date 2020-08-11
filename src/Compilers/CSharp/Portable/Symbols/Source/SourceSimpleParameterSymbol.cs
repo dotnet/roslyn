@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var node = this.GetNonNullSyntaxNode();
                 if (node is ParameterSyntax param)
                 {
-                    return param.ExclamationToken.Kind() == SyntaxKind.ExclamationToken;
+                    return param.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken;
                 }
                 return false;
             }

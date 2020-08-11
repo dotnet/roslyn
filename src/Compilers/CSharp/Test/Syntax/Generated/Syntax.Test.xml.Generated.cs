@@ -3031,7 +3031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Modifiers);
             Assert.Null(node.Type);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
-            Assert.Null(node.ExclamationToken);
+            Assert.Null(node.ExclamationExclamationToken);
             Assert.Null(node.Default);
 
             AttachAndCheckDiagnostics(node);
@@ -12495,9 +12495,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Modifiers);
             Assert.Null(node.Type);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
-            Assert.Equal(SyntaxKind.None, node.ExclamationToken.Kind());
+            Assert.Equal(SyntaxKind.None, node.ExclamationExclamationToken.Kind());
             Assert.Null(node.Default);
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type).WithIdentifier(node.Identifier).WithExclamationToken(node.ExclamationToken).WithDefault(node.Default);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type).WithIdentifier(node.Identifier).WithExclamationExclamationToken(node.ExclamationExclamationToken).WithDefault(node.Default);
             Assert.Equal(node, newNode);
         }
 
