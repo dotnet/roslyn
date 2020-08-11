@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// The action compares actual <see cref="Diagnostic"/> and the expected
         /// <see cref="DiagnosticResult"/> based on custom test requirements not yet supported by the test framework.
         /// </summary>
-        public Action<ImmutableArray<DiagnosticAnalyzer>, Diagnostic, DiagnosticResult, IVerifier>? DiagnosticVerifier { get; set; }
+        public Action<Diagnostic, DiagnosticResult, IVerifier>? DiagnosticVerifier { get; set; }
 
         /// <summary>
         /// Gets a collection of transformation functions to apply to <see cref="Workspace.Options"/> during diagnostic
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         message);
                 }
 
-                DiagnosticVerifier?.Invoke(analyzers, actual, expected, verifier);
+                DiagnosticVerifier?.Invoke(actual, expected, verifier);
             }
         }
 
