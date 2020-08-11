@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse
         }
 
         protected override SyntaxList<AccessorDeclarationSyntax> GetAccessors(BasePropertyDeclarationSyntax baseProperty)
-            => baseProperty.AccessorList.Accessors;
+            => baseProperty.AccessorList!.Accessors;
 
         public override SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node)
         {
