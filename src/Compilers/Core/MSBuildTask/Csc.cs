@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
+        // Same separators as those used by Process.OutputDataReceived to maintain consistency between csc and VBCSCompiler
         private static readonly string[] s_separators = { "\r\n", "\r", "\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
