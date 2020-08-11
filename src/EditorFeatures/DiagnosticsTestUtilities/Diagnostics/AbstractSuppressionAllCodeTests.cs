@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 var descendants = root.DescendantNodesAndSelf(digInto).ToImmutableArray();
                 analyzer.AllNodes = descendants;
-                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, root.FullSpan);
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan);
 
                 foreach (var diagnostic in diagnostics)
                 {

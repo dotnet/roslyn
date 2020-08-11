@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
@@ -370,7 +369,7 @@ class C{i}
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new CSharpChangeSignatureCommandHandler(workspace.GetService<IThreadingContext>());
+            var handler = workspace.ExportProvider.GetCommandHandler<CSharpChangeSignatureCommandHandler>(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

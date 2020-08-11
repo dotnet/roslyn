@@ -8793,6 +8793,61 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
+        Public Sub SkipAnalyzersParse()
+            Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/SKIPANALYZERS+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers-", "/skipanalyzers+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers", "/skipanalyzers-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
+        Public Sub SkipAnalyzersSemantics(skipAnalyzers As Boolean)
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+            Dim skipAnalyzersFlag = "/skipanalyzers" + If(skipAnalyzers, "+", "-")
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, source})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            If skipAnalyzers Then
+                Assert.DoesNotContain(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+                Assert.DoesNotContain(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Else
+                Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+                Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            End If
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
         <WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")>
         Public Sub AnalyzerDiagnosticThrowsInGetMessage()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
