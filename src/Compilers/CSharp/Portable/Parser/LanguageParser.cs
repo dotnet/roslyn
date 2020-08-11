@@ -1511,7 +1511,7 @@ tryAgain:
                                 var saveTerm2 = _termState;
                                 _termState |= TerminatorState.IsPossibleMemberStartOrStop;
 
-                                var member = this.ParseMemberDeclaration(keyword.Kind);
+                                var member = this.ParseMemberDeclaration(parentKind: keyword.Kind, parentName: name);
                                 if (member != null)
                                 {
                                     // statements are accepted here, a semantic error will be reported later
@@ -2210,9 +2210,7 @@ tryAgain:
                     // Unless modifiers or attributes are present this is more likely to be a method call than a method definition.
                     if (haveAttributes || haveModifiers)
                     {
-                        var token = SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword);
-                        token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
-                        var voidType = _syntaxFactory.PredefinedType(token);
+                        // Members don't need return type specified
 
                         var identifier = this.EatToken();
 
@@ -2225,7 +2223,10 @@ tryAgain:
                         }
                         else
                         {
-                            return this.ParseMethodDeclaration(attributes, modifiers, voidType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
+                            // create a fake return type for the method
+                            var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                            var methodType = _syntaxFactory.IdentifierName(token);
+                            return this.ParseMethodDeclaration(attributes, modifiers, methodType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
                         }
                     }
                 }
@@ -2277,7 +2278,22 @@ tryAgain:
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
 
-                TypeSyntax type = ParseReturnType();
+                TypeSyntax type;
+                bool hasExplicitType;
+                // Before parsing the return type, check if it looks like a method
+                if (IsPossibleMethodDeclarationStart() || IsPossibleGetterPropertyDeclarationStart())
+                {
+                    // it's more likely to be a method - without any return type defined
+                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                    type = _syntaxFactory.IdentifierName(token);
+                    hasExplicitType = false;
+                }
+                else
+                {
+                    // we should have a type
+                    type = ParseReturnType();
+                    hasExplicitType = true;
+                }
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -2306,7 +2322,9 @@ tryAgain:
                             IsInAsync = wasInAsync;
                             _termState = saveTerm;
 
-                            if (isAcceptableNonDeclarationStatement(statement, IsScript))
+                            // if it's a parameterless invocation statement, it could actually be a method declaration!
+                            var isLikelyMethodDeclaration = LooksLikeMethodDeclaration(statement, hasExplicitType);
+                            if (!isLikelyMethodDeclaration && isAcceptableNonDeclarationStatement(statement, IsScript))
                             {
                                 return CheckTopLevelStatementsFeatureAvailability(_syntaxFactory.GlobalStatement(statement));
                             }
@@ -2496,6 +2514,19 @@ parse_member_name:;
 
         }
 
+        private bool LooksLikeMethodDeclaration(StatementSyntax statement, bool hasExplicitType = false)
+        {
+            if (statement is ExpressionStatementSyntax exprStatement &&
+                                exprStatement.Expression is InvocationExpressionSyntax invocationExpr &&
+                                invocationExpr.ArgumentList?.Arguments.Count == 0)
+            {
+                // only if we have a following "{" or "=>" ... then it's likely to be a method declaration
+                return !hasExplicitType && (CurrentToken.Kind == SyntaxKind.OpenBraceToken || CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken);
+            }
+
+            return false;
+        }
+
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
@@ -2607,13 +2638,47 @@ parse_member_name:;
         }
 
         // Returns null if we can't parse anything (even partially).
-        internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
+        internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind, SyntaxToken? parentName = null)
         {
             _recursionDepth++;
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-            var result = ParseMemberDeclarationCore(parentKind);
+            var result = ParseMemberDeclarationCore(parentKind, parentName);
             _recursionDepth--;
             return result;
+        }
+
+        private bool IsPossibleMethodDeclarationStart()
+        {
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                // check if following is a "(" or a "<" ... then it's most likely the name we are at!
+                (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.PeekToken(1).Kind == SyntaxKind.LessThanToken))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsPossibleGetterPropertyDeclarationStart()
+        {
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            {
+                var peeked1 = this.PeekToken(1);
+
+                // check if following is a "=>" ... then it's most likely the name we are at!
+                if(peeked1.Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    return true;
+                }
+
+                // check if following is a "{ get " or a "{ set "
+                if(peeked1.Kind == SyntaxKind.OpenBraceToken)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -2622,7 +2687,7 @@ parse_member_name:;
         /// reduce the stack usage during recursive parsing.
         /// </summary>
         /// <returns>Returns null if we can't parse anything (even partially).</returns>
-        private MemberDeclarationSyntax ParseMemberDeclarationCore(SyntaxKind parentKind)
+        private MemberDeclarationSyntax ParseMemberDeclarationCore(SyntaxKind parentKind, SyntaxToken? parentName = null)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -2652,7 +2717,10 @@ parse_member_name:;
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                 {
-                    return this.ParseConstructorDeclaration(attributes, modifiers);
+                    if (parentName == null || parentName.Text == this.CurrentToken.Text)
+                    {
+                        return this.ParseConstructorDeclaration(attributes, modifiers);
+                    }
                 }
 
                 // Check for destructor form
@@ -2698,7 +2766,20 @@ parse_member_name:;
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void).
-                TypeSyntax type = ParseReturnType();
+                TypeSyntax type = null;
+
+                // Before parsing the return type, check if it looks like a method
+                if (IsPossibleMethodDeclarationStart() || IsPossibleGetterPropertyDeclarationStart())
+                {
+                    // it's more likely to be a method - without any return type defined
+                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                    type = _syntaxFactory.IdentifierName(token);
+                }
+                else
+                {   
+                    // we should have a type
+                    type = ParseReturnType();
+                }
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -3401,7 +3482,58 @@ parse_member_name:;
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                accessorList = this.ParseAccessorList(isEvent: false);
+                // check for standard "getter / setter" accessor definitions
+
+                var parsedAccessorList = false;
+                if (IsPossibleAccessor())
+                {
+                    var resetPoint = GetResetPoint();
+                    try
+                    {
+                        // try parsing the accessor list
+                        var tmpAccessorList = this.ParseAccessorList(isEvent: false);
+
+                        // set the accessors if any parsed
+                        if (tmpAccessorList.Accessors.Count > 0)
+                            parsedAccessorList = true;
+
+                        // check for special case when we parsed an accessor list but there are issues... could be an implicit "getter block"
+                        if (tmpAccessorList.Accessors.Count == 1)
+                        {
+                            var accessor = tmpAccessorList.Accessors[0];
+                            if(accessor.Kind == SyntaxKind.UnknownAccessorDeclaration && accessor.Modifiers.Count == 0 && accessor.AttributeLists.Count == 0)
+                            {
+                                // no attributes and no modifiers... so most likely it's an implicit "getter block"
+                                parsedAccessorList = false;
+                            }
+                        }
+
+                        if(parsedAccessorList)
+                        {
+                            // we parsed the accessor list
+                            accessorList = tmpAccessorList;
+                        }
+                    }
+                    finally
+                    {
+                        // restore the parse state if didn't parse the accessor list
+                        if(!parsedAccessorList) Reset(ref resetPoint);
+                        Release(ref resetPoint);
+                    }
+                }
+
+                // fallback to reading the block as a "getter" accessor without the "get"
+                if (!parsedAccessorList)
+                {
+                    // parse single getter accessor
+                    var builder = _pool.Allocate<AccessorDeclarationSyntax>();
+                    var getAccessor = ParseAccessorDeclaration(isEvent: false, isGetterAccessor: true);
+                    builder.Add(getAccessor);
+                    var accessors = builder.ToList();
+                    var openBrace = SyntaxFactory.FakeToken(SyntaxKind.OpenBraceToken, "{");
+                    var closeBrace = SyntaxFactory.FakeToken(SyntaxKind.CloseBraceToken, "}");
+                    accessorList = _syntaxFactory.AccessorList(openBrace, accessors, closeBrace);
+                }
             }
 
             ArrowExpressionClauseSyntax expressionBody = null;
@@ -3739,7 +3871,7 @@ parse_member_name:;
             }
         }
 
-        private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
+        private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent, bool isGetterAccessor = false)
         {
             if (this.IsIncrementalAndFactoryContextMatches && SyntaxFacts.IsAccessorDeclaration(this.CurrentNodeKind))
             {
@@ -3749,22 +3881,39 @@ parse_member_name:;
             var accMods = _pool.Allocate();
             try
             {
-                var accAttrs = this.ParseAttributeDeclarations();
-                this.ParseModifiers(accMods, forAccessors: true);
-
-                // check availability of readonly members feature for accessors
-                CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
-
-                if (!isEvent)
+                SyntaxToken accessorName;
+                SyntaxList<AttributeListSyntax> accAttrs;
+                if (!isGetterAccessor)
                 {
-                    if (accMods != null && accMods.Count > 0)
+                    accAttrs = this.ParseAttributeDeclarations();
+                    this.ParseModifiers(accMods, forAccessors: true);
+
+                    // check availability of readonly members feature for accessors
+                    CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
+
+                    if (!isEvent)
                     {
-                        accMods[0] = CheckFeatureAvailability(accMods[0], MessageID.IDS_FeaturePropertyAccessorMods);
+                        if (accMods != null && accMods.Count > 0)
+                        {
+                            accMods[0] = CheckFeatureAvailability(accMods[0], MessageID.IDS_FeaturePropertyAccessorMods);
+                        }
                     }
+
+                    // parse the accessor type
+                    accessorName = this.EatToken(SyntaxKind.IdentifierToken,
+                        isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                }
+                else
+                {
+                    // explicit getter cannot have attributes nor modifiers
+                    var attributes = _pool.Allocate<AttributeListSyntax>();
+                    accAttrs = attributes.ToList();
+                    _pool.Free(attributes);
+
+                    // this is explicitly defined as a getter ... so no "get" is needed... we will however set a fake name
+                    accessorName = SyntaxFactory.FakeToken(SyntaxKind.GetKeyword, "get");
                 }
 
-                var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
-                    isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
                 var accessorKind = GetAccessorKind(accessorName);
 
                 // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
@@ -7165,7 +7314,17 @@ done:;
 
             if (!this.IsPossibleLocalDeclarationStatement(isGlobal))
             {
-                return this.ParseExpressionStatement(attributes);
+                var exprStatement = this.ParseExpressionStatement(attributes);
+                var isLikelyMethodDeclaration = LooksLikeMethodDeclaration(exprStatement, false);
+                if(isLikelyMethodDeclaration)
+                {
+                    // looks like a method declaration... then we will attempt that instead!
+                    this.Reset(ref resetPointBeforeStatement);
+                }
+                else
+                {
+                    return exprStatement;
+                }
             }
 
             if (isGlobal)
@@ -9224,7 +9383,23 @@ tryAgain:
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
-            type = allowLocalFunctions ? ParseReturnType() : this.ParseType();
+            if (allowLocalFunctions)
+            {
+                if(IsPossibleMethodDeclarationStart())
+                {
+                    // it's more likely to be a method - without any return type defined
+                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
+                    type = _syntaxFactory.IdentifierName(token);
+                }
+                else
+                {
+                    type = ParseReturnType();
+                }
+            }
+            else
+            {
+                type = ParseType();
+            }
 
             VariableFlags flags = VariableFlags.Local;
             if (mods.Any((int)SyntaxKind.ConstKeyword))

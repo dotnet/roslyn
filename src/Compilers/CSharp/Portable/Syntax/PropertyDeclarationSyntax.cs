@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return this.WithSemicolonToken(semicolon);
         }
+
+        public bool HasExplicitReturnType()
+        {
+            var noExplicitReturnType = Type.Kind() == SyntaxKind.IdentifierName && Type.Width == 0;
+            return !noExplicitReturnType;
+        }
     }
 
     // backwards compatibility for API extension

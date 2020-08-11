@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -54,7 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (bracePair.openBrace.IsKind(SyntaxKind.None) ||
                 bracePair.openBrace.IsMissing ||
-                bracePair.closeBrace.IsKind(SyntaxKind.None))
+                bracePair.closeBrace.IsKind(SyntaxKind.None) ||
+                bracePair.openBrace.Width() == 0 ||
+                bracePair.closeBrace.Width() == 0)
             {
                 return false;
             }

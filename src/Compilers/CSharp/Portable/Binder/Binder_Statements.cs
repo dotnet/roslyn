@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -553,6 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasErrors = localSymbol.ScopeBinder
                 .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
+            // check if no return type has been declared
+            var hasExplicitReturnType = node.HasExplicitReturnType();
+
             BoundBlock blockBody = null;
             BoundBlock expressionBody = null;
             if (node.Body != null)
@@ -608,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
                         }
-                        else
+                        else if (hasExplicitReturnType)
                         {
                             blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
                         }
@@ -1709,14 +1713,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindBlock(node, diagnostics);
         }
 
-        private BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics, Binder fallbackBinder)
+        {
+            return BindBlock(node, diagnostics, fallbackBinder);
+        }
+
+        private BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics, Binder? fallbackBinder = null)
         {
             if (node.AttributeLists.Count > 0)
             {
                 Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, node.AttributeLists[0]);
             }
 
-            var binder = GetBinder(node);
+            var binder = GetBinder(node) ?? fallbackBinder;
             Debug.Assert(binder != null);
 
             return binder.BindBlockParts(node, diagnostics);
@@ -2673,6 +2682,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
+                else if(returnType?.IsErrorType() == true)
+                {
+                    // check if the local function has no return type specified
+                    if(symbol is LocalFunctionSymbol localFuncSymbol && !localFuncSymbol.Syntax.HasExplicitReturnType())
+                    {
+                        return null;
+                    }
+                    else if(symbol is SourceOrdinaryMethodSymbol methodSymbol && !methodSymbol.GetSyntax().HasExplicitReturnType())
+                    {
+                        return null;
+                    }
+                }
 
                 return returnType;
             }
@@ -3216,14 +3237,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return IsValidStatementExpression(expressionSyntax, expression) || expressionSyntax.Kind() == SyntaxKind.ThrowExpression;
         }
-
         /// <summary>
         /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
         /// </summary>
         internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
                                                       DiagnosticBag diagnostics)
         {
-            Binder bodyBinder = this.GetBinder(expressionBody);
+            return BindExpressionBodyAsBlock(expressionBody, diagnostics, null);
+        }
+
+        /// <summary>
+        /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
+        /// </summary>
+        internal BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
+                                                      DiagnosticBag diagnostics, Binder fallbackBodyBinder)
+        {
+            Binder bodyBinder = this.GetBinder(expressionBody) ?? fallbackBodyBinder;
             Debug.Assert(bodyBinder != null);
 
             return bindExpressionBodyAsBlockInternal(expressionBody, bodyBinder, diagnostics);

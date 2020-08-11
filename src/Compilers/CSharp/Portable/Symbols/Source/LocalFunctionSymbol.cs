@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -226,14 +227,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ComputeReturnType()
         {
-            if (_lazyReturnType is object)
-            {
-                return;
-            }
+            if (_lazyReturnType != null) return;
 
+            bool updateReturnType = true;
             var diagnostics = DiagnosticBag.GetInstance();
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
             TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
+
+            // if there is an issue with the return type - try to do the binding from the body - only if this is a method without explicit return type
+            if (returnType.Type?.IsErrorType() == true && !Syntax.HasExplicitReturnType()) 
+            {
+                // temporarily set the return type before attempting any binding ... it's an error type ... but thats fine ... it will either stay so or will get an infered type from body
+                Interlocked.Exchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType));
+                updateReturnType = true;
+
+                // bind the body of the function
+                var tmpDiagnostics = DiagnosticBag.GetInstance();
+                BoundNode boundBodyNode = null;
+                if (Syntax.Body != null)
+                    boundBodyNode = _binder.BindEmbeddedBlock(Syntax.Body, tmpDiagnostics);
+                else if (Syntax.ExpressionBody != null)
+                    boundBodyNode = _binder.BindExpressionBodyAsBlock(Syntax.ExpressionBody, tmpDiagnostics);
+                tmpDiagnostics.Free();
+
+                if (boundBodyNode != null)
+                {
+                    var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
+                    CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBodyNode);
+                    if (exitPaths.Count > 0)
+                    {
+                        // there is some return, so lets use the last return statement
+                        var exitPath = exitPaths.Last();
+                        returnType = exitPath.Item2;
+                    }
+                    else
+                    {
+                        // there is no return, so lets make it "void" per default
+                        returnType = SignatureBinder.BindSpecialType(SyntaxKind.VoidKeyword);
+                    }
+                }
+            }
 
             var compilation = DeclaringCompilation;
 
@@ -276,6 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyReturnType is object)
                 {
                     diagnostics.Free();
+
+                    if(updateReturnType)
+                    {
+                        Interlocked.Exchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType));
+                    }
                     return;
                 }
 

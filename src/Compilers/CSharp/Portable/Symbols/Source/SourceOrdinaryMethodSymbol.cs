@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -128,7 +130,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             RefKind refKind;
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
+
+            // if it's an error type, try to resolve from the Body instead!
+            if(returnType.Type?.IsErrorType() == true && !syntax.HasExplicitReturnType())
+            {
+                // try to infer from the body
+                var bodyBinder = TryGetBodyBinder();
+                if (bodyBinder != null)
+                {
+                    // set the parameters before evaluating method body ... it may try to access the parameters ...
+                    _lazyParameters = parameters;
+
+                    // evaluate method body
+                    var bodyDiagnostics = new DiagnosticBag();
+                    var boundBody = bodyBinder.BindMethodBody(syntax, bodyDiagnostics);
+                    var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
+                    CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBody);
+                    if (exitPaths.Count > 0)
+                    {
+                        // there is some return, so lets use the last return statement
+                        var exitPath = exitPaths.Last();
+                        returnType = exitPath.Item2;
+                    }
+                    else
+                    {
+                        // there is no return, so lets make it "void" per default
+                        returnType = signatureBinder.BindSpecialType(SyntaxKind.VoidKeyword);
+                    }
+                }
+            }
 
             // span-like types are returnable in general
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))

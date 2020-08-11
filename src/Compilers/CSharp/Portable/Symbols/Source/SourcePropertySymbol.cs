@@ -8,7 +8,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -367,13 +370,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
         }
 
-        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        internal TypeWithAnnotations GetExplicitReturnTypeWithAnnotations(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics, out RefKind refKind)
         {
+            refKind = RefKind.None;
+
+            var propDeclSyntax = syntax as PropertyDeclarationSyntax ?? CSharpSyntaxNode as PropertyDeclarationSyntax;
+            if (propDeclSyntax == null) return default;
+
             binder ??= CreateBinderForTypeAndParameters();
 
-            RefKind refKind;
-            var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
+            var typeSyntax = GetTypeSyntax(propDeclSyntax).SkipRef(out refKind);
             var type = binder.BindType(typeSyntax, diagnostics);
+
+            return type;
+        }
+
+        protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            if (_lazyType != null) return _lazyType.Value;
+
+            var propDeclSyntax = syntax as PropertyDeclarationSyntax ?? CSharpSyntaxNode as PropertyDeclarationSyntax;
+            if (propDeclSyntax == null) return default;
+
+            TypeWithAnnotations type;
+            var refKind = RefKind.None;
+            if (propDeclSyntax.HasExplicitReturnType())
+            {
+                // try returning the bound explicit type
+                type = GetExplicitReturnTypeWithAnnotations(binder, syntax, diagnostics, out refKind);
+            }
+            else
+            {
+                // try resolving from "=>" body
+                var getterSymbol = GetMethod as SourcePropertyAccessorSymbol;
+                if (getterSymbol != null)
+                {
+                    // use the type from the getter symbol... which should infer itself!
+                    type = getterSymbol.ReturnTypeWithAnnotations;
+                }
+                else
+                {
+                    // at least fallback to something... even if it will be an error
+                    type = GetExplicitReturnTypeWithAnnotations(binder, syntax, diagnostics, out refKind);
+                }
+            }
+
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
             if (GetExplicitInterfaceSpecifier(syntax) is null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
