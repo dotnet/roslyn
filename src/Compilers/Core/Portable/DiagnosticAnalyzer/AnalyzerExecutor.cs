@@ -68,7 +68,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
             => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
 
-        private SyntaxTreeOptionsProvider SyntaxTreeOptions => _compilation.Options.SyntaxTreeOptionsProvider;
+        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
+        {
+            Debug.Assert(_isAnalyzerSuppressedForTree != null);
+            return _isAnalyzerSuppressedForTree(analyzer, tree, Compilation.Options.SyntaxTreeOptionsProvider);
+        }
 
         /// <summary>
         /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
@@ -690,10 +694,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerStateData? analyzerState,
             bool isGeneratedCode)
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, semanticModel.SyntaxTree, SyntaxTreeOptions))
+                IsAnalyzerSuppressedForTree(analyzer, semanticModel.SyntaxTree))
             {
                 return;
             }
@@ -774,11 +776,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode)
         {
             Debug.Assert(file.SourceTree != null);
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             var tree = file.SourceTree;
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, tree, SyntaxTreeOptions))
+                IsAnalyzerSuppressedForTree(analyzer, tree))
             {
                 return;
             }
@@ -1060,10 +1061,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
             Debug.Assert(startActions.Any() || endActions.Any() || actions.Any());
             Debug.Assert(!executableBlocks.IsEmpty);
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree, SyntaxTreeOptions))
+                IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree))
             {
                 return;
             }
@@ -1316,10 +1316,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode)
             where TLanguageKindEnum : struct
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, model.SyntaxTree, SyntaxTreeOptions))
+                IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
             {
                 return;
             }
@@ -1456,10 +1454,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OperationAnalyzerStateData? analyzerState,
             bool isGeneratedCode)
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, model.SyntaxTree, SyntaxTreeOptions))
+                IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
             {
                 return;
             }
@@ -2014,12 +2010,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsAnalyzerSuppressedForSymbol(DiagnosticAnalyzer analyzer, ISymbol symbol)
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             foreach (var location in symbol.Locations)
             {
                 if (location.SourceTree != null &&
-                    !_isAnalyzerSuppressedForTree(analyzer, location.SourceTree, SyntaxTreeOptions))
+                    IsAnalyzerSuppressedForTree(analyzer, location.SourceTree))
                 {
                     return false;
                 }
