@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
-            var (compilation, analyzerOptions) = analyzerExecutor.TryGetCompilationAndAnalyzerOptions();
+            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {

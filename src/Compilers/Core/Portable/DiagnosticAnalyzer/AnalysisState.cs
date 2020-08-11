@@ -191,30 +191,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void UpdateEventsMap_NoLock(CompilationEvent compilationEvent, bool add)
         {
-            if (compilationEvent is SymbolDeclaredCompilationEvent symbolEvent)
+            switch (compilationEvent)
             {
-                // Add/remove symbol events.
-                // Any diagnostics request for a tree should trigger symbol and syntax node analysis for symbols with at least one declaring reference in the tree.
-                foreach (var location in symbolEvent.Symbol.Locations)
-                {
-                    if (location.SourceTree != null)
+                case SymbolDeclaredCompilationEvent symbolEvent:
+                    // Add/remove symbol events.
+                    // Any diagnostics request for a tree should trigger symbol and syntax node analysis for symbols with at least one declaring reference in the tree.
+                    foreach (var location in symbolEvent.Symbol.Locations)
                     {
-                        if (add)
+                        if (location.SourceTree != null)
                         {
-                            AddPendingSourceEvent_NoLock(location.SourceTree, compilationEvent);
-                        }
-                        else
-                        {
-                            RemovePendingSourceEvent_NoLock(location.SourceTree, compilationEvent);
+                            if (add)
+                            {
+                                AddPendingSourceEvent_NoLock(location.SourceTree, compilationEvent);
+                            }
+                            else
+                            {
+                                RemovePendingSourceEvent_NoLock(location.SourceTree, compilationEvent);
+                            }
                         }
                     }
-                }
-            }
-            else
-            {
-                // Add/remove compilation unit completed events.
-                if (compilationEvent is CompilationUnitCompletedEvent compilationUnitCompletedEvent)
-                {
+
+                    break;
+
+                case CompilationUnitCompletedEvent compilationUnitCompletedEvent:
+                    // Add/remove compilation unit completed events.
                     var tree = compilationUnitCompletedEvent.SemanticModel.SyntaxTree;
                     if (add)
                     {
@@ -224,9 +224,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         RemovePendingSourceEvent_NoLock(tree, compilationEvent);
                     }
-                }
-                else if (compilationEvent is CompilationStartedEvent || compilationEvent is CompilationCompletedEvent)
-                {
+
+                    break;
+
+                case CompilationStartedEvent:
+                case CompilationCompletedEvent:
                     // Add/remove compilation events.
                     if (add)
                     {
@@ -236,11 +238,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _pendingNonSourceEvents.Remove(compilationEvent);
                     }
-                }
-                else
-                {
+
+                    break;
+
+                default:
                     throw new InvalidOperationException("Unexpected compilation event of type " + compilationEvent.GetType().Name);
-                }
             }
         }
 
@@ -496,8 +498,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public bool HasPendingSymbolAnalysis(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
-            RoslynDebug.Assert(analysisScope.FilterFileOpt.HasValue);
-            RoslynDebug.Assert(analysisScope.FilterFileOpt.Value.SourceTree != null);
+            Debug.Assert(analysisScope.FilterFileOpt.HasValue);
+            Debug.Assert(analysisScope.FilterFileOpt.Value.SourceTree != null);
 
             var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterFileOpt.Value.SourceTree, cancellationToken);
             foreach (var symbolDeclaredEvent in symbolDeclaredEvents)
@@ -541,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryStartProcessingEvent(
             CompilationEvent compilationEvent,
             DiagnosticAnalyzer analyzer,
-            [NotNullWhen(returnValue: true)] out AnalyzerStateData? state)
+            [NotNullWhen(true)] out AnalyzerStateData? state)
         {
             return GetAnalyzerState(analyzer).TryStartProcessingEvent(compilationEvent, out state);
         }
@@ -589,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns false if the symbol has already been processed for the analyzer OR is currently being processed by another task.
         /// If true, then it returns a non-null <paramref name="state"/> representing partial analysis state for the given symbol for the given analyzer.
         /// </returns>
-        public bool TryStartAnalyzingSymbol(ISymbol symbol, DiagnosticAnalyzer analyzer, [NotNullWhen(returnValue: true)] out AnalyzerStateData? state)
+        public bool TryStartAnalyzingSymbol(ISymbol symbol, DiagnosticAnalyzer analyzer, [NotNullWhen(true)] out AnalyzerStateData? state)
         {
             return GetAnalyzerState(analyzer).TryStartAnalyzingSymbol(symbol, out state);
         }
@@ -601,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns false if the symbol end actions have already been executed for the analyzer OR are currently being executed by another task.
         /// If true, then it returns a non-null <paramref name="state"/> representing partial analysis state for the given symbol end actions for the given analyzer.
         /// </returns>
-        public bool TryStartSymbolEndAnalysis(ISymbol symbol, DiagnosticAnalyzer analyzer, [NotNullWhen(returnValue: true)] out AnalyzerStateData? state)
+        public bool TryStartSymbolEndAnalysis(ISymbol symbol, DiagnosticAnalyzer analyzer, [NotNullWhen(true)] out AnalyzerStateData? state)
         {
             return GetAnalyzerState(analyzer).TryStartSymbolEndAnalysis(symbol, out state);
         }
@@ -669,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol symbol,
             int declarationIndex,
             DiagnosticAnalyzer analyzer,
-            [NotNullWhen(returnValue: true)] out DeclarationAnalyzerStateData? state)
+            [NotNullWhen(true)] out DeclarationAnalyzerStateData? state)
         {
             return GetAnalyzerState(analyzer).TryStartAnalyzingDeclaration(symbol, declarationIndex, out state);
         }
@@ -744,7 +746,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryStartSyntaxAnalysis(
             SourceOrAdditionalFile file,
             DiagnosticAnalyzer analyzer,
-            [NotNullWhen(returnValue: true)] out AnalyzerStateData? state)
+            [NotNullWhen(true)] out AnalyzerStateData? state)
         {
             return GetAnalyzerState(analyzer).TryStartSyntaxAnalysis(file, out state);
         }

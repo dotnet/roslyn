@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, location, compilation);
+                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
                 }
             }
         }
@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Disallow async methods to be registered.
+            // Suppression due to bug fixed in .NET 5: https://github.com/dotnet/runtime/issues/30968
             if (action.GetMethodInfo()!.IsDefined(typeof(AsyncStateMachineAttribute)))
             {
                 throw new ArgumentException(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered, nameof(action));
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue>? valueProvider)
+        internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider)
             where TKey : class
         {
             if (key == null)

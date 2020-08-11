@@ -229,7 +229,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _addSuppression, cancellationToken);
         }
 
-        internal (Compilation? compilation, AnalyzerOptions? analyzerOptions) TryGetCompilationAndAnalyzerOptions() => (_compilation, _analyzerOptions);
+        internal bool TryGetCompilationAndAnalyzerOptions(
+            [NotNullWhen(true)] out Compilation? compilation,
+            [NotNullWhen(true)] out AnalyzerOptions? analyzerOptions)
+        {
+            (compilation, analyzerOptions) = (_compilation, _analyzerOptions);
+            return compilation != null && analyzerOptions != null;
+        }
 
         internal Compilation Compilation
         {
@@ -251,7 +257,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal CancellationToken CancellationToken => _cancellationToken;
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
-        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes => _analyzerExecutionTimeMap!.ToImmutableDictionary(pair => pair.Key, pair => TimeSpan.FromTicks(pair.Value.Value));
+        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes
+        {
+            get
+            {
+                Debug.Assert(_analyzerExecutionTimeMap != null);
+                return _analyzerExecutionTimeMap.ToImmutableDictionary(pair => pair.Key, pair => TimeSpan.FromTicks(pair.Value.Value));
+            }
+        }
 
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
@@ -336,6 +349,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteSuppressionAction(DiagnosticSuppressor suppressor, ImmutableArray<Diagnostic> reportedDiagnostics)
         {
             Debug.Assert(_addSuppression != null);
+            Debug.Assert(_getSemanticModel != null);
 
             if (reportedDiagnostics.IsEmpty)
             {
@@ -348,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<SuppressionDescriptor, bool> isSupportedSuppression = supportedSuppressions.Contains;
             Action<SuppressionAnalysisContext> action = suppressor.ReportSuppressions;
             var context = new SuppressionAnalysisContext(Compilation, AnalyzerOptions,
-                reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel!, _cancellationToken);
+                reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel, _cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 suppressor,
