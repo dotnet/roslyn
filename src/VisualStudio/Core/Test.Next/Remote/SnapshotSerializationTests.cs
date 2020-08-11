@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     [UseExportProvider]
     public class SnapshotSerializationTests
     {
-        private static Workspace CreateWorkspace()
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
+        private static Workspace CreateWorkspace(Type[] additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
 
         internal static Solution CreateFullSolution(Workspace workspace)
         {
@@ -555,11 +555,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            var hostServices = FeaturesTestCompositions.Features
-                .WithTestHostParts(TestHost.OutOfProcess)
-                .AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
-
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -572,8 +568,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact, WorkItem(44791, "https://github.com/dotnet/roslyn/issues/44791")]
         public async Task UnknownLanguageOptionsTest()
         {
-            var hostServices = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageServiceFactory)).GetHostServices();
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName)
                 .Solution.AddProject("Project2", "Project2.dll", LanguageNames.CSharp);
             workspace.TryApplyChanges(project.Solution);
