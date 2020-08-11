@@ -250,7 +250,7 @@ public class MyXmlGenerator : ISourceGenerator
             catch (XmlException)
             {
                 // issue warning MYXMLGEN001: Couldn't parse XML file '<path>'
-                context.ReportDiagnostic(Diagnostic.Create(InvalidXmlWarning, Location.None, xmlFile.Path);
+                context.ReportDiagnostic(Diagnostic.Create(InvalidXmlWarning, Location.None, xmlFile.Path));
                 continue;
             }
 
