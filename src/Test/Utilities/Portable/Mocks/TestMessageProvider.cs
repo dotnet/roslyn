@@ -459,5 +459,9 @@ namespace Roslyn.Test.Utilities
         public override int WRN_GeneratorFailedDuringGeneration => throw new NotImplementedException();
 
         public override int WRN_GeneratorFailedDuringInitialization => throw new NotImplementedException();
+
+        public override int WRN_GeneratorFailedDuringGenerationDeveloper => throw new NotImplementedException();
+
+        public override int WRN_GeneratorFailedDuringInitializationDeveloper => throw new NotImplementedException();
     }
 }
