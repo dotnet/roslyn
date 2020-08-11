@@ -390,6 +390,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IncludeFieldInitializersInBody(this MethodSymbol methodSymbol)
+        {
+            return methodSymbol.IsConstructor()
+                && !methodSymbol.HasThisConstructorInitializer()
+                && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
+                && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
+        }
+
         /// <summary>
         /// NOTE: every struct has a public parameterless constructor either used-defined or default one
         /// </summary>

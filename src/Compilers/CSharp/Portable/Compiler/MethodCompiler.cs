@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                bool includeInitializersInBody = false;
+                bool includeNonEmptyInitializersInBody = false;
                 BoundBlock body;
                 bool originalBodyNested = false;
 
@@ -978,19 +978,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    var includeInitializersInBody = methodSymbol.IncludeFieldInitializersInBody();
                     // Do not emit initializers if we are invoking another constructor of this class.
-                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
-                                                !methodSymbol.HasThisConstructorInitializer() &&
-                                                !(methodSymbol is SynthesizedRecordCopyCtor) &&
-                                                !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol); // A record copy constructor is special, regular initializers are not supposed to be executed by it.
+                    includeNonEmptyInitializersInBody = includeInitializersInBody && !processedInitializers.BoundInitializers.IsDefaultOrEmpty;
 
-                    if (includeInitializersInBody && processedInitializers.LoweredInitializers == null)
+                    if (includeNonEmptyInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
                     }
 
-                    if (methodSymbol.IsConstructor() && processedInitializers.AfterInitializersState is null)
+                    if (includeInitializersInBody && processedInitializers.AfterInitializersState is null)
                     {
                         NullableWalker.AnalyzeIfNeeded(
                             _compilation,
@@ -1012,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
                     // (see later in this method). Don't bother lowering _now_ if this particular ctor won't have the initializers
                     // appended to its body.
-                    if (includeInitializersInBody && processedInitializers.LoweredInitializers == null)
+                    if (includeNonEmptyInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
                         if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || methodSymbol is SynthesizedRecordConstructor || _emitTestCoverageData))
                         {
@@ -1026,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
-                            includeInitializersInBody = false;
+                            includeNonEmptyInitializersInBody = false;
                             analyzedInitializers = null;
                         }
                         else
@@ -1163,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetGlobalErrorIfTrue(hasErrors);
 
                     // don't emit if the resulting method would contain initializers with errors
-                    if (!hasErrors && (hasBody || includeInitializersInBody))
+                    if (!hasErrors && (hasBody || includeNonEmptyInitializersInBody))
                     {
                         Debug.Assert(!(methodSymbol.IsImplicitInstanceConstructor && methodSymbol.ParameterCount == 0) ||
                                      !methodSymbol.ContainingType.IsStructType());
@@ -1223,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             // initializers for global code have already been included in the body
-                            if (includeInitializersInBody)
+                            if (includeNonEmptyInitializersInBody)
                             {
                                 if (processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList)
                                 {

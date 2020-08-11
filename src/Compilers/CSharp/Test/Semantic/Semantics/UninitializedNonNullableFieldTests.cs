@@ -51,6 +51,23 @@ class C
         }
 
         [Fact]
+        public void InitializedEvent_InitialState()
+        {
+            var src = @"
+using System;
+class C
+{
+    public event Action E1 = () => { };
+    internal C()
+    {
+        E1.Invoke();
+    }
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NoExplicitConstructors_CSharp7_01()
         {
             var source =
@@ -798,6 +815,50 @@ struct S
                 // (23,14): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y, string z) : base()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(23, 14));
+        }
+
+        [Fact]
+        public void StructConstructorInitializer()
+        {
+            var source = @"
+struct S1
+{
+    public string Prop { get; set; }
+    public S1(string s) // 1
+    {
+        Prop.ToString(); // 2
+    }
+
+    public S1(object obj) : this()
+    {
+        Prop.ToString(); // 3
+    }
+
+    public S1(object obj1, object obj2) : this() // 4
+    {
+    }
+
+    public S1(string s1, string s2) : this(s1)
+    {
+        Prop.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller.
+                //     public S1(string s) // 1
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Prop").WithLocation(5, 12),
+                // (7,9): error CS8079: Use of possibly unassigned auto-implemented property 'Prop'
+                //         Prop.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Prop").WithArguments("Prop").WithLocation(7, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
+                // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public S1(object obj1, object obj2) : this() // 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
         }
 
         [Fact]

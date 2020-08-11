@@ -300,7 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NullableWalker.VariableState afterInitializersState = null;
 
-            if (MemberSymbol is MethodSymbol method && method.IsConstructor() && !method.HasThisConstructorInitializer()
+            if (MemberSymbol is MethodSymbol method
+                && method.IncludeFieldInitializersInBody()
                 && method.ContainingType is SourceMemberContainerTypeSymbol containingType)
             {
                 var unusedDiagnostics = DiagnosticBag.GetInstance();

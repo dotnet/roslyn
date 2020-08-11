@@ -498,8 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(thisParameter is object);
                             thisSlot = GetOrCreateSlot(thisParameter);
                         }
-                        // TODO: give diagnostics on return points, not constructor signature
-                        // This will be quite a bit of test churn, so this feels like it could be done in a follow-up PR
+                        // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
                         var exitLocation = /*syntaxOpt?.Location ??*/ (method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault());
                         foreach (var member in method.ContainingType.GetMembersUnordered())
                         {
@@ -529,6 +528,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
+
+                // This is not required for correctness, but in the case where the member has
+                // an initializer, we know we've assigned to the member and
+                // have given any applicable warnings about a bad value going in.
+                // Therefore we skip this check when the member has an initializer to reduce noise.
                 if (HasInitializer(member))
                 {
                     return;
@@ -644,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                     case SymbolKind.Property:
-                        if (getSlotForFieldOrProperty(member) is int memberSlot &&
+                        if (getSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
                             memberSlot > 0)
                         {
                             var parameterState = state[memberSlot];
@@ -665,13 +669,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void makeNotNullMembersMaybeNull()
             {
-                var method = _symbol as MethodSymbol;
-                if (method is object)
+                if (_symbol is MethodSymbol method)
                 {
                     if (method.IsConstructor())
                     {
-                        // TODO: handle struct constructor referencing the default value type constructor `public S1() : this()`
-                        if (!_hasInitialState && !method.HasThisConstructorInitializer() && (!method.ContainingType.IsValueType || method.IsStatic))
+                        if (needsDefaultInitialStateForMembers())
                         {
                             foreach (var member in method.ContainingType.GetMembersUnordered())
                             {
@@ -695,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     default:
                                         break;
                                 }
-                                var memberSlot = getSlotForFieldOrProperty(memberToInitialize);
+                                var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
                                 if (memberSlot > 0)
                                 {
                                     var type = memberToInitialize.GetTypeOrReturnType().Type;
@@ -716,6 +718,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         while (method != null);
                     }
                 }
+
+                bool needsDefaultInitialStateForMembers()
+                {
+                    if (_hasInitialState)
+                    {
+                        return false;
+                    }
+
+                    if (!method.HasThisConstructorInitializer() && (!method.ContainingType.IsValueType || method.IsStatic))
+                    {
+                        return true;
+                    }
+
+                    return methodMainNode is BoundConstructorMethodBody ctorBody
+                        && ctorBody.Initializer?.Expression.ExpressionSymbol is MethodSymbol delegatedCtor
+                        && delegatedCtor.IsDefaultValueTypeConstructor();
+                }
             }
 
             void makeMembersMaybeNull(MethodSymbol method, ImmutableArray<string> members)
@@ -731,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = method.ContainingType;
                 foreach (var member in type.GetMembers(memberName))
                 {
-                    if (getSlotForFieldOrProperty(member) is int memberSlot &&
+                    if (getSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
                         memberSlot > 0)
                     {
                         this.State[memberSlot] = NullableFlowState.MaybeNull;
@@ -837,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            int getSlotForFieldOrProperty(Symbol member)
+            int getSlotForFieldOrPropertyOrEvent(Symbol member)
             {
                 if (member.Kind != SymbolKind.Field &&
                     member.Kind != SymbolKind.Property &&
@@ -907,10 +926,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Always run analysis in debug builds so that we can more reliably catch
                 // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
                 // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
+                // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
+                // we don't want to introduce behavior differences between debug and release builds
                 Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
 #endif
-                // TODO: is it necessary to suppress the final nullable state in debug mode when nullable is not enabled?
-                // it feels like otherwise it could result in a behavior difference in semantic model between debug and release mode.
                 finalNullableState = null;
                 return;
             }
@@ -7252,12 +7271,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var left = node.Left;
-            if (left is BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty } } fieldAccess)
+            switch (left)
             {
-                // when binding initializers, we treat assignments to auto-properties as direct assignments to the underlying field.
-                // in order to track property state based on these initializers, we need to see the assignment in terms of the associated property
-                // FIXME: this may start breaking the analyzed nullability map. Need to test semantic model nullability of field initializers.
-                left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, autoProperty, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
+                // when binding initializers, we treat assignments to auto-properties or field-like events as direct assignments to the underlying field.
+                // in order to track member state based on these initializers, we need to see the assignment in terms of the associated member
+                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty } } fieldAccess:
+                    left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, autoProperty, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
+                    break;
+                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: EventSymbol @event } } fieldAccess:
+                    left = new BoundEventAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, @event, isUsableAsField: true, LookupResultKind.Viable, @event.Type, fieldAccess.HasErrors);
+                    break;
             }
 
             var right = node.Right;
