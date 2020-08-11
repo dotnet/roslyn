@@ -597,7 +597,7 @@ tryAgain:
         /// </summary>
         private bool IsPossibleSubpatternElement()
         {
-            return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false) ||
+            return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false, allowBraceLambdaExpression: false) ||
                 this.CurrentToken.Kind switch
                 {
                     SyntaxKind.OpenBraceToken => true,

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -205,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             RoslynDebug.AssertNotNull(currentToken.Parent);
 
             var operation = nextOperation.Invoke(in previousToken, in currentToken);
+
+            if (currentToken.Width() == 0 || previousToken.Width() == 0) return null;
 
             // else condition is actually handled in the GetAdjustSpacesOperation()
 

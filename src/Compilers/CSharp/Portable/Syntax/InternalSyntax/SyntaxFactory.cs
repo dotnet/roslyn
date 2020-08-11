@@ -122,6 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxToken.Create(kind, leading, trailing);
         }
 
+        internal static SyntaxToken FakeToken(SyntaxKind kind, string value = null, bool allowTrivia = false)
+        {
+            return SyntaxToken.CreateFake(kind, value, allowTrivia);
+        }
+
         internal static SyntaxToken Token(GreenNode leading, SyntaxKind kind, string text, string valueText, GreenNode trailing)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));

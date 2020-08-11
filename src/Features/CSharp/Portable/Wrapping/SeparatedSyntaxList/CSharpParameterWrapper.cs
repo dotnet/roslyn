@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -40,6 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             if (declaration.Kind() == SyntaxKind.SimpleLambdaExpression)
             {
                 return false;
+            }
+            else if(declaration.Kind() == SyntaxKind.ParenthesizedLambdaExpression && listSyntax is ParameterListSyntax paramsListSyntax)
+            {
+                // If we have a fake parenthesis ... use the last token as t
+                if (paramsListSyntax.OpenParenToken.FullWidth() == 0 && paramsListSyntax.CloseParenToken.FullWidth() == 0)
+                {
+                    return false;
+                }
             }
 
             var generator = CSharpSyntaxGenerator.Instance;

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -50,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentKind = currentToken.Kind();
             var previousParentKind = previousToken.Parent.Kind();
             var currentParentKind = currentToken.Parent.Kind();
+
+            if (previousToken.Width() == 0 || currentToken.Width() == 0) return null;
 
             // For Method Declaration
             if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.IdentifierToken)

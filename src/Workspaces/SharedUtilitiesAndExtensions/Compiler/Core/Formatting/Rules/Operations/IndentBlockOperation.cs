@@ -35,6 +35,13 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         internal IndentBlockOperation(SyntaxToken baseToken, SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, int indentationDelta, IndentBlockOption option)
         {
+            // if we have gotten a span starting before the "base token" ... just adjust the span to start from there instead ...
+            if (textSpan.Start < baseToken.SpanStart) {
+                var diff = baseToken.SpanStart - textSpan.Start;
+                var newLength = textSpan.Length - diff;
+                textSpan = new TextSpan(baseToken.SpanStart, newLength);
+            }
+
             Contract.ThrowIfFalse(option.IsMaskOn(IndentBlockOption.PositionMask));
 
             Contract.ThrowIfFalse(option.IsMaskOn(IndentBlockOption.RelativePositionMask));
