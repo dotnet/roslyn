@@ -861,6 +861,25 @@ struct S1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
         }
 
+        [Fact, WorkItem(43215, "https://github.com/dotnet/roslyn/issues/43215")]
+        public void FieldInitializer_CallWithOutParam()
+        {
+            var source = @"
+class C
+{
+    static string field1;
+    static string field2 = M(out field1);
+
+    public static string M(out string param1)
+    {
+        param1 = ""hello"";
+        return ""world"";
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void ReadWriteAutoProperties_ExplicitConstructors()
         {
