@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract SyntaxNode GenerateLocalDeclarationStatement(string identifierTokenName, ITypeSymbol type);
         protected abstract SyntaxNode GenerateIdentifierNameSyntaxNode(string name);
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
-        protected abstract bool IsEmbeddedStatementOwner(SyntaxNode syntaxNode);
         protected abstract bool ShouldCheckTheExpressionPrecedenceInCallee(SyntaxNode syntaxNode);
         protected abstract bool NeedWrapInParenthesisWhenPrecedenceAreEqual(SyntaxNode calleeInvocationSyntaxNode);
         protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
+        protected abstract bool IsStatementConsideredAsInvokingStatement(SyntaxNode node);
 
         protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, IPrecedenceService precedenceService)
         {
@@ -137,25 +137,31 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var statementContainsCalleeInvocationExpression = inlineContext.StatementContainsCalleeInvocationExpression;
-            foreach (var statement in inlineContext.DeclarationStatementsGenerated)
+            if (statementContainsCalleeInvocationExpression != null)
             {
-                documentEditor.InsertBefore(
-                    statementContainsCalleeInvocationExpression,
-                    // Make sure the statement is aligned with the existing statement
-                    statement.WithLeadingTrivia(statementContainsCalleeInvocationExpression.GetLeadingTrivia()));
+                foreach (var statement in inlineContext.DeclarationStatementsGenerated)
+                {
+                    documentEditor.InsertBefore(
+                        statementContainsCalleeInvocationExpression,
+                        // Make sure the statement is aligned with the existing statement
+                        statement.WithLeadingTrivia(statementContainsCalleeInvocationExpression.GetLeadingTrivia()));
+                }
             }
 
             var syntaxNodeToReplace = inlineContext.SyntaxNodeToReplace;
             var inlineSyntaxNode = inlineContext.InlineSyntaxNode;
-            if (inlineSyntaxNode == null)
+            if (syntaxNodeToReplace != null)
             {
-                // When it has only one return statement in the callee & return void, just remove the whole statement.
-                documentEditor.RemoveNode(syntaxNodeToReplace);
-                return documentEditor.GetChangedDocument();
-            }
-            else
-            {
-                documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
+                if (inlineSyntaxNode == null)
+                {
+                    // When it has only one return statement in the callee & return void, just remove the whole statement.
+                    documentEditor.RemoveNode(syntaxNodeToReplace);
+                    return documentEditor.GetChangedDocument();
+                }
+                else
+                {
+                    documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
+                }
             }
 
             // If the inline content has 'await' expression, then make sure the caller is converted to 'async' method
@@ -173,22 +179,19 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return documentEditor.GetChangedDocument();
         }
 
-        private SyntaxNode GetInvokingStatement(SyntaxNode syntaxNode)
+        private SyntaxNode? GetStatementInvokesCallee(SyntaxNode syntaxNode)
         {
             for (var node = syntaxNode; node != null; node = node!.Parent)
             {
-                // Is there anything missed here?
-                if (node != null && (
-                    _syntaxFacts.IsLocalDeclarationStatement(node)
-                    || IsEmbeddedStatementOwner(syntaxNode)
-                    || _syntaxFacts.IsExpressionStatement(node)
-                    || _syntaxFacts.IsReturnStatement(node)))
+                if (node != null && IsStatementConsideredAsInvokingStatement(node))
                 {
                     return node;
                 }
             }
 
-            return syntaxNode;
+            // In case nothing is found, return null to prevent insert
+            // declaration before the invocation.
+            return null;
         }
     }
 }

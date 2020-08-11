@@ -102,6 +102,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 SyntaxKind.LeftShiftAssignmentExpression,
             });
 
+        private static ImmutableArray<SyntaxKind> s_syntaxKindsConsideredAsStatementInvokesCallee =
+            ImmutableArray.Create(new[]
+            {
+                SyntaxKind.DoStatement,
+                SyntaxKind.ExpressionStatement,
+                SyntaxKind.ForStatement,
+                SyntaxKind.IfStatement,
+                SyntaxKind.LocalDeclarationStatement,
+                SyntaxKind.LockStatement,
+                SyntaxKind.ReturnStatement,
+                SyntaxKind.SwitchStatement,
+                SyntaxKind.ThrowStatement,
+                SyntaxKind.WhileStatement,
+                SyntaxKind.TryStatement,
+                SyntaxKind.UsingStatement,
+                SyntaxKind.YieldReturnStatement,
+            });
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpInlineMethodRefactoringProvider() : base(CSharpSyntaxFacts.Instance, CSharpExpressionPrecedenceService.Instance)
@@ -193,9 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 _ => null
             };
 
-        protected override bool IsEmbeddedStatementOwner(SyntaxNode syntaxNode)
-            => syntaxNode.IsEmbeddedStatementOwner();
-
         protected override bool ShouldCheckTheExpressionPrecedenceInCallee(SyntaxNode syntaxNode)
             => s_syntaxKindsNeedsToCheckThePrecedence.Any(syntaxNode.IsKind);
 
@@ -244,5 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments)
             => SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(arguments));
+
+        protected override bool IsStatementConsideredAsInvokingStatement(SyntaxNode node)
+            => s_syntaxKindsConsideredAsStatementInvokesCallee.Any(node.IsKind);
     }
 }

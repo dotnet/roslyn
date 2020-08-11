@@ -706,6 +706,387 @@ public class TestClass
     }
 }");
 
+        [Fact]
+        public Task TestInlineWithinDoStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        do
+        {
+        } while(Cal[||]lee(SomeInt()) == 1)
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int i = SomeInt();
+        do
+        {
+        } while(i + 1 == 1)
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineWithinForStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        for (int i = Ca[||]llee(SomeInt()); i < 10; i++)
+        {
+        }
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int i1 = SomeInt();
+        for (int i = i1 + 1; i < 10; i++)
+        {
+        }
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineWithinIfStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        if (Ca[||]llee(SomeInt()) == 1)
+        {
+        }
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int i = SomeInt();
+        if (i + 1 == 1)
+        {
+        }
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineWithinLockStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        lock (Ca[||]llee(SomeInt()))
+        {
+        }
+    }
+
+    private string Callee(int i)
+    {
+        return ""Hello"" + i;
+    }
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int i = SomeInt();
+        lock (""Hello"" + i)
+        {
+        }
+    }
+
+    private string Callee(int i)
+    {
+        return ""Hello"" + i;
+    }
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineWithinReturnStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private string Caller()
+    {
+        return Call[||]ee(SomeInt());
+    }
+
+    private string Callee(int i)
+    {
+        return ""Hello"" + i;
+    }
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private string Caller()
+    {
+        int i = SomeInt();
+        return ""Hello"" + i;
+    }
+
+    private string Callee(int i)
+    {
+        return ""Hello"" + i;
+    }
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithinThrowStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        throw new Exception(Call[||]ee(SomeInt()));
+    }
+
+    private int Callee(int i)
+    {
+        return i + 20;
+    }
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int i = SomeInt();
+        throw new Exception(i + 20);
+    }
+
+    private int Callee(int i)
+    {
+        return i + 20;
+    }
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineWithinWhileStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        while (Cal[||]lee(SomeInt()) == 1)
+        {}
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int i = SomeInt();
+        while (i + 1 == 1)
+        {}
+    }
+
+    private int Callee(int i)
+    {
+        return i + 1;
+    }
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithinTryStatement()
+            => TestInRegularAndScript1Async(
+            @"
+public class TestClass
+{
+    private void Calller()
+    {
+        try
+        {
+        }
+        catch (Exception e) when (Ca[||]llee(e, SomeInt()))
+        {
+        }
+    }
+
+    private bool Callee(Exception e, int i) => i == 1;
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass
+{
+    private void Calller()
+    {
+        int i = SomeInt();
+        try
+        {
+        }
+        catch (Exception e) when (i == 1)
+        {
+        }
+    }
+
+    private bool Callee(Exception e, int i) => i == 1;
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithinUsingStatement()
+            => TestInRegularAndScript1Async(@"
+public class TestClass2
+{
+    private class Dispose : IDisposable
+    {
+        void IDisposable.Dispose()
+        {
+        }
+    }
+
+    private void Calller()
+    {
+        using (var x = Cal[||]lee(SomeInt()))
+        {
+        }
+    }
+
+    private Dispose Callee(int i) => new Dispose();
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass2
+{
+    private class Dispose : IDisposable
+    {
+        void IDisposable.Dispose()
+        {
+        }
+    }
+
+    private void Calller()
+    {
+        int i = SomeInt();
+        using (var x = new Dispose())
+        {
+        }
+    }
+
+    private Dispose Callee(int i) => new Dispose();
+
+    private int SomeInt() => 10;
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithinYieldReturnStatement()
+            => TestInRegularAndScript1Async(
+                @"
+public class TestClass2
+{
+    private IEnumerable<int> Calller()
+    {
+        yield return 1;
+        yield return Cal[||]lee(SomeInt());
+        yield return Callee(SomeInt());
+    }
+
+    private int Callee(int i) => i + 10;
+
+    private int SomeInt() => 10;
+}",
+                @"
+public class TestClass2
+{
+    private IEnumerable<int> Calller()
+    {
+        yield return 1;
+        int i = SomeInt();
+        yield return i + 10;
+        yield return Callee(SomeInt());
+    }
+
+    private int Callee(int i) => i + 10;
+
+    private int SomeInt() => 10;
+}");
+
         #region parenthesisTest
 
         [Fact]

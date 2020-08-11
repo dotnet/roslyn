@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         private class MethodInvocationInfo
         {
-            public SyntaxNode StatementContainsCalleeInvocationExpression { get; }
+            public SyntaxNode? StatementContainsCalleeInvocationExpression { get; }
             public bool IsCalleeSingleInvokedAsStatementOrDeclaration { get; }
             public bool AssignedToVariable { get; }
 
             private MethodInvocationInfo(
-                SyntaxNode statementContainsCalleeInvocationExpression,
+                SyntaxNode? statementContainsCalleeInvocationExpression,
                 bool isCalleeSingleInvokedAsStatementOrDeclaration,
                 bool assignedToVariable)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
                 SyntaxNode calleeInvocationSyntaxNode)
             {
-                var statementInvokesCallee = inlineMethodRefactoringProvider.GetInvokingStatement(calleeInvocationSyntaxNode);
+                var statementInvokesCallee = inlineMethodRefactoringProvider.GetStatementInvokesCallee(calleeInvocationSyntaxNode);
                 var parent = calleeInvocationSyntaxNode.Parent;
                 var isCalleeSingleInvoked = syntaxFacts.IsLocalDeclarationStatement(parent) || syntaxFacts.IsExpressionStatement(parent);
                 var assignedToVariable = syntaxFacts.IsLocalDeclarationStatement(parent);
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// <summary>
             /// Statement invokes the callee. All the generated declarations should be put before this node.
             /// </summary>
-            public SyntaxNode StatementContainsCalleeInvocationExpression { get; }
+            public SyntaxNode? StatementContainsCalleeInvocationExpression { get; }
 
             /// <summary>
             /// Inline content for the callee method. It should replace <see cref="SyntaxNodeToReplace"/>.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// <summary>
             /// SyntaxNode needs to be replaced by <see cref="InlineSyntaxNode"/>
             /// </summary>
-            public SyntaxNode SyntaxNodeToReplace { get; }
+            public SyntaxNode? SyntaxNodeToReplace { get; }
 
             public bool ContainsAwaitExpression { get; }
 
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             private InlineMethodContext(
                 ImmutableArray<SyntaxNode> declarationStatementsGenerated,
-                SyntaxNode statementContainsCalleeInvocationExpression,
+                SyntaxNode? statementContainsCalleeInvocationExpression,
                 SyntaxNode? inlineSyntaxNode,
-                SyntaxNode syntaxNodeToReplace,
+                SyntaxNode? syntaxNodeToReplace,
                 bool containsAwaitExpression)
             {
                 DeclarationStatementsGenerated = declarationStatementsGenerated;
@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     replacementTable,
                     cancellationToken).ConfigureAwait(false);
 
-                var containsAwaitExpression = inlineSyntaxNode.DescendantNodesAndSelf().Any(syntaxFacts.IsAwaitExpression);
+                var containsAwaitExpression = inlineSyntaxNode
+                    .DescendantNodesAndSelf()
+                    .Any(node => node != null && syntaxFacts.IsAwaitExpression(node));
                 var parent = calleeInvocationSyntaxNode.Parent;
                 if (methodInvocationInfo.IsCalleeSingleInvokedAsStatementOrDeclaration
                     && !calleeMethodSymbol.ReturnsVoid
