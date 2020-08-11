@@ -294,22 +294,22 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-                // (4,47): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                // (4,47): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //     public unsafe void M1(delegate* unmanaged[invalid]<void> p) {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "invalid").WithLocation(4, 47),
-                // (4,47): error CS9502: Type 'CallConvinvalid' is not defined.
+                // (4,47): error CS8890: Type 'CallConvinvalid' is not defined.
                 //     public unsafe void M1(delegate* unmanaged[invalid]<void> p) {}
                 Diagnostic(ErrorCode.ERR_TypeNotFound, "invalid").WithArguments("CallConvinvalid").WithLocation(4, 47),
-                // (5,37): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                // (5,37): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //     public unsafe void M2(delegate* unmanaged[invalid, Stdcall]<void> p) {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(5, 37),
-                // (5,47): error CS9502: Type 'CallConvinvalid' is not defined.
+                // (5,47): error CS8890: Type 'CallConvinvalid' is not defined.
                 //     public unsafe void M2(delegate* unmanaged[invalid, Stdcall]<void> p) {}
                 Diagnostic(ErrorCode.ERR_TypeNotFound, "invalid").WithArguments("CallConvinvalid").WithLocation(5, 47),
                 // (6,47): error CS1001: Identifier expected
                 //     public unsafe void M3(delegate* unmanaged[]<void> p) {}
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(6, 47),
-                // (6,47): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                // (6,47): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //     public unsafe void M3(delegate* unmanaged[]<void> p) {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "").WithLocation(6, 47)
             );

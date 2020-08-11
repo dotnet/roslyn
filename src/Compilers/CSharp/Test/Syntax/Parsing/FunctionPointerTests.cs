@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ManagedWithUnmanagedSpecifiers()
         {
             UsingStatement("delegate* managed[Cdecl]<void> ptr;", options: TestOptions.RegularPreview,
-                // (1,18): error CS9500: 'managed' calling convention cannot be combined with unmanaged calling convention specifiers.
+                // (1,18): error CS8888: 'managed' calling convention cannot be combined with unmanaged calling convention specifiers.
                 // delegate* managed[Cdecl]<void> ptr;
                 Diagnostic(ErrorCode.ERR_CannotSpecifyManagedWithUnmanagedSpecifiers, "[Cdecl]").WithLocation(1, 18)
             );

@@ -7549,10 +7549,10 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-                // (7,19): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                // (7,19): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //         delegate* unmanaged<void> ptr1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(7, 19),
-                // (8,19): error CS9501: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                // (8,19): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
                 //         delegate* unmanaged[Stdcall, Thiscall]<void> ptr2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(8, 19)
             );
@@ -7608,7 +7608,7 @@ unsafe class C
 ";
             var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
-                // (23,29): error CS9503: Type 'CallConvTest' must be public to be used as a calling convention.
+                // (23,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
                 Diagnostic(ErrorCode.ERR_TypeMustBePublic, "Test").WithArguments("System.Runtime.CompilerServices.CallConvTest").WithLocation(23, 29)
             );
@@ -7628,7 +7628,7 @@ unsafe class C
 
             var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
-                // (7,29): error CS9503: Type 'CallConvTest' must be public to be used as a calling convention.
+                // (7,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
                 Diagnostic(ErrorCode.ERR_TypeMustBePublic, "Test").WithArguments("System.Runtime.CompilerServices.CallConvTest").WithLocation(7, 29)
             );
@@ -7677,7 +7677,7 @@ unsafe class C
 ";
             var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
-                // (23,29): error CS9502: Type 'CallConvTest' is not defined.
+                // (23,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
                 Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(23, 29)
             );
@@ -7697,7 +7697,7 @@ unsafe class C
 
             var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
-                // (7,29): error CS9502: Type 'CallConvTest' is not defined.
+                // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
                 Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(7, 29)
             );
@@ -7765,7 +7765,7 @@ unsafe class C
             var comp1 = CreateCompilationWithFunctionPointers(source1 + source2);
             comp1.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp1.VerifyDiagnostics(
-                // (12,29): error CS9502: Type 'CallConvTest' is not defined.
+                // (12,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr;
                 Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(12, 29)
             );
@@ -7784,7 +7784,7 @@ unsafe class C
             var comp2 = CreateCompilationWithFunctionPointers(source2, new[] { reference.EmitToImageReference() });
             comp2.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             comp2.VerifyDiagnostics(
-                // (7,29): error CS9502: Type 'CallConvTest' is not defined.
+                // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr;
                 Diagnostic(ErrorCode.ERR_TypeNotFound, "Test").WithArguments("CallConvTest").WithLocation(7, 29)
             );
