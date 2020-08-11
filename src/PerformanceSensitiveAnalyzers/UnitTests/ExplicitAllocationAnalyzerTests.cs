@@ -308,7 +308,7 @@ public struct S { }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         object box = new S();
     }
@@ -329,7 +329,7 @@ End Structure
 
 Public Class A
     <PerformanceSensitive(""uri"")>
-    Public Sub Foo() 
+    Public Sub SomeMethod()
         Dim box As Object = new S()
     End Sub
 End Class";
@@ -349,7 +349,7 @@ public struct S { }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         System.ValueType box = new S();
     }
@@ -370,7 +370,7 @@ End Structure
 
 Public Class A
     <PerformanceSensitive(""uri"")>
-    Public Sub Foo() 
+    Public Sub SomeMethod()
         Dim box As System.ValueType = new S()
     End Sub
 End Class";
@@ -392,7 +392,7 @@ public struct S : I { }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         I box = new S();
     }
@@ -417,7 +417,7 @@ End Structure
 
 Public Class A
     <PerformanceSensitive(""uri"")>
-    Public Sub Foo() 
+    Public Sub SomeMethod()
         Dim box As I = new S()
     End Sub
 End Class";

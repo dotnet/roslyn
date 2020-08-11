@@ -157,7 +157,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Returns true if the given symbol has required visibility based on options:
+        /// Returns true if the given source symbol has required visibility based on options:
         ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
         ///      given symbol's visibility is one of the candidate visibilites.
         ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
@@ -167,16 +167,34 @@ namespace Analyzer.Utilities.Extensions
             this ISymbol symbol,
             AnalyzerOptions options,
             DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken,
+            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
+        => symbol.MatchesConfiguredVisibility(symbol, options, rule, compilation, cancellationToken, defaultRequiredVisibility);
+
+        /// <summary>
+        /// Returns true if the given symbol has required visibility based on options in context of the given containing symbol:
+        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
+        ///      given symbol's visibility is one of the candidate visibilites.
+        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
+        ///      matches the given default symbol visibility.
+        /// </summary>
+        public static bool MatchesConfiguredVisibility(
+            this ISymbol symbol,
+            ISymbol containingContextSymbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
             CancellationToken cancellationToken,
             SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
         {
-            var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, defaultRequiredVisibility, cancellationToken);
+            var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, containingContextSymbol, compilation, defaultRequiredVisibility, cancellationToken);
             return allowedVisibilities == SymbolVisibilityGroup.All ||
                 allowedVisibilities.Contains(symbol.GetResultantVisibility());
         }
 
         /// <summary>
-        /// Returns true if the given symbol has been configured to be excluded from analysis by options.
+        /// Returns true if the given source symbol has been configured to be excluded from analysis by options.
         /// </summary>
         public static bool IsConfiguredToSkipAnalysis(
             this ISymbol symbol,
@@ -184,9 +202,21 @@ namespace Analyzer.Utilities.Extensions
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
+        => symbol.IsConfiguredToSkipAnalysis(symbol, options, rule, compilation, cancellationToken);
+
+        /// <summary>
+        /// Returns true if the given symbol has been configured to be excluded from analysis by options in context of the given containing symbol.
+        /// </summary>
+        public static bool IsConfiguredToSkipAnalysis(
+            this ISymbol symbol,
+            ISymbol containingContextSymbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
         {
-            var excludedSymbols = options.GetExcludedSymbolNamesOption(rule, compilation, cancellationToken);
-            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, compilation, cancellationToken);
+            var excludedSymbols = options.GetExcludedSymbolNamesWithValueOption(rule, containingContextSymbol, compilation, cancellationToken);
+            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, containingContextSymbol, compilation, cancellationToken);
             if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
             {
                 return false;
@@ -226,10 +256,11 @@ namespace Analyzer.Utilities.Extensions
             this ISymbol symbol,
             AnalyzerOptions options,
             DiagnosticDescriptor rule,
+            Compilation compilation,
             CancellationToken cancellationToken,
             SymbolModifiers defaultRequiredModifiers = SymbolModifiers.None)
         {
-            var requiredModifiers = options.GetRequiredModifiersOption(rule, defaultRequiredModifiers, cancellationToken);
+            var requiredModifiers = options.GetRequiredModifiersOption(rule, symbol, compilation, defaultRequiredModifiers, cancellationToken);
             return symbol.GetSymbolModifiers().Contains(requiredModifiers);
         }
 
@@ -304,11 +335,6 @@ namespace Analyzer.Utilities.Extensions
         public static bool MatchPropertyDerivedByName([NotNullWhen(returnValue: true)] this ISymbol? member, INamedTypeSymbol type, string name)
         {
             return member != null && member.Kind == SymbolKind.Property && member.MatchMemberDerivedByName(type, name);
-        }
-
-        public static bool MatchFieldDerivedByName([NotNullWhen(returnValue: true)] this ISymbol? member, INamedTypeSymbol type, string name)
-        {
-            return member != null && member.Kind == SymbolKind.Field && member.MatchMemberDerivedByName(type, name);
         }
 
         public static bool MatchMemberByName([NotNullWhen(returnValue: true)] this ISymbol? member, INamedTypeSymbol type, string name)
@@ -666,8 +692,8 @@ namespace Analyzer.Utilities.Extensions
         /// The attribute in question.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="symbol"/> has an attribute of type
-        /// <paramref name="attribute"/>; otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// If <paramref name="symbol"/> is a type, this method does not find attributes
@@ -701,7 +727,6 @@ namespace Analyzer.Utilities.Extensions
 
             return isAttributePresent;
         }
-
 
         /// <summary>
         /// Gets enumeration of attributes that are of the specified type.

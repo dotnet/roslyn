@@ -12,13 +12,13 @@ namespace Analyzer.Utilities
     /// </summary>
     internal class WordParser
     {
-        // WordParser has two distinct modes; one where it breaks up only words in 
-        // a given piece of text, and the other where it breaks up both words 
-        // and individual compounds within words in a piece of text. Passing 
-        // WordParserOptions.None to the constructor (or Parse) causes it to enter 
+        // WordParser has two distinct modes; one where it breaks up only words in
+        // a given piece of text, and the other where it breaks up both words
+        // and individual compounds within words in a piece of text. Passing
+        // WordParserOptions.None to the constructor (or Parse) causes it to enter
         // the former, and WordParserOptions.SplitCompoundWords the later.
         //
-        // If you simply want to iterate over the words, you can avoid the 
+        // If you simply want to iterate over the words, you can avoid the
         // allocation of a Collection<String> if you manually construct WordParser
         // and use the NextWord method instead of using the static Parse method.
         //
@@ -29,7 +29,7 @@ namespace Analyzer.Utilities
         // [letter]:    Represents any Unicode letter
         //
         // <words>      -> <prefix>(<word> | <notword>)+
-        // 
+        //
         // <notword>    -> !<word>
         //
         // <prefix>     -> [char]
@@ -98,7 +98,7 @@ namespace Analyzer.Utilities
         {
             if (options < WordParserOptions.None || options > (WordParserOptions.IgnoreMnemonicsIndicators | WordParserOptions.SplitCompoundWords))
             {
-                throw new ArgumentException($"'{nameof(options)}' ({(int)options}) is invalid for Enum type'{typeof(WordParserOptions).Name}'");
+                throw new ArgumentException($"'{(int)options}' is invalid for enum type '{typeof(WordParserOptions).Name}'", nameof(options));
             }
 
             _text = text ?? throw new ArgumentNullException(nameof(text));
@@ -190,7 +190,7 @@ namespace Analyzer.Utilities
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="text"/> is <see langword="null"/>.
         ///     <para>
-        ///      -or-  
+        ///      -or-
         ///     </para>
         ///     <paramref name="words"/> is <see langword="null"/>.
         /// </exception>
@@ -224,7 +224,7 @@ namespace Analyzer.Utilities
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="text"/> is <see langword="null"/>.
         ///     <para>
-        ///      -or-  
+        ///      -or-
         ///     </para>
         ///     <paramref name="words"/> is <see langword="null"/>.
         /// </exception>
@@ -505,7 +505,7 @@ namespace Analyzer.Utilities
         }
 
         private void ParseWithoutCase()
-        {   // Parses letters without any concept of case, 
+        {   // Parses letters without any concept of case,
             // ie Japanese
 
             char c;
@@ -536,7 +536,7 @@ namespace Analyzer.Utilities
                 c = Peek();
             }
 
-            // Reject the final uppercase letter (and trailing 's') 
+            // Reject the final uppercase letter (and trailing 's')
             // if they are followed by a lower case letter.
             while (IsLower(c))
             {
@@ -606,9 +606,9 @@ namespace Analyzer.Utilities
         }
 
         private bool IsIgnored(char c)
-        {   // TODO: We should extend this to handle 'real' mnemonics, 
-            // instead of just blindly skipping all ampersands and 
-            // underscores.For example, '&&OK' should really be 
+        {   // TODO: We should extend this to handle 'real' mnemonics,
+            // instead of just blindly skipping all ampersands and
+            // underscores.For example, '&&OK' should really be
             // interpreted as '&OK', instead of 'OK'.
             if (SkipMnemonics)
             {

@@ -1,24 +1,236 @@
+# Roslyn.Diagnostics.Analyzers
 
-Sr. No. | Rule ID | Title | Category | Enabled | Severity | CodeFix | Description |
---------|---------|-------|----------|---------|----------|---------|--------------------------------------------------------------------------------------------------------------|
-1 | RS0001 | Use SpecializedCollections.EmptyEnumerable() | RoslyDiagnosticsPerformance | True | Warning | False | Use SpecializedCollections.EmptyEnumerable() |
-2 | RS0002 | Use SpecializedCollections.SingletonEnumerable() | RoslyDiagnosticsPerformance | True | Warning | False | Use SpecializedCollections.SingletonEnumerable() |
-3 | RS0004 | Invoke the correct property to ensure correct use site diagnostics. | Usage | False | Error | False | Invoke the correct property to ensure correct use site diagnostics. |
-4 | RS0005 | Do not use generic CodeAction.Create to create CodeAction | RoslyDiagnosticsPerformance | True | Warning | False | Do not use generic CodeAction.Create to create CodeAction |
-5 | RS0006 | Do not mix attributes from different versions of MEF | RoslyDiagnosticsReliability | True | Warning | False | Do not mix attributes from different versions of MEF |
-6 | RS0013 | Do not invoke Diagnostic.Descriptor | RoslyDiagnosticsPerformance | False | Warning | False | Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type. |
-7 | [RS0016](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Add public types and members to the declared API | ApiDesign | True | Warning | False | All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes. |
-8 | [RS0017](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Remove deleted types and members from the declared API | ApiDesign | True | Warning | False | When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes. |
-9 | RS0019 | SymbolDeclaredEvent must be generated for source symbols | RoslyDiagnosticsReliability | False | Error | False | Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event. |
-10 | [RS0022](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Constructor make noninheritable base class inheritable | ApiDesign | True | Warning | False | Constructor makes its noninheritable base class inheritable, thereby exposing its protected members. |
-11 | RS0023 | Parts exported with MEFv2 must be marked as Shared | RoslyDiagnosticsReliability | True | Warning | False | Part exported with MEFv2 must be marked with the Shared attribute. |
-12 | [RS0024](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | The contents of the public API files are invalid | ApiDesign | True | Warning | False | The contents of the public API files are invalid: {0} |
-13 | [RS0025](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Do not duplicate symbols in public API files | ApiDesign | True | Warning | False | The symbol '{0}' appears more than once in the public API files. |
-14 | [RS0026](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md) | Do not add multiple public overloads with optional parameters | ApiDesign | True | Warning | False | Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details. |
-15 | [RS0027](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md) | Public API with optional parameter(s) should have the most parameters amongst its public overloads. | ApiDesign | True | Warning | False | Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details. |
-16 | [RS0030](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) | Do not used banned APIs | ApiDesign | True | Warning | False | The symbol has been marked as banned in this project, and an alternate should be used instead. |
-17 | [RS0031](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) | The list of banned symbols contains a duplicate | ApiDesign | True | Warning | False | The list of banned symbols contains a duplicate. |
-18 | RS0032 | Test exports should not be discoverable | RoslyDiagnosticsReliability | False | Warning | True | Test exports should not be discoverable |
-19 | RS0033 | Importing constructor should be [Obsolete] | RoslyDiagnosticsReliability | True | Warning | True | Importing constructor should be [Obsolete] |
-20 | RS0034 | Exported parts should have [ImportingConstructor] | RoslyDiagnosticsReliability | True | Warning | True | Exported parts should have [ImportingConstructor] |
-21 | RS0035 | External access to internal symbols outside the restricted namespace(s) is prohibited | ApiDesign | True | Error | False | RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows. |
+## RS0001: Use 'SpecializedCollections.EmptyEnumerable()'
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsPerformance|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+Use 'SpecializedCollections.EmptyEnumerable()'
+
+## RS0002: Use 'SpecializedCollections.SingletonEnumerable()'
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsPerformance|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+Use 'SpecializedCollections.SingletonEnumerable()'
+
+## RS0004: Invoke the correct property to ensure correct use site diagnostics
+
+|Item|Value|
+|-|-|
+|Category|Usage|
+|Enabled|False|
+|Severity|Error|
+|CodeFix|False|
+
+### Rule description
+
+Invoke the correct property to ensure correct use site diagnostics
+
+## RS0005: Do not use generic 'CodeAction.Create' to create 'CodeAction'
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsPerformance|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+Do not use generic 'CodeAction.Create' to create 'CodeAction'
+
+## RS0006: Do not mix attributes from different versions of MEF
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+Do not mix attributes from different versions of MEF.
+
+## RS0019: 'SymbolDeclaredEvent' must be generated for source symbols
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|False|
+|Severity|Error|
+|CodeFix|False|
+
+### Rule description
+
+Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.
+
+## RS0023: Parts exported with MEFv2 must be marked with 'SharedAttribute'
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+Part exported with MEFv2 must be marked with the 'SharedAttribute'.
+
+## RS0032: Test exports should not be discoverable
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|False|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Test exports should not be discoverable.
+
+## RS0033: Importing constructor should be marked with 'ObsoleteAttribute'
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Importing constructor should be marked with 'ObsoleteAttribute'.
+
+## RS0034: Exported parts should be marked with 'ImportingConstructorAttribute'
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Exported parts should be marked with 'ImportingConstructorAttribute'.
+
+## RS0038: Prefer null literal
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsMaintainability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Use 'null' instead of 'default' for nullable types.
+
+## RS0040: Defaultable types should have defaultable fields
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+Defaultable types should have defaultable fields.
+
+## RS0042: Do not copy value
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+Do not unbox non-copyable value types.
+
+## RS0043: Do not call 'GetTestAccessor()'
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsMaintainability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+
+### Rule description
+
+'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.
+
+## RS0046: Avoid the 'Opt' suffix
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsDesign|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Avoid the 'Opt' suffix in a nullable-enabled code.
+
+## RS0100: Statements must be placed on their own line
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsMaintainability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Statements must be placed on their own line
+
+## RS0101: Avoid multiple blank lines
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsMaintainability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Avoid multiple blank lines
+
+## RS0102: Braces must not have blank lines between them
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsMaintainability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+
+### Rule description
+
+Braces must not have blank lines between them
+

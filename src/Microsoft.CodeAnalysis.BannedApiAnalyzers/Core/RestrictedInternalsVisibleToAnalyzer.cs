@@ -257,4 +257,3 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     }
 }
 
-
