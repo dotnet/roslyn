@@ -26,30 +26,27 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
             Workspace workspace,
             ISymbolSearchLogService logService,
-            ISymbolSearchProgressService progressService,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callbackObject = new CallbackObject(logService, progressService);
+                var callbackObject = new CallbackObject(logService);
                 var session = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
                 return new RemoteUpdateEngine(workspace, session);
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
-            return CreateEngineInProcess(logService, progressService);
+            return CreateEngineInProcess(logService);
         }
 
         /// <summary>
         /// This returns a No-op engine if called on non-Windows OS, because the backing storage depends on Windows APIs.
         /// </summary>
-        public static ISymbolSearchUpdateEngine CreateEngineInProcess(
-            ISymbolSearchLogService logService,
-            ISymbolSearchProgressService progressService)
+        public static ISymbolSearchUpdateEngine CreateEngineInProcess(ISymbolSearchLogService logService)
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? new SymbolSearchUpdateEngine(logService, progressService)
+                ? new SymbolSearchUpdateEngine(logService)
                 : (ISymbolSearchUpdateEngine)new NoOpUpdateEngine();
         }
 
@@ -132,15 +129,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     CancellationToken.None);
         }
 
-        private class CallbackObject : ISymbolSearchLogService, ISymbolSearchProgressService
+        private class CallbackObject : ISymbolSearchLogService
         {
             private readonly ISymbolSearchLogService _logService;
-            private readonly ISymbolSearchProgressService _progressService;
 
-            public CallbackObject(ISymbolSearchLogService logService, ISymbolSearchProgressService progressService)
+            public CallbackObject(ISymbolSearchLogService logService)
             {
                 _logService = logService;
-                _progressService = progressService;
             }
 
             public Task LogExceptionAsync(string exception, string text)
@@ -148,18 +143,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             public Task LogInfoAsync(string text)
                 => _logService.LogInfoAsync(text);
-
-            public Task OnDownloadFullDatabaseStartedAsync(string title)
-                => _progressService.OnDownloadFullDatabaseStartedAsync(title);
-
-            public Task OnDownloadFullDatabaseSucceededAsync()
-                => _progressService.OnDownloadFullDatabaseSucceededAsync();
-
-            public Task OnDownloadFullDatabaseCanceledAsync()
-                => _progressService.OnDownloadFullDatabaseCanceledAsync();
-
-            public Task OnDownloadFullDatabaseFailedAsync(string message)
-                => _progressService.OnDownloadFullDatabaseFailedAsync(message);
         }
     }
 }

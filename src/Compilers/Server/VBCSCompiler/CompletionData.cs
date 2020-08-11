@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal static CompletionData RequestCompleted { get; } = new CompletionData(CompletionReason.RequestCompleted);
 
         internal static CompletionData RequestError { get; } = new CompletionData(CompletionReason.RequestError);
+
+        public override string ToString() => $"{Reason} KeepAlive:{NewKeepAlive} ShutdownRequest:{ShutdownRequest}";
     }
 }
 

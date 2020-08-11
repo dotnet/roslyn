@@ -1185,11 +1185,11 @@
   <data name="WRN_PatternIsAmbiguous_Title" xml:space="preserve">
     <value>Type does not implement the collection pattern; members are ambiguous</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible" xml:space="preserve">
-    <value>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</value>
+  <data name="WRN_PatternNotPublicOrNotInstance" xml:space="preserve">
+    <value>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible_Title" xml:space="preserve">
-    <value>Type does not implement the collection pattern; member is either static or not public</value>
+  <data name="WRN_PatternNotPublicOrNotInstance_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; member is is not a public instance or extension method.</value>
   </data>
   <data name="WRN_PatternBadSignature" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</value>
@@ -2699,16 +2699,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>#r is only allowed in scripts</value>
   </data>
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
   </data>
   <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement.</value>
@@ -4680,6 +4680,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -6429,5 +6430,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
     <value>A module initializer must be an ordinary member method</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetAsyncEnumerator" xml:space="preserve">
+    <value>extension GetAsyncEnumerator</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
+    <value>extension GetEnumerator</value>
   </data>
 </root>
