@@ -19,19 +19,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal partial class AbstractInlineMethodRefactoringProvider
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+        where TInvocationSyntaxNode : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
+        where TArgumentSyntax : SyntaxNode
     {
         private class InlineMethodContext
         {
             /// <summary>
-            /// Statements should be inserted before the <see cref="StatementContainsCalleeInvocationExpression"/>.
+            /// Statements should be inserted before the <see cref="StatementContainingCallee"/>.
             /// </summary>
-            public ImmutableArray<SyntaxNode> DeclarationStatementsGenerated { get; }
+            public ImmutableArray<SyntaxNode> StatementsToInsertBeforeCallee { get; }
 
             /// <summary>
             /// Statement invokes the callee. All the generated declarations should be put before this node.
             /// </summary>
-            public SyntaxNode? StatementContainsCalleeInvocationExpression { get; }
+            public SyntaxNode? StatementContainingCallee { get; }
 
             /// <summary>
             /// Inline content for the callee method. It should replace <see cref="SyntaxNodeToReplace"/>.
@@ -44,26 +47,29 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// </summary>
             public SyntaxNode? SyntaxNodeToReplace { get; }
 
+            /// <summary>
+            /// Indicate is <see cref="InlineSyntaxNode"/> has Await Expression
+            /// </summary>
             public bool ContainsAwaitExpression { get; }
 
             private const string TemporaryName = "tmp";
 
             private InlineMethodContext(
-                ImmutableArray<SyntaxNode> declarationStatementsGenerated,
-                SyntaxNode? statementContainsCalleeInvocationExpression,
+                ImmutableArray<SyntaxNode> statementsToInsertBeforeCallee,
+                SyntaxNode? statementContainingCallee,
                 SyntaxNode? inlineSyntaxNode,
                 SyntaxNode? syntaxNodeToReplace,
                 bool containsAwaitExpression)
             {
-                DeclarationStatementsGenerated = declarationStatementsGenerated;
-                StatementContainsCalleeInvocationExpression = statementContainsCalleeInvocationExpression;
+                StatementsToInsertBeforeCallee = statementsToInsertBeforeCallee;
+                StatementContainingCallee = statementContainingCallee;
                 InlineSyntaxNode = inlineSyntaxNode;
                 SyntaxNodeToReplace = syntaxNodeToReplace;
                 ContainsAwaitExpression = containsAwaitExpression;
             }
 
             public static async Task<InlineMethodContext> GetInlineContextAsync(
-                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 IPrecedenceService precedenceService,
                 Document document,
@@ -72,21 +78,23 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 IMethodSymbol calleeMethodSymbol,
                 SyntaxNode calleeMethodDeclarationSyntaxNode,
                 MethodParametersInfo methodParametersInfo,
-                MethodInvocationInfo methodInvocationInfo,
                 SyntaxNode root,
                 CancellationToken cancellationToken)
             {
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var rawInlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
                 var inlineSyntaxNode = rawInlineSyntaxNode;
-                // Compute the replacement syntax node for needed symbols(variables and parameters) in the callee.
+                // The replacement/insertion work done might cause naming conflict.
+                // So first compute a mapping from symbol to newName (renameTable)
+                // Cases are:
+                // 1. Replace the callee's parameter withe caller's identifier might cause conflict in callee.
+                // 2. Use the parameter's name to generate declarations in caller might cause conflict in the caller
+                // In either case, rename the symbol in Callee.
                 var parametersWithIdentifierArgumentToName = methodParametersInfo.ParametersWithIdentifierArgument
                     .Select(parameterAndArgument =>
                         (parameterAndArgument.parameterSymbol,
-                            semanticModel
-                                .GetSymbolInfo(parameterAndArgument.identifierSyntaxNode, cancellationToken)
-                                .GetAnySymbol()
-                                ?.Name))
+                            semanticModel.GetSymbolInfo(parameterAndArgument.identifierSyntaxNode, cancellationToken)
+                                .GetAnySymbol()?.Name))
                     .Where(parameterAndName => parameterAndName.Name != null)
                     .ToImmutableArray();
 
@@ -123,6 +131,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     localSymbolOfCallee,
                     inUsedNameOfCallee);
 
+                // Generate all the statements need to be put in the caller.
                 var localDeclarationStatementsNeedInsert = GetLocalDeclarationStatementsNeedInsert(
                     inlineMethodRefactoringProvider,
                     semanticModel,
@@ -132,16 +141,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     renameTable,
                     cancellationToken);
 
+                // The syntax node that contains the invocation syntax node.
+                // Example1: var x = Callee(); Then LocalDeclarationStatement is the containing syntax node.
+                // Example1: if (Callee()) {} Then IfStatement is the containing syntax node
+                var statementContainingCallee = inlineMethodRefactoringProvider.GetStatementContainsCallee(calleeInvocationSyntaxNode);
                 if (inlineSyntaxNode == null)
                 {
                     return new InlineMethodContext(
                         localDeclarationStatementsNeedInsert,
-                        methodInvocationInfo.StatementContainsCalleeInvocationExpression,
+                        statementContainingCallee,
                         null,
-                        methodInvocationInfo.StatementContainsCalleeInvocationExpression,
+                        statementContainingCallee,
                         false);
                 }
 
+                // Do the replacement work within the callee. Including:
+                // 1. Literal replacement
+                // 2. Identifier rename
+                // 3. Type arguments (generics)
                 var replacementTable = ComputeReplacementTable(
                     inlineMethodRefactoringProvider,
                     calleeMethodSymbol,
@@ -158,13 +175,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     replacementTable,
                     cancellationToken).ConfigureAwait(false);
 
+                // Check if there is await expression. It is used later if the caller should be changed to async
                 var containsAwaitExpression = inlineSyntaxNode
                     .DescendantNodesAndSelf()
                     .Any(node => node != null && syntaxFacts.IsAwaitExpression(node));
 
-                if (methodInvocationInfo.IsCalleeSingleInvokedAsStatementOrDeclaration
-                    && !calleeMethodSymbol.ReturnsVoid
-                    && !methodInvocationInfo.AssignedToVariable)
+                if (syntaxFacts.IsExpressionStatement(statementContainingCallee)&& !calleeMethodSymbol.ReturnsVoid)
                 {
                     // If the callee is invoked like
                     // void Caller()
@@ -194,14 +210,21 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                     return new InlineMethodContext(
                         localDeclarationStatementsNeedInsert,
-                        methodInvocationInfo.StatementContainsCalleeInvocationExpression,
+                        statementContainingCallee,
                         syntaxGenerator
                             .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedTemporaryName, inlineSyntaxNode),
-                        methodInvocationInfo.StatementContainsCalleeInvocationExpression,
+                        statementContainingCallee,
                         containsAwaitExpression);
                 }
 
-                // Add parenthesis if needed.
+                // Check if parenthesis is needed by comparing the Precedence.
+                // Example:
+                // Before:
+                // void Caller() { var x = Callee() * 3; }
+                // int Callee() => 1 + 2;
+                // After:
+                // void Caller() { var x = (1 + 2) * 3; }
+                // int Callee() => 1 + 2;
                 var parent = calleeInvocationSyntaxNode.Parent;
                 if (parent != null
                     && !syntaxFacts.IsParenthesizedExpression(inlineSyntaxNode)
@@ -215,10 +238,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     {
                         if (precedenceOfInlineExpression < precedenceOfInvocation)
                         {
-                            // Example:
-                            // void Caller() { int i = Callee() * 3; }
-                            // int Callee() => 1 + 2;
-                            // Here '1 + 2' has lower precedence then Callee() * 3, so parenthesis is needed.
                             shouldWrapInParenthesis = true;
                         }
                         else if (precedenceOfInlineExpression == precedenceOfInvocation)
@@ -236,7 +255,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 return new InlineMethodContext(
                     localDeclarationStatementsNeedInsert,
-                    methodInvocationInfo.StatementContainsCalleeInvocationExpression,
+                    statementContainingCallee,
+                    // add the trivia of the calleeInvocationSyntaxNode so that the format is correct
                     inlineSyntaxNode
                         .WithLeadingTrivia(calleeInvocationSyntaxNode.GetLeadingTrivia())
                         .WithTrailingTrivia(calleeInvocationSyntaxNode.GetTrailingTrivia()),
@@ -245,7 +265,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static ImmutableArray<SyntaxNode> GetLocalDeclarationStatementsNeedInsert(
-                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 SyntaxGenerator syntaxGenerator,
                 ImmutableArray<(IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments)> parametersNeedGenerateDeclarations,
@@ -255,11 +275,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 => parametersNeedGenerateDeclarations
                     .Select(parameterAndArguments => CreateLocalDeclarationStatement(inlineMethodRefactoringProvider, semanticModel, syntaxGenerator, renameTable, parameterAndArguments, cancellationToken))
                     .Concat(parametersWithVariableDeclarationArgument
-                        .Select(parameterAndName => inlineMethodRefactoringProvider.GenerateLocalDeclarationStatement(parameterAndName.name, parameterAndName.parameterSymbol.Type)))
+                        .Select(parameterAndName => syntaxGenerator.LocalDeclarationStatement(parameterAndName.parameterSymbol.Type, parameterAndName.name)))
                     .ToImmutableArray();
 
             private static SyntaxNode CreateLocalDeclarationStatement(
-                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 SyntaxGenerator syntaxGenerator,
                 ImmutableDictionary<ISymbol, string> renameTable,
@@ -271,8 +291,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 var generateArrayDeclarationStatement = parameterSymbol.IsParams
                 // If arguments number is not one, it means this paramsArray maps to multiple or zero arguments. An array declaration is needed.
                     && (arguments.Length != 1
-                // If the arguments number is one, it could be the single element of the array(an array declaration is needed)
+                // If the arguments number is one, it could be the single element of the array (an array declaration is needed)
+                // Example: void Callee(params int[] x) {}
+                // void Caller() { Callee(1, 2, 3) }
                 // or it could an array (like array creation, and array declaration is not need)
+                // Example: void Callee(params int[] x) {}
+                // void Caller() { Callee(new int[] { 1, 2, 3}) }
                         || (arguments.Length == 1 && !parameterSymbol.Type.Equals(semanticModel.GetTypeInfo(arguments[0], cancellationToken).Type)));
 
                 if (generateArrayDeclarationStatement)
@@ -327,7 +351,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// is the replacement syntax node for all its occurence.
             /// </summary>
             private static ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
-                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 IMethodSymbol calleeMethodSymbol,
                 ImmutableArray<(IParameterSymbol parameterSymbol , SyntaxNode literalExpression)> parametersWithLiteralArgument,
                 ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
@@ -352,7 +376,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 return renameTable
                     .Select(kvp => (parameter: kvp.Key,
-                        syntaxNode: inlineMethodRefactoringProvider.GenerateIdentifierNameSyntaxNode(kvp.Value)))
+                        syntaxNode: syntaxGenerator.IdentifierName(kvp.Value)))
                     .Concat(typeParametersReplacementQuery)
                     .Concat(defaultValueReplacementQuery)
                     .Concat(literalArgumentReplacementQuery)

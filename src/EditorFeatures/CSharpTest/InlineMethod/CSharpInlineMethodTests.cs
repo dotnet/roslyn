@@ -1557,10 +1557,6 @@ public class TestClass
     private string Callee() => ""H"" + ""L"";
 }");
 
-        [Fact(Skip = "Add Support")]
-        public Task TestInvocationExpression()
-            => Task.CompletedTask;
-
         [Fact]
         public Task TestElementAccessExpression()
             => TestVerifier.TestInRegularAndScript1Async(
@@ -1585,7 +1581,7 @@ public class TestClass
     private string Callee() => ""H"" + ""L"";
 }");
 
-        [Fact(Skip = "No OperatorPrecedenceService for switch expression")]
+        [Fact(Skip = "No Precedence support")]
         public Task TestSwitchExpression()
             => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass

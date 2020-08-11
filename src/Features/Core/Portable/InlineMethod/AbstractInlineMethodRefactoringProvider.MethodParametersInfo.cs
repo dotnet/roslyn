@@ -12,8 +12,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal partial class AbstractInlineMethodRefactoringProvider
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+        where TInvocationSyntaxNode : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
+        where TArgumentSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Information about the callee method parameters to compute <see cref="InlineMethodContext"/>.
+        /// </summary>
         private class MethodParametersInfo
         {
             /// <summary>
@@ -56,17 +62,26 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             public static MethodParametersInfo GetMethodParametersInfo(
-                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 SemanticModel semanticModel,
                 SyntaxNode calleeInvocationSyntaxNode,
                 IMethodSymbol calleeMethodSymbol,
                 CancellationToken cancellationToken)
             {
+                // Classify the parameters into:
+                // 1. If the parameter accept an identifier from Caller, then use this identifier to replace all the occurence of the parameter.
+                // (So that after inlining, the same identifier could be found in the caller)
+                // 2. If the parameter accept literal/no argument but has default value, replace all the occurence of the parameter by using the
+                // literal expression
+                // 3. If the argument has variable declarations ('out var' in C#), then insert an additional declaration. Also replace all the
+                // occurence of parameter by using this identifier.
+                // 4. For the rest of the parameters (might include method invocation and different expressions), use the parameter's name to
+                // generate a declaration for them and insert that into caller.
                 var allArguments = syntaxFacts.GetArgumentsOfInvocationExpression(calleeInvocationSyntaxNode);
                 var parameterSymbolAndArguments = allArguments
                     .Select(argument => (
-                        parameterSymbol: inlineMethodRefactoringProvider.GetParameterSymbol(semanticModel, argument,
+                        parameterSymbol: inlineMethodRefactoringProvider.GetParameterSymbol(semanticModel, (TArgumentSyntax)argument,
                             cancellationToken),
                         argumentExpression: syntaxFacts.GetExpressionOfArgument(argument)))
                     .Where(parameterAndArgument =>
@@ -191,7 +206,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static bool ParameterNeedsGenerateDeclarationFilter(
-                AbstractInlineMethodRefactoringProvider inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 SemanticModel semanticModel,
                 (IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments) parameterAndArguments,
@@ -201,7 +216,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 if (!parameterSymbol.IsParams && arguments.Length == 1)
                 {
                     var argument = arguments[0];
-                    return inlineMethodRefactoringProvider.IsExpressionSyntax(argument);
+                    return IsExpressionSyntax(argument);
                 }
 
                 // Params array is special, if there are multiple arguments, then they needs to be put into a separate array.
