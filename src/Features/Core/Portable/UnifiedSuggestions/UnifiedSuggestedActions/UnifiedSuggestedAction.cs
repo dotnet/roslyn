@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Similar to SuggestedAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedSuggestedAction : IUnifiedSuggestedAction
+    internal class UnifiedSuggestedAction : IUnifiedSuggestedAction, IEquatable<IUnifiedSuggestedAction>
     {
         public Workspace Workspace { get; }
 
@@ -25,6 +26,32 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Workspace = workspace;
             OriginalCodeAction = codeAction;
             CodeActionPriority = codeActionPriority;
+        }
+
+        public bool Equals(IUnifiedSuggestedAction? other)
+            => other is UnifiedSuggestedAction action && Equals(action);
+
+        public override bool Equals(object? obj)
+            => obj is UnifiedSuggestedAction action && Equals(action);
+
+        internal bool Equals(UnifiedSuggestedAction otherSuggestedAction)
+        {
+            if (this == otherSuggestedAction)
+            {
+                return true;
+            }
+
+            return OriginalCodeAction.Title == otherSuggestedAction.OriginalCodeAction.Title;
+        }
+
+        public override int GetHashCode()
+        {
+            if (OriginalCodeAction.EquivalenceKey == null)
+            {
+                return base.GetHashCode();
+            }
+
+            return OriginalCodeAction.EquivalenceKey.GetHashCode();
         }
     }
 }

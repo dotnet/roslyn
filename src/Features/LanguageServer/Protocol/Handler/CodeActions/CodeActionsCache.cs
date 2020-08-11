@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +18,26 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
+    /// <summary>
+    /// Caches code actions between calls to <see cref="CodeActionsHandler"/> and
+    /// <see cref="CodeActionResolveHandler"/>.
+    /// </summary>
     [Export(typeof(CodeActionsCache)), Shared]
     internal class CodeActionsCache
     {
+        /// <summary>
+        /// Ensures that we aren't making concurrent modifications to the list of cached items.
+        /// </summary>
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
+        /// <summary>
+        /// Maximum number of code action sets cached.
+        /// </summary>
         private readonly int _maxCacheSize = 3;
 
+        /// <summary>
+        /// List of sets of code actions.
+        /// </summary>
         private readonly List<CodeActionsCacheItem> _cachedItems;
 
         [ImportingConstructor]
@@ -44,11 +56,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // If there's a value in the cache with the same document and range we're searching for,
-                // remove it and replace with our updated values.
-                var previousCacheItem = _cachedItems.Where(c => c.Document == document && c.Range == range);
-                if (previousCacheItem.Any())
+                // remove and replace it (if different) with our updated value.
+                var previousCachedItem = _cachedItems.Where(
+                    c => c.Document == document && c.Range.Start == range.Start && c.Range.End == range.End);
+                if (previousCachedItem.Any())
                 {
-                    _cachedItems.Remove(previousCacheItem.First());
+                    var item = previousCachedItem.First();
+                    if (item.CachedSuggestedActionSets.SequenceEqual(cachedSuggestedActionSets))
+                    {
+                        return;
+                    }
+
+                    _cachedItems.Remove(item);
                 }
                 // If the cache is full, remove the oldest cached value.
                 else if (_cachedItems.Count >= _maxCacheSize)
@@ -60,6 +79,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
         }
 
+        /// <summary>
+        /// Attempts to retrieve the cached action set that matches the given document and range.
+        /// Returns null if no match is found.
+        /// </summary>
         public async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetCacheAsync(
             Document document,
             LSP.Range range,
@@ -70,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 foreach (var cachedItem in _cachedItems)
                 {
                     if (document == cachedItem.Document && document.Project.Solution == cachedItem.Document.Project.Solution &&
-                        range.Start != cachedItem.Range?.Start && range.End != cachedItem.Range?.End)
+                        range.Start == cachedItem.Range?.Start && range.End == cachedItem.Range?.End)
                     {
                         return cachedItem.CachedSuggestedActionSets;
                     }
@@ -80,6 +103,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
         }
 
+        /// <summary>
+        /// Returns the number of cache items.
+        /// </summary>
+        /// <remarks>
+        /// Used primarily for testing purposes.
+        /// </remarks>
+        internal int GetNumCacheItems() => _cachedItems.Count;
+
+        /// <summary>
+        /// Contains the necessary information for each cache item.
+        /// </summary>
         private readonly struct CodeActionsCacheItem
         {
             public readonly Document Document;
