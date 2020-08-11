@@ -210,9 +210,27 @@ namespace Microsoft.CodeAnalysis
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
-            => GetSemanticModelCore(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
+            => CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
 
-        internal abstract SemanticModel GetSemanticModelCore(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull);
+        /// <summary>
+        /// Gets a <see cref="SemanticModel"/> for the given <paramref name="syntaxTree"/>.
+        /// If <see cref="SemanticModelProvider"/> is non-null, it attempts to use <see cref="SemanticModelProvider.GetSemanticModel(SyntaxTree, Compilation, bool)"/>
+        /// to get a semantic model. Otherwise, it creates a new semantic model using <see cref="CreateSemanticModel(SyntaxTree, bool)"/>.
+        /// </summary>
+        /// <param name="syntaxTree"></param>
+        /// <param name="ignoreAccessibility"></param>
+        /// <returns></returns>
+        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
+
+        /// <summary>
+        /// Creates a new <see cref="SemanticModel"/> for the given <paramref name="syntaxTree"/>.
+        /// Unlike the <see cref="GetSemanticModel(SyntaxTree, bool)"/> and <see cref="CommonGetSemanticModel(SyntaxTree, bool)"/>,
+        /// it does not attempt to use the <see cref="SemanticModelProvider"/> to get a semantic model, but instead always creates a new semantic model.
+        /// </summary>
+        /// <param name="syntaxTree"></param>
+        /// <param name="ignoreAccessibility"></param>
+        /// <returns></returns>
+        internal abstract SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity
@@ -509,12 +527,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Optional semantic model provider for this compilation.
         /// </summary>
-        internal readonly SemanticModelProvider? SemanticModelProvider;
+        internal SemanticModelProvider? SemanticModelProvider { get; }
 
         /// <summary>
         /// The event queue that this compilation was created with.
         /// </summary>
-        internal readonly AsyncQueue<CompilationEvent>? EventQueue;
+        internal AsyncQueue<CompilationEvent>? EventQueue { get; }
 
         #endregion
 

@@ -3769,9 +3769,9 @@ class C
         {
             private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
 
-            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation)
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
             {
-                return _cache.GetOrAdd(tree, compilation.GetSemanticModelCore(tree, ignoreAccessibility: false, useSemanticModelProviderIfNonNull: false));
+                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility));
             }
 
             public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)

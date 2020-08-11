@@ -2108,9 +2108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
         public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
-            => GetSemanticModelCore(syntaxTree, ignoreAccessibility, useSemanticModelProviderIfNonNull: true);
-
-        internal override SemanticModel GetSemanticModelCore(SyntaxTree syntaxTree, bool ignoreAccessibility, bool useSemanticModelProviderIfNonNull)
         {
             if (syntaxTree == null)
             {
@@ -2122,14 +2119,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
-            if (SemanticModelProvider != null && useSemanticModelProviderIfNonNull)
-            {
-                Debug.Assert(!ignoreAccessibility);
-                return SemanticModelProvider.GetSemanticModel(syntaxTree, this);
-            }
-
-            return new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
+            return SemanticModelProvider?.GetSemanticModel(syntaxTree, this, ignoreAccessibility) ?? CreateSemanticModel(syntaxTree, ignoreAccessibility);
         }
+
+        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -3204,6 +3198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonOptions
         {
             get { return _options; }
+        }
+
+        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+        {
+            return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
         protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
