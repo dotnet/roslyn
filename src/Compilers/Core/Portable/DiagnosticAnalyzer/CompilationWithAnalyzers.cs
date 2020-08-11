@@ -384,6 +384,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
+        private static AnalyzerDriver CreateDriverForComputingDiagnosticsWithoutStateTracking(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            // Create and attach a new driver instance to compilation, do not used a pooled instance from '_driverPool'.
+            // Additionally, use a new AnalyzerManager and don't use the analyzer manager instance
+            // stored onto the field '_analyzerManager'.
+            // Pooled _driverPool and shared _analyzerManager is used for partial/state-based analysis, and
+            // we want to compute diagnostics without any state tracking here.
+
+            return compilation.CreateAnalyzerDriver(analyzers, new AnalyzerManager(analyzers), severityFilter: SeverityFilter.None);
+        }
+
         private async Task ComputeAnalyzerDiagnosticsWithoutStateTrackingAsync(CancellationToken cancellationToken)
         {
             // Exclude analyzers that have fully executed.
@@ -404,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = true;
-                driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
+                driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
@@ -445,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = false;
-                driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
+                driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
@@ -1074,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var task in executingTasks)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await task.Item1.ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(task.Item1).ConfigureAwait(false);
                 }
 
                 executingTasks.Clear();
@@ -1130,12 +1141,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    await executingTreeTask.Item1.ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(executingTreeTask.Item1).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private async Task WaitForExecutingTaskAsync(Task executingTask)
+        {
+            try
+            {
+                await executingTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Handle cancelled tasks gracefully.
             }
         }
 

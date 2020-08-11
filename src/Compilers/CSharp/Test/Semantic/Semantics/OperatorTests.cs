@@ -6071,7 +6071,7 @@ namespace System
 }
 ";
             CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
-                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base type are not allowed
                     //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
                     Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("(T1, T2).explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
         }
