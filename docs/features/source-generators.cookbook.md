@@ -212,6 +212,58 @@ public partial class {userClass.Identifier}
 }
 ```
 
+### Issue Diagnostics
+
+**User Scenario:** As a generator author I want to be able to add diagnostics to the users compilation.
+
+**Solution:** Diagnostics can be added to the compilation via `SourceGeneratorContext.ReportDiagnostic()`. These can be in response to the content of the users compilation:
+for instance if the generator is expecting a well formed `AdditionalFile` but can not parse it, the generator could emit a warning notifying the user that generation can not proceed.
+
+For code-based issues, the generator author should also consider implementing a [diagnostic analyzer](https://docs.microsoft.com/en-us/visualstudio/code-quality/roslyn-analyzers-overview?view=vs-2019) that identifies the problem, and offers a code-fix to resolve it.
+
+**Example:**
+
+```csharp
+[Generator]
+public class MyXmlGenerator : ISourceGenerator
+{
+
+    private static readonly DiagnosticDescriptor InvalidXmlWarning = new DiagnosticDescriptor(id: "MYXMLGEN001",
+                                                                                              title: "Couldn't parse XML file",
+                                                                                              messageFormat: "Couldn't parse XML file '{0}'.",
+                                                                                              category: "MyXmlGenerator",
+                                                                                              DiagnosticSeverity.Warning,
+                                                                                              isEnabledByDefault: true);
+
+    public void Execute(SourceGeneratorContext context)
+    {
+        // Using the context, get any additional files that end in .xml
+        IEnumerable<AdditionalText> xmlFiles = context.AdditionalFiles.Where(at => at.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+        foreach (AdditionalText xmlFile in xmlFiles)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            string text = xmlFile.GetText(context.CancellationToken).ToString();
+            try
+            {
+                xmlDoc.LoadXml(text);
+            }
+            catch (XmlException)
+            {
+                // issue warning MYXMLGEN001: Couldn't parse XML file '<path>'
+                context.ReportDiagnostic(Diagnostic.Create(InvalidXmlWarning, Location.None, xmlFile.Path);
+                continue;
+            }
+
+            // continue generation...
+        }
+    }
+
+    public void Initialize(InitializationContext context)
+    {
+    }
+}
+```
+
 ### INotifyPropertyChanged
 
 **User scenario:** As a generator author I want to be able to implement the `INotifyPropertyChanged` pattern automatically for a user.
