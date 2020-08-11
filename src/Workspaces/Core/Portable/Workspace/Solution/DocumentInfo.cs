@@ -54,6 +54,20 @@ namespace Microsoft.CodeAnalysis
         public bool IsGenerated => Attributes.IsGenerated;
 
         /// <summary>
+        /// True if the source code contained in the document is only used in design-time (e.g. for completion),
+        /// but is not passed to the compiler when the containing project is built.
+        /// </summary>
+        public bool DesignTimeOnly => Attributes.DesignTimeOnly;
+
+        /// <summary>
+        /// The LSP client name that should get the diagnostics produced by this document; any other source
+        /// will not show these diagnostics.  For example, razor uses this to exclude diagnostics from the error list
+        /// so that they can handle the final display.
+        /// If null, the diagnostics do not have this special handling.
+        /// </summary>
+        public string? DiagnosticsLspClientName => Attributes.DiagnosticsLspClientName;
+
+        /// <summary>
         /// A loader that can retrieve the document text.
         /// </summary>
         public TextLoader? TextLoader { get; }
@@ -90,6 +104,8 @@ namespace Microsoft.CodeAnalysis
                 loader,
                 filePath,
                 isGenerated,
+                designTimeOnly: false,
+                diagnosticsLspClientName: null,
                 documentServiceProvider: null);
         }
 
@@ -101,9 +117,11 @@ namespace Microsoft.CodeAnalysis
             TextLoader? loader,
             string? filePath,
             bool isGenerated,
+            bool designTimeOnly,
+            string? diagnosticsLspClientName,
             IDocumentServiceProvider? documentServiceProvider)
         {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
+            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly, diagnosticsLspClientName), loader, documentServiceProvider);
         }
 
         private DocumentInfo With(
@@ -184,13 +202,29 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public bool IsGenerated { get; }
 
+            /// <summary>
+            /// True if the source code contained in the document is only used in design-time (e.g. for completion),
+            /// but is not passed to the compiler when the containing project is built.
+            /// </summary>
+            public bool DesignTimeOnly { get; }
+
+            /// <summary>
+            /// The LSP client name that should get the diagnostics produced by this document; any other source
+            /// will not show these diagnostics.  For example, razor uses this to exclude diagnostics from the error list
+            /// so that they can handle the final display.
+            /// If null, the diagnostics do not have this special handling.
+            /// </summary>
+            public string? DiagnosticsLspClientName { get; }
+
             public DocumentAttributes(
                 DocumentId id,
                 string name,
                 IReadOnlyList<string> folders,
                 SourceCodeKind sourceCodeKind,
                 string? filePath,
-                bool isGenerated)
+                bool isGenerated,
+                bool designTimeOnly,
+                string? diagnosticsLspClientName)
             {
                 Id = id;
                 Name = name;
@@ -198,6 +232,8 @@ namespace Microsoft.CodeAnalysis
                 SourceCodeKind = sourceCodeKind;
                 FilePath = filePath;
                 IsGenerated = isGenerated;
+                DesignTimeOnly = designTimeOnly;
+                DiagnosticsLspClientName = diagnosticsLspClientName;
             }
 
             public DocumentAttributes With(
@@ -206,7 +242,9 @@ namespace Microsoft.CodeAnalysis
                 IReadOnlyList<string>? folders = null,
                 Optional<SourceCodeKind> sourceCodeKind = default,
                 Optional<string?> filePath = default,
-                Optional<bool> isGenerated = default)
+                Optional<bool> isGenerated = default,
+                Optional<bool> designTimeOnly = default,
+                Optional<string?> diagnosticsLspClientName = default)
             {
                 var newId = id ?? Id;
                 var newName = name ?? Name;
@@ -214,18 +252,22 @@ namespace Microsoft.CodeAnalysis
                 var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
                 var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
                 var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
+                var newDesignTimeOnly = designTimeOnly.HasValue ? designTimeOnly.Value : DesignTimeOnly;
+                var newDiagnosticsLspClientName = diagnosticsLspClientName.HasValue ? diagnosticsLspClientName.Value : DiagnosticsLspClientName;
 
                 if (newId == Id &&
                     newName == Name &&
                     newFolders.SequenceEqual(Folders) &&
                     newSourceCodeKind == SourceCodeKind &&
                     newFilePath == FilePath &&
-                    newIsGenerated == IsGenerated)
+                    newIsGenerated == IsGenerated &&
+                    newDesignTimeOnly == DesignTimeOnly &&
+                    newDiagnosticsLspClientName == DiagnosticsLspClientName)
                 {
                     return this;
                 }
 
-                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
+                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated, newDesignTimeOnly, newDiagnosticsLspClientName);
             }
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -239,6 +281,8 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteInt32((int)SourceCodeKind);
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
+                writer.WriteBoolean(DesignTimeOnly);
+                writer.WriteString(DiagnosticsLspClientName);
             }
 
             public static DocumentAttributes ReadFrom(ObjectReader reader)
@@ -250,8 +294,10 @@ namespace Microsoft.CodeAnalysis
                 var sourceCodeKind = reader.ReadInt32();
                 var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();
+                var designTimeOnly = reader.ReadBoolean();
+                var diagnosticsLspClientName = reader.ReadString();
 
-                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
+                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated, designTimeOnly, diagnosticsLspClientName);
             }
 
             Checksum IChecksummedObject.Checksum

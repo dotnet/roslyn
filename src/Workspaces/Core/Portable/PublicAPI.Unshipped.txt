@@ -1,1 +1,2 @@
-
+Microsoft.CodeAnalysis.DocumentInfo.DesignTimeOnly.get -> bool
+Microsoft.CodeAnalysis.DocumentInfo.DiagnosticsLspClientName.get -> string
