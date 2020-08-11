@@ -412,15 +412,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         // Some diagnostics only apply to certain clients and document types, e.g. Razor.
-        // If the DocumentPropertiesService.DiagnosticsLspClientName property exists, we only include the
+        // If the DiagnosticsLspClientName property exists, we only include the
         // diagnostic if it directly matches the client name.
-        // If the DocumentPropertiesService.DiagnosticsLspClientName property doesn't exist,
+        // If the DiagnosticsLspClientName property doesn't exist,
         // we know that the diagnostic we're working with is contained in a C#/VB file, since
         // if we were working with a non-C#/VB file, then the property should have been populated.
         // In this case, unless we have a null client name, we don't want to publish the diagnostic
         // (since a null client name represents the C#/VB language server).
         private bool IncludeDiagnostic(DiagnosticData diagnostic) =>
-            diagnostic.Properties.GetOrDefault(nameof(DocumentPropertiesService.DiagnosticsLspClientName)) == _clientName;
+            diagnostic.Properties.GetOrDefault(nameof(DocumentInfo.DiagnosticsLspClientName)) == _clientName;
 
         private static LanguageServer.Protocol.Range? GetDiagnosticRange(DiagnosticDataLocation? diagnosticDataLocation, SourceText text)
         {

@@ -574,9 +574,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string fullPath,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             ImmutableArray<string> folders = default,
+            bool designTimeOnly = default,
             IDocumentServiceProvider? documentServiceProvider = null)
         {
-            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, documentServiceProvider);
+            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
         }
 
         public bool ContainsSourceFile(string fullPath)
@@ -694,7 +695,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // In this case we substitute the file being generated from so we still have some path.
             if (string.IsNullOrEmpty(fileInfo.FilePath))
             {
-                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
+                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DesignTimeOnly, fileInfo.DiagnosticsLspClientName, fileInfo.DocumentServiceProvider);
             }
 
             return fileInfo;
@@ -1222,7 +1223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider? documentServiceProvider)
+            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, bool designTimeOnly, IDocumentServiceProvider? documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -1239,6 +1240,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     loader: textLoader,
                     filePath: fullPath,
                     isGenerated: false,
+                    designTimeOnly: designTimeOnly,
+                    diagnosticsLspClientName: null,
                     documentServiceProvider: documentServiceProvider);
 
                 lock (_project._gate)
@@ -1529,6 +1532,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     loader: fileInfo.TextLoader,
                                     document.FilePath,
                                     document.State.Attributes.IsGenerated,
+                                    document.State.Attributes.DesignTimeOnly,
+                                    document.State.Attributes.DiagnosticsLspClientName,
                                     documentServiceProvider: fileInfo.DocumentServiceProvider);
 
                                 w.OnDocumentReloaded(documentInfo);
@@ -1640,7 +1645,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentId = DocumentId.CreateNewId(_project.Id, filePath);
 
                 var textLoader = fileInfo.TextLoader;
-                var documentServiceProvider = new DynamicFileDocumentServiceProvider(fileInfo.DocumentServiceProvider);
+                var documentServiceProvider = fileInfo.DocumentServiceProvider;
 
                 return DocumentInfo.Create(
                     documentId,
@@ -1650,33 +1655,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     loader: textLoader,
                     filePath: filePath,
                     isGenerated: false,
+                    designTimeOnly: true,
+                    diagnosticsLspClientName: null,
                     documentServiceProvider: documentServiceProvider);
             }
 
-            private sealed class DynamicFileDocumentServiceProvider : IDocumentServiceProvider
-            {
-                private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
-                {
-                    public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
-                    public override bool DesignTimeOnly => true;
-                }
-
-                private readonly IDocumentServiceProvider _provider;
-
-                public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
-                    => _provider = provider;
-
-                TService IDocumentServiceProvider.GetService<TService>()
-                {
-                    if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
-                    {
-                        return documentPropertiesService;
-                    }
-
-                    return _provider.GetService<TService>();
-                }
-            }
-
+            
             private sealed class SourceTextLoader : TextLoader
             {
                 private readonly SourceTextContainer _textContainer;

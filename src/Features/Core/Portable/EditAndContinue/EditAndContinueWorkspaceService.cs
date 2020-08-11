@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 
         internal static bool IsDesignTimeOnlyDocument(Document document)
-            => document.Services.GetService<DocumentPropertiesService>()?.DesignTimeOnly == true;
+            => document.State.Attributes.DesignTimeOnly;
 
         public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {

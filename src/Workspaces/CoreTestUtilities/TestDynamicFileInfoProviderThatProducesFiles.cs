@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 filePath + ".fromdynamicfile",
                 SourceCodeKind.Regular,
                 new TestTextLoader(GetDynamicFileText(filePath)),
+                designTimeOnly: true,
+                diagnosticsLspClientName: null,
                 new TestDocumentServiceProvider()));
         }
 

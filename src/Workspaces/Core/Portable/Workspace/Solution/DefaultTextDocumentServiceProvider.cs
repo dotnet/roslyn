@@ -25,11 +25,6 @@ namespace Microsoft.CodeAnalysis
                 return documentOperationService;
             }
 
-            if (DocumentPropertiesService.Default is TService documentPropertiesService)
-            {
-                return documentPropertiesService;
-            }
-
             return null;
         }
 
