@@ -230,7 +230,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Generators:
         public override int WRN_GeneratorFailedDuringInitialization => (int)ErrorCode.WRN_GeneratorFailedDuringInitialization;
+        public override int WRN_GeneratorFailedDuringInitializationDeveloper => (int)ErrorCode.WRN_GeneratorFailedDuringInitializationDeveloper;
         public override int WRN_GeneratorFailedDuringGeneration => (int)ErrorCode.WRN_GeneratorFailedDuringGeneration;
+        public override int WRN_GeneratorFailedDuringGenerationDeveloper => (int)ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper;
 
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {

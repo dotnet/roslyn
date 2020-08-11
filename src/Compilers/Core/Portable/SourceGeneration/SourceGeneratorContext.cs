@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis
             InfoBuilder.SyntaxReceiverCreator = receiverCreator;
         }
 
+        public void EnableDeveloperMode()
+        {
+            InfoBuilder.DeveloperModeEnabled = true;
+        }
+
         private static void CheckIsEmpty<T>(T x)
         {
             if (x is object)

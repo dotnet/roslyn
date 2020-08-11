@@ -239,7 +239,9 @@ namespace Microsoft.CodeAnalysis
 
         // Generators:
         public abstract int WRN_GeneratorFailedDuringInitialization { get; }
+        public abstract int WRN_GeneratorFailedDuringInitializationDeveloper { get; }
         public abstract int WRN_GeneratorFailedDuringGeneration { get; }
+        public abstract int WRN_GeneratorFailedDuringGenerationDeveloper { get; }
 
         /// <summary>
         /// Takes an exception produced while writing to a file stream and produces a diagnostic.

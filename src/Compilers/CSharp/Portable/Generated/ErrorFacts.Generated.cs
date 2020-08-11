@@ -257,6 +257,8 @@
                 case ErrorCode.WRN_UseDefViolationThis:
                 case ErrorCode.WRN_UseDefViolationOut:
                 case ErrorCode.WRN_UseDefViolation:
+                case ErrorCode.WRN_GeneratorFailedDuringInitializationDeveloper:
+                case ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper:
                     return true;
                 default:
                     return false;

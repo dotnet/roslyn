@@ -580,7 +580,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property WRN_GeneratorFailedDuringInitializationDeveloper As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringGeneration As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property WRN_GeneratorFailedDuringGenerationDeveloper As Integer
             Get
                 Throw ExceptionUtilities.Unreachable
             End Get

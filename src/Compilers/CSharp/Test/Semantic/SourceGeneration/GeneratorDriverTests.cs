@@ -500,7 +500,7 @@ class C { }
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify(
                     // warning CS8784: Generator 'CallbackGenerator' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.
-                    Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                    Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "InvalidOperationException", "init error").WithLocation(1, 1)
                 );
         }
 
@@ -547,7 +547,7 @@ class C { }
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify(
                  // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
-                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "InvalidOperationException", "generate error").WithLocation(1, 1)
                 );
         }
 
@@ -576,7 +576,7 @@ class C { }
 
             generatorDiagnostics.Verify(
                  // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
-                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "InvalidOperationException", "generate error").WithLocation(1, 1)
                 );
         }
 
@@ -614,7 +614,7 @@ class C
                 );
             generatorDiagnostics.Verify(
                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "InvalidOperationException", "generate error").WithLocation(1, 1)
                 );
         }
 
@@ -901,6 +901,109 @@ class C
                driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics, cts.Token)
                );
             Assert.Same(oldDriver, driver);
+        }
+
+        [Fact]
+        public void DeveloperMode_Enables_Different_Exception_Warning_During_Excecution()
+        {
+            // non developer mode:
+            var results = runGenerator(asDeveloper: false);
+
+            results.Diagnostics.Verify(
+                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave").WithLocation(1, 1)
+                );
+
+
+            // developer mode:
+            results = runGenerator(asDeveloper: true);
+            var ex = results.Results.Single().Exception;
+
+            results.Diagnostics.Verify(
+                 // warning CS8889: Generator 'CallbackGenerator' threw an exception during execution: type 'InvalidOperationException' with message 'I'm sorry dave'
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave", ex).WithLocation(1, 1)
+                );
+
+
+            static GeneratorDriverRunResult runGenerator(bool asDeveloper)
+            {
+                var source = @"
+class C { }
+";
+                var parseOptions = TestOptions.Regular;
+                Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+                compilation.VerifyDiagnostics();
+
+                var generator = new CallbackGenerator((ic) => { if (asDeveloper) { ic.EnableDeveloperMode(); } }, (sgc) => throw new InvalidOperationException("I'm sorry dave"));
+                var driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+                return driver.RunGenerators(compilation).GetRunResult();
+            }
+
+        }
+
+        [Fact]
+        public void DeveloperMode_Enables_Different_Exception_Warning_During_Initialize()
+        {
+            // non developer mode:
+            var results = runGenerator(asDeveloper: false);
+
+            results.Diagnostics.Verify(
+                 // warning CS8784: Generator 'CallbackGenerator' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave").WithLocation(1, 1)
+                );
+
+
+            // developer mode:
+            results = runGenerator(asDeveloper: true);
+            var ex = results.Results.Single().Exception;
+
+            results.Diagnostics.Verify(
+                 // warning CS8888: Generator 'CallbackGenerator' threw an exception during initialization: type 'InvalidOperationException' with message 'I'm sorry dave'
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitializationDeveloper).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave", ex).WithLocation(1, 1)
+                );
+
+
+            static GeneratorDriverRunResult runGenerator(bool asDeveloper)
+            {
+                var source = @"
+class C { }
+";
+                var parseOptions = TestOptions.Regular;
+                Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+                compilation.VerifyDiagnostics();
+
+                var generator = new CallbackGenerator((ic) => { if (asDeveloper) { ic.EnableDeveloperMode(); } throw new InvalidOperationException("I'm sorry dave"); }, (sgc) => { });
+                var driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+                return driver.RunGenerators(compilation).GetRunResult();
+            }
+        }
+
+        [Fact]
+        public void DeveloperMode_Only_Affects_The_Generator_That_Requested_It()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator1 = new CallbackGenerator((ic) => { ic.EnableDeveloperMode(); }, (sgc) => { throw new InvalidOperationException("I'm sorry dave"); });
+            var generator2 = new CallbackGenerator2((ic) => { }, (sgc) => { throw new InvalidOperationException("Just what do you think you're doing, Dave?"); });
+
+            var driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator1, generator2), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            var results = driver.RunGenerators(compilation).GetRunResult();
+
+            var ex = results.Results.First().Exception;
+
+            results.Diagnostics.Verify(
+                 // warning CS8889: Generator 'CallbackGenerator' threw an exception during generation: type 'InvalidOperationException' with message 'I'm sorry dave'
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave", ex).WithLocation(1, 1),
+
+                 // warning CS8784: Generator 'CallbackGenerator' failed to generate code. It will not contribute to the output and compilation errors may occur as a result.
+                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator2", "InvalidOperationException", "Just what do you think you're doing, Dave?").WithLocation(1, 1)
+                );
+
         }
     }
 }

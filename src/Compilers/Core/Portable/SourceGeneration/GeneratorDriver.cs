@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     generatorState = ex is null
                                      ? new GeneratorState(context.InfoBuilder.ToImmutable())
-                                     : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, generator, ex, diagnosticsBag, isInit: true);
+                                     : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, generator, ex, diagnosticsBag, isInit: true, forceDevMode: context.InfoBuilder.DeveloperModeEnabled);
                 }
 
                 // create the syntax receiver if requested
@@ -351,10 +351,23 @@ namespace Microsoft.CodeAnalysis
             return FromState(state);
         }
 
-        private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false)
+        private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false, bool forceDevMode = false)
         {
-            var message = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
-            var diagnostic = Diagnostic.Create(provider, message, generator.GetType().Name);
+            var devMode = generatorState.Info.DeveloperModeEnabled || forceDevMode;
+            var message = (isInit, devMode) switch
+            {
+                (isInit: true, devMode: false) => provider.WRN_GeneratorFailedDuringInitialization,
+                (isInit: true, devMode: true) => provider.WRN_GeneratorFailedDuringInitializationDeveloper,
+                (isInit: false, devMode: false) => provider.WRN_GeneratorFailedDuringGeneration,
+                (isInit: false, devMode: true) => provider.WRN_GeneratorFailedDuringGenerationDeveloper,
+            };
+
+            var diagnostic = devMode switch
+            {
+                true => Diagnostic.Create(provider, message, generator.GetType().Name, e.GetType().Name, e.Message, e.ToString()),
+                false => Diagnostic.Create(provider, message, generator.GetType().Name, e.GetType().Name, e.Message),
+            };
+
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
         }
