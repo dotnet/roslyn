@@ -1713,14 +1713,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindBlock(node, diagnostics);
         }
 
-        private BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics, Binder fallbackBinder)
+        {
+            return BindBlock(node, diagnostics, fallbackBinder);
+        }
+
+        private BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics, Binder? fallbackBinder = null)
         {
             if (node.AttributeLists.Count > 0)
             {
                 Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, node.AttributeLists[0]);
             }
 
-            var binder = GetBinder(node);
+            var binder = GetBinder(node) ?? fallbackBinder;
             Debug.Assert(binder != null);
 
             return binder.BindBlockParts(node, diagnostics);
@@ -2688,10 +2693,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return null;
                     }
-                    /*else if (this.ContainingMemberOrLambda is SourcePropertySymbol propSymbol)
-                    {
-                    // TODO: property
-                    }*/
                 }
 
                 return returnType;
@@ -3236,14 +3237,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return IsValidStatementExpression(expressionSyntax, expression) || expressionSyntax.Kind() == SyntaxKind.ThrowExpression;
         }
-
         /// <summary>
         /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
         /// </summary>
         internal virtual BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
                                                       DiagnosticBag diagnostics)
         {
-            Binder bodyBinder = this.GetBinder(expressionBody);
+            return BindExpressionBodyAsBlock(expressionBody, diagnostics, null);
+        }
+
+        /// <summary>
+        /// Binds an expression-bodied member with expression e as either { return e; } or { e; }.
+        /// </summary>
+        internal BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
+                                                      DiagnosticBag diagnostics, Binder fallbackBodyBinder)
+        {
+            Binder bodyBinder = this.GetBinder(expressionBody) ?? fallbackBodyBinder;
             Debug.Assert(bodyBinder != null);
 
             return bindExpressionBodyAsBlockInternal(expressionBody, bodyBinder, diagnostics);

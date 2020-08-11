@@ -8,7 +8,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Source.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -367,13 +370,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
         }
 
+
+        private bool _isBinding;
+
         protected override TypeWithAnnotations ComputeType(Binder? binder, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
+            if (_lazyType != null) return _lazyType.Value;
+
+            var propDeclSyntax = CSharpSyntaxNode as PropertyDeclarationSyntax;
+
             binder ??= CreateBinderForTypeAndParameters();
 
             RefKind refKind;
             var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
+
             var type = binder.BindType(typeSyntax, diagnostics);
+
+            // temporarily set the "_lazyType" when resolving the bodies to avoid infinite recursion
+            Interlocked.Exchange(ref _lazyType, new TypeWithAnnotations.Boxed(type));
+
+            if (type.Type?.IsErrorType() == true && !propDeclSyntax.HasExplicitReturnType())
+            {
+                // try resolving from "=>" body
+                var getterSymbol = GetMethod as SourcePropertyAccessorSymbol;
+                if(getterSymbol != null)
+                {
+                    var bodyBinder = getterSymbol.TryGetBodyBinder();
+                    if (bodyBinder != null)
+                    {
+                        var (blockBody, arrowBody) = getterSymbol.Bodies;
+
+                        // now we can resolve
+                        BoundNode boundBody = null; 
+                        var bodyDiagnostics = new DiagnosticBag();
+                        if (blockBody != null)
+                            boundBody = bodyBinder.BindEmbeddedBlock(blockBody, bodyDiagnostics, bodyBinder);
+                        else if(arrowBody != null)
+                            boundBody = bodyBinder.BindExpressionBodyAsBlock(arrowBody, bodyDiagnostics, bodyBinder);
+                        bodyDiagnostics.Free();
+
+                        if (boundBody != null)
+                        {
+                            var exitPaths = ArrayBuilder<(BoundNode, TypeWithAnnotations)>.GetInstance();
+                            CodeBlockExitPathsFinder.GetExitPaths(exitPaths, boundBody);
+                            if (exitPaths.Count > 0)
+                            {
+                                // there is some return, so lets use the last return statement
+                                var exitPath = exitPaths.Last();
+                                type = exitPath.Item2;
+
+                                // update the type immediately
+                                Interlocked.Exchange(ref _lazyType, new TypeWithAnnotations.Boxed(type));
+                            }
+                        }
+                    }
+                }
+            }
+
+
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
             if (GetExplicitInterfaceSpecifier(syntax) is null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
