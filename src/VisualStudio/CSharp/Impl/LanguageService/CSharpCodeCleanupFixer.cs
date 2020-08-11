@@ -36,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
         private const string FormatDocumentFixId = nameof(FormatDocumentFixId);
-        private const string RemoveUnusedImportsFixId = "RemoveUnusedImportsFixId";
-        private const string SortImportsFixId = "SortImportsFixId";
+        private const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
+        private const string SortImportsFixId = nameof(SortImportsFixId);
 
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
