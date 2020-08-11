@@ -12,6 +12,6 @@ namespace Analyzer.Utilities.Extensions
         /// TODO: Remove this helper when https://github.com/dotnet/roslyn/issues/46682 is handled.
         /// </summary>
         public static bool IsAutoProperty(this IPropertySymbol propertySymbol)
-            => !propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => propertySymbol.Equals(f.AssociatedSymbol));
+            => propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && propertySymbol.Equals(f.AssociatedSymbol));
     }
 }
