@@ -80,12 +80,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     return;
                 }
 
-                var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
-                if (root == null)
-                {
-                    return;
-                }
-
                 var codeAction = new CodeAction.DocumentChangeAction(
                     string.Format(FeaturesResources.Inline_0, calleeMethodInvocationSymbol.ToNameDisplayString()),
                     cancellationToken => InlineMethodAsync(

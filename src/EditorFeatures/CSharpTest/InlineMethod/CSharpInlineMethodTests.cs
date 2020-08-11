@@ -3,24 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
-    public class CSharpInlineMethodTests : AbstractCSharpCodeActionTest
+    public class CSharpInlineMethodTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => ((TestWorkspace)workspace).ExportProvider.GetExportedValue<CSharpInlineMethodRefactoringProvider>();
+        private class TestVerifier : CSharpCodeRefactoringVerifier<CSharpInlineMethodRefactoringProvider>.Test
+        {
+            public static async Task TestInRegularAndScript1Async(
+                string initialMarkUp,
+                string expectedMarkUp,
+                int index = 0)
+            {
+                var test = new TestVerifier { CodeActionIndex = index };
+                test.TestState.Sources.Add(initialMarkUp);
+                test.FixedState.Sources.Add(expectedMarkUp);
+                await test.RunAsync().ConfigureAwait(false);
+            }
+        }
 
         [Fact]
         public Task TestInlineMethodWithSingleStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -50,7 +59,7 @@ public class TestClass
 
         [Fact]
         public Task TestExtractArrowExpressionBody()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private void Caller(int i, int j)
@@ -75,7 +84,7 @@ public class TestClass
 
         [Fact]
         public Task TestExtractExpressionBody()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -101,7 +110,7 @@ public class TestClass
 
         [Fact]
         public Task TestDefaultValueReplacementForExpressionStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -131,7 +140,7 @@ public class TestClass
 
         [Fact]
         public Task TestDefaultValueReplacementForArrowExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -157,7 +166,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithLiteralValue()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -183,7 +192,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithIdentifierReplacement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -213,7 +222,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithMethodExtraction()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -229,7 +238,7 @@ public class TestClass
 
     public float SomeCaculation(float r)
     {
-        return r * r * 3.14;
+        return r * r * 3.14f;
     }
 }",
                 @"
@@ -249,13 +258,13 @@ public class TestClass
 
     public float SomeCaculation(float r)
     {
-        return r * r * 3.14;
+        return r * r * 3.14f;
     }
 }");
 
         [Fact]
         public Task TestInlineMethodWithMethodExtractionAndRename()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -271,7 +280,7 @@ public class TestClass
 
     public float SomeCaculation(float r)
     {
-        return r * r * 3.14;
+        return r * r * 3.14f;
     }
 }",
                 @"
@@ -291,13 +300,13 @@ public class TestClass
 
     public float SomeCaculation(float r)
     {
-        return r * r * 3.14;
+        return r * r * 3.14f;
     }
 }");
 
         [Fact]
         public Task TestInlineParamsArrayWithArrayImplicitInitializerExpression()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private void Caller()
@@ -328,7 +337,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayWithArrayInitializerExpression()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private void Caller()
@@ -359,7 +368,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayWithOneElement()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private void Caller()
@@ -392,7 +401,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayMethodWithIdentifier()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private void Caller()
@@ -422,7 +431,7 @@ public class TestClass
 }");
         [Fact]
         public Task TestInlineMethodWithNoElementInParamsArray()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                     @"
 public class TestClass
 {
@@ -452,7 +461,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithParamsArray()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -491,7 +500,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithEmptyContent()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -520,7 +529,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -551,7 +560,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodAsArgument()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -581,7 +590,7 @@ public class TestClass
 }");
         [Fact]
         public Task TestInlineMethodWithConditionalExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -612,7 +621,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineExpressionWithoutAssignedToVariable()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     public void Caller(int j)
@@ -640,7 +649,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithNullCoalescingExpression()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     public void Caller(int? i)
@@ -669,30 +678,31 @@ public class TestClass
 
         [Fact]
         public Task TestInlineSimpleLambdaExpression()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
-    public Func<int, int, int> Caller()
+    public System.Func<int, int, int> Caller()
     {
         return Ca[||]llee();
     }
 
-    private Func<int, int, int> Callee() => (i, j) => i + j;
+    private System.Func<int, int, int> Callee() => (i, j) => i + j;
 }", @"
 public class TestClass
 {
-    public Func<int, int, int> Caller()
+    public System.Func<int, int, int> Caller()
     {
         return (i, j) => i + j;
     }
 
-    private Func<int, int, int> Callee() => (i, j) => i + j;
+    private System.Func<int, int, int> Callee() => (i, j) => i + j;
 }");
 
         [Fact]
         public Task TestInlineMethodWithGenericsArguments()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
+using System;
 public class TestClass
 {
     private void Caller<U>()
@@ -705,6 +715,7 @@ public class TestClass
     }
 }",
                 @"
+using System;
 public class TestClass
 {
     private void Caller<U>()
@@ -724,42 +735,42 @@ public class TestClass
 
         [Fact]
         public Task TestAwaitExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 using System.Threading.Tasks;
 public class TestClass
 {
-    public Task Caller(bool x)
+    public Task<int> Caller(bool x)
     {
-        System.Console.Writeline("");
+        System.Console.WriteLine("""");
         return Call[||]ee(10, x ? 1 : 2);
     }
 
-    private async Task Callee(int i, int j)
+    private async Task<int> Callee(int i, int j)
     {
-        return await Task.CompletedTask;
+        return await Task.FromResult(i + j);
     }
 }",
                 @"
 using System.Threading.Tasks;
 public class TestClass
 {
-    public async Task Caller(bool x)
+    public async Task<int> Caller(bool x)
     {
-        System.Console.Writeline("");
+        System.Console.WriteLine("""");
         int j = x ? 1 : 2;
-        return await Task.CompletedTask;
+        return await Task.FromResult(10 + j);
     }
 
-    private async Task Callee(int i, int j)
+    private async Task<int> Callee(int i, int j)
     {
-        return await Task.CompletedTask;
+        return await Task.FromResult(i + j);
     }
 }");
 
         [Fact]
         public Task TestInlineWithinDoStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -767,7 +778,7 @@ public class TestClass
     {
         do
         {
-        } while(Cal[||]lee(SomeInt()) == 1)
+        } while(Cal[||]lee(SomeInt()) == 1);
     }
 
     private int Callee(int i)
@@ -785,7 +796,7 @@ public class TestClass
         int i = SomeInt();
         do
         {
-        } while(i + 1 == 1)
+        } while(i + 1 == 1);
     }
 
     private int Callee(int i)
@@ -798,7 +809,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinForStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -837,7 +848,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinIfStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -876,7 +887,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinLockStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -915,7 +926,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinReturnStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -950,13 +961,13 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithinThrowStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
     private void Caller()
     {
-        throw new Exception(Call[||]ee(SomeInt()));
+        throw new System.Exception(Call[||]ee(SomeInt()) + """");
     }
 
     private int Callee(int i)
@@ -972,7 +983,7 @@ public class TestClass
     private void Caller()
     {
         int i = SomeInt();
-        throw new Exception(i + 20);
+        throw new System.Exception(i + 20 + """");
     }
 
     private int Callee(int i)
@@ -985,7 +996,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineWithinWhileStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1022,7 +1033,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithinTryStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
             @"
 public class TestClass
 {
@@ -1031,12 +1042,12 @@ public class TestClass
         try
         {
         }
-        catch (Exception e) when (Ca[||]llee(e, SomeInt()))
+        catch (System.Exception e) when (Ca[||]llee(e, SomeInt()))
         {
         }
     }
 
-    private bool Callee(Exception e, int i) => i == 1;
+    private bool Callee(System.Exception e, int i) => i == 1;
 
     private int SomeInt() => 10;
 }",
@@ -1049,24 +1060,24 @@ public class TestClass
         try
         {
         }
-        catch (Exception e) when (i == 1)
+        catch (System.Exception e) when (i == 1)
         {
         }
     }
 
-    private bool Callee(Exception e, int i) => i == 1;
+    private bool Callee(System.Exception e, int i) => i == 1;
 
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineMethodWithinUsingStatement()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass2
 {
-    private class Dispose : IDisposable
+    private class DisposeClass : System.IDisposable
     {
-        void IDisposable.Dispose()
+        public void Dispose()
         {
         }
     }
@@ -1078,16 +1089,16 @@ public class TestClass2
         }
     }
 
-    private Dispose Callee(int i) => new Dispose();
+    private System.IDisposable Callee(int i) => new DisposeClass();
 
     private int SomeInt() => 10;
 }",
                 @"
 public class TestClass2
 {
-    private class Dispose : IDisposable
+    private class DisposeClass : System.IDisposable
     {
-        void IDisposable.Dispose()
+        public void Dispose()
         {
         }
     }
@@ -1095,23 +1106,23 @@ public class TestClass2
     private void Calller()
     {
         int i = SomeInt();
-        using (var x = new Dispose())
+        using (var x = new DisposeClass())
         {
         }
     }
 
-    private Dispose Callee(int i) => new Dispose();
+    private System.IDisposable Callee(int i) => new DisposeClass();
 
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineMethodWithinYieldReturnStatement()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass2
 {
-    private IEnumerable<int> Calller()
+    private System.Collections.Generic.IEnumerable<int> Calller()
     {
         yield return 1;
         yield return Cal[||]lee(SomeInt());
@@ -1125,7 +1136,7 @@ public class TestClass2
                 @"
 public class TestClass2
 {
-    private IEnumerable<int> Calller()
+    private System.Collections.Generic.IEnumerable<int> Calller()
     {
         yield return 1;
         int i = SomeInt();
@@ -1142,7 +1153,7 @@ public class TestClass2
 
         [Fact]
         public Task TestInlineExpressionAsLeftValueInLeftAssociativeExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1178,7 +1189,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineExpressionAsRightValueInRightAssociativeExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1214,7 +1225,7 @@ public class TestClass
 
         [Fact]
         public Task TestAddExpressionWithMultiply()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1250,7 +1261,7 @@ public class TestClass
 
         [Fact]
         public Task TestIsExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1280,7 +1291,7 @@ public class TestClass
 
         [Fact]
         public Task TestUnaryPlusOperator()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1310,7 +1321,7 @@ public class TestClass
 
         [Fact]
         public Task TestLogicalNotExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1340,37 +1351,37 @@ public class TestClass
 
         [Fact]
         public Task TestBitWiseNotExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
-    public bool Caller(int i, int j)
+    public int Caller(int i, int j)
     {
         return ~Call[||]ee(i, j);
     }
 
-    private bool Callee(int i, int j)
+    private int Callee(int i, int j)
     {
-        return i == j;
+        return i | j;
     }
 }",
                 @"
 public class TestClass
 {
-    public bool Caller(int i, int j)
+    public int Caller(int i, int j)
     {
-        return ~(i == j);
+        return ~(i | j);
     }
 
-    private bool Callee(int i, int j)
+    private int Callee(int i, int j)
     {
-        return i == j;
+        return i | j;
     }
 }");
 
         [Fact]
         public Task TestCastExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1400,7 +1411,7 @@ public class TestClass
 
         [Fact]
         public Task TestIsPatternExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1434,37 +1445,37 @@ public class TestClass
 
         [Fact]
         public Task TestAsExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
-    public void Calller()
+    public void Calller(bool f)
     {
-        var x = Cal[||]lee() as string
+        var x = Cal[||]lee(f) as string;
     }
 
-    private int Callee()
+    private object Callee(bool f)
     {
-        return 1 | 2;
+        return f ? ""Hello"" : ""World"";
     }
 }",
                 @"
 public class TestClass
 {
-    public void Calller()
+    public void Calller(bool f)
     {
-        var x = (1 | 2) as string
+        var x = (f ? ""Hello"" : ""World"") as string;
     }
 
-    private int Callee()
+    private object Callee(bool f)
     {
-        return 1 | 2;
+        return f ? ""Hello"" : ""World"";
     }
 }");
 
         [Fact]
         public Task TestCoalesceExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1494,37 +1505,37 @@ public class TestClass
 
         [Fact]
         public Task TestCoalesceExpressionAsRightValue()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
-    public int Caller(int? c2)
+    public string Caller(string c)
     {
         return c ?? Cal[||]lee(null);
     }
 
-    private int Callee(int? c2)
+    private string Callee(string c2)
     {
-        return c2 ?? 1;
+        return c2 ?? ""Hello"";
     }
 }",
                 @"
 public class TestClass
 {
-    public int Caller(int? c2)
+    public string Caller(string c)
     {
-        return c ?? null ?? 1;
+        return c ?? null ?? ""Hello"";
     }
 
-    private int Callee(int? c2)
+    private string Callee(string c2)
     {
-        return c2 ?? 1;
+        return c2 ?? ""Hello"";
     }
 }");
 
         [Fact]
         public Task TestSimpleMemberAccessExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1552,7 +1563,7 @@ public class TestClass
 
         [Fact]
         public Task TestElementAccessExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1576,7 +1587,7 @@ public class TestClass
 
         [Fact(Skip = "No OperatorPrecedenceService for switch expression")]
         public Task TestSwitchExpression()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private void Calller()
@@ -1609,7 +1620,7 @@ public class TestClass
 
         [Fact]
         public Task TestConditionalExpressionSyntax()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private void Calller(int x)
@@ -1636,7 +1647,7 @@ public class TestClass
 
         [Fact(Skip = "No Precedence support")]
         public Task TestSuppressNullableWarningExpression()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 #nullable enable
 public class TestClass
 {
@@ -1661,30 +1672,30 @@ public class TestClass
 
         [Fact]
         public Task TestSimpleAssignmentExpression()
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
-    private object Calller(int x)
+    private int Calller(int x)
     {
         return Ca[||]llee(x) + 1;
     }
 
-    private object Callee(int x) => x = 1;
+    private int Callee(int x) => x = 1;
 }",
                 @"
 public class TestClass
 {
-    private object Calller(int x)
+    private int Calller(int x)
     {
         return (x = 1) + 1;
     }
 
-    private object Callee(int x) => x = 1;
+    private int Callee(int x) => x = 1;
 }");
 
         [Fact]
         public Task TestConditionalAccessExpression()
-            => TestInRegularAndScript1Async(
+            => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
@@ -1718,7 +1729,7 @@ public class TestClass
         [InlineData(">>")]
         [InlineData("<<")]
         public Task TestAssignmentExpression(string op)
-            => TestInRegularAndScript1Async(@"
+            => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
     private int Calller(int x)
