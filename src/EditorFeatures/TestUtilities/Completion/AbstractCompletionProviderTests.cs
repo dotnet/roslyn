@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             // changes to document, so the cursor position is tracked correctly.
             var textView = WorkspaceFixture.CurrentDocument.GetTextView();
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, CancellationToken.None);
+            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, disallowAddingImports: false, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (commitChar == '\t' ||
                 CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
             {
-                var textChange = (await service.GetChangeAsync(document, firstItem, completionList.Span, commitChar, CancellationToken.None)).TextChange;
+                var textChange = (await service.GetChangeAsync(document, firstItem, completionList.Span, commitChar, disallowAddingImports: false, CancellationToken.None)).TextChange;
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')
