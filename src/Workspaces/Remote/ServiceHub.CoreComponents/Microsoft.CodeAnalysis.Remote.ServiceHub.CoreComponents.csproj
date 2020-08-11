@@ -8,6 +8,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+  </ItemGroup>
 
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
     <ItemGroup>
