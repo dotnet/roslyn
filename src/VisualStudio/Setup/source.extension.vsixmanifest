@@ -32,16 +32,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.EditorFeatures.Text.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteHost.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCodeAnalysis.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteDesignerAttributeService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteProjectTelemetryService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteTodoCommentsService.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynLanguageServer.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteHost64.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCodeAnalysis64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteDesignerAttributeService64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteProjectTelemetryService64.servicehub.service.json" />

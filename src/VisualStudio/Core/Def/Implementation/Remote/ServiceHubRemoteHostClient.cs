@@ -67,8 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
             {
-                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services)));
-
                 // let each client to have unique id so that we can distinguish different clients when service is restarted
                 var clientId = $"VS ({Process.GetCurrentProcess().Id}) ({Guid.NewGuid()})";
 
@@ -116,12 +114,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             HostGroup hostGroup,
             CancellationToken cancellationToken)
         {
-            var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
+            Contract.ThrowIfFalse(RemoteHostOptions.IsServiceHubProcess64Bit(services));
 
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            var descriptor = new ServiceDescriptor(serviceName.ToString(is64bit)) { HostGroup = hostGroup };
+            var descriptor = new ServiceDescriptor(serviceName.ToString()) { HostGroup = hostGroup };
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);

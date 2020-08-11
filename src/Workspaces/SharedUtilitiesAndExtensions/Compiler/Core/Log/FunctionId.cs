@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Extension_InfoBar = 327,
         FxCopAnalyzersInstall = 328,
         AssetStorage_ForceGC = 329,
-        RemoteHost_Bitness = 330,
+        // obsolete: RemoteHost_Bitness = 330,
         Intellisense_Completion = 331,
         MetadataOnlyImage_EmitFailure = 332,
         LiveTableDataSource_OnDiagnosticsUpdated = 333,
