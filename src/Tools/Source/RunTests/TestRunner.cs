@@ -82,7 +82,7 @@ namespace RunTests
                         }
                         catch (Exception ex)
                         {
-                            ConsoleUtil.WriteLine($"Error: {ex.Message}");
+                            ConsoleUtil.WriteLine(ConsoleColor.Red, $"Error: {ex.Message}");
                             failures++;
                         }
 
