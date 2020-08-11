@@ -1888,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 8888,
         ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 8889,
         ERR_TypeNotFound = 8890,
-        ERR_TypeMustBePublic = 8801,
+        ERR_TypeMustBePublic = 8891,
 
         #endregion diagnostics introduced for C# 9.0
 
