@@ -1737,6 +1737,142 @@ class C
         }
 
         [Fact]
+        [WorkItem(43523, "https://github.com/dotnet/roslyn/issues/43523")]
+        [WorkItem(44046, "https://github.com/dotnet/roslyn/issues/44046")]
+        public void IndirectInitialization_WithAssertsOrThrows()
+        {
+            var source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C1
+{
+    public string Prop { get; set; }
+    void Init() => Prop = ""hello"";
+    public C1() // 1
+    {
+        Init();
+    }
+}
+
+class C2
+{
+    public string Prop { get; set; }
+    void Init() => Prop = ""hello"";
+
+    static void MyAssert([DoesNotReturnIf(false)] bool b) { if (!b) throw null!; }
+
+    public C2()
+    {
+        Init();
+        MyAssert(Prop is object);
+    }
+}
+
+class C3
+{
+    public string Prop { get; set; }
+    void Init() => Prop = ""hello"";
+    public C3()
+    {
+        Init();
+        if (Prop is null)
+        {
+            throw new Exception();
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, DoesNotReturnIfAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public C1() // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C1").WithArguments("property", "Prop").WithLocation(9, 12));
+        }
+
+        [Fact]
+        [WorkItem(41110, "https://github.com/dotnet/roslyn/issues/41110")]
+        public void TrackMemberStateAcrossInitializers()
+        {
+            var source = @"
+class C
+{
+  static string? P1 { get; set; } = """";
+
+  static string P2 { get; set; } = P1;
+  static string f1 = P1;
+}
+
+class D
+{
+  static string? f1 = """";
+
+  static string f2 = f1;
+  static string P1 { get; set; } = f1;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44180, "https://github.com/dotnet/roslyn/issues/44180")]
+        public void MemberNotNull_PropertiesFields()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class Property
+{
+  public string P { get; set; }
+
+  public Property() { Init(); P.ToString(); }
+
+  [MemberNotNull(nameof(P))]  void Init() => P = """";
+}
+
+class Field
+{
+  public string F;
+
+  public Field() { Init(); F.ToString(); }
+
+  [MemberNotNull(nameof(F))] void Init() => F = """";
+}";
+            var comp = CreateCompilation(new[] { source, MemberNotNullAttributeDefinition }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(41296, "https://github.com/dotnet/roslyn/issues/41296")]
+        public void InitializeInTryAndInCatch()
+        {
+            var source = @"
+using System;
+public class C
+{
+    string field;
+
+    public C()
+    {
+        try
+        {
+            M2(out field);
+        }
+        catch (Exception)
+        {
+           if (field is null)
+           {
+              field  =  """";
+           }
+        }
+    }
+
+    static void M2(out string s) => throw null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(1090263, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090263")]
         public void PropertyNoGetter()
         {

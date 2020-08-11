@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableWalker.AnalyzeIfNeeded(
                     this._compilation,
                     new SynthesizedStaticConstructor(containingType),
-                    BoundBlock.SynthesizedNoLocals(containingType.GetNonNullSyntaxNode()),
+                    GetSynthesizedEmptyBody(containingType),
                     _diagnostics,
                     useConstructorExitWarnings: true,
                     initialNullableState: null);
@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NullableWalker.AnalyzeIfNeeded(
                             _compilation,
                             methodSymbol,
-                            analyzedInitializers ?? BoundBlock.SynthesizedNoLocals(methodSymbol.GetNonNullSyntaxNode()),
+                            analyzedInitializers ?? GetSynthesizedEmptyBody(methodSymbol),
                             diagsForCurrentMethod,
                             useConstructorExitWarnings: false,
                             initialNullableState: null,
@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsConstructor() && method.IsImplicitlyDeclared && nullableInitialState is object)
             {
-                NullableWalker.AnalyzeIfNeeded(compilationState.Compilation, method, body ?? BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode()), diagnostics, useConstructorExitWarnings: true, nullableInitialState);
+                NullableWalker.AnalyzeIfNeeded(compilationState.Compilation, method, body ?? GetSynthesizedEmptyBody(method), diagnostics, useConstructorExitWarnings: true, nullableInitialState);
             }
 
             if (method.MethodKind == MethodKind.Destructor && body != null)
@@ -1807,6 +1807,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode(), statements);
+        }
+
+        private static BoundBlock GetSynthesizedEmptyBody(Symbol symbol)
+        {
+            return BoundBlock.SynthesizedNoLocals(symbol.GetNonNullSyntaxNode());
         }
 
         private static BoundStatement BindImplicitConstructorInitializerIfAny(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)

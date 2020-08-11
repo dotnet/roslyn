@@ -974,6 +974,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finalNullableState: out finalNullableState);
         }
 
+        /// <summary>
+        /// Gets the "after initializers state" which should be used at the beginning of nullable analysis
+        /// of certain constructors. Only used for semantic model and debug verification.
+        /// </summary>
+        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol? symbol)
+        {
+            if (symbol is MethodSymbol method
+                && method.IncludeFieldInitializersInBody()
+                && method.ContainingType is SourceMemberContainerTypeSymbol containingType)
+            {
+                var unusedDiagnostics = DiagnosticBag.GetInstance();
+
+                Binder.ProcessedFieldInitializers initializers = default;
+                Binder.BindFieldInitializers(compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, unusedDiagnostics, ref initializers);
+                NullableWalker.AnalyzeIfNeeded(
+                    compilation,
+                    method,
+                    InitializerRewriter.RewriteConstructor(initializers.BoundInitializers, method),
+                    unusedDiagnostics,
+                    useConstructorExitWarnings: false,
+                    initialNullableState: null,
+                    getFinalNullableState: true,
+                    out var afterInitializersState);
+
+                unusedDiagnostics.Free();
+
+                return afterInitializersState;
+            }
+
+            return null;
+        }
+
 #if DEBUG
         /// <summary>
         /// Analyzes a set of bound nodes, recording updated nullability information. This method is only
@@ -988,8 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
-            // TODO: do we need to somehow thread the initial state in here?
-            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: null, diagnostics, createSnapshots);
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots);
         }
 #endif
 

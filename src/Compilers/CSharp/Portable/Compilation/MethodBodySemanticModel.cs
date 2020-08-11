@@ -298,29 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            NullableWalker.VariableState afterInitializersState = null;
-
-            if (MemberSymbol is MethodSymbol method
-                && method.IncludeFieldInitializersInBody()
-                && method.ContainingType is SourceMemberContainerTypeSymbol containingType)
-            {
-                var unusedDiagnostics = DiagnosticBag.GetInstance();
-
-                Binder.ProcessedFieldInitializers initializers = default;
-                Binder.BindFieldInitializers(Compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, unusedDiagnostics, ref initializers);
-                NullableWalker.AnalyzeIfNeeded(
-                    Compilation,
-                    method,
-                    InitializerRewriter.RewriteConstructor(initializers.BoundInitializers, method),
-                    unusedDiagnostics,
-                    useConstructorExitWarnings: false,
-                    initialNullableState: null,
-                    getFinalNullableState: true,
-                    out afterInitializersState);
-
-                unusedDiagnostics.Free();
-            }
-
+            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol);
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
