@@ -52,13 +52,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders);
             var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
             var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var options = new CodeGenerationOptions(
+                contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
+                generateMethodBodies: true,
+                options: await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
             var namespaceParts = containingNamespaceDisplay.Split('.').Where(s => !string.IsNullOrEmpty(s));
             var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 newDocument.Project.Solution,
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                options: new CodeGenerationOptions(contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), generateMethodBodies: true),
+                options: options,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
