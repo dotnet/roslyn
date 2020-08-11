@@ -22198,5 +22198,30 @@ interface I1 {}
                 }
             }
         }
+
+        [Fact]
+        [WorkItem(46657, "https://github.com/dotnet/roslyn/issues/46657")]
+        public void CanDeclareIteratorInRecord()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public record X(int a)
+{
+    public static void Main()
+    {
+        foreach(var i in new X(42).GetItems())
+        {
+            System.Console.Write(i);
+        }
+    }
+    public IEnumerable<int> GetItems() { yield return a; yield return a + 1; }
+}";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "4243");
+        }
     }
 }
