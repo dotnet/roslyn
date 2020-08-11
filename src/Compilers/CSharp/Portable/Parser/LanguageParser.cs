@@ -2661,6 +2661,32 @@ parse_member_name:;
             return false;
         }
 
+        private bool IsPossibleGetterPropertyDeclarationStart()
+        {
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            {
+                var peeked1 = this.PeekToken(1);
+
+                // check if following is a "=>" ... then it's most likely the name we are at!
+                if(peeked1.Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    return true;
+                }
+
+                // check if following is a "{ get " or a "{ set "
+                if(peeked1.Kind == SyntaxKind.OpenBraceToken)
+                {
+                    var peeked2 = this.PeekToken(2);
+                    if(peeked2.Kind == SyntaxKind.GetKeyword || peeked2.Kind == SyntaxKind.SetKeyword)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Changes in this function should be mirrored in <see cref="ParseMemberDeclarationOrStatementCore"/>.
         /// Try keeping structure of both functions similar to simplify this task. The split was made to 
@@ -2749,7 +2775,7 @@ parse_member_name:;
                 TypeSyntax type = null;
 
                 // Before parsing the return type, check if it looks like a method
-                if (IsPossibleMethodDeclarationStart())
+                if (IsPossibleMethodDeclarationStart() || IsPossibleGetterPropertyDeclarationStart())
                 {
                     // it's more likely to be a method - without any return type defined
                     var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
@@ -3462,7 +3488,58 @@ parse_member_name:;
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                accessorList = this.ParseAccessorList(isEvent: false);
+                // check for standard "getter / setter" accessor definitions
+
+                var parsedAccessorList = false;
+                if (IsPossibleAccessor())
+                {
+                    var resetPoint = GetResetPoint();
+                    try
+                    {
+                        // try parsing the accessor list
+                        var tmpAccessorList = this.ParseAccessorList(isEvent: false);
+
+                        // set the accessors if any parsed
+                        if (tmpAccessorList.Accessors.Count > 0)
+                            parsedAccessorList = true;
+
+                        // check for special case when we parsed an accessor list but there are issues... could be an implicit "getter block"
+                        if (tmpAccessorList.Accessors.Count == 1)
+                        {
+                            var accessor = tmpAccessorList.Accessors[0];
+                            if(accessor.Kind == SyntaxKind.UnknownAccessorDeclaration && accessor.Modifiers.Count == 0 && accessor.AttributeLists.Count == 0)
+                            {
+                                // no attributes and no modifiers... so most likely it's an implicit "getter block"
+                                parsedAccessorList = false;
+                            }
+                        }
+
+                        if(parsedAccessorList)
+                        {
+                            // we parsed the accessor list
+                            accessorList = tmpAccessorList;
+                        }
+                    }
+                    finally
+                    {
+                        // restore the parse state if didn't parse the accessor list
+                        if(!parsedAccessorList) Reset(ref resetPoint);
+                        Release(ref resetPoint);
+                    }
+                }
+
+                // fallback to reading the block as a "getter" accessor without the "get"
+                if (!parsedAccessorList)
+                {
+                    // parse single getter accessor
+                    var builder = _pool.Allocate<AccessorDeclarationSyntax>();
+                    var getAccessor = ParseAccessorDeclaration(isEvent: false, isGetterAccessor: true);
+                    builder.Add(getAccessor);
+                    var accessors = builder.ToList();
+                    var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken);
+                    var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken);
+                    accessorList = _syntaxFactory.AccessorList(openBrace, accessors, closeBrace);
+                }
             }
 
             ArrowExpressionClauseSyntax expressionBody = null;
@@ -3800,7 +3877,7 @@ parse_member_name:;
             }
         }
 
-        private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
+        private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent, bool isGetterAccessor = false)
         {
             if (this.IsIncrementalAndFactoryContextMatches && SyntaxFacts.IsAccessorDeclaration(this.CurrentNodeKind))
             {
@@ -3810,22 +3887,39 @@ parse_member_name:;
             var accMods = _pool.Allocate();
             try
             {
-                var accAttrs = this.ParseAttributeDeclarations();
-                this.ParseModifiers(accMods, forAccessors: true);
-
-                // check availability of readonly members feature for accessors
-                CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
-
-                if (!isEvent)
+                SyntaxToken accessorName;
+                SyntaxList<AttributeListSyntax> accAttrs;
+                if (!isGetterAccessor)
                 {
-                    if (accMods != null && accMods.Count > 0)
+                    accAttrs = this.ParseAttributeDeclarations();
+                    this.ParseModifiers(accMods, forAccessors: true);
+
+                    // check availability of readonly members feature for accessors
+                    CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
+
+                    if (!isEvent)
                     {
-                        accMods[0] = CheckFeatureAvailability(accMods[0], MessageID.IDS_FeaturePropertyAccessorMods);
+                        if (accMods != null && accMods.Count > 0)
+                        {
+                            accMods[0] = CheckFeatureAvailability(accMods[0], MessageID.IDS_FeaturePropertyAccessorMods);
+                        }
                     }
+
+                    // parse the accessor type
+                    accessorName = this.EatToken(SyntaxKind.IdentifierToken,
+                        isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                }
+                else
+                {
+                    // explicit getter cannot have attributes nor modifiers
+                    var attributes = _pool.Allocate<AttributeListSyntax>();
+                    accAttrs = attributes.ToList();
+                    _pool.Free(attributes);
+
+                    // this is explicitly defined as a getter ... so no "get" is needed... we will however set a fake name
+                    accessorName = SyntaxFactory.Token(SyntaxKind.GetKeyword);
                 }
 
-                var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
-                    isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
                 var accessorKind = GetAccessorKind(accessorName);
 
                 // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
