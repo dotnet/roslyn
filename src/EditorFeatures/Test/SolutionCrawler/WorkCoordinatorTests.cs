@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         public async Task RegisterService()
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
-            var registrationService = new SolutionCrawlerRegistrationService(
-                SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
-                AsynchronousOperationListenerProvider.NullProvider);
+
+            Assert.Empty(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider>());
+            var registrationService = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
 
             // register and unregister workspace to the service
             registrationService.Register(workspace);
@@ -56,9 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             // create solution crawler and add new analyzer provider dynamically
-            var service = new SolutionCrawlerRegistrationService(
-                SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
-                GetListenerProvider(workspace.ExportProvider));
+            Assert.Empty(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider>());
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
 
             service.Register(workspace);
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory, WorkItem(747226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
         internal async Task SolutionAdded_Simple(BackgroundAnalysisScope analysisScope, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionId = SolutionId.CreateNewId();
             var projectId = ProjectId.CreateNewId();
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task SolutionAdded_Complex(BackgroundAnalysisScope analysisScope, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
 
             var worker = await ExecuteOperation(workspace, w => w.OnSolutionAdded(solution));
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Solution_Remove(BackgroundAnalysisScope analysisScope)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Solution_Clear(BackgroundAnalysisScope analysisScope)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Solution_Reload(BackgroundAnalysisScope analysisScope, int expectedDocumentEvents, int expectedProjectEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Solution_Change(BackgroundAnalysisScope analysisScope, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_Add(BackgroundAnalysisScope analysisScope, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_Remove(BackgroundAnalysisScope analysisScope)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_Change(BackgroundAnalysisScope analysisScope)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_AssemblyName_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_DefaultNamespace_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_AnalyzerOptions_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_OutputFilePath_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_OutputRefFilePath_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_CompilationOutputInfo_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_RunAnalyzers_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Fact]
         public async Task Test_NeedsReanalysisOnOptionChanged()
         {
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Fact]
         public async Task Test_BackgroundAnalysisScopeOptionChanged_ActiveFile()
         {
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             MakeFirstDocumentActive(workspace.CurrentSolution.Projects.First());
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Fact]
         public async Task Test_BackgroundAnalysisScopeOptionChanged_FullSolution()
         {
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Project_Reload(BackgroundAnalysisScope analysisScope, int expectedDocumentEvents, int expectedProjectEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Document_Add(BackgroundAnalysisScope analysisScope, bool activeDocument, int expectedDocumentSyntaxEvents, int expectedDocumentSemanticEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Document_Remove(BackgroundAnalysisScope analysisScope, bool removeActiveDocument, int expectedDocumentInvalidatedEvents, int expectedDocumentSyntaxEvents, int expectedDocumentSemanticEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Document_Reload(BackgroundAnalysisScope analysisScope, bool reloadActiveDocument)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var info = solution.Projects[0].Documents[0];
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Document_Reanalyze(BackgroundAnalysisScope analysisScope, bool reanalyzeActiveDocument, int expectedReanalyzeCount)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var info = solution.Projects[0].Documents[0];
@@ -593,9 +593,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var worker = new Analyzer();
-            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
-            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
+            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            var worker = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
+            Assert.False(worker.WaitForCancellation);
+            Assert.False(worker.BlockedRun);
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
 
             service.Register(workspace);
 
@@ -621,7 +624,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Change(BackgroundAnalysisScope analysisScope, bool changeActiveDocument, int expectedDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -644,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Document_AdditionalFileChange(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentSyntaxEvents, int expectedDocumentSemanticEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var project = workspace.CurrentSolution.Projects.First();
@@ -679,7 +682,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory]
         internal async Task Document_AnalyzerConfigFileChange(BackgroundAnalysisScope analysisScope, bool firstDocumentActive, int expectedDocumentSyntaxEvents, int expectedDocumentSemanticEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var project = workspace.CurrentSolution.Projects.First();
@@ -715,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Cancellation(BackgroundAnalysisScope analysisScope, bool activeDocument, int expectedDocumentSyntaxEvents, int expectedDocumentSemanticEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -726,9 +729,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var analyzer = new Analyzer(waitForCancellation: true);
-            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
+            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
+            Assert.True(analyzer.WaitForCancellation);
+            Assert.False(analyzer.BlockedRun);
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
 
             service.Register(workspace);
 
@@ -754,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Cancellation_MultipleTimes(BackgroundAnalysisScope analysisScope, bool activeDocument, int expectedDocumentSyntaxEvents, int expectedDocumentSemanticEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -765,9 +771,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var analyzer = new Analyzer(waitForCancellation: true);
-            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
+            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
+            Assert.True(analyzer.WaitForCancellation);
+            Assert.False(analyzer.BlockedRun);
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
 
             service.Register(workspace);
 
@@ -796,16 +805,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21082"), WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_InvocationReasons()
         {
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
 
-            var analyzer = new Analyzer(blockedRun: true);
-            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
+            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
+            Assert.False(analyzer.WaitForCancellation);
+            Assert.True(analyzer.BlockedRun);
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
 
             service.Register(workspace);
 
@@ -843,7 +855,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_ActiveDocumentChanged(BackgroundAnalysisScope analysisScope, bool hasActiveDocumentBefore, int expectedSourceSwitchDocumentEvents, int expectedNonSourceSwitchDocumentEvents)
         {
-            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind);
+            using var workspace = WorkCoordinatorWorkspace.CreateWithAnalysisScope(analysisScope, SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solution = GetInitialSolutionInfo_2Projects_10Documents();
             workspace.OnSolutionAdded(solution);
 
@@ -1070,7 +1082,7 @@ class C
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false)));
 
@@ -1091,7 +1103,7 @@ class C
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true)));
 
@@ -1180,15 +1192,16 @@ class C
                         documents: GetDocuments(projectId3, count: 5))
                 });
 
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProvider2));
             await WaitWaiterAsync(workspace.ExportProvider);
 
             // add analyzer
-            var worker = new Analyzer2();
-            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
+            var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
+            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            var worker = Assert.IsType<Analyzer2>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
 
             // enable solution crawler
-            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
             service.Register(workspace);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1252,15 +1265,23 @@ class C
         private static async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
             using var workspace = TestWorkspace.Create(
-                language, compilationOptions: null, parseOptions: null, new[] { code }, composition: EditorTestCompositions.EditorFeatures, workspaceKind: SolutionCrawlerWorkspaceKind);
+                language,
+                compilationOptions: null,
+                parseOptions: null,
+                new[] { code },
+                composition: EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider)).AddParts(typeof(AnalyzerProviderNoWaitNoBlock)),
+                workspaceKind: SolutionCrawlerWorkspaceKind);
 
             SetOptions(workspace);
             var testDocument = workspace.Documents.First();
             var textBuffer = testDocument.GetTextBuffer();
 
-            var analyzer = new Analyzer();
-            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
-            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
+            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
+            Assert.False(analyzer.WaitForCancellation);
+            Assert.False(analyzer.BlockedRun);
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
 
             service.Register(workspace);
 
@@ -1282,9 +1303,13 @@ class C
 
         private static async Task<Analyzer> ExecuteOperation(TestWorkspace workspace, Action<TestWorkspace> operation)
         {
-            var worker = new Analyzer();
-            var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
-            var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+            var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
+            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            var worker = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
+            Assert.False(worker.WaitForCancellation);
+            Assert.False(worker.BlockedRun);
+            var service = Assert.IsType<SolutionCrawlerRegistrationService>(workspace.Services.GetService<ISolutionCrawlerRegistrationService>());
+            worker.Reset();
 
             service.Register(workspace);
 
@@ -1413,13 +1438,13 @@ class C
 
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
-            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService));
+            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService)).AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider));
 
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
-            public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(composition: s_composition, workspaceKind: workspaceKind, disablePartialSolutions: disablePartialSolutions)
+            public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true, Type incrementalAnalyzer = null)
+                : base(composition: incrementalAnalyzer is null ? s_composition : s_composition.AddParts(incrementalAnalyzer), workspaceKind: workspaceKind, disablePartialSolutions: disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
                 _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);
@@ -1430,9 +1455,9 @@ class C
                 WorkCoordinatorTests.SetOptions(this);
             }
 
-            public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true)
+            public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true, Type incrementalAnalyzer = null)
             {
-                var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions);
+                var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions, incrementalAnalyzer);
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope)));
                 return workspace;
@@ -1458,22 +1483,66 @@ class C
                 => Analyzer;
         }
 
-        internal class Metadata : IncrementalAnalyzerProviderMetadata
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [Shared]
+        [PartNotDiscoverable]
+        private class AnalyzerProviderNoWaitNoBlock : AnalyzerProvider
         {
-            public Metadata(params string[] workspaceKinds)
-                : base(new Dictionary<string, object> { { "WorkspaceKinds", workspaceKinds }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } })
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public AnalyzerProviderNoWaitNoBlock()
+                : base(new Analyzer())
             {
             }
+        }
 
-            public static readonly Metadata Crawler = new Metadata(SolutionCrawlerWorkspaceKind);
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [Shared]
+        [PartNotDiscoverable]
+        private class AnalyzerProviderWaitNoBlock : AnalyzerProvider
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public AnalyzerProviderWaitNoBlock()
+                : base(new Analyzer(waitForCancellation: true))
+            {
+            }
+        }
+
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [Shared]
+        [PartNotDiscoverable]
+        private class AnalyzerProviderNoWaitBlock : AnalyzerProvider
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public AnalyzerProviderNoWaitBlock()
+                : base(new Analyzer(blockedRun: true))
+            {
+            }
+        }
+
+        [ExportIncrementalAnalyzerProvider(name: "TestAnalyzer", workspaceKinds: new[] { SolutionCrawlerWorkspaceKind })]
+        [Shared]
+        [PartNotDiscoverable]
+        private class AnalyzerProvider2 : AnalyzerProvider
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public AnalyzerProvider2()
+                : base(new Analyzer2())
+            {
+            }
+        }
+
+        internal static class Metadata
+        {
+            public static readonly IncrementalAnalyzerProviderMetadata Crawler = new IncrementalAnalyzerProviderMetadata(new Dictionary<string, object> { { "WorkspaceKinds", new[] { SolutionCrawlerWorkspaceKind } }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } });
         }
 
         private class Analyzer : IIncrementalAnalyzer
         {
             public static readonly Option<bool> TestOption = new Option<bool>("TestOptions", "TestOption", defaultValue: true);
-
-            private readonly bool _waitForCancellation;
-            private readonly bool _blockedRun;
 
             public readonly ManualResetEventSlim BlockEvent;
             public readonly ManualResetEventSlim RunningEvent;
@@ -1487,11 +1556,28 @@ class C
 
             public Analyzer(bool waitForCancellation = false, bool blockedRun = false)
             {
-                _waitForCancellation = waitForCancellation;
-                _blockedRun = blockedRun;
+                WaitForCancellation = waitForCancellation;
+                BlockedRun = blockedRun;
 
                 this.BlockEvent = new ManualResetEventSlim(initialState: false);
                 this.RunningEvent = new ManualResetEventSlim(initialState: false);
+            }
+
+            public bool WaitForCancellation { get; }
+
+            public bool BlockedRun { get; }
+
+            public void Reset()
+            {
+                BlockEvent.Reset();
+                RunningEvent.Reset();
+
+                SyntaxDocumentIds.Clear();
+                DocumentIds.Clear();
+                ProjectIds.Clear();
+
+                InvalidateDocumentIds.Clear();
+                InvalidateProjectIds.Clear();
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -1531,7 +1617,7 @@ class C
 
             private void Process(DocumentId _, CancellationToken cancellationToken)
             {
-                if (_blockedRun && !RunningEvent.IsSet)
+                if (BlockedRun && !RunningEvent.IsSet)
                 {
                     this.RunningEvent.Set();
 
@@ -1539,7 +1625,7 @@ class C
                     this.BlockEvent.Wait();
                 }
 
-                if (_waitForCancellation && !RunningEvent.IsSet)
+                if (WaitForCancellation && !RunningEvent.IsSet)
                 {
                     this.RunningEvent.Set();
 
