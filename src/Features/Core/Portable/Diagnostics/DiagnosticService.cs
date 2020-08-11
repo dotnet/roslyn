@@ -30,12 +30,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
+        private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticService(
             IAsynchronousOperationListenerProvider listenerProvider,
-            [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
+            [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
+            // we use registry service rather than doing MEF import since MEF import method can have race issue where
+            // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
+            // the aggregator is created.
+            _updateSources = ImmutableHashSet<IDiagnosticUpdateSource>.Empty;
+
             // queue to serialize events.
             _eventMap = new EventMap();
 

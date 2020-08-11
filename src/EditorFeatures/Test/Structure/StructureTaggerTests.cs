@@ -9,11 +9,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -42,7 +39,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, true)));
 
@@ -84,7 +81,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
             // ensure all 4 outlining region tags were found
@@ -119,7 +116,7 @@ Namespace MyNamespace
 #End Region
 End Namespace";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
             // ensure all 4 outlining region tags were found
@@ -148,7 +145,7 @@ End Namespace";
     End Sub
 End Module";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
             var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().ToArray();
@@ -160,15 +157,8 @@ End Module";
         {
             var hostdoc = workspace.Documents.First();
             var view = hostdoc.GetTextView();
-            var textService = workspace.GetService<ITextEditorFactoryService>();
-            var editorService = workspace.GetService<IEditorOptionsFactoryService>();
-            var projectionService = workspace.GetService<IProjectionBufferFactoryService>();
 
-            var provider = new VisualStudio14StructureTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                textService, editorService, projectionService,
-                AsynchronousOperationListenerProvider.NullProvider);
+            var provider = workspace.ExportProvider.GetExportedValue<VisualStudio14StructureTaggerProvider>();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
             var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);
