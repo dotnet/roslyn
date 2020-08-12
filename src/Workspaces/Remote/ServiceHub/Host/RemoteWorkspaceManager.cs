@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -22,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
                 .Add(typeof(ServiceBase).Assembly)
-                .Add(typeof(ICodingConventionsManager).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
         private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
