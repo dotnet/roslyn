@@ -315,6 +315,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 rootToFormat = documentWithFileHeader;
             }
 
+            // Sort using directives
+            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => Formatter.OrganizeImportsAsync(addedDocument, cancellationToken));
+            rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+
             // Format document
             var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);
             var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
