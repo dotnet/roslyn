@@ -332,10 +332,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         }
                         else
                         {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                            // sanitizedParameterPairs is not null when isSanitizingMethod is true as per IsSanitizingMethod declaration
+                            RoslynDebug.Assert(sanitizedParameterPairs != null, "sanitizedParameterPairs is not null when isSanitizingMethod is true as per IsSanitizingMethod declaration");
                             foreach ((string ifTaintedParameter, string thenSanitizedTarget) in sanitizedParameterPairs)
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
                             {
                                 if (thenSanitizedTarget == TaintedTargetValue.Return)
                                 {

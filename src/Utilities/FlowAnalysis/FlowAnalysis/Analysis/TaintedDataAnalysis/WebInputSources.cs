@@ -29,7 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     (
                         (methodName, arguments) =>
                             methodName == "HtmlEncode" &&
-                            arguments.Count() == 2,
+                            arguments.Length == 2,
                         new (string, string)[]{
                             ("s", "output"),
                         }
