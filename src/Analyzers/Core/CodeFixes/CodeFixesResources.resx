@@ -144,4 +144,7 @@
   <data name="Suppress_or_Configure_issues" xml:space="preserve">
     <value>Suppress or Configure issues</value>
   </data>
+  <data name="Fix_all_occurrences_in" xml:space="preserve">
+    <value>Fix all occurrences in</value>
+  </data>
 </root>

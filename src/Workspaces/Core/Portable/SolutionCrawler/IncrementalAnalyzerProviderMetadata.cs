@@ -26,5 +26,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             this.HighPriorityForActiveFile = highPriorityForActiveFile;
             this.Name = name;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IncrementalAnalyzerProviderMetadata metadata
+                && base.Equals(obj)
+                && HighPriorityForActiveFile == metadata.HighPriorityForActiveFile
+                && Name == metadata.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 1997033996;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + HighPriorityForActiveFile.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+            return hashCode;
+        }
     }
 }

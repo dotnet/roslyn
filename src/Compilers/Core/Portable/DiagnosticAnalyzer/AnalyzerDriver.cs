@@ -1056,19 +1056,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return generatedSymbolsBuilderOpt != null ? generatedSymbolsBuilderOpt.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
         }
 
-        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
+        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree, SyntaxTreeOptionsProvider options)
         {
             if (!_lazySuppressedAnalyzersForTreeMap.TryGetValue(tree, out var suppressedAnalyzers))
             {
-                suppressedAnalyzers = _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, ComputeSuppressedAnalyzersForTree(tree));
+                suppressedAnalyzers = _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, ComputeSuppressedAnalyzersForTree(tree, options));
             }
 
             return suppressedAnalyzers.Contains(analyzer);
         }
 
-        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSuppressedAnalyzersForTree(SyntaxTree tree)
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSuppressedAnalyzersForTree(SyntaxTree tree, SyntaxTreeOptionsProvider options)
         {
-            if (tree.DiagnosticOptions.IsEmpty)
+            if (options is null)
             {
                 return ImmutableHashSet<DiagnosticAnalyzer>.Empty;
             }
@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var hasUnsuppressedDiagnostic = false;
                 foreach (var descriptor in descriptors)
                 {
-                    if (!tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredSeverity) ||
+                    if (!options.TryGetDiagnosticValue(tree, descriptor.Id, out var configuredSeverity) ||
                         configuredSeverity != ReportDiagnostic.Suppress)
                     {
                         // Analyzer reports a diagnostic that is not suppressed by the diagnostic options for this tree.

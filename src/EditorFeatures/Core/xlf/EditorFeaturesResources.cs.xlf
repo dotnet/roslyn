@@ -1209,11 +1209,6 @@ Chcete pokračovat?</target>
         <target state="translated">Uzavírání hranatých závorek</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Opravit všechny výskyty v</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">Operace nejde použít, pokud je aktivní relace přejmenování.</target>

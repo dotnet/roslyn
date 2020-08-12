@@ -1209,11 +1209,6 @@ Do you want to proceed?</source>
         <target state="translated">Finalización de llave</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Corregir todas las repeticiones de</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">No se puede aplicar la operación mientras la sesión de cambio de nombre está activa.</target>

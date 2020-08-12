@@ -1785,16 +1785,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
@@ -1874,16 +1876,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
@@ -1932,16 +1936,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
@@ -2001,16 +2007,18 @@ public class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {

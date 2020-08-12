@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
@@ -24,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class RemoteHostClientServiceFactoryTests
     {
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
-            typeof(InProcRemoteHostClientProvider.Factory));
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
         private static AdhocWorkspace CreateWorkspace()
             => new AdhocWorkspace(s_composition.GetHostServices());
