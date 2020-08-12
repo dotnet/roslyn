@@ -183,16 +183,15 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                         ? nodeOrToken.AsNode()
                         : nodeOrToken.AsToken().Parent;
 
-                    if (node is null)
-                    {
-                        continue;
-                    }
+                    // If the node is null then the symbol mapping was wrong about
+                    // the document containing the symbol.
+                    RoslynDebug.AssertNotNull(node);
 
                     var currentSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                    if (currentSymbol is null)
-                    {
-                        continue;
-                    }
+
+                    // If currentSymbol is null then no symbol is declared at the node and 
+                    // symbol mapping state is not right.
+                    RoslynDebug.AssertNotNull(currentSymbol);
 
                     pullMembersBuilder.Add((currentSymbol, memberAnalysis.MakeAbstract));
                     resultsToRemove.Add(memberAnalysis);
