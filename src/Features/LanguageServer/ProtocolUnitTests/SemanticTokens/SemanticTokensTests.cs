@@ -32,13 +32,13 @@ static class C { }";
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                              | Modifier
-                       0,     0,     10,   cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
-                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
-                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
-                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                    // Line | Char | Len | Token type                                                            | Modifier
+                       0,     0,     10,   SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                       1,     0,     6,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
                 ResultId = "1"
             };
@@ -69,12 +69,12 @@ static class C { }
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                              | Modifier
-                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
-                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
-                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                    // Line | Char | Len | Token type                                                            | Modifier
+                       1,     0,     6,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
                 ResultId = "1"
             };
@@ -88,13 +88,13 @@ static class C { }
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                              | Modifier
-                       0,     0,     10,   cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
-                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
-                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
-                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                    // Line | Char | Len | Token type                                                            | Modifier
+                       0,     0,     10,   SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                       1,     0,     6,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
                 ResultId = "2"
             };
@@ -126,13 +126,13 @@ static class C { }
             {
                 Data = new int[]
                 {
-                    // Line | Char | Len | Token type                                              | Modifier
-                       1,     0,     10,   cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
-                       1,     0,     6,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
-                       0,     7,     5,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
-                       0,     6,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                       0,     2,     1,    cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                    // Line | Char | Len | Token type                                                            | Modifier
+                       1,     0,     10,   SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                       1,     0,     6,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
                 ResultId = "4"
             };

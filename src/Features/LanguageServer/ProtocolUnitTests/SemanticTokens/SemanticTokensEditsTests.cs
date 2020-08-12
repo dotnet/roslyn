@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,25 +21,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
          *     // Comment
          *     static class C { }  
          */
-        private static int[] StandardCase(Dictionary<string, int> tokenTypesToIndex)
+        private static int[] StandardCase()
             => new int[] {
-                // Line | Char | Len | Token type                                       | Modifier
-                0,        0,     10,   tokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
-                1,        0,     6,    tokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
-                0,        7,     5,    tokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
-                0,        6,     1,    tokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                0,        2,     1,    tokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                0,        2,     1,    tokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                // Line | Char | Len | Token type                                                            | Modifier
+                0,        0,     10,   SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                1,        0,     6,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                0,        7,     5,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                0,        6,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                0,        2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                0,        2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
             };
 
         /*
          * Markup for single line test case:
          *     // Comment
          */
-        private static int[] SingleLineCase(Dictionary<string, int> tokenTypesToIndex)
+        private static int[] SingleLineCase()
             => new int[] {
-                // Line | Char | Len | Token type                                       | Modifier
-                0,        0,     10,   tokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0, // '// Comment'
+                // Line | Char | Len | Token type                                                           | Modifier
+                0,        0,     10,   SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0, // '// Comment'
             };
 
         [Fact]
@@ -59,7 +58,7 @@ static class C { }";
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
             var results = await GetSemanticTokensEdits(
-                workspace, locations["caret"].First(), StandardCase(cache.TokenTypesToIndex), previousResultId: "1", cache);
+                workspace, locations["caret"].First(), StandardCase(), previousResultId: "1", cache);
 
             var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(start: 5, deleteCount: 1, data: new int[] { 2 });
 
@@ -84,7 +83,7 @@ static class C { }";
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
             var results = await GetSemanticTokensEdits(
-                workspace, locations["caret"].First(), StandardCase(cache.TokenTypesToIndex), previousResultId: "1", cache);
+                workspace, locations["caret"].First(), StandardCase(), previousResultId: "1", cache);
 
             var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(start: 5, deleteCount: 25, data: System.Array.Empty<int>());
 
@@ -111,10 +110,10 @@ static class C { }
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
             var results = await GetSemanticTokensEdits(
-                workspace, locations["caret"].First(), StandardCase(cache.TokenTypesToIndex), previousResultId: "1", cache);
+                workspace, locations["caret"].First(), StandardCase(), previousResultId: "1", cache);
 
             var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(
-                start: 30, deleteCount: 0, data: new int[] { 1, 0, 10, cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0 });
+                start: 30, deleteCount: 0, data: new int[] { 1, 0, 10, SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0 });
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
@@ -137,18 +136,19 @@ static class C { }
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
             var results = await GetSemanticTokensEdits(
-                workspace, locations["caret"].First(), SingleLineCase(cache.TokenTypesToIndex), previousResultId: "1", cache);
+                workspace, locations["caret"].First(), SingleLineCase(), previousResultId: "1", cache);
 
-            // First edit: Replaces length of token (10 to 5) and replaces token type (comment to keyword)
-            var expectedFirstEdit = SemanticTokensEditsHandler.GenerateEdit(
-                start: 0, deleteCount: 5, data: new int[] { 0, 0, 5, cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword], 0 });
+            // 1. Replaces length of token (10 to 5) and replaces token type (comment to keyword)
+            // 2. Creates new token for '// Comment'
+            var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(
+                start: 0, deleteCount: 5,
+                data: new int[]
+                {
+                    0, 0, 5, SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword], 0,
+                    1, 0, 10, SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0
+                });
 
-            // Second edit: Creates new token for '// Comment'
-            var expectedSecondEdit = SemanticTokensEditsHandler.GenerateEdit(
-                start: 5, deleteCount: 0, data: new int[] { 1, 0, 10, cache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0 });
-
-            Assert.Equal(expectedFirstEdit, ((LSP.SemanticTokensEdits)results).Edits[0]);
-            Assert.Equal(expectedSecondEdit, ((LSP.SemanticTokensEdits)results).Edits[1]);
+            Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits[0]);
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
         }
 
@@ -172,7 +172,7 @@ static class C { }";
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
             var results = await GetSemanticTokensEdits(
-                workspace, locations["caret"].First(), StandardCase(cache.TokenTypesToIndex), previousResultId: "10", cache);
+                workspace, locations["caret"].First(), StandardCase(), previousResultId: "10", cache);
 
             // Make sure we're returned SemanticTokens instead of SemanticTokensEdits.
             Assert.True(results.Value is LSP.SemanticTokens);
@@ -193,7 +193,7 @@ static class C { }";
 
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
-            var originalTokens = StandardCase(cache.TokenTypesToIndex);
+            var originalTokens = StandardCase();
 
             // Edits to tokens conversion
             var edits = await GetSemanticTokensEdits(
@@ -220,7 +220,7 @@ internal struct S { }";
 
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
-            var originalTokens = StandardCase(cache.TokenTypesToIndex);
+            var originalTokens = StandardCase();
 
             // Edits to tokens conversion
             var edits = await GetSemanticTokensEdits(
@@ -254,7 +254,7 @@ class C
 
             using var workspace = CreateTestWorkspace(updatedMarkup, out var locations);
             var cache = GetSemanticTokensCache(workspace);
-            var originalTokens = StandardCase(cache.TokenTypesToIndex);
+            var originalTokens = StandardCase();
 
             // Edits to tokens conversion
             var edits = await GetSemanticTokensEdits(

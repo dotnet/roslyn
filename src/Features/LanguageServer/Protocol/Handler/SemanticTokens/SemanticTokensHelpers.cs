@@ -91,11 +91,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             };
 
         /// <summary>
-        /// Returns the semantic tokens for a given document with an optional range.
+        /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
-        internal static async Task<LSP.SemanticTokens> ComputeSemanticTokensAsync(
+        internal static async Task<int[]> ComputeSemanticTokensDataAsync(
             LSP.TextDocumentIdentifier textDocument,
-            string resultId,
             string? clientName,
             ILspSolutionProvider solutionProvider,
             Dictionary<string, int> tokenTypesToIndex,
@@ -110,11 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // By default we calculate the tokens for the full document span, although the user 
             // can pass in a range if they wish.
-            var textSpan = root.FullSpan;
-            if (range != null)
-            {
-                textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-            }
+            var textSpan = range == null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(classifiedSpans);
@@ -126,9 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should implement support for streaming once this LSP bug is fixed:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1132601
-            var tokens = ComputeTokens(text.Lines, groupedSpans, tokenTypesToIndex);
-
-            return new LSP.SemanticTokens { ResultId = resultId, Data = tokens };
+            return ComputeTokens(text.Lines, groupedSpans, tokenTypesToIndex);
         }
 
         private static int[] ComputeTokens(
@@ -193,21 +186,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // 3. Token length
             var tokenLength = textSpan.Length;
 
-            // Getting the classified spans that are modifiers.
-            // Since a TextSpan can have multiple ClassifiedSpans, all of the ClassifiedSpans except one (the token)
-            // should be a modifier.
-            var modifiers = textSpanToClassifiedSpans.Where(
-                s => ClassificationTypeNames.AdditiveTypeNames.Contains(s.ClassificationType));
-
-            // Filtering out the modifiers for now (will be added in step 5). We just want the primary token.
-            var tokenTypeClassifiedSpan = textSpanToClassifiedSpans.Except(modifiers).Single();
-
-            // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
-            // from integer to LSP token types).
-            var tokenTypeIndex = GetTokenTypeIndex(tokenTypeClassifiedSpan, tokenTypesToIndex);
-
-            // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-            var modifierBits = GetTokenTypeModifierBits(modifiers);
+            // We currently only have one modifier (static). The logic below will need to change in the future if other
+            // modifiers are added in the future.
+            var modifierBits = TokenModifiers.None;
+            var tokenTypeIndex = 0;
+            foreach (var classifiedSpan in textSpanToClassifiedSpans)
+            {
+                if (classifiedSpan.ClassificationType != ClassificationTypeNames.StaticSymbol)
+                {
+                    // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                    // from integer to LSP token types).
+                    tokenTypeIndex = GetTokenTypeIndex(classifiedSpan, tokenTypesToIndex);
+                }
+                else
+                {
+                    // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits = TokenModifiers.Static;
+                }
+            }
 
             lastLineNumber = lineNumber;
             lastStartCharacter = startCharacter;
@@ -222,22 +218,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static int GetTokenTypeIndex(ClassifiedSpan tokenTypeClassifiedSpan, Dictionary<string, int> tokenTypesToIndex)
         {
             s_classificationTypeToSemanticTokenTypeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenTypeStr);
-            Debug.Assert(tokenTypeStr != null);
+            Contract.ThrowIfNull(tokenTypeStr);
 
-            return tokenTypesToIndex[tokenTypeStr];
-        }
-
-        private static TokenModifiers GetTokenTypeModifierBits(IEnumerable<ClassifiedSpan> modifiers)
-        {
-            // Roslyn currently only has one modifier, but this logic should be updated if more are added
-            // in the future.
-            if (modifiers.IsEmpty())
+            if (!tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex))
             {
-                return TokenModifiers.None;
+                Contract.Fail("Token type index not found.");
             }
 
-            Debug.Assert(modifiers.Single().ClassificationType == ClassificationTypeNames.StaticSymbol);
-            return TokenModifiers.Static;
+            return tokenTypeIndex;
         }
     }
 }

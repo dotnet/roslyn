@@ -44,34 +44,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument);
-            var resultId = _tokensCache.GetNextResultId();
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
-            var newSemanticTokens = await SemanticTokensHelpers.ComputeSemanticTokensAsync(
-                request.TextDocument, resultId, clientName, SolutionProvider, _tokensCache.TokenTypesToIndex,
+            var newSemanticTokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                request.TextDocument, clientName, SolutionProvider, SemanticTokensCache.TokenTypesToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
+
+            Contract.ThrowIfNull(newSemanticTokensData);
+
+            var resultId = _tokensCache.GetNextResultId();
+            var newSemanticTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
+
+            await _tokensCache.UpdateCacheAsync(
+                request.TextDocument.Uri, newSemanticTokens, cancellationToken).ConfigureAwait(false);
 
             // Getting the cached tokens for the document. If we don't have an applicable cached token set,
             // we can't calculate edits, so we must return all semantic tokens instead.
-            var oldSemanticTokens = await _tokensCache.GetCachedTokensAsync(
+            var oldSemanticTokensData = await _tokensCache.GetCachedTokensDataAsync(
                 request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
-            if (oldSemanticTokens == null)
+            if (oldSemanticTokensData == null)
             {
                 return newSemanticTokens;
             }
 
             // The Data property is always populated on the server side, so it should never be null.
-            Contract.ThrowIfNull(oldSemanticTokens.Data);
-            Contract.ThrowIfNull(newSemanticTokens.Data);
+            Contract.ThrowIfNull(oldSemanticTokensData);
 
             var edits = new SemanticTokensEdits
             {
-                Edits = ComputeSemanticTokensEdits(oldSemanticTokens.Data, newSemanticTokens.Data),
+                Edits = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData),
                 ResultId = resultId
             };
 
-            await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, newSemanticTokens, cancellationToken).ConfigureAwait(false);
             return edits;
         }
 
@@ -105,23 +110,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // may have both an insertion and deletion, in which case we can combine the two into a
             // single update. We use the dictionary below to keep track of whether an index contains
             // an insertion, deletion, or both.
-            var indexToEditKinds = new Dictionary<int, EditKind>();
+            var indexToEditKinds = new Dictionary<int, SemanticTokenEditKind>();
 
             foreach (var edit in edits)
             {
                 // We only care about EditKind.Insert and EditKind.Delete, since they encompass all
                 // changes to the document. All other EditKinds are ignored.
-                // However, we do use EditKind.Update to represent that an index contains both an
-                // insertion and deletion and thus can be combined.
                 switch (edit.Kind)
                 {
                     case EditKind.Insert:
                         indexToEditKinds.TryGetValue(edit.NewIndex, out var editKindWithoutInsert);
-                        indexToEditKinds[edit.NewIndex] = editKindWithoutInsert == default ? EditKind.Insert : EditKind.Update;
+                        indexToEditKinds[edit.NewIndex] = editKindWithoutInsert |= SemanticTokenEditKind.Insert;
                         break;
                     case EditKind.Delete:
                         indexToEditKinds.TryGetValue(edit.OldIndex, out var editKindWithoutDelete);
-                        indexToEditKinds[edit.OldIndex] = editKindWithoutDelete == default ? EditKind.Delete : EditKind.Update;
+                        indexToEditKinds[edit.OldIndex] = editKindWithoutDelete |= SemanticTokenEditKind.Delete;
                         break;
                     default:
                         break;
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static SemanticTokensEdit[] CombineEditsIfPossible(
             SemanticToken[] newGroupedSemanticTokens,
-            Dictionary<int, EditKind> indexToEditKinds)
+            Dictionary<int, SemanticTokenEditKind> indexToEditKinds)
         {
             // This method combines the edits into the minimal possible edits.
             // For example, if an index contains both an insertion and deletion, we can combine the two
@@ -143,7 +146,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // Note for the Update->Insert and Update->Delete cases, any further edits we combine can
             // only be an Insert or Delete, respectively.
 
-            using var _1 = ArrayBuilder<LSP.SemanticTokensEdit>.GetInstance(out var semanticTokensEdits);
+            using var _ = ArrayBuilder<LSP.SemanticTokensEdit>.GetInstance(out var semanticTokensEdits);
+
+            // We sort the edit kinds by index since we need to know what kind of edits surround
+            // a given index in order to potentially combine them into one edit.
             var editIndexes = indexToEditKinds.Keys.ToArray();
             Array.Sort(editIndexes);
 
@@ -152,79 +158,130 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 var initialEditIndex = editIndexes[i];
                 var initialEditKind = indexToEditKinds[initialEditIndex];
 
-                if (initialEditKind == EditKind.Update)
+                if (initialEditKind.HasFlag(SemanticTokenEditKind.Insert) && initialEditKind.HasFlag(SemanticTokenEditKind.Delete))
                 {
-                    var deleteCount = 5;
-                    using var _2 = ArrayBuilder<int>.GetInstance(out var tokensToInsert);
-                    tokensToInsert.AddRange(newGroupedSemanticTokens[initialEditIndex].ToArray());
-
-                    // An update can be combined with an update, deletion, or insertion that directly
-                    // follows it. If combined with an insertion or deletion, only that type is allowed
-                    // in the combined edit afterwards.
-                    var editKind = EditKind.Update;
-                    while (i + 1 < editIndexes.Length && editIndexes[i + 1] == editIndexes[i] + 1)
-                    {
-                        var currentEditKind = indexToEditKinds[editIndexes[i + 1]];
-                        if (currentEditKind != EditKind.Update && currentEditKind != editKind)
-                        {
-                            break;
-                        }
-
-                        if (currentEditKind != EditKind.Update)
-                        {
-                            editKind = currentEditKind;
-                        }
-
-                        if (currentEditKind == EditKind.Update || currentEditKind == EditKind.Insert)
-                        {
-                            tokensToInsert.AddRange(newGroupedSemanticTokens[editIndexes[i + 1]].ToArray());
-                        }
-
-                        if (currentEditKind == EditKind.Update || currentEditKind == EditKind.Insert)
-                        {
-                            deleteCount += 5;
-                        }
-
-                        i++;
-                    }
-
-                    semanticTokensEdits.Add(
-                        GenerateEdit(start: initialEditIndex * 5, deleteCount: deleteCount, data: tokensToInsert.ToArray()));
+                    i = AddInsertionDeletionEdit(
+                        newGroupedSemanticTokens, indexToEditKinds, semanticTokensEdits, editIndexes, i, initialEditIndex);
                 }
-                else if (initialEditKind == EditKind.Insert)
+                else if (initialEditKind.HasFlag(SemanticTokenEditKind.Insert))
                 {
-                    using var _2 = ArrayBuilder<int>.GetInstance(out var tokensToInsert);
-                    tokensToInsert.AddRange(newGroupedSemanticTokens[initialEditIndex].ToArray());
-
-                    // An insert can only be combined with other inserts that directly follow it.
-                    while (i + 1 < editIndexes.Length && indexToEditKinds[editIndexes[i + 1]] == EditKind.Insert &&
-                        editIndexes[i + 1] == editIndexes[i] + 1)
-                    {
-                        tokensToInsert.AddRange(newGroupedSemanticTokens[editIndexes[i + 1]].ToArray());
-                        i++;
-                    }
-
-                    semanticTokensEdits.Add(
-                        GenerateEdit(start: initialEditIndex * 5, deleteCount: 0, data: tokensToInsert.ToArray()));
+                    i = AddInsertionEdit(
+                        newGroupedSemanticTokens, indexToEditKinds, semanticTokensEdits, editIndexes, i, initialEditIndex);
                 }
-                else if (initialEditKind == EditKind.Delete)
+                else
                 {
-                    var deleteCount = 5;
-
-                    // A deletion can only be combined with other deletions that directly follow it.
-                    while (i + 1 < editIndexes.Length && indexToEditKinds[editIndexes[i + 1]] == EditKind.Delete &&
-                        editIndexes[i + 1] == editIndexes[i] + 1)
-                    {
-                        deleteCount += 5;
-                        i++;
-                    }
-
-                    semanticTokensEdits.Add(
-                        GenerateEdit(start: initialEditIndex * 5, deleteCount: deleteCount, data: Array.Empty<int>()));
+                    i = AddDeletionEdit(
+                        indexToEditKinds, semanticTokensEdits, editIndexes, i, initialEditIndex);
                 }
             }
 
             return semanticTokensEdits.ToArray();
+
+            static int AddInsertionDeletionEdit(
+                SemanticToken[] newGroupedSemanticTokens,
+                Dictionary<int, SemanticTokenEditKind> indexToEditKinds,
+                ArrayBuilder<SemanticTokensEdit> semanticTokensEdits,
+                int[] editIndexes,
+                int i,
+                int initialEditIndex)
+            {
+                var deleteCount = 5;
+                var _ = ArrayBuilder<int>.GetInstance(out var tokensToInsert);
+                tokensToInsert.AddRange(newGroupedSemanticTokens[initialEditIndex].ToArray());
+
+                // An "update" (i.e. a dual insertion/deletion) can be combined with an update,
+                // deletion, or insertion that directly follows it. If combined with an insertion
+                // or deletion, only that type is allowed in the combined edit afterwards.
+                var editKind = SemanticTokenEditKind.None;
+
+                // To continue combining edits, we need to ensure:
+                // 1) There is an edit following the current edit
+                // 2) The current edit and next edit involve tokens that are located right next to
+                // each other in the file.
+                while (i + 1 < editIndexes.Length && editIndexes[i + 1] == editIndexes[i] + 1)
+                {
+                    var currentEditKind = indexToEditKinds[editIndexes[i + 1]];
+                    var isCurrentEditKindUpdate = currentEditKind.HasFlag(SemanticTokenEditKind.Insert) &&
+                        currentEditKind.HasFlag(SemanticTokenEditKind.Delete);
+
+                    // If the current edit is combined with an insertion or deletion, only that type is allowed
+                    // in the combined edit afterwards. The check below will return true if this is not the case.
+                    if (editKind != SemanticTokenEditKind.None && currentEditKind != editKind)
+                    {
+                        break;
+                    }
+
+                    if (!isCurrentEditKindUpdate)
+                    {
+                        // From now on, all future edits combined with the current edit must be of the same edit
+                        // kind as the current edit.
+                        editKind = currentEditKind;
+                    }
+
+                    if (isCurrentEditKindUpdate || currentEditKind == SemanticTokenEditKind.Insert)
+                    {
+                        tokensToInsert.AddRange(newGroupedSemanticTokens[editIndexes[i + 1]].ToArray());
+                    }
+
+                    if (isCurrentEditKindUpdate || currentEditKind == SemanticTokenEditKind.Delete)
+                    {
+                        deleteCount += 5;
+                    }
+
+                    i++;
+                }
+
+                semanticTokensEdits.Add(
+                    GenerateEdit(start: initialEditIndex * 5, deleteCount: deleteCount, data: tokensToInsert.ToArray()));
+
+                return i;
+            }
+
+            static int AddInsertionEdit(
+                SemanticToken[] newGroupedSemanticTokens,
+                Dictionary<int, SemanticTokenEditKind> indexToEditKinds,
+                ArrayBuilder<SemanticTokensEdit> semanticTokensEdits,
+                int[] editIndexes,
+                int i,
+                int initialEditIndex)
+            {
+                var _ = ArrayBuilder<int>.GetInstance(out var tokensToInsert);
+                tokensToInsert.AddRange(newGroupedSemanticTokens[initialEditIndex].ToArray());
+
+                // An insert can only be combined with other inserts that directly follow it.
+                while (i + 1 < editIndexes.Length && indexToEditKinds[editIndexes[i + 1]] == SemanticTokenEditKind.Insert &&
+                    editIndexes[i + 1] == editIndexes[i] + 1)
+                {
+                    tokensToInsert.AddRange(newGroupedSemanticTokens[editIndexes[i + 1]].ToArray());
+                    i++;
+                }
+
+                semanticTokensEdits.Add(
+                    GenerateEdit(start: initialEditIndex * 5, deleteCount: 0, data: tokensToInsert.ToArray()));
+                return i;
+            }
+
+            static int AddDeletionEdit(
+                Dictionary<int, SemanticTokenEditKind> indexToEditKinds,
+                ArrayBuilder<SemanticTokensEdit> semanticTokensEdits,
+                int[] editIndexes,
+                int i,
+                int initialEditIndex)
+            {
+                var deleteCount = 5;
+
+                // A deletion can only be combined with other deletions that directly follow it.
+                while (i + 1 < editIndexes.Length && indexToEditKinds[editIndexes[i + 1]] == SemanticTokenEditKind.Delete &&
+                    editIndexes[i + 1] == editIndexes[i] + 1)
+                {
+                    deleteCount += 5;
+                    i++;
+                }
+
+                semanticTokensEdits.Add(
+                    GenerateEdit(start: initialEditIndex * 5, deleteCount: deleteCount, data: Array.Empty<int>()));
+                return i;
+            }
         }
 
         /// <summary>
@@ -308,6 +365,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     Hash.Combine(_tokenType.GetHashCode(),
                     _tokenModifiers.GetHashCode()))));
             }
+        }
+
+        [Flags]
+        private enum SemanticTokenEditKind
+        {
+            None = 0,
+            Insert = 1,
+            Delete = 2,
         }
     }
 }

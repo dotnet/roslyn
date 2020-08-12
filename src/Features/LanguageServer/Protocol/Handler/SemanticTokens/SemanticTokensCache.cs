@@ -27,11 +27,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     internal class SemanticTokensCache
     {
         /// <summary>
-        /// Multiple cache requests or updates may be received concurrently.
-        /// We need this sempahore to ensure that we aren't making concurrent
-        /// modifications to the Tokens or NextResultId dictionaries.
+        /// Maps a LSP token type to its respective index recognized by LSP.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        public static readonly Dictionary<string, int> TokenTypesToIndex;
 
         /// <summary>
         /// Number of cached token sets we store per document. Must be >= 1.
@@ -44,21 +42,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private long _nextResultId;
 
         /// <summary>
+        /// Multiple cache requests or updates may be received concurrently.
+        /// We need this sempahore to ensure that we aren't making concurrent
+        /// modifications to the _tokens dictionary.
+        /// </summary>
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+
+        #region protected by _semaphore
+        /// <summary>
         /// Maps a document URI to its n most recently cached token sets.
         /// </summary>
-        private Dictionary<Uri, List<LSP.SemanticTokens>> Tokens { get; }
+        private readonly Dictionary<Uri, List<LSP.SemanticTokens>> _tokens =
+            new Dictionary<Uri, List<LSP.SemanticTokens>>();
+        #endregion
 
-        /// <summary>
-        /// Maps a LSP token type to its respective index recognized by LSP.
-        /// </summary>
-        public Dictionary<string, int> TokenTypesToIndex { get; }
+        static SemanticTokensCache()
+        {
+            // Computes the mapping between a LSP token type and its respective index recognized by LSP.
+            TokenTypesToIndex = new Dictionary<string, int>();
+            for (var i = 0; i < LSP.SemanticTokenTypes.AllTypes.Count; i++)
+            {
+                TokenTypesToIndex.Add(LSP.SemanticTokenTypes.AllTypes[i], i);
+            }
+        }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensCache()
         {
-            Tokens = new Dictionary<Uri, List<LSP.SemanticTokens>>();
-            TokenTypesToIndex = ComputeTokenTypesToIndex();
         }
 
         /// <summary>
@@ -70,20 +81,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             LSP.SemanticTokens tokens,
             CancellationToken cancellationToken)
         {
+            // If the resultId of the semantic tokens is null, don't cache anything since we'll
+            // be unable to retrieve the results later.
+            if (tokens.ResultId == null)
+            {
+                return;
+            }
+
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // If the resultId of the semantic tokens is null, don't cache anything since we'll
-                // be unable to retrieve the results later.
-                if (tokens.ResultId == null)
-                {
-                    return;
-                }
-
                 // Case 1: Document does not currently have any token sets cached. Create a cache
                 // for the document and return.
-                if (!Tokens.TryGetValue(uri, out var tokenSets))
+                if (!_tokens.TryGetValue(uri, out var tokenSets))
                 {
-                    Tokens.Add(uri, new List<LSP.SemanticTokens> { tokens });
+                    _tokens.Add(uri, new List<LSP.SemanticTokens> { tokens });
                     return;
                 }
 
@@ -101,10 +112,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         /// <summary>
-        /// Returns the cached tokens for a given document URI and resultId.
+        /// Returns the cached tokens data for a given document URI and resultId.
         /// Returns null if no match is found.
         /// </summary>
-        public async Task<LSP.SemanticTokens?> GetCachedTokensAsync(
+        public async Task<int[]?> GetCachedTokensDataAsync(
             Uri uri,
             string? resultId,
             CancellationToken cancellationToken)
@@ -116,14 +127,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!Tokens.TryGetValue(uri, out var tokenSets))
+                if (!_tokens.TryGetValue(uri, out var tokenSets))
                 {
                     return null;
                 }
 
                 // Return a non-null value only if the document's cache contains a token set with the resultId
                 // that the user is searching for.
-                return tokenSets.FirstOrDefault(t => t.ResultId != null && t.ResultId == resultId);
+                return tokenSets.FirstOrDefault(t => t.ResultId == resultId)?.Data;
             }
         }
 
@@ -131,19 +142,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Returns the next available resultId.
         /// </summary>
         public string GetNextResultId() => Interlocked.Increment(ref _nextResultId).ToString();
-
-        /// <summary>
-        /// Computes the mapping between a LSP token type and its respective index recognized by LSP.
-        /// </summary>
-        private static Dictionary<string, int> ComputeTokenTypesToIndex()
-        {
-            var tokenTypeToIndex = new Dictionary<string, int>();
-            for (var i = 0; i < LSP.SemanticTokenTypes.AllTypes.Count; i++)
-            {
-                tokenTypeToIndex.Add(LSP.SemanticTokenTypes.AllTypes[i], i);
-            }
-
-            return tokenTypeToIndex;
-        }
     }
 }
