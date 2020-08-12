@@ -2989,6 +2989,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (sourceSig.CallingConvention == Cci.CallingConvention.Unmanaged &&
+                !sourceSig.GetCallingConventionModifiers().SetEquals(destinationSig.GetCallingConventionModifiers()))
+            {
+                return false;
+            }
+
             for (int i = 0; i < sourceSig.ParameterCount; i++)
             {
                 var sourceParam = sourceSig.Parameters[i];

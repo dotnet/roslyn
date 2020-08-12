@@ -6126,7 +6126,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>&amp;method group</value>
   </data>
   <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
-    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</value>
+    <value>'{0}' is not a valid calling convention specifier for a function pointer.</value>
+  </data>
+  <data name="ERR_TypeNotFound" xml:space="preserve">
+    <value>Type '{0}' is not defined.</value>
+  </data>
+  <data name="ERR_TypeMustBePublic" xml:space="preserve">
+    <value>Type '{0}' must be public to be used as a calling convention.</value>
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
@@ -6317,17 +6323,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedCallingConvention" xml:space="preserve">
     <value>The calling convention of '{0}' is not supported by the language.</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv" xml:space="preserve">
+    <value>The target runtime doesn't support extensible or runtime-environment default calling conventions.</value>
+  </data>
   <data name="NotSameNumberParameterTypesAndRefKinds" xml:space="preserve">
     <value>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</value>
   </data>
   <data name="OutIsNotValidForReturn" xml:space="preserve">
     <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
   </data>
+  <data name="CallingConventionTypesRequireUnmanaged" xml:space="preserve">
+    <value>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</value>
+  </data>
+  <data name="CallingConventionTypeIsInvalid" xml:space="preserve">
+    <value>Cannot use '{0}' as a calling convention modifier.</value>
+  </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</value>
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</value>
+  </data>
+  <data name="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers" xml:space="preserve">
+    <value>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
