@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
 
-            var generatedNameTypeParameterSuffix = GetTypeParameterSuffix(document, selectedType);
+            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, selectedType, membersInType);
 
             var viewModel = new ExtractClassViewModel(
                 _waitIndicator,
@@ -106,22 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             }
 
             return null;
-        }
-
-        private string GetTypeParameterSuffix(Document document, INamedTypeSymbol type)
-        {
-            var typeParameters = type.TypeParameters;
-
-            if (type.TypeParameters.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            var displayParts = type.ToDisplayParts();
-            var typeParameterNames = displayParts.Where(d => d.Kind == SymbolDisplayPartKind.TypeParameterName).SelectAsArray(d => d.ToString());
-
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace).ToString();
         }
     }
 }

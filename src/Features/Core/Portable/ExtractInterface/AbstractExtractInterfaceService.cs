@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 modifiers: new DeclarationModifiers(),
                 typeKind: TypeKind.Interface,
                 name: extractInterfaceOptions.InterfaceName,
-                typeParameters: GetTypeParameters(refactoringResult.TypeToExtractFrom, extractInterfaceOptions.IncludedMembers),
+                typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(refactoringResult.TypeToExtractFrom, extractInterfaceOptions.IncludedMembers),
                 members: CreateInterfaceMembers(extractInterfaceOptions.IncludedMembers));
 
             switch (extractInterfaceOptions.Location)
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-            var generatedNameTypeParameterSuffix = GetTypeParameterSuffix(document, type);
+            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, type, extractableMembers);
 
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
             return service.GetExtractInterfaceOptionsAsync(
@@ -276,22 +276,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
                 document.Project.Language);
-        }
-
-        private static string GetTypeParameterSuffix(Document document, INamedTypeSymbol type)
-        {
-            var typeParameters = type.TypeParameters;
-
-            if (type.TypeParameters.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            var displayParts = type.ToDisplayParts();
-            var typeParameterNames = displayParts.Where(d => d.Kind == SymbolDisplayPartKind.TypeParameterName).SelectAsArray(d => d.ToString());
-
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace).ToString();
         }
 
         private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
@@ -451,120 +435,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return !prop.IsWithEvents &&
                     ((prop.GetMethod != null && prop.GetMethod.DeclaredAccessibility == Accessibility.Public) ||
                     (prop.SetMethod != null && prop.SetMethod.DeclaredAccessibility == Accessibility.Public));
-            }
-
-            return false;
-        }
-
-        private ImmutableArray<ITypeParameterSymbol> GetTypeParameters(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
-        {
-            var potentialTypeParameters = GetPotentialTypeParameters(type);
-
-            var directlyReferencedTypeParameters = GetDirectlyReferencedTypeParameters(potentialTypeParameters, includedMembers);
-
-            // The directly referenced TypeParameters may have constraints that reference other 
-            // type parameters.
-
-            var allReferencedTypeParameters = new HashSet<ITypeParameterSymbol>(directlyReferencedTypeParameters);
-            var unanalyzedTypeParameters = new Queue<ITypeParameterSymbol>(directlyReferencedTypeParameters);
-
-            while (!unanalyzedTypeParameters.IsEmpty())
-            {
-                var typeParameter = unanalyzedTypeParameters.Dequeue();
-
-                foreach (var constraint in typeParameter.ConstraintTypes)
-                {
-                    foreach (var originalTypeParameter in potentialTypeParameters)
-                    {
-                        if (!allReferencedTypeParameters.Contains(originalTypeParameter) &&
-                            DoesTypeReferenceTypeParameter(constraint, originalTypeParameter, new HashSet<ITypeSymbol>()))
-                        {
-                            allReferencedTypeParameters.Add(originalTypeParameter);
-                            unanalyzedTypeParameters.Enqueue(originalTypeParameter);
-                        }
-                    }
-                }
-            }
-
-            return potentialTypeParameters.WhereAsArray(allReferencedTypeParameters.Contains);
-        }
-
-        private static ImmutableArray<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)
-        {
-            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
-
-            var typesToVisit = new Stack<INamedTypeSymbol>();
-
-            var currentType = type;
-            while (currentType != null)
-            {
-                typesToVisit.Push(currentType);
-                currentType = currentType.ContainingType;
-            }
-
-            while (typesToVisit.Any())
-            {
-                typeParameters.AddRange(typesToVisit.Pop().TypeParameters);
-            }
-
-            return typeParameters.ToImmutable();
-        }
-
-        private ImmutableArray<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
-        {
-            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var directlyReferencedTypeParameters);
-            foreach (var typeParameter in potentialTypeParameters)
-            {
-                if (includedMembers.Any(m => DoesMemberReferenceTypeParameter(m, typeParameter, new HashSet<ITypeSymbol>())))
-                {
-                    directlyReferencedTypeParameters.Add(typeParameter);
-                }
-            }
-
-            return directlyReferencedTypeParameters.ToImmutable();
-        }
-
-        private bool DoesMemberReferenceTypeParameter(ISymbol member, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)
-        {
-            switch (member.Kind)
-            {
-                case SymbolKind.Event:
-                    var @event = member as IEventSymbol;
-                    return DoesTypeReferenceTypeParameter(@event.Type, typeParameter, checkedTypes);
-                case SymbolKind.Method:
-                    var method = member as IMethodSymbol;
-                    return method.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
-                        method.TypeParameters.Any(t => t.ConstraintTypes.Any(c => DoesTypeReferenceTypeParameter(c, typeParameter, checkedTypes))) ||
-                        DoesTypeReferenceTypeParameter(method.ReturnType, typeParameter, checkedTypes);
-                case SymbolKind.Property:
-                    var property = member as IPropertySymbol;
-                    return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
-                        DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
-                default:
-                    Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));
-                    return false;
-            }
-        }
-
-        private bool DoesTypeReferenceTypeParameter(ITypeSymbol type, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)
-        {
-            if (!checkedTypes.Add(type))
-            {
-                return false;
-            }
-
-            // We want to ignore nullability when comparing as T and T? both are references to the type parameter
-            if (type.Equals(typeParameter, SymbolEqualityComparer.Default) ||
-                type.GetTypeArguments().Any(t => DoesTypeReferenceTypeParameter(t, typeParameter, checkedTypes)))
-            {
-                return true;
-            }
-
-            if (type.ContainingType != null &&
-                type.Kind != SymbolKind.TypeParameter &&
-                DoesTypeReferenceTypeParameter(type.ContainingType, typeParameter, checkedTypes))
-            {
-                return true;
             }
 
             return false;
