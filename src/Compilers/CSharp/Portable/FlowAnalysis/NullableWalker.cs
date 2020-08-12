@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if this walker was created using an initial state.
         /// </summary>
-        private readonly bool _hasInitialState = false;
+        private readonly bool _hasInitialState;
 
 #if DEBUG
         /// <summary>
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             thisSlot = GetOrCreateSlot(thisParameter);
                         }
                         // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
-                        var exitLocation = /*syntaxOpt?.Location ??*/ (method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault());
+                        var exitLocation = (method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault());
                         foreach (var member in method.ContainingType.GetMembersUnordered())
                         {
                             checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation);
@@ -574,8 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => member
                 };
                 var annotations = symbol.GetFlowAnalysisAnnotations();
-                if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0
-                    || (annotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                if ((annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.AllowNull)) != 0)
                 {
                     // We assume that if a member allows null input then the user
                     // does not care that we exit at a point where the member might be null.
@@ -589,12 +588,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberState = state[slot];
                 var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
-                if (memberState != badState)
+                if (memberState == badState)
                 {
-                    return;
+                     Diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, exitLocation ?? symbol.Locations.FirstOrNone(), symbol.Kind.Localize(), symbol.Name);
                 }
 
-                Diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, exitLocation ?? symbol.Locations.FirstOrNone(), symbol.Kind.Localize(), symbol.Name);
+               
             }
 
             void enforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
