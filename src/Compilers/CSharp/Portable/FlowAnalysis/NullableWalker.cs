@@ -7410,10 +7410,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var annotations = expr switch
             {
-                BoundPropertyAccess property => getSetterAnnotations(property.PropertySymbol),
-                BoundIndexerAccess indexer => getSetterAnnotations(indexer.Indexer),
+                BoundPropertyAccess property => property.PropertySymbol.GetFlowAnalysisAnnotations(),
+                BoundIndexerAccess indexer => indexer.Indexer.GetFlowAnalysisAnnotations(),
                 BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
-                BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => getSetterAnnotations(prop),
+                BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => prop.GetFlowAnalysisAnnotations(),
                 BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
                 BoundParameter { ParameterSymbol: ParameterSymbol parameter }
                     => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
@@ -7425,36 +7425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             static FlowAnalysisAnnotations getFieldAnnotations(FieldSymbol field)
             {
                 return field.AssociatedSymbol is PropertySymbol property ?
-                    getSetterAnnotations(property) :
+                    property.GetFlowAnalysisAnnotations() :
                     field.FlowAnalysisAnnotations;
-            }
-
-            static FlowAnalysisAnnotations getSetterAnnotations(PropertySymbol property)
-            {
-                var accessor = property.GetOwnOrInheritedSetMethod();
-                if (accessor is object)
-                {
-                    return accessor.Parameters.Last().FlowAnalysisAnnotations;
-                }
-                if (property is SourcePropertySymbolBase sourceProperty)
-                {
-                    return getPropertyAnnotations(sourceProperty);
-                }
-                return FlowAnalysisAnnotations.None;
-            }
-
-            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbolBase property)
-            {
-                var annotations = FlowAnalysisAnnotations.None;
-                if (property.HasAllowNull)
-                {
-                    annotations |= FlowAnalysisAnnotations.AllowNull;
-                }
-                if (property.HasDisallowNull)
-                {
-                    annotations |= FlowAnalysisAnnotations.DisallowNull;
-                }
-                return annotations;
             }
         }
 

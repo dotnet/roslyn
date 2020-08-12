@@ -1878,6 +1878,116 @@ public class C
         }
 
         [Fact]
+        public void NotNullIfNotNull_StaticInitializers_01()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+public class C
+{
+    static string Field1 = M(Field2); // 1
+    static string Field2 = M(Field1); // 2
+
+    [return: NotNullIfNotNull(""input"")]
+    public static string? M(string? input) => input;
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,28): warning CS8601: Possible null reference assignment.
+                //     static string Field1 = M(Field2); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M(Field2)").WithLocation(6, 28),
+                // (7,28): warning CS8601: Possible null reference assignment.
+                //     static string Field2 = M(Field1); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M(Field1)").WithLocation(7, 28)
+                );
+        }
+
+        [Fact]
+        public void NotNullIfNotNull_StaticInitializers_02()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+public class C
+{
+    static string? Field1 = ""a"";
+    static string Field2 = M(Field1);
+
+    [return: NotNullIfNotNull(""input"")]
+    public static string? M(string? input) => input;
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NotNullIfNotNull_StaticInitializers_03()
+        {
+            var source = @"
+public class C
+{
+    static string Field1 = Field2.ToString(); // 1
+    static string Field2 = ""a"";
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,28): warning CS8602: Dereference of a possibly null reference.
+                //     static string Field1 = Field2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 28));
+        }
+
+        [Fact]
+        [WorkItem(46121, "https://github.com/dotnet/roslyn/issues/46121")]
+        public void StaticInitializers_MultipleFiles_01()
+        {
+            var source1 = @"
+partial class C
+{
+    static readonly string s1;
+}";
+            var source2 = @"
+partial class C
+{
+    static C()
+    {
+        s1 = ""hello"";
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,28): warning CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static readonly string s1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 28)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46121, "https://github.com/dotnet/roslyn/issues/46121")]
+        public void StaticInitializers_MultipleFiles_02()
+        {
+            var source1 = @"
+partial class C
+{
+    static readonly string Field1 = Field2.ToString(); // 1
+}";
+            var source2 = @"
+partial class C
+{
+    static readonly string Field2 = ""a"";
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,37): warning CS8602: Dereference of a possibly null reference.
+                //     static readonly string Field1 = Field2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 37));
+        }
+
+        [Fact]
         [WorkItem(1090263, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090263")]
         public void PropertyNoGetter()
         {
