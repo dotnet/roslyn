@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // any changes we made before members get pulled up into the base class.
             // We only need to worry about symbols that are actually being moved, so we track
             // the symbols from the member analysis. 
-            foreach (var documentId in symbolMapping.DocumentIds)
+            foreach (var (documentId, symbols) in symbolMapping.DocumentIdsToSymbolMap)
             {
                 if (remainingResults.Count == 0)
                 {
@@ -172,7 +172,9 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 // Out of the remaining members that we need to move, does this
                 // document contain the definition for that symbol? If so, add it to the builder
                 // and remove it from the symbols we're looking for
-                foreach (var memberAnalysis in remainingResults)
+                var memberAnalysisForDocumentSymbols = remainingResults.Where(analysis => symbols.Contains(analysis.Member));
+
+                foreach (var memberAnalysis in memberAnalysisForDocumentSymbols)
                 {
                     var annotation = symbolMapping.SymbolToDeclarationAnnotationMap[memberAnalysis.Member];
 
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var unformattedSolution = solution;
             var remainingResults = new List<ExtractClassMemberAnalysisResult>(memberAnalysisResults);
 
-            foreach (var documentId in symbolMapping.DocumentIds)
+            foreach (var documentId in symbolMapping.DocumentIdsToSymbolMap.Keys)
             {
                 if (remainingResults.IsEmpty())
                 {

@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedInterfaceDocument.Project.Solution,
-                symbolMapping.DocumentIds,
+                symbolMapping.DocumentIdsToSymbolMap.Keys.ToImmutableArray(),
                 symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom,
                 extractedInterfaceSymbol,
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             var completedSolution = await GetFormattedSolutionAsync(
                 completedUnformattedSolution,
-                symbolMapping.DocumentIds.Concat(unformattedInterfaceDocument.Id),
+                symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(unformattedInterfaceDocument.Id),
                 cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
@@ -236,14 +236,14 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             // After the interface is inserted, update the original type to show it implements the new interface
             var unformattedSolutionWithUpdatedType = await GetSolutionWithOriginalTypeUpdatedAsync(
-                unformattedSolution, symbolMapping.DocumentIds,
+                unformattedSolution, symbolMapping.DocumentIdsToSymbolMap.Keys.ToImmutableArray(),
                 symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom, extractedInterfaceSymbol,
                 extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
 
             var completedSolution = await GetFormattedSolutionAsync(
                 unformattedSolutionWithUpdatedType,
-                symbolMapping.DocumentIds.Concat(refactoringResult.DocumentToExtractFrom.Id),
+                symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(refactoringResult.DocumentToExtractFrom.Id),
                 cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(

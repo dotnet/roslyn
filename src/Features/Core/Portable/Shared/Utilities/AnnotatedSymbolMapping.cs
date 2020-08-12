@@ -18,18 +18,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         public ImmutableDictionary<ISymbol, SyntaxAnnotation> SymbolToDeclarationAnnotationMap { get; }
         public Solution AnnotatedSolution { get; }
-        public ImmutableArray<DocumentId> DocumentIds { get; }
+        public ImmutableDictionary<DocumentId, ImmutableArray<ISymbol>> DocumentIdsToSymbolMap { get; }
         public SyntaxAnnotation TypeNodeAnnotation { get; }
 
         public AnnotatedSymbolMapping(
             ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
             Solution annotatedSolution,
-            ImmutableArray<DocumentId> documentIds,
+            ImmutableDictionary<DocumentId, ImmutableArray<ISymbol>> documentIdsToSymbolMap,
             SyntaxAnnotation typeNodeAnnotation)
         {
             SymbolToDeclarationAnnotationMap = symbolToDeclarationAnnotationMap;
             AnnotatedSolution = annotatedSolution;
-            DocumentIds = documentIds;
+            DocumentIdsToSymbolMap = documentIdsToSymbolMap;
             TypeNodeAnnotation = typeNodeAnnotation;
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             using var _ = PooledDictionary<ISymbol, SyntaxAnnotation>.GetInstance(out var symbolToDeclarationAnnotationMap);
             using var _1 = PooledDictionary<SyntaxTree, SyntaxNode>.GetInstance(out var currentRoots);
-            using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIds);
+            using var _2 = PooledDictionary<DocumentId, List<ISymbol>>.GetInstance(out var documentIdToSymbolsMap);
 
             var typeNodeRoot = await typeNode.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var typeNodeAnnotation = new SyntaxAnnotation();
@@ -56,18 +56,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             // DocumentIds will track all of the documents where annotations were added since 
             // it's not guaranteed that all of the symbols are in the same document
-            documentIds.Add(solution.GetRequiredDocument(typeNode.SyntaxTree).Id);
+            documentIdToSymbolsMap.Add(solution.GetRequiredDocument(typeNode.SyntaxTree).Id, new List<ISymbol>());
 
             foreach (var symbol in symbols)
             {
                 var location = symbol.Locations.Single();
                 var tree = location.SourceTree!;
+                var id = solution.GetRequiredDocument(tree).Id;
 
                 // If there's not currently an entry for this tree then make sure to add it
                 if (!currentRoots.TryGetValue(tree, out var root))
                 {
                     root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    documentIds.Add(solution.GetRequiredDocument(tree).Id);
+                    documentIdToSymbolsMap.Add(id, new List<ISymbol>());
                 }
 
                 var token = root.FindToken(location.SourceSpan.Start);
@@ -77,6 +78,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // Add the instance of the annotation used to annotate this symbol so it
                 // can be retrieved later
                 symbolToDeclarationAnnotationMap.Add(symbol, annotation);
+
+                // Add the symbol to list of symbols contained in the document
+                var symbolsInDocument = documentIdToSymbolsMap[id];
+                symbolsInDocument.Add(symbol);
 
                 // Store the updated root node with the annotation added
                 currentRoots[tree] = root.ReplaceToken(token, token.WithAdditionalAnnotations(annotation));
@@ -90,7 +95,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 annotatedSolution = document.WithSyntaxRoot(root.Value).Project.Solution;
             }
 
-            return new AnnotatedSymbolMapping(symbolToDeclarationAnnotationMap.ToImmutableDictionary(), annotatedSolution, documentIds.ToImmutable(), typeNodeAnnotation);
+            var immutableDocumentIdToSymbolsMap = documentIdToSymbolsMap.ToImmutableDictionary(
+                keySelector: (kvp) => kvp.Key,
+                elementSelector: (kvp) => kvp.Value.ToImmutableArray());
+            return new AnnotatedSymbolMapping(symbolToDeclarationAnnotationMap.ToImmutableDictionary(), annotatedSolution, immutableDocumentIdToSymbolsMap, typeNodeAnnotation);
         }
     }
 }
