@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(text));
             }
 
-            encoding = encoding ?? s_utf8EncodingWithNoBOM;
+            encoding = encoding ?? Encoding.UTF8;
 
             return new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm);
         }
