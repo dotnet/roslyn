@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         {
         }
 
-        private static bool ShouldStatementBeInlined(StatementSyntax statementSyntax)
+        private static bool CanStatementBeInlined(StatementSyntax statementSyntax)
             => statementSyntax is ReturnStatementSyntax || statementSyntax is ExpressionStatementSyntax;
 
         protected override bool IsSingleStatementOrExpressionMethod(SyntaxNode calleeMethodDeclarationSyntaxNode)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 if (blockSyntaxNode != null)
                 {
                     var blockStatements = blockSyntaxNode.Statements;
-                    return blockStatements.Count == 1 && ShouldStatementBeInlined(blockStatements[0]);
+                    return blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]);
                 }
                 else
                 {

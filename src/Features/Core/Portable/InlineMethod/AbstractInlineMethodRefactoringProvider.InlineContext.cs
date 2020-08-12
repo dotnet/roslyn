@@ -52,7 +52,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// </summary>
             public bool ContainsAwaitExpression { get; }
 
-            private const string TemporaryName = "tmp";
+            /// <summary>
+            /// A preferred name used to generated a declaration when the
+            /// inline method has a return value but is not assigned to a variable.
+            /// </summary>
+            private const string TemporaryName = "temp";
 
             private InlineMethodContext(
                 ImmutableArray<SyntaxNode> statementsToInsertBeforeCallee,
@@ -88,8 +92,50 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // So first compute a mapping from symbol to newName (renameTable)
                 // Cases are:
                 // 1. Replace the callee's parameter withe caller's identifier might cause conflict in callee.
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     int i, j = 10;
+                //     Callee(i, j);
+                // }
+                // void Callee(int a, int b)
+                // {
+                //     DoSomething(a, b, out int i);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     int i, j = 10;
+                //     DoSomething(a, b, out int i1);
+                // }
+                // void Callee(int a, int b)
+                // {
+                //     DoSomething(a, b, out int i);
+                // }
                 // 2. Use the parameter's name to generate declarations in caller might cause conflict in the caller
                 // In either case, rename the symbol in Callee.
+                // Example:
+                // Before:
+                // void Caller(int i, int j)
+                // {
+                //     Callee(Foo(), Bar());
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     DoSomething(i, j);
+                // }
+                // After:
+                // void Caller(int i, int j)
+                // {
+                //     int i1 = Foo();
+                //     int j1 = Bar();
+                //     DoSomething(i1, j1)
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     DoSomething(i, j);
+                // }
                 var parametersWithIdentifierArgumentToName = methodParametersInfo.ParametersWithIdentifierArgument
                     .Select(parameterAndArgument =>
                         (parameterAndArgument.parameterSymbol,
@@ -157,8 +203,55 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 // Do the replacement work within the callee. Including:
                 // 1. Literal replacement
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     Callee(20)
+                // }
+                // void Callee(int i, int j = 10)
+                // {
+                //     Bar(i, j);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     Bar(20, 10);
+                // }
+                // void Callee(int i, int j = 10)
+                // {
+                //     Bar(i, j);
+                // }
                 // 2. Identifier rename
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     int a, b;
+                //     Callee(a, b)
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     Bar(i, j);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     int a, b;
+                //     Bar(a, b);
+                // }
+                // void Callee(int i, int j = 10)
+                // {
+                //     Bar(i, j);
+                // }
                 // 3. Type arguments (generics)
+                // Example:
+                // Before:
+                // void Caller() { Callee<int>(); }
+                // void Callee<T>() => Print(typeof<T>);
+                // After:
+                // void Caller() { Print(typeof(int)); }
+                // void Callee<T>() => Print(typeof<T>);
                 var replacementTable = ComputeReplacementTable(
                     inlineMethodRefactoringProvider,
                     calleeMethodSymbol,
@@ -358,14 +451,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 SyntaxGenerator syntaxGenerator,
                 ImmutableDictionary<ISymbol, string> renameTable)
             {
-                // The generics types
-                // Example:
-                // Before:
-                // void Caller() { Callee<int>(); }
-                // void Callee<T>() => Print(typeof<T>);
-                // After:
-                // void Caller() { Print(typeof(int)); }
-                // void Callee<T>() => Print(typeof<T>);
                 var typeParametersReplacementQuery = calleeMethodSymbol.TypeParameters
                     .Zip(calleeMethodSymbol.TypeArguments,
                         (parameter, argument) => (parameter: (ISymbol)parameter, syntaxNode: inlineMethodRefactoringProvider.GenerateTypeSyntax(argument)));

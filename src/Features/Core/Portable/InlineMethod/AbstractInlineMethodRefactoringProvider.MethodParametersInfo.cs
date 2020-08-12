@@ -95,6 +95,25 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
                 // For params array, it should be included here if it is accept an array identifier as argument.
+                // Example:
+                // Before:
+                // void Caller(int i, int j, bool[] k)
+                // {
+                //     Callee(i, j, k);
+                // }
+                // void Callee(int a, int b, params bool[] c)
+                // {
+                //     DoSomething(a, b, c);
+                // }
+                // After:
+                // void Caller(int i, int j, bool[] k)
+                // {
+                //     DoSomething(i, j, k);
+                // }
+                // void Callee(int a, int b, params bool[] c)
+                // {
+                //     DoSomething(a, b, c);
+                // }
                 var parametersWithIdentifier = parameterSymbolAndArguments
                     .Where(parameterAndArguments => ParameterWithIdentifierArgumentFilter(syntaxFacts, semanticModel,
                         parameterAndArguments, cancellationToken))
@@ -123,6 +142,25 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .ToImmutableArray();
 
                 // 3. Find the literal arguments, and the mapping parameter will be replaced by that literal expression
+                // Example:
+                // Before:
+                // void Caller(int k)
+                // {
+                //     Callee(1, k);
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     DoSomething(i, k);
+                // }
+                // After:
+                // void Caller(int k)
+                // {
+                //     DoSomething(1, k);
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     DoSomething(i, j);
+                // }
                 var parametersWithLiteralArgument = parameterSymbolAndArguments
                     .Where(parameterAndArguments =>
                         ParameterWithLiteralArgumentFilter(syntaxFacts, parameterAndArguments))
@@ -163,6 +201,25 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // 5. Parameter without any argument.
                 // Case 1: only parameter has default value would be left here. The parameter will be replaced by the default value.
                 // Case 2: there is no arguments and the parameter is params array. An array needs to be declared in the caller. Similarly to what is done in step 4
+                // Example for case 1:
+                // Before:
+                // void Caller()
+                // {
+                //     Callee();
+                // }
+                // void Callee(int i = 10, bool f = true)
+                // {
+                //     DoSomething(i, f);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     DoSomething(10, true);
+                // }
+                // void Callee(int i = 10, bool f = true)
+                // {
+                //     DoSomething(i, f);
+                // }
                 // Example for case 2:
                 // Before:
                 // void Caller(bool x)
