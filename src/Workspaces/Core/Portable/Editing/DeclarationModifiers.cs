@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var field = symbol as IFieldSymbol;
                 var property = symbol as IPropertySymbol;
+                var method = symbol as IMethodSymbol;
 
                 return new DeclarationModifiers(
                     isStatic: symbol.IsStatic,
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Editing
                     isConst: field != null && field.IsConst,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
                     isVolatile: field != null && field.IsVolatile,
-                    isExtern: symbol.IsExtern);
+                    isExtern: symbol.IsExtern,
+                    isAsync: method?.IsAsync == true);
             }
 
             // Only named types, members of named types, and local functions have modifiers.
