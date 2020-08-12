@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -46,12 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _serviceProvider = serviceProvider;
             }
 
-            public string ResolveAssemblyPath(
+            public async Task<string?> ResolveAssemblyPathAsync(
                 ProjectId projectId,
                 string assemblyName,
-                string fullyQualifiedTypeName = null)
+                string? fullyQualifiedTypeName,
+                CancellationToken cancellationToken)
             {
-                this.AssertIsForeground();
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var assembly = ResolveAssembly(projectId, assemblyName);
                 if (assembly != null)

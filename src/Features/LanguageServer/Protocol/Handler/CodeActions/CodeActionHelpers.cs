@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -35,12 +34,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (!actionSets.HasValue)
             {
                 return Array.Empty<VSCodeAction>();
@@ -108,12 +106,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, codeFixService, codeRefactoringService, threadingContext, selection, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (!actionSets.HasValue)
             {
                 return ImmutableArray<CodeAction>.Empty;
@@ -165,23 +162,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
-            // The logic to filter code actions requires the UI thread
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var codeFixes = UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixes_MustBeCalledFromUIThread(
+            var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan, includeSuppressionFixes: true,
-                isBlocking: false, addOperationScope: _ => null, cancellationToken);
+                isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
-            var codeRefactorings = UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactorings_MustBeCalledFromUIThread(
+            var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                 document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, isBlocking: false,
-                addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken);
+                addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(codeFixes, codeRefactorings, textSpan);
             return actionSets;
