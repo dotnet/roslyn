@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public override async Task<LSP.SemanticTokens> HandleRequestAsync(
             LSP.SemanticTokensRangeParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
+            RequestContext context,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument);
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // document request, so caching range results is unnecessary since the whole document
             // handler will cache the results anyway.
             var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                request.TextDocument, clientName, SolutionProvider, SemanticTokensCache.TokenTypesToIndex,
+                request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypesToIndex,
                 request.Range, cancellationToken).ConfigureAwait(false);
             return new LSP.SemanticTokens { ResultId = resultId, Data = tokensData };
         }

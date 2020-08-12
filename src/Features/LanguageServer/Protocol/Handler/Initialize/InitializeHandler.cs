@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .ToImmutableArray();
         }
 
-        public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var triggerCharacters = _completionProviders.SelectMany(lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 

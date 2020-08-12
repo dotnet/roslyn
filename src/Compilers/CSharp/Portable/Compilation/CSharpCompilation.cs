@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">The compiler options to use.</param>
         /// <returns>A new compilation.</returns>
         public static CSharpCompilation Create(
-            string assemblyName,
+            string? assemblyName,
             IEnumerable<SyntaxTree>? syntaxTrees = null,
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null)
@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Metadata references are inherited from the previous submission,
             // so we can only reuse the manager if we can guarantee that these references are the same.
-            // Check if the previous script compilation doesn't change. 
+            // Check if the previous script compilation doesn't change.
 
             // TODO: Consider comparing the metadata references if they have been bound already.
             // https://github.com/dotnet/roslyn/issues/43397

@@ -2793,5 +2793,21 @@ class C
     private readonly Action<object, EventArgs> f2;
 }", parameters: new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task DoNotSuggestVarForTargetTypedNew()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void Method()
+    {
+        [|string|] p = new('c', 1);
+    }
+
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }

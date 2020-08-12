@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public override async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> HandleRequestAsync(
             LSP.SemanticTokensEditsParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
+            RequestContext context,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(request.TextDocument);
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
             var newSemanticTokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                request.TextDocument, clientName, SolutionProvider, SemanticTokensCache.TokenTypesToIndex,
+                request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypesToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfNull(newSemanticTokensData);

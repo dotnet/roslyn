@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static AdhocWorkspace CreateWorkspace()
             => new AdhocWorkspace(s_composition.GetHostServices());
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46255")]
+        [Fact]
         public async Task UpdaterService()
         {
             var hostServices = s_composition.GetHostServices();
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
-            var mock = new MockLogAndProgressService();
+            var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             using var connection = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
@@ -151,15 +151,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             }
         }
 
-        private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
+        private class MockLogService : ISymbolSearchLogService
         {
             public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
             public Task LogInfoAsync(string text) => Task.CompletedTask;
-
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
         }
     }
 }

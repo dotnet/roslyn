@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             Return TestWorkspace.CreateVisualBasic(content, exportProvider:=exportProvider)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestNoItemsForEmptyFile(testHost As TestHost) As Task
             Await TestAsync(testHost, "", Async Function(w)
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
                                           End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindClass(testHost As TestHost) As Task
             Await TestAsync(testHost,
@@ -41,7 +41,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindVerbatimClass(testHost As TestHost) As Task
             Await TestAsync(testHost,
@@ -55,7 +55,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindNestedClass(testHost As TestHost) As Task
             Await TestAsync(testHost,
@@ -70,7 +70,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindMemberInANestedClass(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Alpha
@@ -87,7 +87,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindGenericConstrainedClass(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo(Of M As IComparable)
@@ -97,7 +97,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindGenericConstrainedMethod(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo(Of M As IComparable)
@@ -109,7 +109,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindPartialClass(testHost As TestHost) As Task
             Await TestAsync(testHost, "Partial Public Class Goo
@@ -131,7 +131,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindClassInNamespace(testHost As TestHost) As Task
             Await TestAsync(testHost, "Namespace Bar
@@ -143,7 +143,7 @@ End Namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindStruct(testHost As TestHost) As Task
             Await TestAsync(testHost, "Structure Bar
@@ -153,7 +153,7 @@ End Structure", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindEnum(testHost As TestHost) As Task
             Await TestAsync(testHost, "Enum Colors
@@ -166,7 +166,7 @@ End Enum", Async Function(w)
            End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindEnumMember(testHost As TestHost) As Task
             Await TestAsync(testHost, "Enum Colors
@@ -179,7 +179,7 @@ End Enum", Async Function(w)
            End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindField1(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -190,7 +190,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindField2(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -201,7 +201,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindField3(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -211,7 +211,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindVerbatimField(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -225,7 +225,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindConstField(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -236,7 +236,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindIndexer(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -255,7 +255,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         <WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
         Public Async Function TestFindEvent(testHost As TestHost) As Task
@@ -267,7 +267,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindNormalProperty(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -283,7 +283,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindAutoImplementedProperty(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -294,7 +294,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindMethod(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -306,7 +306,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindVerbatimMethod(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -321,7 +321,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindParameterizedMethod(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -333,7 +333,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindConstructor(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -345,7 +345,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindStaticConstructor(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -357,7 +357,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindDestructor(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -376,7 +376,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindPartialMethods(testHost As TestHost) As Task
             Await TestAsync(testHost, "Partial Class Goo
@@ -401,7 +401,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindPartialMethodDefinitionOnly(testHost As TestHost) As Task
             Await TestAsync(testHost, "Partial Class Goo
@@ -413,7 +413,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindPartialMethodImplementationOnly(testHost As TestHost) As Task
             Await TestAsync(testHost, "Partial Class Goo
@@ -425,7 +425,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindOverriddenMethods(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class BaseGoo
@@ -450,7 +450,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDottedPattern1(testHost As TestHost) As Task
             Await TestAsync(testHost, "namespace Goo
@@ -472,7 +472,7 @@ end namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDottedPattern2(testHost As TestHost) As Task
             Await TestAsync(testHost, "namespace Goo
@@ -493,7 +493,7 @@ end namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDottedPattern3(testHost As TestHost) As Task
             Await TestAsync(testHost, "namespace Goo
@@ -515,7 +515,7 @@ end namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDottedPattern4(testHost As TestHost) As Task
             Await TestAsync(testHost, "namespace Goo
@@ -537,7 +537,7 @@ end namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDottedPattern5(testHost As TestHost) As Task
             Await TestAsync(testHost, "namespace Goo
@@ -559,7 +559,7 @@ end namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDottedPattern6(testHost As TestHost) As Task
             Await TestAsync(testHost, "namespace Goo
@@ -578,7 +578,7 @@ end namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         <WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")>
         Public Async Function TestDottedPattern7(testHost As TestHost) As Task
@@ -601,7 +601,7 @@ end namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindInterface(testHost As TestHost) As Task
             Await TestAsync(testHost, "Public Interface IGoo
@@ -611,7 +611,7 @@ End Interface", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindDelegateInNamespace(testHost As TestHost) As Task
             Await TestAsync(testHost, "Namespace Goo
@@ -622,7 +622,7 @@ End Namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindLambdaExpression(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -633,7 +633,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindModule(testHost As TestHost) As Task
             Await TestAsync(testHost, "Module ModuleTest
@@ -643,7 +643,7 @@ End Module", Async Function(w)
              End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindLineContinuationMethod(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -655,7 +655,7 @@ End Sub", Async Function(w)
           End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindArray(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -666,7 +666,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindClassAndMethodWithSameName(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class Goo
@@ -688,7 +688,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindMethodNestedInGenericTypes(testHost As TestHost) As Task
             Await TestAsync(testHost, "Class A(Of T)
@@ -705,7 +705,7 @@ End Class", Async Function(w)
         End Function
 
         <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindClassInNamespaceWithGlobalPrefix(testHost As TestHost) As Task
             Await TestAsync(testHost, "Namespace Global.MyNS
@@ -718,7 +718,7 @@ End Namespace", Async Function(w)
         End Function
 
         <WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestFindClassInGlobalNamespace(testHost As TestHost) As Task
             Await TestAsync(testHost, "Namespace Global
@@ -731,7 +731,7 @@ End Namespace", Async Function(w)
         End Function
 
         <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestConstructorNotParentedByTypeBlock(testHost As TestHost) As Task
             Await TestAsync(testHost, "Module Program
@@ -744,7 +744,7 @@ End Sub", Async Function(w)
           End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestStartStopSanity(testHost As TestHost) As Task
             ' Verify that multiple calls to start/stop don't blow up
@@ -763,7 +763,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDescriptionItems(testHost As TestHost) As Task
             Await TestAsync(testHost, "
@@ -786,7 +786,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WpfTheory>
+        <Theory>
         <CombinatorialData>
         Public Async Function TestDescriptionItemsFilePath(testHost As TestHost) As Task
             Using workspace = CreateWorkspace(
