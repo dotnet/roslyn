@@ -21,19 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     internal class InlineParameterNameHintsTag : IntraTextAdornmentTag
     {
         public const string TagId = "inline parameter name hints";
+
         /// <summary>
         /// Creates the UIElement on call
         /// Uses PositionAffinity.Predecessor because we want the tag to be associated with the preceding character
         /// </summary>
         /// <param name="text">The name of the parameter associated with the argument</param>
         public InlineParameterNameHintsTag(string text, IWpfTextView textView, TextFormattingRunProperties format)
-            : base(CreateElement(text, textView, format), removalCallback: AdornmentCallbackFunction, PositionAffinity.Predecessor)
+            : base(CreateElement(text, textView, format), removalCallback: null, PositionAffinity.Predecessor)
         {
-        }
-
-        private static void AdornmentCallbackFunction(object tag, UIElement element)
-        {
-            //
         }
 
         private static UIElement CreateElement(string text, IWpfTextView textView, TextFormattingRunProperties format)
@@ -63,12 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, -0.20 * textView.LineHeight, 5, 0),
                 Padding = new Thickness(1),
+
+                // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
                 SnapsToDevicePixels = textView.VisualElement.SnapsToDevicePixels,
                 UseLayoutRounding = textView.VisualElement.UseLayoutRounding,
                 VerticalAlignment = VerticalAlignment.Center
             };
 
-            // Need to set these properties to avoid unecessary reformatting because some dependancy properties
+            // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout
             TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(textView.VisualElement));
             TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(textView.VisualElement));
