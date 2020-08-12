@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // available
 
+        IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
         IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
         IDS_FeatureExpressionBodiedProperty = MessageBase + 12692,
@@ -208,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRecords = MessageBase + 12782,
         IDS_FeatureNullPointerConstantPattern = MessageBase + 12783,
         IDS_FeatureModuleInitializers = MessageBase + 12784,
-        IDS_FeatureConstantInterpolatedStrings = MessageBase + 12785,
+        IDS_FeatureTargetTypedConditional = MessageBase + 12785,
+        IDS_FeatureConstantInterpolatedStrings = MessageBase + 12786,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -333,8 +335,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_TopLevelStatements:
                 case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureRecords:
+                case MessageID.IDS_FeatureTargetTypedConditional:  // semantic check
                 case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
+                case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: //semantic check
                     return LanguageVersion.Preview;
 

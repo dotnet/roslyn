@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Cannot_apply_action_that_is_not_in_0">
         <source>Cannot apply action that is not in '{0}'</source>
-        <target state="new">Cannot apply action that is not in '{0}'</target>
+        <target state="translated">'{0}' に含まれていないアクションを適用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
@@ -99,12 +99,12 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="new">Rename '{0}' to '{1}'</target>
+        <target state="translated">{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
-        <target state="new">Solution does not contain specified reference</target>
+        <target state="translated">指定された参照がソリューションに含まれていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -184,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
         <source>Symbol's project could not be found in the provided solution</source>
-        <target state="new">Symbol's project could not be found in the provided solution</target>
+        <target state="translated">指定されたソリューションでシンボルのプロジェクトが見つかりませんでした</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_namespace_to_folder_structure">
         <source>Sync namespace to folder structure</source>
-        <target state="new">Sync namespace to folder structure</target>
+        <target state="translated">名前空間とフォルダー構造の同期</target>
         <note />
       </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
@@ -199,12 +199,12 @@
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_reference">
         <source>The solution already contains the specified reference.</source>
-        <target state="new">The solution already contains the specified reference.</target>
+        <target state="translated">このソリューションには、指定された参照が既に含まれています。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">不明</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

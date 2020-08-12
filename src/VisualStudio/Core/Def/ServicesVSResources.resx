@@ -291,12 +291,6 @@ Use the dropdown to view and navigate to other items in this file.</value>
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
   </data>
-  <data name="ErrorReadingRuleset" xml:space="preserve">
-    <value>ErrorReadingRuleset</value>
-  </data>
-  <data name="Error_reading_ruleset_file_0_1" xml:space="preserve">
-    <value>Error reading ruleset file {0} - {1}</value>
-  </data>
   <data name="AnalyzerChangedOnDisk" xml:space="preserve">
     <value>AnalyzerChangedOnDisk</value>
   </data>
@@ -1528,6 +1522,9 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
     <value>Warning: type does not bind</value>
+  </data>
+  <data name="Display_inline_parameter_name_hints" xml:space="preserve">
+    <value>Disp_lay inline parameter name hints (experimental)</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>

@@ -38,39 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
-                LookupMembersInType(
-                    lookupResult,
-                    receiverType,
-                    WellKnownMemberNames.CloneMethodName,
-                    arity: 0,
-                    ConsList<TypeSymbol>.Empty,
-                    LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
-                    this,
-                    diagnose: false,
-                    ref useSiteDiagnostics);
-
-                if (lookupResult.IsMultiViable)
-                {
-                    foreach (var symbol in lookupResult.Symbols)
-                    {
-                        if (symbol is MethodSymbol { ParameterCount: 0 } m)
-                        {
-                            cloneMethod = m;
-                            break;
-                        }
-                    }
-                }
-
-                lookupResult.Clear();
-
-                if (cloneMethod is null ||
-                    !receiverType.IsEqualToOrDerivedFrom(
-                        cloneMethod.ReturnType,
-                        TypeCompareKind.ConsiderEverything,
-                        ref useSiteDiagnostics))
+                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType, ref useSiteDiagnostics);
+                if (cloneMethod is null)
                 {
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
+                }
+                else if (cloneMethod.GetUseSiteDiagnostic() is DiagnosticInfo info)
+                {
+                    (useSiteDiagnostics ??= new HashSet<DiagnosticInfo>()).Add(info);
                 }
 
                 diagnostics.Add(syntax.Expression, useSiteDiagnostics);

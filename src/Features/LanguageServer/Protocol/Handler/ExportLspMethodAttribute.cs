@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         public string MethodName { get; }
 
-        public ExportLspMethodAttribute(string methodName) : base(typeof(IRequestHandler))
+        public string LanguageName { get; }
+
+        public ExportLspMethodAttribute(string methodName, string languageName = null) : base(typeof(IRequestHandler))
         {
             if (string.IsNullOrEmpty(methodName))
             {
@@ -23,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             MethodName = methodName;
+            LanguageName = languageName;
         }
     }
 }
