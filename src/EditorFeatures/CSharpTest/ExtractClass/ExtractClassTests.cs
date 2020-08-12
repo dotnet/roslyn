@@ -77,6 +77,27 @@ class Test : MyBase
         }
 
         [Fact]
+        public async Task TestErrorBaseMethod()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test : ErrorBase
+{
+    int [||]Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingAsync(input);
+        }
+
+        [Fact]
         public async Task TestPartialClass()
         {
             var input = @"
