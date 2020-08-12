@@ -1885,10 +1885,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UseDefViolationOut = 8886,
         WRN_UseDefViolation = 8887,
 
-        WRN_GeneratorFailedDuringInitializationDeveloper = 8888,
-        WRN_GeneratorFailedDuringGenerationDeveloper = 8889,
+        ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 8888,
+        ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 8889,
+        ERR_TypeNotFound = 8890,
+        ERR_TypeMustBePublic = 8891,
+
+        WRN_GeneratorFailedDuringInitializationDeveloper = 8892,
+        WRN_GeneratorFailedDuringGenerationDeveloper = 8893,
 
         #endregion diagnostics introduced for C# 9.0
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

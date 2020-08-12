@@ -1010,6 +1010,12 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
 
+                // System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
+
                 // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
                 (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
                 (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
@@ -1140,6 +1146,7 @@ namespace Microsoft.CodeAnalysis
                 "op_Implicit",                              // System_Nullable_T__op_Implicit_FromT
                 "op_Explicit",                              // System_Nullable_T__op_Explicit_ToT
                 "DefaultImplementationsOfInterfaces",       // System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                "UnmanagedSignatureCallingConvention",      // System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                 "CovariantReturnsOfClasses",                // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
             };
 

@@ -920,7 +920,7 @@ class C
             var ex = results.Results.Single().Exception;
 
             results.Diagnostics.Verify(
-                 // warning CS8889: Generator 'CallbackGenerator' threw an exception during execution: type 'InvalidOperationException' with message 'I'm sorry dave'
+                 // warning CS8893: Generator 'CallbackGenerator' threw an exception during execution: type 'InvalidOperationException' with message 'I'm sorry dave'
                  Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave", ex).WithLocation(1, 1)
                 );
 
@@ -958,7 +958,7 @@ class C { }
             var ex = results.Results.Single().Exception;
 
             results.Diagnostics.Verify(
-                 // warning CS8888: Generator 'CallbackGenerator' threw an exception during initialization: type 'InvalidOperationException' with message 'I'm sorry dave'
+                 // warning CS8892: Generator 'CallbackGenerator' threw an exception during initialization: type 'InvalidOperationException' with message 'I'm sorry dave'
                  Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitializationDeveloper).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave", ex).WithLocation(1, 1)
                 );
 
@@ -997,7 +997,7 @@ class C { }
             var ex = results.Results.First().Exception;
 
             results.Diagnostics.Verify(
-                 // warning CS8889: Generator 'CallbackGenerator' threw an exception during generation: type 'InvalidOperationException' with message 'I'm sorry dave'
+                 // warning CS8893: Generator 'CallbackGenerator' threw an exception during generation: type 'InvalidOperationException' with message 'I'm sorry dave'
                  Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGenerationDeveloper).WithArguments("CallbackGenerator", "InvalidOperationException", "I'm sorry dave", ex).WithLocation(1, 1),
 
                  // warning CS8784: Generator 'CallbackGenerator' failed to generate code. It will not contribute to the output and compilation errors may occur as a result.

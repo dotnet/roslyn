@@ -9,10 +9,11 @@ Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
 Imports Microsoft.CodeAnalysis.Host
@@ -23,6 +24,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     <[UseExportProvider]>
     Public Class CodeFixServiceTests
+
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
 
         Private ReadOnly _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
 
@@ -40,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = TestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
@@ -49,7 +54,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim project = workspace.CurrentSolution.Projects(0)
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
@@ -108,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(test)
+            Using workspace = TestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
@@ -117,7 +123,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim project = workspace.CurrentSolution.Projects(0)
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
