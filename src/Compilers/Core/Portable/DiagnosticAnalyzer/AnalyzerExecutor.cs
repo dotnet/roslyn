@@ -708,8 +708,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerStateData? analyzerState,
             bool isGeneratedCode)
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, semanticModel.SyntaxTree))
             {
@@ -1077,7 +1075,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
             Debug.Assert(startActions.Any() || endActions.Any() || actions.Any());
             Debug.Assert(!executableBlocks.IsEmpty);
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree))
@@ -1333,8 +1330,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode)
             where TLanguageKindEnum : struct
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
             {
@@ -1473,8 +1468,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OperationAnalyzerStateData? analyzerState,
             bool isGeneratedCode)
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
             {
