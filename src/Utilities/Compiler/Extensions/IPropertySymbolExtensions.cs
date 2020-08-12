@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.Extensions
 {
-    public static class IPropertySymbolExtensions
+    internal static class IPropertySymbolExtensions
     {
         /// <summary>
         /// Check if a property is an auto-property.
