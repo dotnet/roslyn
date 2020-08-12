@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
@@ -91,50 +93,100 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var cache = GetCodeActionsCache(workspace);
+            var testAccessor = cache.GetTestAccessor();
+
+            // This test assumes that the maximum cache size is 3, and will have to modified if this number changes.
+            Assert.True(CodeActionsCache.TestAccessor.MaximumCacheSize == 3);
 
             var caretLocation = locations["caret"].Single();
-            await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
-
             var document = GetDocument(workspace, CreateTextDocumentIdentifier(caretLocation.Uri));
-            var cacheResults = await cache.GetCacheAsync(document, caretLocation.Range, CancellationToken.None);
-            Assert.NotNull(cacheResults);
-            Assert.True(cache.GetNumCacheItems() == 1);
 
-            // Invoking code actions on the same unmodified document and range should use the existing cached item
+            // 1. Invoking code actions on document with empty cache.
+            await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, document);
+
+            // Ensuring contents of cache are as expected.
+            var docAndRange = testAccessor.GetDocumentsAndRangesInCache().Single();
+            AssertRangeAndDocEqual(caretLocation.Range, document, docAndRange);
+
+            // 2. Invoking code actions on the same unmodified document and range should use the existing cached item
             // instead of generating a new cached item.
-            await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
-            cacheResults = await cache.GetCacheAsync(document, caretLocation.Range, CancellationToken.None);
-            Assert.True(cache.GetNumCacheItems() == 1);
+            await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, document);
 
-            // Invoking code actions on a different range should generate a new cached item.
+            // Ensuring contents of cache are as expected.
+            docAndRange = testAccessor.GetDocumentsAndRangesInCache().Single();
+            AssertRangeAndDocEqual(caretLocation.Range, document, docAndRange);
+
+            var originalRange = caretLocation.Range;
+
+            // 3. Invoking code actions on a different range should generate a new cached item.
             caretLocation.Range = new LSP.Range
             {
                 Start = new LSP.Position() { Line = 0, Character = 0 },
                 End = new LSP.Position() { Line = 0, Character = 0 }
             };
 
-            await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
-            Assert.True(cache.GetNumCacheItems() == 2);
+            await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, document);
 
-            // Changing the document should generate a new cached item.
+            // Ensuring contents of cache are as expected.
+            var docsAndRanges = testAccessor.GetDocumentsAndRangesInCache();
+            Assert.True(docsAndRanges.Count == 2);
+            AssertRangeAndDocEqual(originalRange, document, docsAndRanges[0]);
+            AssertRangeAndDocEqual(caretLocation.Range, document, docsAndRanges[1]);
+
+            // 4. Changing the document should generate a new cached item.
             var currentDocText = await document.GetTextAsync();
             var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
             var docId = ((TestWorkspace)workspace).Documents.First().Id;
             ((TestWorkspace)workspace).ChangeDocument(docId, changedSourceText);
             UpdateSolutionProvider((TestWorkspace)workspace, workspace.CurrentSolution);
+            var updatedDocument = GetDocument(workspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
-            await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
-            Assert.True(cache.GetNumCacheItems() == 3);
+            await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, updatedDocument);
 
-            // The current cache size is 3. Adding a 4th item to the cache should still keep the cache size the same.
+            // Ensuring contents of cache are as expected.
+            docsAndRanges = testAccessor.GetDocumentsAndRangesInCache();
+            AssertRangeAndDocEqual(originalRange, document, docsAndRanges[0]);
+            AssertRangeAndDocEqual(caretLocation.Range, document, docsAndRanges[1]);
+            AssertRangeAndDocEqual(caretLocation.Range, updatedDocument, docsAndRanges[2]);
+
+            var updatedRange = caretLocation.Range;
+
+            // 5. The current cache size is 3. Adding a 4th item to the cache should still keep the cache size the same,
+            // and boot out the oldest item in the cache.
             caretLocation.Range = new LSP.Range
             {
                 Start = new LSP.Position() { Line = 0, Character = 0 },
                 End = new LSP.Position() { Line = 0, Character = 1 }
             };
 
+            await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, updatedDocument);
+
+            // Ensuring contents of cache are as expected.
+            docsAndRanges = testAccessor.GetDocumentsAndRangesInCache();
+            AssertRangeAndDocEqual(updatedRange, document, docsAndRanges[0]);
+            AssertRangeAndDocEqual(updatedRange, updatedDocument, docsAndRanges[1]);
+            AssertRangeAndDocEqual(caretLocation.Range, updatedDocument, docsAndRanges[2]);
+        }
+
+        private static async Task RunCodeActionsAndAssertActionsInCacheAsync(
+            Workspace workspace,
+            CodeActionsCache cache,
+            LSP.Location caretLocation,
+            Document document)
+        {
             await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
-            Assert.True(cache.GetNumCacheItems() == 3);
+            var cacheResults = await cache.GetActionSetsAsync(document, caretLocation.Range, CancellationToken.None);
+            Assert.NotNull(cacheResults);
+        }
+
+        private static void AssertRangeAndDocEqual(
+            LSP.Range range,
+            Document document,
+            (Document Document, LSP.Range Range) actualDocAndRange)
+        {
+            Assert.Equal(document, actualDocAndRange.Document);
+            Assert.Equal(range.Start, actualDocAndRange.Range.Start);
+            Assert.Equal(range.End, actualDocAndRange.Range.End);
         }
 
         private static async Task<LSP.VSCodeAction[]> RunGetCodeActionsAsync(

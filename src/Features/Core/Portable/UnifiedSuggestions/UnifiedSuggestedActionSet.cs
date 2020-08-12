@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Similar to SuggestedActionSet, but in a location that can be used
     /// by both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedSuggestedActionSet : IEquatable<UnifiedSuggestedActionSet>
+    internal class UnifiedSuggestedActionSet
     {
         public string? CategoryName { get; }
 
@@ -41,44 +41,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Title = title;
             Priority = priority;
             ApplicableToSpan = applicableToSpan;
-        }
-
-        public override bool Equals(object? obj)
-            => obj is UnifiedSuggestedActionSet actionSet && Equals(actionSet);
-
-        public bool Equals(UnifiedSuggestedActionSet? otherSuggestedActionSet)
-        {
-            if (otherSuggestedActionSet == null)
-            {
-                return false;
-            }
-
-            if (this == otherSuggestedActionSet)
-            {
-                return true;
-            }
-
-            if (Title != otherSuggestedActionSet.Title || Priority != otherSuggestedActionSet.Priority ||
-                CategoryName != otherSuggestedActionSet.CategoryName ||
-                ApplicableToSpan != otherSuggestedActionSet.ApplicableToSpan)
-            {
-                return false;
-            }
-
-            if (!Actions.SequenceEqual(otherSuggestedActionSet.Actions))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(CategoryName != null ? CategoryName.GetHashCode() : 0,
-                Hash.Combine(Actions.GetHashCode(),
-                Hash.Combine(Title != null ? Title.GetHashCode() : 0,
-                Hash.Combine(Priority.GetHashCode(), ApplicableToSpan.GetHashCode()))));
         }
     }
 }
