@@ -2278,15 +2278,28 @@ tryAgain:
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
 
-                TypeSyntax type;
-                bool hasExplicitType;
+                TypeSyntax type = null;
+                bool hasExplicitType = false;
                 // Before parsing the return type, check if it looks like a method
                 if (IsPossibleMethodDeclarationStart() || IsPossibleGetterPropertyDeclarationStart())
                 {
-                    // it's more likely to be a method - without any return type defined
-                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
-                    type = _syntaxFactory.IdentifierName(token);
-                    hasExplicitType = false;
+                    // if identifier followed by "<" ... it could be either a method declaration OR it could be a type declaration... we need to try parsing the type to find out...
+                    if (this.PeekToken(1).Kind == SyntaxKind.LessThanToken)
+                    {
+                        // it could be a generic type... but also verify that it's not really a function
+                        var stateBeforeType = GetResetPoint();
+                        if (!TryParseGenericReturnType(out type) || IsPossibleMethodDeclarationStart(checkAtIdentifier: false))
+                        {
+                            type = null;
+                            Reset(ref stateBeforeType);
+                        }
+                        Release(ref stateBeforeType);
+                        // it's explicit type if we have a type
+                        hasExplicitType = type != null;
+                    }
+
+                    // if no type - it's more likely to be a method - without any return type defined
+                    type ??= SyntaxFactory.FakeTypeIdentifier(_syntaxFactory);
                 }
                 else
                 {
@@ -2647,14 +2660,18 @@ parse_member_name:;
             return result;
         }
 
-        private bool IsPossibleMethodDeclarationStart()
+        private bool IsPossibleMethodDeclarationStart(bool checkAtIdentifier = true)
         {
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                // check if following is a "(" or a "<" ... then it's most likely the name we are at!
-                (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken || this.PeekToken(1).Kind == SyntaxKind.LessThanToken))
+            var token = this.CurrentToken;
+            if (checkAtIdentifier)
             {
-                return true;
+                if (token.Kind != SyntaxKind.IdentifierToken) return false;
+                token = this.PeekToken(1);
             }
+
+            // check if following is a "(" or a "<" ... then it's most likely the name we are at!
+            if (token.Kind == SyntaxKind.OpenParenToken || token.Kind == SyntaxKind.LessThanToken)
+                return true;
 
             return false;
         }
@@ -2771,12 +2788,24 @@ parse_member_name:;
                 // Before parsing the return type, check if it looks like a method
                 if (IsPossibleMethodDeclarationStart() || IsPossibleGetterPropertyDeclarationStart())
                 {
-                    // it's more likely to be a method - without any return type defined
-                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
-                    type = _syntaxFactory.IdentifierName(token);
+                    // if identifier followed by "<" ... it could be either a method declaration OR it could be a type declaration... we need to try parsing the type to find out...
+                    if (this.PeekToken(1).Kind == SyntaxKind.LessThanToken)
+                    {
+                        // it could be a generic type... but also verify that it's not really a function
+                        var stateBeforeType = GetResetPoint();
+                        if (!TryParseGenericReturnType(out type) || IsPossibleMethodDeclarationStart(checkAtIdentifier: false))
+                        {
+                            type = null;
+                            Reset(ref stateBeforeType);
+                        }
+                        Release(ref stateBeforeType);
+                    }
+
+                    // if no type - it's more likely to be a method - without any return type defined
+                    type ??= SyntaxFactory.FakeTypeIdentifier(_syntaxFactory);
                 }
                 else
-                {   
+                {
                     // we should have a type
                     type = ParseReturnType();
                 }
@@ -3207,6 +3236,21 @@ parse_member_name:;
                     _pool.Free(constraints);
                 }
             }
+        }
+
+        private bool TryParseGenericReturnType(out TypeSyntax genericType)
+        {
+            TypeSyntax type = null;
+            try
+            {
+                type = ParseReturnType();
+            }
+            catch(Exception)
+            {
+            }
+
+            genericType = type as GenericNameSyntax;
+            return genericType != null;
         }
 
         private TypeSyntax ParseReturnType()
@@ -9383,13 +9427,27 @@ tryAgain:
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
+            type = null;
+
             if (allowLocalFunctions)
             {
-                if(IsPossibleMethodDeclarationStart())
+                if (IsPossibleMethodDeclarationStart())
                 {
-                    // it's more likely to be a method - without any return type defined
-                    var token = SyntaxFactory.Token(SyntaxKind.IdentifierToken);
-                    type = _syntaxFactory.IdentifierName(token);
+                    // if identifier followed by "<" ... it could be either a method declaration OR it could be a type declaration... we need to try parsing the type to find out...
+                    if (this.PeekToken(1).Kind == SyntaxKind.LessThanToken)
+                    {
+                        // it could be a generic type... but also verify that it's not really a function
+                        var stateBeforeType = GetResetPoint();
+                        if (!TryParseGenericReturnType(out type) || IsPossibleMethodDeclarationStart(checkAtIdentifier: false))
+                        {
+                            type = null;
+                            Reset(ref stateBeforeType);
+                        }
+                        Release(ref stateBeforeType);
+                    }
+
+                    // if no type - it's more likely to be a method - without any return type defined
+                    type ??= SyntaxFactory.FakeTypeIdentifier(_syntaxFactory);
                 }
                 else
                 {
