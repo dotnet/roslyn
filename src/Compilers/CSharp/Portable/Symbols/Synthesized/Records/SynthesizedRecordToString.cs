@@ -13,27 +13,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// The record includes a synthesized override of object.ToString().
     /// For `record R(int I) { public int J; }` it prints `R { I = ..., J = ... }`.
-    /// 
-    /// The method can be declared explicitly. It is an error if the explicit 
-    /// declaration does not match the expected signature or accessibility, or 
-    /// if the explicit declaration doesn't allow overriding it in a derived type and 
-    /// the record type is not sealed. 
-    /// It is an error if either synthesized, or explicitly declared method doesn't 
+    ///
+    /// The method can be declared explicitly. It is an error if the explicit
+    /// declaration does not match the expected signature or accessibility, or
+    /// if the explicit declaration doesn't allow overriding it in a derived type and
+    /// the record type is not sealed.
+    /// It is an error if either synthesized or explicitly declared method doesn't
     /// override `object.ToString()` (for example, due to shadowing in intermediate base types, etc.).
     /// </summary>
     internal sealed class SynthesizedRecordToString : SynthesizedRecordObjectMethod
     {
-        MethodSymbol _printMethod;
+        private readonly MethodSymbol _printMethod;
         public SynthesizedRecordToString(SourceMemberContainerTypeSymbol containingType, MethodSymbol printMethod, int memberOffset, DiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectToString, memberOffset, diagnostics)
         {
             Debug.Assert(printMethod is object);
             _printMethod = printMethod;
         }
-
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
-            isNullableEnabled: true,
-            ContainingType.DeclaringCompilation.GetSpecialType(SpecialType.System_String));
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
         {
@@ -55,35 +51,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CSharpCompilation compilation = ContainingType.DeclaringCompilation;
                 var stringBuilder = F.WellKnownType(WellKnownType.System_Text_StringBuilder);
-                var stringBuilderCtor = F.WellKnownMethod(WellKnownMember.System_StringBuilder__ctor);
-                var stringBuilderAppend = F.WellKnownMethod(WellKnownMember.System_StringBuilder__AppendString);
+                var stringBuilderCtor = F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__ctor);
 
-                var builderLocal = F.SynthesizedLocal(stringBuilder);
+                var builderLocalSymbol = F.SynthesizedLocal(stringBuilder);
+                BoundLocal builderLocal = F.Local(builderLocalSymbol);
                 var block = ArrayBuilder<BoundStatement>.GetInstance();
                 // var builder = new StringBuilder();
-                block.Add(F.Assignment(F.Local(builderLocal), F.New(stringBuilderCtor)));
+                block.Add(F.Assignment(builderLocal, F.New(stringBuilderCtor)));
 
                 // builder.Append(<name>);
-                block.Add(F.ExpressionStatement(F.Call(F.Local(builderLocal), stringBuilderAppend, F.StringLiteral(ContainingType.Name))));
+                block.Add(makeAppendString(F, builderLocal, ContainingType.Name));
 
                 // builder.Append(" { ");
-                block.Add(F.ExpressionStatement(F.Call(F.Local(builderLocal), stringBuilderAppend, F.StringLiteral(" { "))));
+                block.Add(makeAppendString(F, builderLocal, " { "));
 
                 // this.print(builder);
-                block.Add(F.ExpressionStatement(F.Call(F.This(), _printMethod, F.Local(builderLocal))));
+                block.Add(F.ExpressionStatement(F.Call(F.This(), _printMethod, builderLocal)));
 
                 // builder.Append(" } ");
-                block.Add(F.ExpressionStatement(F.Call(F.Local(builderLocal), stringBuilderAppend, F.StringLiteral(" } "))));
+                block.Add(makeAppendString(F, builderLocal, " } "));
 
                 // return builder.ToString();
-                block.Add(F.Return(F.Call(F.Local(builderLocal), F.SpecialMethod(SpecialMember.System_Object__ToString))));
+                block.Add(F.Return(F.Call(builderLocal, F.SpecialMethod(SpecialMember.System_Object__ToString))));
 
-                F.CloseMethod(F.Block(ImmutableArray.Create(builderLocal), block.ToImmutableAndFree()));
+                F.CloseMethod(F.Block(ImmutableArray.Create(builderLocalSymbol), block.ToImmutableAndFree()));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
                 F.CloseMethod(F.ThrowNull());
+            }
+
+            static BoundStatement makeAppendString(SyntheticBoundNodeFactory F, BoundLocal builder, string value)
+            {
+                return F.ExpressionStatement(F.Call(receiver: builder, F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString), F.StringLiteral(value)));
             }
         }
     }

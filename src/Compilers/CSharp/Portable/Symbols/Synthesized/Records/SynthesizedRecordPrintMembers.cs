@@ -6,15 +6,16 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// The `bool PrintMembers(StringBuilder)` method is responsible for printing non-derived
-    /// printable members (public fields and properties) in the builder, and delegating to the
-    /// base to print inherited printable members. Base members get printed first.
+    /// The `bool PrintMembers(StringBuilder)` method is responsible for printing members declared
+    /// in the containing type that are "printable" (public fields and properties),
+    /// and delegating to the base to print inherited printable members. Base members get printed first.
     /// It returns true if the record contains some printable members.
     /// The method is used to implement `ToString()`.
     /// </summary>
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!baseType.IsObjectType())
                 {
-                    return FindValidPrintMethod(baseType, ContainingType.DeclaringCompilation);
+                    return FindValidPrintMembersMethod(baseType, ContainingType.DeclaringCompilation);
                 }
 
                 return null;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
             static bool modifiersAreValid(DeclarationModifiers modifiers)
             {
-                if ((modifiers & DeclarationModifiers.AccessibilityMask) != DeclarationModifiers.Private && 
+                if ((modifiers & DeclarationModifiers.AccessibilityMask) != DeclarationModifiers.Private &&
                     (modifiers & DeclarationModifiers.AccessibilityMask) != DeclarationModifiers.Protected)
                 {
                     return false;
@@ -106,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             try
             {
                 ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers()
-                    .WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public && (m.Kind == SymbolKind.Field || m.Kind == SymbolKind.Property));
+                    .WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public && (m.Kind is SymbolKind.Field or SymbolKind.Property));
 
-                if (printableMembers.Any((m, _) => SymbolExtensions.GetTypeOrReturnType(m).Type.IsErrorType(), arg: (object?)null))
+                if (printableMembers.Any(m => SymbolExtensions.GetTypeOrReturnType(m).Type.IsErrorType()))
                 {
                     F.CloseMethod(F.ThrowNull());
                     return;
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    MethodSymbol? printMethod = FindValidPrintMethod(ContainingType.BaseTypeNoUseSiteDiagnostics, DeclaringCompilation);
+                    MethodSymbol? printMethod = FindValidPrintMembersMethod(ContainingType.BaseTypeNoUseSiteDiagnostics, DeclaringCompilation);
                     if (printMethod is null)
                     {
                         F.CloseMethod(F.ThrowNull()); // an error was reported in base checks already
@@ -151,9 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // if (base.print(builder))
                         //     builder.Append(", ")
-                        block!.Add(
-                            F.If(basePrintCall,
-                                F.ExpressionStatement(F.Call(receiver: builder, F.WellKnownMethod(WellKnownMember.System_StringBuilder__AppendString), F.StringLiteral(", ")))));
+                        block!.Add(F.If(basePrintCall, makeAppendString(F, builder, ", ")));
                     }
                 }
 
@@ -167,12 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // builder.Append(", "); // except for last member
 
                     var member = printableMembers[i];
-                    block.Add(
-                        F.ExpressionStatement(F.Call(receiver: builder,
-                            F.WellKnownMethod(WellKnownMember.System_StringBuilder__AppendString), F.StringLiteral(member.Name))));
-                    block.Add(
-                        F.ExpressionStatement(F.Call(receiver: builder,
-                            F.WellKnownMethod(WellKnownMember.System_StringBuilder__AppendString), F.StringLiteral(" = "))));
+                    block.Add(makeAppendString(F, builder, member.Name));
+                    block.Add(makeAppendString(F, builder, " = "));
 
                     var value = member.Kind switch
                     {
@@ -183,13 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     block.Add(F.ExpressionStatement(
                         F.Call(receiver: builder,
-                            F.WellKnownMethod(WellKnownMember.System_StringBuilder__AppendObject),
+                            F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
                             F.Convert(F.SpecialType(SpecialType.System_Object), value))));
 
                     if (i < printableMembers.Length - 1)
                     {
-                        block.Add(
-                            F.ExpressionStatement(F.Call(receiver: builder, F.WellKnownMethod(WellKnownMember.System_StringBuilder__AppendString), F.StringLiteral(", "))));
+                        block.Add(makeAppendString(F, builder, ", "));
                     }
                 }
 
@@ -202,9 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ex.Diagnostic);
                 F.CloseMethod(F.ThrowNull());
             }
+
+            static BoundStatement makeAppendString(SyntheticBoundNodeFactory F, BoundParameter builder, string value)
+            {
+                return F.ExpressionStatement(F.Call(receiver: builder, F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString), F.StringLiteral(value)));
+            }
         }
 
-        internal static MethodSymbol? FindValidPrintMethod(TypeSymbol containingType, CSharpCompilation compilation)
+        internal static MethodSymbol? FindValidPrintMembersMethod(TypeSymbol containingType, CSharpCompilation compilation)
         {
             if (containingType.IsErrorType() || containingType.IsObjectType())
             {
@@ -212,9 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             MethodSymbol? candidate = null;
-            var accessibility = (containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && containingType.IsSealed) ?
-                Accessibility.Private :
-                Accessibility.Protected;
+            var accessibility = (containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && containingType.IsSealed)
+                ? Accessibility.Private
+                : Accessibility.Protected;
 
             var stringBuilder = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Text_StringBuilder));
 
@@ -246,7 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void VerifyOverridesPrintMembersFromBase(MethodSymbol overriding, DiagnosticBag diagnostics)
         {
-            if (overriding.ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+            NamedTypeSymbol baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            if (baseType.IsObjectType())
             {
                 return;
             }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var overridden = overriding.OverriddenMethod;
 
                 if (overridden is object &&
-                    !overridden.ContainingType.Equals(overriding.ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions))
+                    !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
                 {
                     reportAnError = true;
                 }
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportAnError)
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBasePrintMembers, overriding.Locations[0], overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseMethod, overriding.Locations[0], overriding, baseType);
             }
         }
     }

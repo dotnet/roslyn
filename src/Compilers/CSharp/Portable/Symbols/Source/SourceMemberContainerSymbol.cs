@@ -3226,7 +3226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var toStringMethod = (MethodSymbol)existingToStringMethod;
                     if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialType.System_String, diagnostics) && toStringMethod.IsSealed && !IsSealed)
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedMethodInRecord, toStringMethod.Locations[0], toStringMethod);
+                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, toStringMethod.Locations[0], toStringMethod);
                     }
                 }
             }
@@ -3335,7 +3335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var method = (MethodSymbol)existingHashCodeMethod;
                     if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(method, SpecialType.System_Int32, diagnostics) && method.IsSealed && !IsSealed)
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedMethodInRecord, method.Locations[0], method);
+                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, method.Locations[0], method);
                     }
                 }
             }

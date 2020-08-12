@@ -3961,7 +3961,7 @@ record C1;
 ";
 
             var comp = CreateCompilation(src);
-            comp.MakeMemberMissing(WellKnownMember.System_StringBuilder__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__ctor);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder..ctor'
                 // record C1;
@@ -3977,7 +3977,7 @@ record C1;
 ";
 
             var comp = CreateCompilation(src);
-            comp.MakeMemberMissing(WellKnownMember.System_StringBuilder__AppendString);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
                 // record C1;
@@ -3993,7 +3993,7 @@ record C1(int P);
 ";
 
             var comp = CreateCompilation(src);
-            comp.MakeMemberMissing(WellKnownMember.System_StringBuilder__AppendString);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
                 // record C1(int P);
@@ -4012,7 +4012,7 @@ record C1;
 ";
 
             var comp = CreateCompilation(src);
-            comp.MakeMemberMissing(WellKnownMember.System_StringBuilder__AppendObject);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendObject);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4024,7 +4024,7 @@ record C1(int P);
 ";
 
             var comp = CreateCompilation(src);
-            comp.MakeMemberMissing(WellKnownMember.System_StringBuilder__AppendObject);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendObject);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
                 // record C1(int P);
@@ -4451,7 +4451,7 @@ record C2 : C1;
             comp.VerifyEmitDiagnostics(
                 // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
                 //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedMethodInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35),
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35),
                 // (6,8): error CS0239: 'C2.ToString()': cannot override inherited member 'C1.ToString()' because it is sealed
                 // record C2 : C1;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C2").WithArguments("C2.ToString()", "C1.ToString()").WithLocation(6, 8)
@@ -5345,7 +5345,7 @@ record C1
             comp.VerifyEmitDiagnostics(
                 // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
                 //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedMethodInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35)
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35)
                 );
         }
 
@@ -5563,7 +5563,7 @@ record C1 : B
                 Diagnostic(ErrorCode.ERR_NonProtectedAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 17),
                 // (5,17): error CS8860: 'C1.PrintMembers(StringBuilder)' does not override expected method from 'B'.
                 //     public bool PrintMembers(System.Text.StringBuilder builder) => throw null;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideBasePrintMembers, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(5, 17),
                 // (5,17): error CS8872: 'C1.PrintMembers(StringBuilder)' must allow overriding because the containing record is not sealed.
                 //     public bool PrintMembers(System.Text.StringBuilder builder) => throw null;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 17),
@@ -5587,7 +5587,7 @@ record C1 : B
             comp.VerifyEmitDiagnostics(
                 // (5,32): error CS8860: 'C1.PrintMembers(StringBuilder)' does not override expected method from 'B'.
                 //     protected new virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideBasePrintMembers, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(5, 32)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(5, 32)
                 );
         }
 
@@ -13042,13 +13042,13 @@ record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
                 // (5,35): error CS8870: 'A.ToString()' cannot be sealed because containing record is not sealed.
                 //     public sealed override string ToString() => null;
-                Diagnostic(ErrorCode.ERR_SealedMethodInRecord, "ToString").WithArguments("A.ToString()").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("A.ToString()").WithLocation(5, 35),
                 // (7,8): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
                 // record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.ToString()", "A.ToString()").WithLocation(7, 8),
                 // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                 //     public sealed override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_SealedMethodInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
                 // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                 // record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
@@ -14135,7 +14135,7 @@ record A
             comp.VerifyEmitDiagnostics(
                 // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                 //     public sealed override int GetHashCode() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedMethodInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32)
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32)
                 );
         }
 
@@ -15231,7 +15231,7 @@ public record C : B {
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8871: 'C.Equals(B?)' does not override expected method from 'B'.
                 // public record C : B {
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEquals, "C").WithArguments("C.Equals(B?)", "B").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "C").WithArguments("C.Equals(B?)", "B").WithLocation(2, 15)
                 );
         }
 

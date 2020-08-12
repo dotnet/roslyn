@@ -6370,10 +6370,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses" xml:space="preserve">
     <value>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</value>
   </data>
-  <data name="ERR_SealedMethodInRecord" xml:space="preserve">
+  <data name="ERR_SealedAPIInRecord" xml:space="preserve">
     <value>'{0}' cannot be sealed because containing record is not sealed.</value>
   </data>
-  <data name="ERR_DoesNotOverrideBaseEquals" xml:space="preserve">
+  <data name="ERR_DoesNotOverrideBaseMethod" xml:space="preserve">
     <value>'{0}' does not override expected method from '{1}'.</value>
   </data>
   <data name="WRN_ConstOutOfRangeChecked" xml:space="preserve">
@@ -6399,9 +6399,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DoesNotOverrideBaseEqualityContract" xml:space="preserve">
     <value>'{0}' does not override expected property from '{1}'.</value>
-  </data>
-  <data name="ERR_DoesNotOverrideBasePrintMembers" xml:space="preserve">
-    <value>'{0}' does not override expected method from '{1}'.</value>
   </data>
   <data name="ERR_StaticAPIInRecord" xml:space="preserve">
     <value>Record member '{0}' may not be static.</value>

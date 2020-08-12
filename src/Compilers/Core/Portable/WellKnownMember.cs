@@ -511,9 +511,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
 
-        System_StringBuilder__AppendString,
-        System_StringBuilder__AppendObject,
-        System_StringBuilder__ctor,
+        System_Text_StringBuilder__AppendString,
+        System_Text_StringBuilder__AppendObject,
+        System_Text_StringBuilder__ctor,
 
         Count
 
