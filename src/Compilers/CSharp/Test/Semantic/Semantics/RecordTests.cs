@@ -4990,6 +4990,171 @@ public record B : A {
         }
 
         [Fact]
+        public void ToString_BadBase_DuplicatePrintMembers()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder modopt(int64) builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersWithModOpt()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder modopt(int64) builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            var print = comp.GetMember<MethodSymbol>("B." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal("System.Boolean B.PrintMembers(System.Text.StringBuilder modopt(System.Int64) builder)", print.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.PrintMembers(System.Text.StringBuilder modopt(System.Int64) builder)", print.OverriddenMethod.ToTestDisplayString());
+        }
+
+        [Fact]
         public void ToString_BadBase_NewToString()
         {
             var ilSource = @"
@@ -5164,6 +5329,38 @@ record C1
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal("System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
+        {
+            var src = @"
+record C1
+{
+    public sealed override string ToString() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
+                //     public sealed override string ToString() => throw null;
+                Diagnostic(ErrorCode.ERR_SealedMethodInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString_Sealed_InSealedRecord()
+        {
+            var src = @"
+sealed record C1
+{
+    public sealed override string ToString() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
