@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
@@ -139,6 +140,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
+        }
+
+        public void VerifyNotSaved()
+        {
+            Contract.ThrowIfTrue(GetDTE().ActiveDocument.ProjectItem.Saved);
+        }
+
+        public void VerifySaved()
+        {
+            Contract.ThrowIfFalse(GetDTE().ActiveDocument.ProjectItem.Saved);
         }
 
         public string GetActiveBufferName()
