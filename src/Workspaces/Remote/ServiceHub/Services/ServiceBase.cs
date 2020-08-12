@@ -6,16 +6,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.VisualStudio.CodingConventions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -59,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
-            TestData = ((RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData)));
+            TestData = (RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData));
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = TestData?.AssetStorage ?? AssetStorage.Default;
