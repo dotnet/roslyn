@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -38,9 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<ISourceGenerator> generators)
+            out ImmutableArray<ISourceGenerator> generators,
+            out ImmutableArray<ISourceTransformer> transformers)
         {
-            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, out analyzers, out generators);
+            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, out analyzers, out generators, out transformers);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -341,9 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<ISourceGenerator> generators)
+            out ImmutableArray<ISourceGenerator> generators,
+            out ImmutableArray<ISourceTransformer> transformers)
         {
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, out analyzers, out generators);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, out analyzers, out generators, out transformers);
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -390,6 +392,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             driver.RunFullGeneration(input, out var compilationOut, out var generatorDiagnostics);
             diagnostics.AddRange(generatorDiagnostics);
             return compilationOut;
+        }
+
+        private protected override Compilation RunTransformers(Compilation input, ImmutableArray<ISourceTransformer> transformers, DiagnosticBag diagnostics)
+        {
+            var compilation = input;
+            foreach (var transformer in transformers)
+            {
+                try
+                {
+                    var context = new SourceTransformerContext(compilation, diagnostics);
+                    compilation = transformer.Execute(context);
+                }
+                catch (Exception ex)
+                {
+                    var diagnostic = Diagnostic.Create(
+                        new DiagnosticDescriptor("RE001", "Transformer failed", "Transformer '{0}' failed.", Diagnostic.CompilerDiagnosticCategory, DiagnosticSeverity.Error, true),
+                        location: null, transformer.GetType().Name);
+                    diagnostics.Add(diagnostic);
+                }
+            }
+            return compilation;
         }
     }
 }

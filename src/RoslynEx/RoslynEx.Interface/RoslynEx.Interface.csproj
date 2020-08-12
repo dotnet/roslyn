@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>ROSLYNEX_INTERFACE</DefineConstants>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <Import Project="..\RoslynEx.Shared\RoslynEx.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
+  </ItemGroup>
+
+  <!-- based on https://claires.site/2018/07/03/create-and-pack-reference-assemblies/ -->
+  <Target Name="_GetReferenceAssemblies" DependsOnTargets="Build" Returns="@(ReferenceAssembliesOutput)">
+    <ItemGroup>
+      <ReferenceAssembliesOutput Include="@(IntermediateRefAssembly->'%(FullPath)')" TargetFramework="$(TargetFramework)" />
+      <ReferenceAssembliesOutput Include="@(DocumentationProjectOutputGroupOutput->'%(FullPath)')" TargetFramework="$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GetRefsForPackage" BeforeTargets="_GetPackageFiles" DependsOnTargets="_GetReferenceAssemblies">
+    <ItemGroup>
+      <None Include="@(ReferenceAssembliesOutput)" PackagePath="ref/$(TargetFramework)" Pack="true" />
+    </ItemGroup>
+  </Target>
+
+</Project>

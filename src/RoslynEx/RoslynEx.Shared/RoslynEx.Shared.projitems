@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>9ac4f471-ed46-4cd9-920f-e50bc6a65dd6</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>RoslynEx</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ISourceTransformer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceTransformerContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformerAttribute.cs" />
+  </ItemGroup>
+</Project>

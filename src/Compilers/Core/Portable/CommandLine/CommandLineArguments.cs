@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -466,10 +467,12 @@ namespace Microsoft.CodeAnalysis
             IAnalyzerAssemblyLoader analyzerLoader,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<ISourceGenerator> generators)
+            out ImmutableArray<ISourceGenerator> generators,
+            out ImmutableArray<ISourceTransformer> transfomers)
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
+            var transformerBuilder = ImmutableArray.CreateBuilder<ISourceTransformer>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -525,11 +528,13 @@ namespace Microsoft.CodeAnalysis
                 if (!skipAnalyzers)
                     resolvedReference.AddAnalyzers(analyzerBuilder, language);
                 resolvedReference.AddGenerators(generatorBuilder, language);
+                resolvedReference.AddTransformers(transformerBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
+            transfomers = transformerBuilder.ToImmutable();
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();
         }

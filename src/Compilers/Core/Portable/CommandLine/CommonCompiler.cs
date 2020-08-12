@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -109,7 +110,8 @@ namespace Microsoft.CodeAnalysis
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<ISourceGenerator> generators);
+            out ImmutableArray<ISourceGenerator> generators,
+            out ImmutableArray<ISourceTransformer> transformers);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -729,6 +731,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
         private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
+        private protected virtual Compilation RunTransformers(Compilation input, ImmutableArray<ISourceTransformer> transformers, DiagnosticBag transformerDiagnostics) { return input; }
+
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
@@ -794,7 +798,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, out var analyzers, out var generators);
+            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, out var analyzers, out var generators, out var transformers);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger))
             {
@@ -814,6 +818,7 @@ namespace Microsoft.CodeAnalysis
                 ref compilation,
                 analyzers,
                 generators,
+                transformers,
                 additionalTexts,
                 analyzerConfigSet,
                 sourceFileAnalyzerConfigOptions,
@@ -907,6 +912,7 @@ namespace Microsoft.CodeAnalysis
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<ISourceTransformer> transfomers,
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigSet analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
@@ -929,7 +935,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             DiagnosticBag analyzerExceptionDiagnostics = null;
-            if (!analyzers.IsEmpty || !generators.IsEmpty)
+            if (!analyzers.IsEmpty || !generators.IsEmpty || !transfomers.IsEmpty)
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
@@ -971,6 +977,11 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
+                }
+
+                if (!transfomers.IsEmpty)
+                {
+                    compilation = RunTransformers(compilation, transfomers, diagnostics);
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(

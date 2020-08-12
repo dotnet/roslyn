@@ -156,6 +156,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Too
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "vbi", "src\Interactive\vbi\vbi.vbproj", "{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RoslynEx", "RoslynEx", "{803F2227-6BA8-4593-96B7-37D1CC9F01AC}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RoslynEx.Shared", "src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.shproj", "{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynEx.Interface", "src\RoslynEx\RoslynEx.Interface\RoslynEx.Interface.csproj", "{813E74A5-78C0-499E-AE2B-DC133B8A77BF}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -163,6 +169,7 @@ Global
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 5
@@ -181,7 +188,9 @@ Global
 		src\Analyzers\Core\CodeFixes\CodeFixes.projitems*{5ff1e493-69cc-4d0b-83f2-039f469a04e1}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems*{5ff1e493-69cc-4d0b-83f2-039f469a04e1}*SharedItemsImports = 5
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 5
+		src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems*{813e74a5-78c0-499e-ae2b-dc133b8a77bf}*SharedItemsImports = 5
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 5
+		src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems*{9ac4f471-ed46-4cd9-920f-e50bc6a65dd6}*SharedItemsImports = 13
 		src\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems*{a07abcf5-bc43-4ee9-8fd8-b2d77fd54d73}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{a07abcf5-bc43-4ee9-8fd8-b2d77fd54d73}*SharedItemsImports = 5
 		src\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems*{aa87bfed-089a-4096-b8d5-690bdc7d5b24}*SharedItemsImports = 5
@@ -439,6 +448,10 @@ Global
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{813E74A5-78C0-499E-AE2B-DC133B8A77BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{813E74A5-78C0-499E-AE2B-DC133B8A77BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{813E74A5-78C0-499E-AE2B-DC133B8A77BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{813E74A5-78C0-499E-AE2B-DC133B8A77BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -510,6 +523,8 @@ Global
 		{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{6D407402-CC4A-4125-9B00-C70562A636A5} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87} = {3FF38FD4-DF16-44B0-924F-0D5AE155495B}
+		{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
+		{813E74A5-78C0-499E-AE2B-DC133B8A77BF} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

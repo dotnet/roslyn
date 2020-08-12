@@ -4,7 +4,7 @@
     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
-    <NuspecPackageId>Microsoft.Net.Compilers.Toolset</NuspecPackageId>
+    <NuspecPackageId>RoslynEx.Toolset</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>

@@ -16,6 +16,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Roslyn.Utilities;
+using RoslynEx;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace!;
         private static readonly string s_generatorAttributeNamespace = typeof(GeneratorAttribute).Namespace!;
+        private static readonly string s_transformerAttributeNamespace = typeof(TransformerAttribute).Namespace!;
 
         private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
         private delegate IEnumerable<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
         private readonly Extensions<ISourceGenerator> _generators;
+        private readonly Extensions<ISourceTransformer> _transformers;
 
         private string? _lazyDisplay;
         private object? _lazyIdentity;
@@ -62,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages);
             _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages);
+            _transformers = new Extensions<ISourceTransformer>(this, IsTransformerAttribute, GetTransformersSupportedLanguages);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -188,6 +192,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _generators.AddExtensions(builder, language);
         }
 
+        internal void AddTransformers(ImmutableArray<ISourceTransformer>.Builder builder, string language)
+        {
+            _transformers.AddExtensions(builder, language);
+        }
+
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeNameOpt = null)
         {
             // unwrap:
@@ -289,6 +298,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static IEnumerable<string> GetGeneratorsSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
+
+        private static bool IsTransformerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            return peModule.IsTargetAttribute(customAttrHandle, s_transformerAttributeNamespace, nameof(TransformerAttribute), ctor: out _);
+        }
+
+        private static IEnumerable<string> GetTransformersSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {

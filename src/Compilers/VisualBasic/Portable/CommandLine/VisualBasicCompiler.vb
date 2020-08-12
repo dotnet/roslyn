@@ -7,6 +7,7 @@ Imports System.IO
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports RoslynEx
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -251,9 +252,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             messageProvider As CommonMessageProvider,
             skipAnalyzers As Boolean,
             ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
-            ByRef generators As ImmutableArray(Of ISourceGenerator))
+            ByRef generators As ImmutableArray(Of ISourceGenerator),
+            ByRef transformers As ImmutableArray(Of ISourceTransformer))
 
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators)
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.VisualBasic, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, analyzers, generators, transformers)
         End Sub
 
         Protected Overrides Sub ResolveEmbeddedFilesFromExternalSourceDirectives(

@@ -20,6 +20,13 @@ Microsoft.CodeAnalysis.GeneratorDriverRunResult.GeneratedTrees.get -> System.Col
 Microsoft.CodeAnalysis.GeneratorDriverRunResult.Results.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratorRunResult>
 Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider
 Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.SyntaxTreeOptionsProvider() -> void
+RoslynEx.ISourceTransformer
+RoslynEx.ISourceTransformer.Execute(RoslynEx.SourceTransformerContext context) -> Microsoft.CodeAnalysis.Compilation
+RoslynEx.SourceTransformerContext
+RoslynEx.SourceTransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+RoslynEx.SourceTransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+RoslynEx.TransformerAttribute
+RoslynEx.TransformerAttribute.TransformerAttribute() -> void
 abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.IsGenerated(Microsoft.CodeAnalysis.SyntaxTree tree) -> bool?
 abstract Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(Microsoft.CodeAnalysis.SyntaxTree tree, string diagnosticId, out Microsoft.CodeAnalysis.ReportDiagnostic severity) -> bool
 Microsoft.CodeAnalysis.GeneratorRunResult.GeneratedSources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
