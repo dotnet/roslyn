@@ -85,9 +85,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="text">Text.</param>
         /// <param name="encoding">
         /// Encoding of the file that the <paramref name="text"/> was read from or is going to be saved to.
-        /// <c>null</c> if the encoding is unspecified.
-        /// If the encoding is not specified the resulting <see cref="SourceText"/> isn't debuggable.
-        /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
+        /// <see cref="Encoding.UTF8"/> if the encoding is unspecified.
         /// </param>
         /// <param name="checksumAlgorithm">
         /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
@@ -100,6 +98,8 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 throw new ArgumentNullException(nameof(text));
             }
+
+            encoding = encoding ?? s_utf8EncodingWithNoBOM;
 
             return new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm);
         }
