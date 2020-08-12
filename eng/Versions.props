@@ -255,7 +255,6 @@
     <StreamJsonRpcVersion>2.4.34</StreamJsonRpcVersion>
     <SystemCollectionsImmutableVersion>5.0.0-preview.8.20371.14</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>5.0.0-preview.8.20371.14</SystemReflectionMetadataVersion>
-    <MicrosoftVisualStudioStaticReviewsEmbeddableVersion>0.1.102-alpha</MicrosoftVisualStudioStaticReviewsEmbeddableVersion>
     <MicrosoftBclAsyncInterfacesVersion>1.1.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
   <PropertyGroup>

@@ -374,11 +374,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
-            public sealed override Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
-                => OnExternalReferenceFoundWorkerAsync(reference);
-
-            protected abstract Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference);
-
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
             {
                 lock (Gate)
