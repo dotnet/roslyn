@@ -23,12 +23,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
 
         /// <summary>
-        /// Cached information if the specified symbol is a Asp.Net Core Action: (compilation) -> ((method symbol) -> (is Action))
-        /// </summary>
-        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>> s_methodIsActionByCompilation =
-            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
-
-        /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
@@ -41,29 +35,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemObject,
                  new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
-                        // it can be expensive to do all the machinery on every parameter reference access
-                        var methodCache = s_methodIsActionByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<ISymbol, bool>());
-                        if (methodCache.TryGetValue(parameter.ContainingSymbol, out bool isAction))
-                            return isAction;
-
-                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol))
+                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol)
+                            || !(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
                         {
-                            methodCache.TryAdd(parameter.ContainingSymbol, false);
                             return false;
                         }
 
                         var classCache = s_classIsControllerByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<ISymbol, bool>());
                         if (!classCache.TryGetValue(methodSymbol.ContainingSymbol, out bool isController))
                         {
-                            if (!(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol)
-                                || (!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
-                                    && (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute, out var controllerAttributeTypeSymbol)
-                                        || !typeSymbol.HasDerivedTypeAttribute(controllerAttributeTypeSymbol)))
+                            if ((!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
+                                && (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute, out var controllerAttributeTypeSymbol)
+                                    || !typeSymbol.HasDerivedTypeAttribute(controllerAttributeTypeSymbol)))
                                 || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute, out var nonControllerAttributeTypeSymbol)
                                 || typeSymbol.HasDerivedTypeAttribute(nonControllerAttributeTypeSymbol))
                             {
                                 classCache.TryAdd(methodSymbol.ContainingSymbol, false);
-                                methodCache.TryAdd(parameter.ContainingSymbol, false);
                                 return false;
                             }
                         }
@@ -76,11 +63,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute, out var nonActionAttributeTypeSymbol)
                             || methodSymbol.HasDerivedMethodAttribute(nonActionAttributeTypeSymbol))
                         {
-                            methodCache.TryAdd(parameter.ContainingSymbol, false);
                             return false;
                         }
-
-                        methodCache.TryAdd(parameter.ContainingSymbol, true);
 
                         if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute, out var fromServicesAttributeTypeSymbol)
                             || parameter.HasAttribute(fromServicesAttributeTypeSymbol))
