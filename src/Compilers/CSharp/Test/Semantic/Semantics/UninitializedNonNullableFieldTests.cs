@@ -1878,6 +1878,44 @@ public class C
         }
 
         [Fact]
+        [WorkItem(44212, "https://github.com/dotnet/roslyn/issues/44212")]
+        public void InitializeUsingNullCoalescingAssignment()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    string f;
+
+    public C()
+    {
+        Prop ??= """";
+        f.ToString();
+    }
+
+    public C(byte b)
+    {
+        if (Prop == null)
+        {
+            Prop = """";
+        }
+        f.ToString();
+    }
+
+    [MemberNotNull(nameof(f))]
+    string? Prop
+    {
+        get => f = """";
+        set => f = value ?? """";
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, MemberNotNullAttributeDefinition }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NotNullIfNotNull_StaticInitializers_01()
         {
             var source = @"
