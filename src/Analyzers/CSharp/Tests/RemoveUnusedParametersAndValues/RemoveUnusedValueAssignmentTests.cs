@@ -2420,7 +2420,7 @@ $@"class C
                 break;
         };
     }
-}", options: PreferDiscard);
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -4918,7 +4918,7 @@ $@"class C
                 break;
         }}
     }}
-}}", optionName);
+}}", optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -7684,7 +7684,7 @@ class C
                 break;
         };
     }
-}", options: PreferDiscard);
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
