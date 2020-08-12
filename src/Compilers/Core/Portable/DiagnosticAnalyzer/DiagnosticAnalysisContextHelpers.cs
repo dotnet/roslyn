@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, location, compilation);
+                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
                 }
             }
         }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue>? valueProvider)
+        internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider)
             where TKey : class
         {
             if (key == null)
