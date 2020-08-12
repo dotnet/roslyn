@@ -3073,7 +3073,8 @@ parse_member_name:;
             out ArrowExpressionClauseSyntax expressionBody,
             out SyntaxToken semicolon,
             bool parseSemicolonAfterBlock = true,
-            MessageID requestedExpressionBodyFeature = MessageID.IDS_FeatureExpressionBodiedMethod)
+            MessageID requestedExpressionBodyFeature = MessageID.IDS_FeatureExpressionBodiedMethod,
+            bool allowBlockAfterLambdaArrow = false)
         {
             // Check for 'forward' declarations with no block of any kind
             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
@@ -3098,8 +3099,20 @@ parse_member_name:;
                                 || requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedAccessor
                                 || requestedExpressionBodyFeature == MessageID.IDS_FeatureExpressionBodiedDeOrConstructor,
                                 "Only IDS_FeatureExpressionBodiedMethod, IDS_FeatureExpressionBodiedAccessor or IDS_FeatureExpressionBodiedDeOrConstructor can be requested");
-                expressionBody = this.ParseArrowExpressionClause();
-                expressionBody = CheckFeatureAvailability(expressionBody, requestedExpressionBodyFeature);
+
+                if(allowBlockAfterLambdaArrow && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                {
+                    // this is "=> {}" syntax ... which should be parsed as a block body ... we will just skip the "=>" token all together...
+                    var arrowToken = this.EatToken();
+                    // parse from the "{"
+                    blockBody = this.ParseMethodOrAccessorBodyBlock(attributes: default, isAccessorBody: false, skippedArrowToken: arrowToken);
+                }
+                else
+                {
+                    // this is "=>" syntax ... which should be parsed as an expression body
+                    expressionBody = this.ParseArrowExpressionClause();
+                    expressionBody = CheckFeatureAvailability(expressionBody, requestedExpressionBodyFeature);
+                }
             }
 
             semicolon = null;
@@ -3212,7 +3225,7 @@ parse_member_name:;
 
                 IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
 
-                this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
+                this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon, allowBlockAfterLambdaArrow: true);
 
                 IsInAsync = false;
 
@@ -7973,7 +7986,7 @@ done:;
         /// </summary>
         /// <param name="isAccessorBody">If is true, then we produce a special diagnostic if the
         /// open brace is missing.</param>
-        private BlockSyntax ParseMethodOrAccessorBodyBlock(SyntaxList<AttributeListSyntax> attributes, bool isAccessorBody)
+        private BlockSyntax ParseMethodOrAccessorBodyBlock(SyntaxList<AttributeListSyntax> attributes, bool isAccessorBody, SyntaxToken skippedArrowToken = null)
         {
             // Check again for incremental re-use.  This way if a method signature is edited we can
             // still quickly re-sync on the body.
@@ -7983,7 +7996,7 @@ done:;
                 return (BlockSyntax)this.EatNode();
 
             // There's a special error code for a missing token after an accessor keyword
-            CSharpSyntaxNode openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
+            SyntaxToken openBrace = isAccessorBody && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken
                 ? this.AddError(
                     SyntaxFactory.MissingToken(SyntaxKind.OpenBraceToken),
                     IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
@@ -7991,12 +8004,16 @@ done:;
                         : ErrorCode.ERR_SemiOrLBraceExpected)
                 : this.EatToken(SyntaxKind.OpenBraceToken);
 
+            if (skippedArrowToken != null)
+                openBrace = openBrace.TokenWithLeadingTrivia(SyntaxFactory.SkippedTokensTrivia(new SyntaxList<SyntaxToken>(skippedArrowToken)));
+
             var statements = _pool.Allocate<StatementSyntax>();
-            this.ParseStatements(ref openBrace, statements, stopOnSwitchSections: false);
+            CSharpSyntaxNode openBraceNode = openBrace;
+            this.ParseStatements(ref openBraceNode, statements, stopOnSwitchSections: false);
 
             var block = _syntaxFactory.Block(
                 attributes,
-                (SyntaxToken)openBrace,
+                (SyntaxToken)openBraceNode,
                 // Force creation a many-children list, even if only 1, 2, or 3 elements in the statement list.
                 IsLargeEnoughNonEmptyStatementList(statements)
                     ? new SyntaxList<StatementSyntax>(SyntaxList.List(((SyntaxListBuilder)statements).ToArray()))
