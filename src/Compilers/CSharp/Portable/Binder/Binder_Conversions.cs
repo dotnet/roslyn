@@ -233,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
                     goto case TypeKind.Error;
                 case TypeKind.Error:

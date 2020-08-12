@@ -98,18 +98,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private sealed class CategorizedDiagnosticQueue : DiagnosticQueue
         {
-            private readonly object _gate;
+            private readonly object _gate = new object();
             private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? _lazyLocalSemanticDiagnostics;
             private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? _lazyLocalSyntaxDiagnostics;
             private Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? _lazyNonLocalDiagnostics;
-
-            public CategorizedDiagnosticQueue()
-            {
-                _gate = new object();
-                _lazyLocalSemanticDiagnostics = null;
-                _lazyLocalSyntaxDiagnostics = null;
-                _lazyNonLocalDiagnostics = null;
-            }
 
             public override void Enqueue(Diagnostic diagnostic)
             {
@@ -134,7 +126,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 EnqueueCore(ref _lazyNonLocalDiagnostics, diagnostic, analyzer);
             }
 
-            private void EnqueueCore(ref Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? lazyDiagnosticsMap, Diagnostic diagnostic, DiagnosticAnalyzer analyzer)
+            private void EnqueueCore(
+                [NotNull] ref Dictionary<DiagnosticAnalyzer, SimpleDiagnosticQueue>? lazyDiagnosticsMap,
+                Diagnostic diagnostic,
+                DiagnosticAnalyzer analyzer)
             {
                 lock (_gate)
                 {

@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model3.IsSpeculativeSemanticModel);
         }
 
-        [Fact]
-        public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_CSharp()
+        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Property_CSharp()
         {
             var source = "class C { int M { get { return 0; } } }";
             var document1 = CreateDocument(source, LanguageNames.CSharp);
@@ -152,6 +152,52 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             Assert.True(model2.IsSpeculativeSemanticModel);
 
             var document3 = document1.WithText(SourceText.From("class C { int M { get { return 2; } } }"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model3.IsSpeculativeSemanticModel);
+        }
+
+        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Event_CSharp()
+        {
+            var source = "class C { event System.Action E { add { return 0; } } }";
+            var document1 = CreateDocument(source, LanguageNames.CSharp);
+
+            // First call will prime the cache to point at the real semantic model.
+            var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.False(model1.IsSpeculativeSemanticModel);
+
+            var document2 = document1.WithText(SourceText.From("class C { event System.Action E { add { return 1; } } }"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model2.IsSpeculativeSemanticModel);
+
+            var document3 = document1.WithText(SourceText.From("class C { event System.Action E { add { return 2; } } }"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model3.IsSpeculativeSemanticModel);
+        }
+
+        [Fact, WorkItem(1167540, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1167540")]
+        public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Indexer_CSharp()
+        {
+            var source = "class C { int this[int i] { get { return 0; } } }";
+            var document1 = CreateDocument(source, LanguageNames.CSharp);
+
+            // First call will prime the cache to point at the real semantic model.
+            var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.False(model1.IsSpeculativeSemanticModel);
+
+            var document2 = document1.WithText(SourceText.From("class C { int this[int i] { get { return 1; } } }"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model2.IsSpeculativeSemanticModel);
+
+            var document3 = document1.WithText(SourceText.From("class C { int this[int i] { get { return 2; } } }"));
 
             // This should be able to get a speculative model using the original model we primed the cache with.
             var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
@@ -321,7 +367,7 @@ end class"));
         }
 
         [Fact]
-        public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_VisualBasic()
+        public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Property_VisualBasic()
         {
             var source = @"
 class C
@@ -357,6 +403,50 @@ class C
             return 2
         end get
     end property
+end class"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model3.IsSpeculativeSemanticModel);
+        }
+
+        [Fact]
+        public async Task MultipleBodyEditsShouldProduceFreshModel_Accessor_Event_VisualBasic()
+        {
+            var source = @"
+class C
+    public custom event E as System.Action
+        addhandler(value as System.Action)
+            return 0
+        end addhandler
+    end event
+end class";
+            var document1 = CreateDocument(source, LanguageNames.VisualBasic);
+
+            // First call will prime the cache to point at the real semantic model.
+            var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.False(model1.IsSpeculativeSemanticModel);
+
+            var document2 = document1.WithText(SourceText.From(@"
+class C
+    public custom event E as System.Action
+        addhandler(value as System.Action)
+            return 1
+        end addhandler
+    end event
+end class"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model2.IsSpeculativeSemanticModel);
+
+            var document3 = document1.WithText(SourceText.From(@"
+class C
+    public custom event E as System.Action
+        addhandler(value as System.Action)
+            return 2
+        end addhandler
+    end event
 end class"));
 
             // This should be able to get a speculative model using the original model we primed the cache with.

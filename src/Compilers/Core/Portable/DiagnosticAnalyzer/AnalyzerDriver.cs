@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Check if the file has generated code definitions (i.e. symbols with GeneratedCodeAttribute).
             if (_lazyGeneratedCodeAttribute != null)
             {
-                var generatedCodeSymbolsInTree = GetOrComputeGeneratedCodeSymbolsInTree(location.SourceTree, compilation, cancellationToken);
+                var generatedCodeSymbolsInTree = getOrComputeGeneratedCodeSymbolsInTree(location.SourceTree, compilation, cancellationToken);
                 if (generatedCodeSymbolsInTree.Count > 0)
                 {
                     var model = compilation.GetSemanticModel(location.SourceTree);
@@ -1151,85 +1151,85 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
-        }
 
-        private ImmutableHashSet<ISymbol> GetOrComputeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
-        {
-            Debug.Assert(GeneratedCodeSymbolsForTreeMap != null);
-            Debug.Assert(_lazyGeneratedCodeAttribute != null);
-
-            ImmutableHashSet<ISymbol>? generatedCodeSymbols;
-            lock (GeneratedCodeSymbolsForTreeMap)
+            ImmutableHashSet<ISymbol> getOrComputeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
             {
-                if (GeneratedCodeSymbolsForTreeMap.TryGetValue(tree, out generatedCodeSymbols))
+                Debug.Assert(GeneratedCodeSymbolsForTreeMap != null);
+                Debug.Assert(_lazyGeneratedCodeAttribute != null);
+
+                ImmutableHashSet<ISymbol>? generatedCodeSymbols;
+                lock (GeneratedCodeSymbolsForTreeMap)
                 {
-                    return generatedCodeSymbols;
-                }
-            }
-
-            generatedCodeSymbols = computeGeneratedCodeSymbolsInTree(tree, compilation, _lazyGeneratedCodeAttribute, cancellationToken);
-
-            lock (GeneratedCodeSymbolsForTreeMap)
-            {
-                ImmutableHashSet<ISymbol>? existingGeneratedCodeSymbols;
-                if (!GeneratedCodeSymbolsForTreeMap.TryGetValue(tree, out existingGeneratedCodeSymbols))
-                {
-                    GeneratedCodeSymbolsForTreeMap.Add(tree, generatedCodeSymbols);
-                }
-                else
-                {
-                    Debug.Assert(existingGeneratedCodeSymbols.SetEquals(generatedCodeSymbols));
-                }
-            }
-
-            return generatedCodeSymbols;
-
-            static ImmutableHashSet<ISymbol> computeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, INamedTypeSymbol generatedCodeAttribute, CancellationToken cancellationToken)
-            {
-                // PERF: Bail out early if file doesn't have "GeneratedCode" text.
-                var walker = new GeneratedCodeTokenWalker(cancellationToken);
-                walker.Visit(tree.GetRoot(cancellationToken));
-                if (!walker.HasGeneratedCodeIdentifier)
-                {
-                    return ImmutableHashSet<ISymbol>.Empty;
-                }
-
-                var model = compilation.GetSemanticModel(tree);
-                var root = tree.GetRoot(cancellationToken);
-                var span = root.FullSpan;
-                var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
-                model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
-
-                ImmutableHashSet<ISymbol>.Builder? generatedSymbolsBuilder = null;
-                foreach (var declarationInfo in declarationInfoBuilder)
-                {
-                    var symbol = declarationInfo.DeclaredSymbol;
-                    if (symbol != null &&
-                        GeneratedCodeUtilities.IsGeneratedSymbolWithGeneratedCodeAttribute(symbol, generatedCodeAttribute))
+                    if (GeneratedCodeSymbolsForTreeMap.TryGetValue(tree, out generatedCodeSymbols))
                     {
-                        generatedSymbolsBuilder = generatedSymbolsBuilder ?? ImmutableHashSet.CreateBuilder<ISymbol>();
-                        generatedSymbolsBuilder.Add(symbol);
+                        return generatedCodeSymbols;
                     }
                 }
 
-                declarationInfoBuilder.Free();
-                return generatedSymbolsBuilder != null ? generatedSymbolsBuilder.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
+                generatedCodeSymbols = computeGeneratedCodeSymbolsInTree(tree, compilation, _lazyGeneratedCodeAttribute, cancellationToken);
+
+                lock (GeneratedCodeSymbolsForTreeMap)
+                {
+                    ImmutableHashSet<ISymbol>? existingGeneratedCodeSymbols;
+                    if (!GeneratedCodeSymbolsForTreeMap.TryGetValue(tree, out existingGeneratedCodeSymbols))
+                    {
+                        GeneratedCodeSymbolsForTreeMap.Add(tree, generatedCodeSymbols);
+                    }
+                    else
+                    {
+                        Debug.Assert(existingGeneratedCodeSymbols.SetEquals(generatedCodeSymbols));
+                    }
+                }
+
+                return generatedCodeSymbols;
+
+                static ImmutableHashSet<ISymbol> computeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, INamedTypeSymbol generatedCodeAttribute, CancellationToken cancellationToken)
+                {
+                    // PERF: Bail out early if file doesn't have "GeneratedCode" text.
+                    var walker = new GeneratedCodeTokenWalker(cancellationToken);
+                    walker.Visit(tree.GetRoot(cancellationToken));
+                    if (!walker.HasGeneratedCodeIdentifier)
+                    {
+                        return ImmutableHashSet<ISymbol>.Empty;
+                    }
+
+                    var model = compilation.GetSemanticModel(tree);
+                    var root = tree.GetRoot(cancellationToken);
+                    var span = root.FullSpan;
+                    var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+                    model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
+
+                    ImmutableHashSet<ISymbol>.Builder? generatedSymbolsBuilder = null;
+                    foreach (var declarationInfo in declarationInfoBuilder)
+                    {
+                        var symbol = declarationInfo.DeclaredSymbol;
+                        if (symbol != null &&
+                            GeneratedCodeUtilities.IsGeneratedSymbolWithGeneratedCodeAttribute(symbol, generatedCodeAttribute))
+                        {
+                            generatedSymbolsBuilder ??= ImmutableHashSet.CreateBuilder<ISymbol>();
+                            generatedSymbolsBuilder.Add(symbol);
+                        }
+                    }
+
+                    declarationInfoBuilder.Free();
+                    return generatedSymbolsBuilder != null ? generatedSymbolsBuilder.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
+                }
             }
         }
 
-        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
+        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree, SyntaxTreeOptionsProvider? options)
         {
             if (!SuppressedAnalyzersForTreeMap.TryGetValue(tree, out var suppressedAnalyzers))
             {
-                suppressedAnalyzers = SuppressedAnalyzersForTreeMap.GetOrAdd(tree, ComputeSuppressedAnalyzersForTree(tree));
+                suppressedAnalyzers = SuppressedAnalyzersForTreeMap.GetOrAdd(tree, ComputeSuppressedAnalyzersForTree(tree, options));
             }
 
             return suppressedAnalyzers.Contains(analyzer);
         }
 
-        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSuppressedAnalyzersForTree(SyntaxTree tree)
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSuppressedAnalyzersForTree(SyntaxTree tree, SyntaxTreeOptionsProvider? options)
         {
-            if (tree.DiagnosticOptions.IsEmpty)
+            if (options is null)
             {
                 return ImmutableHashSet<DiagnosticAnalyzer>.Empty;
             }
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var hasUnsuppressedDiagnostic = false;
                 foreach (var descriptor in descriptors)
                 {
-                    if (!tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredSeverity) ||
+                    if (!options.TryGetDiagnosticValue(tree, descriptor.Id, out var configuredSeverity) ||
                         configuredSeverity != ReportDiagnostic.Suppress)
                     {
                         // Analyzer reports a diagnostic that is not suppressed by the diagnostic options for this tree.
@@ -1922,9 +1922,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Diagnostic? applyFurtherFiltering(Diagnostic? diagnostic)
             {
                 // Apply bulk configuration from analyzer options for analyzer diagnostics, if applicable.
-                var tree = diagnostic?.Location.SourceTree;
-                if (tree != null &&
-                    analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, diagnostic!.Descriptor, out ReportDiagnostic severity))
+                if (diagnostic?.Location.SourceTree is { } tree &&
+                    analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, diagnostic.Descriptor, out ReportDiagnostic severity))
                 {
                     diagnostic = diagnostic.WithReportDiagnostic(severity);
                 }
@@ -2309,7 +2308,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void Dispose()
         {
-            CompilationEventQueue?.TryComplete();
+            _lazyCompilationEventQueue?.TryComplete();
             _lazyDiagnosticQueue?.TryComplete();
             _lazyQueueRegistration?.Dispose();
         }

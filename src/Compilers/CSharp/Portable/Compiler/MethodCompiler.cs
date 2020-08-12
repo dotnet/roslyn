@@ -967,6 +967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
 
+                    NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, initializerStatements, diagsForCurrentMethod);
+
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
                     DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
                     DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
@@ -1019,6 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // These analyses check for diagnostics in lambdas.
                             // Control flow analysis and implicit return insertion are unnecessary.
+                            NullableWalker.AnalyzeIfNeeded(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod);
                             DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                         }
@@ -1664,14 +1667,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode methodBodyForSemanticModel = methodBody;
                     NullableWalker.SnapshotManager snapshotManager = null;
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
-                    if (bodyBinder.Compilation.NullableSemanticAnalysisEnabled)
+                    var compilation = bodyBinder.Compilation;
+                    var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
+                    if (compilation.NullableSemanticAnalysisEnabled)
                     {
-                        // Currently, we're passing an empty DiagnosticBag here because the flow analysis pass later will
-                        // also run the nullable walker, and issue duplicate warnings. We should try to only run the pass
-                        // once.
-                        // https://github.com/dotnet/roslyn/issues/35041
-                        methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder, new DiagnosticBag(), createSnapshots: true, out snapshotManager, ref remappedSymbols);
+                        methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
+                            compilation,
+                            method,
+                            methodBody,
+                            bodyBinder,
+                            // if language version is insufficient, we do not want to surface nullability diagnostics,
+                            // but we should still provide nullability information through the semantic model.
+                            isSufficientLangVersion ? diagnostics : new DiagnosticBag(),
+                            createSnapshots: true,
+                            out snapshotManager,
+                            ref remappedSymbols);
                     }
+                    else
+                    {
+                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics);
+                    }
+
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
 
                     switch (methodBody.Kind)

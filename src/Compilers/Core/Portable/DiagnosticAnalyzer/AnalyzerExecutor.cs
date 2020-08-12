@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
-        private readonly Func<DiagnosticAnalyzer, SyntaxTree, bool>? _isAnalyzerSuppressedForTree;
+        private readonly Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? _isAnalyzerSuppressedForTree;
 
         /// <summary>
         /// The values in this map convert to <see cref="TimeSpan"/> using <see cref="TimeSpan.FromTicks(long)"/>.
@@ -67,6 +67,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
             => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
+
+        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
+        {
+            Debug.Assert(_isAnalyzerSuppressedForTree != null);
+            return _isAnalyzerSuppressedForTree(analyzer, tree, Compilation.Options.SyntaxTreeOptionsProvider);
+        }
 
         /// <summary>
         /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
@@ -111,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
-            Func<DiagnosticAnalyzer, SyntaxTree, bool> isAnalyzerSuppressedForTree,
+            Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
             bool logExecutionTime = false,
@@ -179,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
-            Func<DiagnosticAnalyzer, SyntaxTree, bool>? isAnalyzerSuppressedForTree,
+            Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
@@ -223,7 +229,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _addSuppression, cancellationToken);
         }
 
-        internal (Compilation? compilation, AnalyzerOptions? analyzerOptions) TryGetCompilationAndAnalyzerOptions() => (_compilation, _analyzerOptions);
+        internal bool TryGetCompilationAndAnalyzerOptions(
+            [NotNullWhen(true)] out Compilation? compilation,
+            [NotNullWhen(true)] out AnalyzerOptions? analyzerOptions)
+        {
+            (compilation, analyzerOptions) = (_compilation, _analyzerOptions);
+            return compilation != null && analyzerOptions != null;
+        }
 
         internal Compilation Compilation
         {
@@ -245,7 +257,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal CancellationToken CancellationToken => _cancellationToken;
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
-        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes => _analyzerExecutionTimeMap!.ToImmutableDictionary(pair => pair.Key, pair => TimeSpan.FromTicks(pair.Value.Value));
+        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes
+        {
+            get
+            {
+                Debug.Assert(_analyzerExecutionTimeMap != null);
+                return _analyzerExecutionTimeMap.ToImmutableDictionary(pair => pair.Key, pair => TimeSpan.FromTicks(pair.Value.Value));
+            }
+        }
 
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
@@ -330,6 +349,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteSuppressionAction(DiagnosticSuppressor suppressor, ImmutableArray<Diagnostic> reportedDiagnostics)
         {
             Debug.Assert(_addSuppression != null);
+            Debug.Assert(_getSemanticModel != null);
 
             if (reportedDiagnostics.IsEmpty)
             {
@@ -342,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<SuppressionDescriptor, bool> isSupportedSuppression = supportedSuppressions.Contains;
             Action<SuppressionAnalysisContext> action = suppressor.ReportSuppressions;
             var context = new SuppressionAnalysisContext(Compilation, AnalyzerOptions,
-                reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel!, _cancellationToken);
+                reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel, _cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 suppressor,
@@ -691,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, semanticModel.SyntaxTree))
+                IsAnalyzerSuppressedForTree(analyzer, semanticModel.SyntaxTree))
             {
                 return;
             }
@@ -772,11 +792,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode)
         {
             Debug.Assert(file.SourceTree != null);
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             var tree = file.SourceTree;
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, tree))
+                IsAnalyzerSuppressedForTree(analyzer, tree))
             {
                 return;
             }
@@ -891,7 +910,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TLanguageKindEnum : struct
         {
             Debug.Assert(analyzerState == null || analyzerState.CurrentNode == node);
-            Debug.Assert(_isAnalyzerSuppressedForTree != null && !_isAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree));
+            Debug.Assert(!IsAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree));
 
             if (ShouldExecuteAction(analyzerState, syntaxNodeAction))
             {
@@ -918,7 +937,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OperationAnalyzerStateData? analyzerState)
         {
             Debug.Assert(analyzerState == null || analyzerState.CurrentOperation == operation);
-            Debug.Assert(_isAnalyzerSuppressedForTree != null && !_isAnalyzerSuppressedForTree(operationAction.Analyzer, semanticModel.SyntaxTree));
+            Debug.Assert(!IsAnalyzerSuppressedForTree(operationAction.Analyzer, semanticModel.SyntaxTree));
 
             if (ShouldExecuteAction(analyzerState, operationAction))
             {
@@ -1061,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree))
+                IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree))
             {
                 return;
             }
@@ -1197,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TBlockAction : AnalyzerAction
             where TNodeStateData : AnalyzerStateData, new()
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null && !_isAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree));
+            Debug.Assert(!IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree));
 
             foreach (var blockAction in blockActions)
             {
@@ -1317,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
+                IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
             {
                 return;
             }
@@ -1342,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TLanguageKindEnum : struct
         {
             Debug.Assert(nodeActionsByKind.Any());
-            Debug.Assert(_isAnalyzerSuppressedForTree != null && !_isAnalyzerSuppressedForTree(analyzer, model.SyntaxTree));
+            Debug.Assert(!IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree));
 
             var partiallyProcessedNode = analyzerState?.CurrentNode;
             if (partiallyProcessedNode != null)
@@ -1457,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_isAnalyzerSuppressedForTree != null);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                _isAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
+                IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree))
             {
                 return;
             }
@@ -1481,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(operationActionsByKind != null);
             Debug.Assert(operationActionsByKind.Any());
-            Debug.Assert(_isAnalyzerSuppressedForTree != null && !_isAnalyzerSuppressedForTree(analyzer, model.SyntaxTree));
+            Debug.Assert(!IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree));
 
             var partiallyProcessedOperation = analyzerState?.CurrentOperation;
             if (partiallyProcessedOperation != null)
@@ -2012,12 +2031,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsAnalyzerSuppressedForSymbol(DiagnosticAnalyzer analyzer, ISymbol symbol)
         {
-            Debug.Assert(_isAnalyzerSuppressedForTree != null);
-
             foreach (var location in symbol.Locations)
             {
                 if (location.SourceTree != null &&
-                    !_isAnalyzerSuppressedForTree(analyzer, location.SourceTree))
+                    !IsAnalyzerSuppressedForTree(analyzer, location.SourceTree))
                 {
                     return false;
                 }

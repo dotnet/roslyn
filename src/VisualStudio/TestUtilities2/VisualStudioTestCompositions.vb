@@ -23,13 +23,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(CSharpVSResources).Assembly,
                 GetType(BasicVSResources).Assembly).
             AddParts(
-                GetType(MockWorkspaceEventListenerProvider),         ' avoid running Solution Crawler
                 GetType(StubVsEditorAdaptersFactoryService)).
             AddExcludedPartTypes(
-                GetType(ServiceHubRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
-                GetType(IStreamingFindUsagesPresenter),              ' TODO: should we be using the actual implementation (https://github.com/dotnet/roslyn/issues/46380)?
+                GetType(VisualStudioRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
+                GetType(IStreamingFindUsagesPresenter),                ' TODO: should we be using the actual implementation (https://github.com/dotnet/roslyn/issues/46380)?
                 GetType(HACK_ThemeColorFixer),
-                GetType(INotificationService),                       ' EditorNotificationServiceFactory is used 
-                GetType(VisualStudioWaitIndicator))                  ' TestWaitIndicator is used instead
+                GetType(INotificationService),                         ' EditorNotificationServiceFactory is used 
+                GetType(VisualStudioWaitIndicator))                    ' TestWaitIndicator is used instead
     End Class
 End Namespace

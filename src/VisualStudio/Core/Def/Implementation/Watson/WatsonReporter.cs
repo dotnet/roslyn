@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -20,14 +21,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     {
         private static Dictionary<string, string>? s_capturedFileContent;
 
-        private static TelemetrySession? s_telemetrySession;
-        private static TraceSource? s_logger;
+        private static readonly object _guard = new object();
+        private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
+        private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
 
-        public static void InitializeFatalErrorHandlers(TelemetrySession session)
+        public static void InitializeFatalErrorHandlers()
         {
-            Debug.Assert(s_telemetrySession == null);
-            s_telemetrySession = session;
-
             var fatalReporter = new Action<Exception>(ReportFatal);
             var nonFatalReporter = new Action<Exception>(ReportNonFatal);
 
@@ -43,10 +42,36 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalReporter);
         }
 
-        public static void InitializeLogger(TraceSource logger)
+        public static void RegisterTelemetrySesssion(TelemetrySession session)
         {
-            Debug.Assert(s_logger == null);
-            s_logger = logger;
+            lock (_guard)
+            {
+                s_telemetrySessions = s_telemetrySessions.Add(session);
+            }
+        }
+
+        public static void UnregisterTelemetrySesssion(TelemetrySession session)
+        {
+            lock (_guard)
+            {
+                s_telemetrySessions = s_telemetrySessions.Remove(session);
+            }
+        }
+
+        public static void RegisterLogger(TraceSource logger)
+        {
+            lock (_guard)
+            {
+                s_loggers = s_loggers.Add(logger);
+            }
+        }
+
+        public static void UnregisterLogger(TraceSource logger)
+        {
+            lock (_guard)
+            {
+                s_loggers = s_loggers.Remove(logger);
+            }
         }
 
         public static void ReportFatal(Exception exception)
@@ -78,12 +103,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             var currentProcess = Process.GetCurrentProcess();
 
             // write the exception to a log file:
-            s_logger?.TraceEvent(TraceEventType.Error, 1, $"[{currentProcess.ProcessName}:{currentProcess.Id}] Unexpected exception: {exception}");
-
-            var session = s_telemetrySession;
-            if (session == null)
+            var logMessage = $"[{currentProcess.ProcessName}:{currentProcess.Id}] Unexpected exception: {exception}";
+            foreach (var logger in s_loggers)
             {
-                return;
+                logger.TraceEvent(TraceEventType.Error, 1, logMessage);
             }
 
             var faultEvent = new FaultEvent(
@@ -114,7 +137,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             // watson and telemetry. 
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
-            session.PostEvent(faultEvent);
+            foreach (var session in s_telemetrySessions)
+            {
+                session.PostEvent(faultEvent);
+            }
         }
 
         private static string GetDescription(Exception exception)

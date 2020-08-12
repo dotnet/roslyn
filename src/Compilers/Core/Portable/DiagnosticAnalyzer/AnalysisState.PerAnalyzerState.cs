@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ObjectPool<TAnalyzerStateData> pool,
                 [NotNullWhen(returnValue: true)] out TAnalyzerStateData? newState)
                 where TAnalyzerStateData : AnalyzerStateData, new()
-                where TAnalysisEntity : class
+                where TAnalysisEntity : notnull
             {
                 lock (_gate)
                 {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ObjectPool<TAnalyzerStateData> pool,
                 [NotNullWhen(returnValue: true)] out TAnalyzerStateData? state)
                 where TAnalyzerStateData : AnalyzerStateData
-                where TAnalysisEntity : class
+                where TAnalysisEntity : notnull
             {
                 if (pendingEntities.TryGetValue(analysisEntity, out state) &&
                     (state == null || state.StateKind == StateKind.ReadyToProcess))
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Dictionary<TAnalysisEntity, TAnalyzerStateData?> pendingEntities,
                 ObjectPool<TAnalyzerStateData> pool)
                 where TAnalyzerStateData : AnalyzerStateData
-                where TAnalysisEntity : class
+                where TAnalysisEntity : notnull
             {
                 lock (_gate)
                 {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Dictionary<TAnalysisEntity, TAnalyzerStateData?> pendingEntities,
                 ObjectPool<TAnalyzerStateData> pool)
                 where TAnalyzerStateData : AnalyzerStateData
-                where TAnalysisEntity : class
+                where TAnalysisEntity : notnull
             {
                 if (pendingEntities.TryGetValue(analysisEntity, out var state))
                 {
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private bool IsEntityFullyProcessed<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData?> pendingEntities)
                 where TAnalyzerStateData : AnalyzerStateData
-                where TAnalysisEntity : class
+                where TAnalysisEntity : notnull
             {
                 lock (_gate)
                 {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static bool IsEntityFullyProcessed_NoLock<TAnalysisEntity, TAnalyzerStateData>(TAnalysisEntity analysisEntity, Dictionary<TAnalysisEntity, TAnalyzerStateData?> pendingEntities)
                 where TAnalyzerStateData : AnalyzerStateData
-                where TAnalysisEntity : class
+                where TAnalysisEntity : notnull
             {
                 return !pendingEntities.TryGetValue(analysisEntity, out var state) ||
                     state?.StateKind == StateKind.FullyProcessed;

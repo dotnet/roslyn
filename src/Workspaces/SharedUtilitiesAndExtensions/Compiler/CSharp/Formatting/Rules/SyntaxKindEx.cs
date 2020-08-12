@@ -27,6 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public const SyntaxKind NotKeyword = (SyntaxKind)8440;
         public const SyntaxKind DataKeyword = (SyntaxKind)8441;
         public const SyntaxKind RecordDeclaration = (SyntaxKind)9063;
+        public const SyntaxKind ManagedKeyword = (SyntaxKind)8445;
+        public const SyntaxKind UnmanagedKeyword = (SyntaxKind)8446;
+        public const SyntaxKind FunctionPointerParameter = (SyntaxKind)9057;
+        public const SyntaxKind FunctionPointerParameterList = (SyntaxKind)9058;
+        public const SyntaxKind FunctionPointerCallingConvention = (SyntaxKind)9059;
+        public const SyntaxKind FunctionPointerUnmanagedCallingConventionList = (SyntaxKind)9066;
+        public const SyntaxKind FunctionPointerUnmanagedCallingConvention = (SyntaxKind)9067;
 
 #if !CODE_STYLE
         private const uint ImplicitObjectCreationExpressionAssertion = -(ImplicitObjectCreationExpression - SyntaxKind.ImplicitObjectCreationExpression);
@@ -50,6 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private const uint FunctionPointerTypeAssertion = -(FunctionPointerType - SyntaxKind.FunctionPointerType);
         private const uint NotKeywordValueAssertion = -(NotKeyword - SyntaxKind.NotKeyword);
         private const uint RecordDeclarationValueAssertion = -(RecordDeclaration - SyntaxKind.RecordDeclaration);
+        private const uint ManagedKeywordValueAssertion = -(ManagedKeyword - SyntaxKind.ManagedKeyword);
+        private const uint UnmanagedKeywordValueAssertion = -(UnmanagedKeyword - SyntaxKind.UnmanagedKeyword);
+        private const uint FunctionPointerParameterValueAssertion = -(FunctionPointerParameter - SyntaxKind.FunctionPointerParameter);
+        private const uint FunctionPointerParameterListValueAssertion = -(FunctionPointerParameterList - SyntaxKind.FunctionPointerParameterList);
+        private const uint FunctionPointerCallingConventionValueAssertion = -(FunctionPointerCallingConvention - SyntaxKind.FunctionPointerCallingConvention);
+        private const uint FunctionPointerUnmanagecCallingConventionListValueAssertion = -(FunctionPointerUnmanagedCallingConventionList - SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+        private const uint FunctionPointerUnmanagecCallingConventionValueAssertion = -(FunctionPointerUnmanagedCallingConvention - SyntaxKind.FunctionPointerUnmanagedCallingConvention);
 #endif
     }
 }

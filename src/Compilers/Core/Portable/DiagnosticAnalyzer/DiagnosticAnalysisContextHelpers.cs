@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Disallow async methods to be registered.
+            // Suppression due to bug fixed in .NET 5: https://github.com/dotnet/runtime/issues/30968
             if (action.GetMethodInfo()!.IsDefined(typeof(AsyncStateMachineAttribute)))
             {
                 throw new ArgumentException(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered, nameof(action));

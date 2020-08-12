@@ -2807,9 +2807,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
                 returnType As ITypeSymbol,
-                refKind as RefKind,
-                parameterTypes as ImmutableArray(Of ITypeSymbol),
-                parameterRefKinds as ImmutableArray(Of RefKind)) As IFunctionPointerTypeSymbol
+                refKind As RefKind,
+                parameterTypes As ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds As ImmutableArray(Of RefKind),
+                callingConvention As System.Reflection.Metadata.SignatureCallingConvention,
+                callingConventionTypes As ImmutableArray(Of INamedTypeSymbol)) As IFunctionPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
         End Function
 

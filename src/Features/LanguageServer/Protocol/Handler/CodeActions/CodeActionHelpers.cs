@@ -4,42 +4,161 @@
 
 #nullable enable
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.UnifiedSuggestions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
+using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
     internal static class CodeActionHelpers
     {
-        public static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(
+        /// <summary>
+        /// Get, order, and filter code actions, and then transform them into VSCodeActions.
+        /// </summary>
+        /// <remarks>
+        /// Used by CodeActionsHandler.
+        /// </remarks>
+        public static async Task<VSCodeAction[]> GetVSCodeActionsAsync(
+            CodeActionParams request,
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
             CancellationToken cancellationToken)
         {
-            var (codeFixCollections, codeRefactorings) = await GetCodeFixesAndRefactoringsAsync(
-                document, codeFixService,
-                codeRefactoringService, selection,
-                cancellationToken).ConfigureAwait(false);
+            var actionSets = await GetActionSetsAsync(
+                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+            if (!actionSets.HasValue)
+            {
+                return Array.Empty<VSCodeAction>();
+            }
 
-            var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
-                    codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
+            var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var codeActions);
+            foreach (var set in actionSets)
+            {
+                foreach (var suggestedAction in set.Actions)
+                {
+                    // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
+                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
+                    {
+                        continue;
+                    }
 
-            return codeActions;
+                    codeActions.Add(GenerateVSCodeAction(
+                        request, GetNestedActionsFromActionSet(suggestedAction),
+                        GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!)));
+                }
+            }
+
+            return codeActions.ToArray();
         }
 
-        public static async Task<(ImmutableArray<CodeFixCollection>, ImmutableArray<CodeRefactoring>)> GetCodeFixesAndRefactoringsAsync(
+        private static VSCodeAction GenerateVSCodeAction(
+            CodeActionParams request,
+            CodeAction codeAction,
+            CodeActionKind codeActionKind,
+            string currentTitle = "")
+        {
+            using var _ = ArrayBuilder<VSCodeAction>.GetInstance(out var nestedActions);
+
+            if (!string.IsNullOrEmpty(currentTitle))
+            {
+                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
+                currentTitle += '|';
+            }
+
+            currentTitle += codeAction.Title;
+
+            // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
+            foreach (var action in codeAction.NestedCodeActions)
+            {
+                nestedActions.Add(GenerateVSCodeAction(request, action, codeActionKind, currentTitle));
+            }
+
+            return new VSCodeAction
+            {
+                Title = codeAction.Title,
+                Kind = codeActionKind,
+                Diagnostics = request.Context.Diagnostics,
+                Children = nestedActions.ToArray(),
+                Data = new CodeActionResolveData(currentTitle, request.Range, request.TextDocument)
+            };
+        }
+
+        /// <summary>
+        /// Get, order, and filter code actions.
+        /// </summary>
+        /// <remarks>
+        /// Used by CodeActionResolveHandler and RunCodeActionHandler.
+        /// </remarks>
+        public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document,
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            LSP.Range selection,
+            CancellationToken cancellationToken)
+        {
+            var actionSets = await GetActionSetsAsync(
+                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+            if (!actionSets.HasValue)
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
+
+            var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
+            foreach (var set in actionSets)
+            {
+                foreach (var suggestedAction in set.Actions)
+                {
+                    // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
+                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
+                    {
+                        continue;
+                    }
+
+                    codeActions.Add(GetNestedActionsFromActionSet(suggestedAction));
+                }
+            }
+
+            return codeActions.ToImmutable();
+        }
+
+        /// <summary>
+        /// Generates a code action with its nested actions properly set.
+        /// </summary>
+        private static CodeAction GetNestedActionsFromActionSet(IUnifiedSuggestedAction suggestedAction)
+        {
+            var codeAction = suggestedAction.OriginalCodeAction;
+            if (!(suggestedAction is UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions))
+            {
+                return codeAction;
+            }
+
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
+            foreach (var actionSet in suggestedActionWithNestedActions.NestedActionSets)
+            {
+                foreach (var action in actionSet.Actions)
+                {
+                    nestedActions.Add(GetNestedActionsFromActionSet(action));
+                }
+            }
+
+            return new CodeActionWithNestedActions(
+                codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
+        }
+
+        private static async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetActionSetsAsync(
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
@@ -49,12 +168,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
-            var codeFixCollectionsTask = codeFixService.GetFixesAsync(document, textSpan, includeSuppressionFixes: true, cancellationToken);
-            var codeRefactoringsTask = codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken);
+            var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
+                document.Project.Solution.Workspace, codeFixService, document, textSpan, includeSuppressionFixes: true,
+                isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
-            await Task.WhenAll(codeFixCollectionsTask, codeRefactoringsTask).ConfigureAwait(false);
-            return (await codeFixCollectionsTask.ConfigureAwait(false), await codeRefactoringsTask.ConfigureAwait(false));
+            var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, isBlocking: false,
+                addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
+
+            var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(codeFixes, codeRefactorings, textSpan);
+            return actionSets;
         }
+
+        public static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName)
+            => categoryName switch
+            {
+                UnifiedPredefinedSuggestedActionCategoryNames.CodeFix => CodeActionKind.QuickFix,
+                UnifiedPredefinedSuggestedActionCategoryNames.Refactoring => CodeActionKind.Refactor,
+                UnifiedPredefinedSuggestedActionCategoryNames.StyleFix => CodeActionKind.QuickFix,
+                UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix => CodeActionKind.QuickFix,
+                _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
+            };
 
         public static CodeAction? GetCodeActionToResolve(string distinctTitle, ImmutableArray<CodeAction> codeActions)
         {
