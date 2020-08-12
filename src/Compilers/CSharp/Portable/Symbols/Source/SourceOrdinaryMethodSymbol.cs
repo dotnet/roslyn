@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxToken arglistToken;
 
+            if (Name == "InferEmptyBody")
+            {
+
+            }
+
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
             // evaluating the constraints may depend on accessing this method from
@@ -152,7 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // there is some return, so lets use the last return statement
                         var exitPath = exitPaths.Last();
-                        returnType = exitPath.Item2;
+                        var exitPathReturnType = exitPath.Item2;
+
+                        // if the return type is null... then there is some issue... we only use the return type if we have a valid one...
+                        if (!ReferenceEquals(exitPathReturnType.Type, null))
+                            returnType = exitPathReturnType;
                     }
                     else
                     {
