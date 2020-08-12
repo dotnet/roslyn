@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using RunTests.Cache;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using RunTests.Cache;
 
 namespace RunTests
 {
@@ -101,11 +100,24 @@ namespace RunTests
 
                 if (retry && File.Exists(resultsFilePath))
                 {
+                    ConsoleUtil.WriteLine("Starting a retry. Tests which failed will run a second time to reduce flakiness.");
+                    try
+                    {
+                        var doc = XDocument.Load(resultsFilePath);
+                        foreach (var test in doc.XPathSelectElements("/assemblies/assembly/collection/test[@result='Fail']"))
+                        {
+                            ConsoleUtil.WriteLine($"  {test.Attribute("name").Value}: {test.Attribute("result").Value}");
+                        }
+                    }
+                    catch
+                    {
+                        ConsoleUtil.WriteLine("  ...Failed to identify the list of specific failures.");
+                    }
+
                     // Copy the results file path, since the new xunit run will overwrite it
                     var backupResultsFilePath = Path.ChangeExtension(resultsFilePath, ".old");
                     File.Copy(resultsFilePath, backupResultsFilePath, overwrite: true);
 
-                    ConsoleUtil.WriteLine("Starting a retry. It will run once again tests failed.");
                     // If running the process with this varialbe added, we assume that this file contains 
                     // xml logs from the first attempt.
                     environmentVariables.Add("OutputXmlFilePath", backupResultsFilePath);
