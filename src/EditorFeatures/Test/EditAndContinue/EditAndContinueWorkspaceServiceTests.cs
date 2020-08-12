@@ -225,7 +225,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 filePath: "design-time-only.cs",
                 isGenerated: false,
                 designTimeOnly: true,
-                diagnosticsLspClientName: null,
                 documentServiceProvider: null);
 
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path).AddDocument(documentInfo));
@@ -538,7 +537,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 filePath: "design-time-only.cs",
                 isGenerated: false,
                 designTimeOnly: true,
-                diagnosticsLspClientName: null,
                 documentServiceProvider: null);
 
             var solution = workspace.CurrentSolution.AddDocument(documentInfo);

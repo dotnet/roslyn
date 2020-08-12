@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static bool AnalysisEnabled(TextDocument document)
         {
-            if (document.State.Attributes.DiagnosticsLspClientName != null)
+            if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
             {
                 // This is a generated Razor document, and they want diagnostics, so let's report it
                 return true;

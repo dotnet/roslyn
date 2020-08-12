@@ -5,6 +5,7 @@
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
+    /// TODO: Merge into <see cref="DocumentPropertiesService"/>.
     /// Used by Razor via IVT.
     /// </summary>
     internal interface IDocumentOperationService : IDocumentService

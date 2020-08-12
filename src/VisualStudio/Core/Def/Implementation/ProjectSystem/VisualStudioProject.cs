@@ -695,7 +695,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // In this case we substitute the file being generated from so we still have some path.
             if (string.IsNullOrEmpty(fileInfo.FilePath))
             {
-                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DesignTimeOnly, fileInfo.DiagnosticsLspClientName, fileInfo.DocumentServiceProvider);
+                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DesignTimeOnly, fileInfo.DocumentServiceProvider);
             }
 
             return fileInfo;
@@ -1241,7 +1241,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     filePath: fullPath,
                     isGenerated: false,
                     designTimeOnly: designTimeOnly,
-                    diagnosticsLspClientName: null,
                     documentServiceProvider: documentServiceProvider);
 
                 lock (_project._gate)
@@ -1533,7 +1532,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     document.FilePath,
                                     document.State.Attributes.IsGenerated,
                                     document.State.Attributes.DesignTimeOnly,
-                                    document.State.Attributes.DiagnosticsLspClientName,
                                     documentServiceProvider: fileInfo.DocumentServiceProvider);
 
                                 w.OnDocumentReloaded(documentInfo);
@@ -1656,11 +1654,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     filePath: filePath,
                     isGenerated: false,
                     designTimeOnly: true,
-                    diagnosticsLspClientName: null,
                     documentServiceProvider: documentServiceProvider);
             }
 
-            
             private sealed class SourceTextLoader : TextLoader
             {
                 private readonly SourceTextContainer _textContainer;

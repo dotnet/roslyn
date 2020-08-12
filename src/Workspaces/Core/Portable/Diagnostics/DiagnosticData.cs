@@ -351,7 +351,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var additionalProperties = GetAdditionalProperties(document, diagnostic);
 
-            var diagnosticsLspClientName = document.State.Attributes.DiagnosticsLspClientName;
+            var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+            var diagnosticsLspClientName = documentPropertiesService?.DiagnosticsLspClientName;
 
             if (diagnosticsLspClientName != null)
             {
@@ -360,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     additionalProperties = ImmutableDictionary.Create<string, string?>();
                 }
 
-                additionalProperties = additionalProperties.Add(nameof(DocumentInfo.DiagnosticsLspClientName), diagnosticsLspClientName);
+                additionalProperties = additionalProperties.Add(nameof(documentPropertiesService.DiagnosticsLspClientName), diagnosticsLspClientName);
             }
 
             return Create(diagnostic,
