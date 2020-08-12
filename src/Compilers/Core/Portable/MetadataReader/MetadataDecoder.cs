@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis
                         throw new UnsupportedSignatureContent();
                     }
 
-                    typeSymbol = MakeFunctionPointerTypeSymbol(Cci.CallingConventionUtils.FromSignatureConvention(signatureHeader.CallingConvention, throwOnInvalidConvention: true), ImmutableArray.Create(parameters));
+                    typeSymbol = MakeFunctionPointerTypeSymbol(Cci.CallingConventionUtils.FromSignatureConvention(signatureHeader.CallingConvention), ImmutableArray.Create(parameters));
                     break;
 
                 default:

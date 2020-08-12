@@ -10,16 +10,14 @@ Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     <[UseExportProvider]>
     Public Class VisualBasicEditAndContinueAnalyzerTests
 
-        Private Shared ReadOnly s_exportProviderFactoryWithTestActiveStatementSpanTracker As IExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic _
-                .WithPart(GetType(TestActiveStatementSpanTrackerFactory)))
+        Private Shared ReadOnly s_composition As TestComposition =
+            EditorTestCompositions.EditorFeatures.AddParts(GetType(TestActiveStatementSpanTrackerFactory))
 
 #Region "Helpers"
         Private Shared Sub TestSpans(source As String, hasLabel As Func(Of SyntaxNode, Boolean))
@@ -449,7 +447,7 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
 
                 Dim oldSolution = workspace.CurrentSolution
                 Dim oldProject = oldSolution.Projects.First()
@@ -497,7 +495,7 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source, exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
@@ -528,7 +526,7 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
                 Dim documentId = oldDocument.Id
@@ -538,7 +536,7 @@ End Class
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer(activeStatementSpanTracker)
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await Analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -557,7 +555,7 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source, exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
@@ -590,7 +588,7 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
                 Dim documentId = oldDocument.Id
@@ -600,7 +598,7 @@ End Class
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer(activeStatementSpanTracker)
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await Analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None)
 
                 ' no declaration errors (error in method body is only reported when emitting)
                 Assert.False(result.HasChangesAndErrors)
@@ -625,7 +623,7 @@ Class C
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
                 Dim oldSolution = workspace.CurrentSolution
                 Dim oldProject = oldSolution.Projects.Single()
                 Dim documentId = oldProject.Documents.Single().Id
@@ -634,7 +632,7 @@ End Class
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer(activeStatementSpanTracker)
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await Analyzer.AnalyzeDocumentAsync(oldSolution.GetDocument(documentId), baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution.GetDocument(documentId), baseActiveStatements, newSolution.GetDocument(documentId), CancellationToken.None)
 
                 Assert.True(result.HasChanges)
                 Assert.True(result.HasChangesAndErrors)
@@ -678,7 +676,7 @@ Private Class D
 End Class
 "
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source1, exportProvider:=s_exportProviderFactoryWithTestActiveStatementSpanTracker.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(source1, composition:=s_composition)
                 ' fork the solution to introduce a change
                 Dim oldSolution = workspace.CurrentSolution
                 Dim oldProject = oldSolution.Projects.Single()

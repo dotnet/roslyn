@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Xml;
+using Roslyn.Test.Utilities;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
@@ -265,15 +266,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            Assert.NotNull(itemType);
+            AssertEx.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            Assert.NotNull(metaName);
+            AssertEx.NotNull(metaName);
             Assert.Equal("CustomMeta", metaName.EvaluatedValue);
 
             var customMeta = item.Metadata.SingleOrDefault(m => m.Name == metaName.EvaluatedValue);
-            Assert.NotNull(customMeta);
+            AssertEx.NotNull(customMeta);
             Assert.Equal("abc", customMeta.EvaluatedValue);
         }
 
@@ -307,15 +308,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            Assert.NotNull(itemType);
+            AssertEx.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            Assert.NotNull(metaName);
+            AssertEx.NotNull(metaName);
             Assert.Equal("CustomMeta", metaName.EvaluatedValue);
 
             var customMeta = item.Metadata.SingleOrDefault(m => m.Name == metaName.EvaluatedValue);
-            Assert.NotNull(customMeta);
+            AssertEx.NotNull(customMeta);
             Assert.Equal("abc", customMeta.EvaluatedValue);
         }
 
@@ -347,11 +348,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            Assert.NotNull(itemType);
+            AssertEx.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            Assert.NotNull(metaName);
+            AssertEx.NotNull(metaName);
             Assert.Equal("CustomMeta", metaName.EvaluatedValue);
         }
 
@@ -382,11 +383,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            Assert.NotNull(itemType);
+            AssertEx.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            Assert.NotNull(metaName);
+            AssertEx.NotNull(metaName);
             Assert.Equal("", metaName.EvaluatedValue);
         }
 
@@ -512,6 +513,53 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             Assert.Equal("file3.cs", noneItems[2].EvaluatedInclude);
             Assert.Equal("Never", noneItems[2].GetMetadataValue("CopyToOutputDirectory"));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void TestSkipAnalyzers(
+            [CombinatorialValues(true, false, null)] bool? runAnalyzers,
+            [CombinatorialValues(true, false, null)] bool? runAnalyzersDuringBuild)
+        {
+            var runAnalyzersPropertyGroupString = getPropertyGroup("RunAnalyzers", runAnalyzers);
+            var runAnalyzersDuringBuildPropertyGroupString = getPropertyGroup("RunAnalyzersDuringBuild", runAnalyzersDuringBuild);
+
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+
+{runAnalyzersPropertyGroupString}
+{runAnalyzersDuringBuildPropertyGroupString}
+
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "_ComputeSkipAnalyzers", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            // Verify "RunAnalyzers" overrides "RunAnalyzersDuringBuild".
+            // If neither properties are set, analyzers are enabled by default.
+            var analyzersEnabled = runAnalyzers ?? runAnalyzersDuringBuild ?? true;
+
+            var expectedSkipAnalyzersValue = !analyzersEnabled ? "true" : "";
+            var actualSkipAnalyzersValue = instance.GetPropertyValue("_SkipAnalyzers");
+            Assert.Equal(expectedSkipAnalyzersValue, actualSkipAnalyzersValue);
+            return;
+
+            static string getPropertyGroup(string propertyName, bool? propertyValue)
+            {
+                if (!propertyValue.HasValue)
+                {
+                    return string.Empty;
+                }
+
+                return $@"
+    <PropertyGroup>
+        <{propertyName}>{propertyValue.Value}</{propertyName}>
+    </PropertyGroup>";
+            }
         }
 
         private ProjectInstance CreateProjectInstance(XmlReader reader)

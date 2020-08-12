@@ -26,15 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams request, LSP.ClientCapabilities clientCapabilities, string? clientName,
-            CancellationToken cancellationToken)
-            => OnAutoInsertAsync(request, clientName, cancellationToken);
-
-        private async Task<LSP.DocumentOnAutoInsertResponseItem[]> OnAutoInsertAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
-            var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, context.ClientName);
 
             if (document == null)
             {

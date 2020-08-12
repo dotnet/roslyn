@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CommandLineTestBase
     {
-#if NETCOREAPP3_1
+#if NETCOREAPP
         private static readonly string s_CSharpCompilerExecutable;
         private static readonly string s_DotnetCscRun;
 #else
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         static CommandLineTests()
         {
-#if NETCOREAPP3_1
+#if NETCOREAPP
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
@@ -239,20 +239,21 @@ my_option2 = my_val2");
 
             var comp = cmd.Compilation;
             var tree = comp.SyntaxTrees.Single();
-            AssertEx.SetEqual(new[] {
-                KeyValuePairUtil.Create("cs0169", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress)
-            }, tree.DiagnosticOptions);
+            var compilerTreeOptions = comp.Options.SyntaxTreeOptionsProvider;
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", out var severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", out severity));
+            Assert.Equal(ReportDiagnostic.Suppress, severity);
 
-            var provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
-            var options = provider.GetOptions(tree);
+            var analyzerOptions = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+            var options = analyzerOptions.GetOptions(tree);
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option", out string val));
             Assert.Equal("my_val", val);
             Assert.False(options.TryGetValue("my_option2", out _));
             Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
 
-            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
+            options = analyzerOptions.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single());
             Assert.NotNull(options);
             Assert.True(options.TryGetValue("my_option2", out val));
             Assert.Equal("my_val2", val);
@@ -9130,6 +9131,66 @@ public class C { }
         }
 
         [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersParse()
+        {
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/SKIPANALYZERS+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers-", "/skipanalyzers+", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.SkipAnalyzers);
+
+            parsedArgs = DefaultParse(new[] { "/skipanalyzers", "/skipanalyzers-", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.SkipAnalyzers);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersSemantics(bool skipAnalyzers)
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var skipAnalyzersFlag = "/skipanalyzers" + (skipAnalyzers ? "+" : "-");
+            var csc = CreateCSharpCompiler(null, srcDirectory, new[] { skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            if (skipAnalyzers)
+            {
+                Assert.DoesNotContain(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.DoesNotContain(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+                Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            }
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         [WorkItem(24835, "https://github.com/dotnet/roslyn/issues/24835")]
         public void TestCompilationSuccessIfOnlySuppressedDiagnostics()
         {
@@ -12244,6 +12305,55 @@ class C
 
             var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
             ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void TestSourceGeneratorsWithAnalyzers(bool includeCurrentAssemblyAsAnalyzerReference, bool skipAnalyzers)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            // 'skipAnalyzers' should have no impact on source generator execution, but should prevent analyzer execution.
+            var skipAnalyzersFlag = "/skipAnalyzers" + (skipAnalyzers ? "+" : "-");
+
+            // Verify analyzers were executed only if both the following conditions were satisfied:
+            //  1. Current assembly was added as an analyzer reference, i.e. "includeCurrentAssemblyAsAnalyzerReference = true" and
+            //  2. We did not explicitly request skipping analyzers, i.e. "skipAnalyzers = false".
+            var expectedAnalayzerExecution = includeCurrentAssemblyAsAnalyzerReference && !skipAnalyzers;
+
+            // 'WarningDiagnosticAnalyzer' generates a warning for each named type.
+            // We expect two warnings for this test: type "C" defined in source and the source generator defined type.
+            // Additionally, we also have an analyzer that generates "warning CS8032: An instance of analyzer cannot be created"
+            var expectedWarningCount = expectedAnalayzerExecution ? 3 : 0;
+
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference,
+                expectedWarningCount: expectedWarningCount,
+                additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe", skipAnalyzersFlag },
+                generators: new[] { generator });
+
+            // Verify source generator was executed, regardless of the value of 'skipAnalyzers'.
+            var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+
+            if (expectedAnalayzerExecution)
+            {
+                Assert.Contains("warning Warning01", output, StringComparison.Ordinal);
+                Assert.Contains("warning CS8032", output, StringComparison.Ordinal);
+            }
+            else
+            {
+                Assert.Empty(output);
+            }
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);

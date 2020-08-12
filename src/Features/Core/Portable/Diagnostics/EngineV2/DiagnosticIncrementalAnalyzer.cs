@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -40,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
         internal IPersistentStorageService PersistentStorageService { get; }
-        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
             int correlationId,
@@ -52,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            DiagnosticAnalyzerInfoCache = analyzerInfoCache;
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             _correlationId = correlationId;
@@ -61,9 +61,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerService.Listener, analyzerInfoCache);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, workspace, analyzerService.Listener);
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
+
+        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
             => DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation) == true;

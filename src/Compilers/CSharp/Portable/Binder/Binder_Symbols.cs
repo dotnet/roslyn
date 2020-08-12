@@ -488,16 +488,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
             {
                 bool isNullableEnabled = AreNullableAnnotationsEnabled(questionToken);
+                bool isGeneratedCode = IsGeneratedCode(questionToken);
                 var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
                 if (typeArgument.HasType && !ShouldCheckConstraints)
                 {
-                    LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
+                    LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(
+                        isNullableEnabled,
+                        isGeneratedCode,
+                        typeArgument,
+                        location,
+                        diagnostics);
                 }
                 else
                 {
-                    LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(isNullableEnabled, typeArgument, location, diagnostics);
+                    LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
+                        isNullableEnabled,
+                        isGeneratedCode,
+                        typeArgument,
+                        location,
+                        diagnostics);
                 }
             }
 

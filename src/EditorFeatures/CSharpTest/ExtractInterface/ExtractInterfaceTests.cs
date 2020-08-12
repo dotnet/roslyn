@@ -6,9 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -1061,10 +1060,6 @@ class $$Test<T, U>
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractInterfaceCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
-                .CreateExportProvider();
-
             using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
@@ -1075,13 +1070,13 @@ class $$Test<T, U>
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider);
+                composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
             workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new ExtractInterfaceCommandHandler(exportProvider.GetExportedValue<IThreadingContext>());
+            var handler = workspace.ExportProvider.GetCommandHandler<ExtractInterfaceCommandHandler>(PredefinedCommandHandlerNames.ExtractInterface, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new ExtractInterfaceCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

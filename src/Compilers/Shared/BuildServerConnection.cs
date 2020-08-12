@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             else
             {
-                var pipe = await pipeTask.ConfigureAwait(false);
+                using var pipe = await pipeTask.ConfigureAwait(false);
                 if (pipe is null)
                 {
                     return new RejectedBuildResponse("Failed to connect to server");
@@ -144,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 else
                 {
                     var request = BuildRequest.Create(language,
-                                                      buildPaths.WorkingDirectory,
-                                                      buildPaths.TempDirectory,
-                                                      BuildProtocolConstants.GetCommitHash() ?? "",
                                                       arguments,
-                                                      keepAlive,
-                                                      libEnvVariable);
+                                                      workingDirectory: buildPaths.WorkingDirectory,
+                                                      tempDirectory: buildPaths.TempDirectory,
+                                                      compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                                                      keepAlive: keepAlive,
+                                                      libDirectory: libEnvVariable);
 
                     return await TryCompileAsync(pipe, request, cancellationToken).ConfigureAwait(false);
                 }
@@ -307,20 +307,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
             string? identifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var buffer = Array.Empty<byte>();
 
             while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
             {
-                // Wait a tenth of a second before trying again
-                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-
                 try
                 {
-                    Log($"Before poking pipe {identifier}.");
+                    // Wait a tenth of a second before trying again
+                    await Task.Delay(millisecondsDelay: 100, cancellationToken).ConfigureAwait(false);
+
                     await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
-                    Log($"After poking pipe {identifier}.");
                 }
                 catch (OperationCanceledException)
                 {
@@ -349,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             int timeoutMs,
             CancellationToken cancellationToken)
         {
-            NamedPipeClientStream pipeStream;
+            NamedPipeClientStream? pipeStream = null;
             try
             {
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
@@ -383,6 +381,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     //              time-out period has expired.
 
                     LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
+                    pipeStream.Dispose();
                     return null;
                 }
                 Log("Named pipe '{0}' connected", pipeName);
@@ -392,6 +391,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Verify that we own the pipe.
                 if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
+                    pipeStream.Dispose();
                     LogError("Owner of named pipe is incorrect");
                     return null;
                 }
@@ -401,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
                 LogException(e, "Exception while connecting to process");
+                pipeStream?.Dispose();
                 return null;
             }
         }

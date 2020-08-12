@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -265,14 +267,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestAnalyzerConfigDocument()
         {
+            var configPath = Path.Combine(Path.GetTempPath(), ".editorconfig");
             var code = @"class Test { void Method() { } }";
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var analyzerConfigDocumentId = DocumentId.CreateNewId(projectId);
                 var analyzerConfigDocumentInfo = DocumentInfo.Create(
-                    analyzerConfigDocumentId, ".editorconfig",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())));
+                    analyzerConfigDocumentId,
+                    name: ".editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create(), filePath: configPath)),
+                    filePath: configPath);
 
                 await VerifySolutionUpdate(workspace, s =>
                 {

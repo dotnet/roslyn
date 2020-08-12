@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
             return FilterDiagnostics(diagnostics);
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, document.Project, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
                 .Where(d => fixer.IsFixableDiagnostic(d));
 

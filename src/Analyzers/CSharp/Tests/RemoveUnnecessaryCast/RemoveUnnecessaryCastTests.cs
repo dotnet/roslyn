@@ -1814,6 +1814,35 @@ class A
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
+        [WorkItem(46423, "https://github.com/dotnet/roslyn/issues/46423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotCrashWhenTypeCantBeDetermined()
+        {
+            var source =
+@"
+class Other
+{
+    public short GetScopeIdForTelemetry(FixAllScope scope)
+        => (short)(scope switch
+        {
+            FixAllScope.Document => 1,
+            FixAllScope.Project => 2,
+            FixAllScope.Solution => 3,
+            _ => 4,
+        });
+
+    public enum FixAllScope
+    {
+        Document,
+        Project,
+        Solution,
+        Other
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
         [WorkItem(545777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545777")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveImportantTrailingTrivia()

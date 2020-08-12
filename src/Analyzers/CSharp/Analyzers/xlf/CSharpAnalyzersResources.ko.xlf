@@ -267,6 +267,11 @@
         <target state="translated">'if' 문을 간단하게 줄일 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">
         <source>use 'var' instead of explicit type</source>
         <target state="translated">대신 명시적 형식의 'var'을 사용합니다.</target>

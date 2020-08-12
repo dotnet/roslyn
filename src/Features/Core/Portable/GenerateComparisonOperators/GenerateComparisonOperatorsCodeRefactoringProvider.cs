@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 var missingType = missingComparableTypes[0];
                 context.RegisterRefactoring(new MyCodeAction(
                     FeaturesResources.Generate_comparison_operators,
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c)));
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
+                    nameof(FeaturesResources.Generate_comparison_operators)));
                 return;
             }
 
@@ -110,7 +111,8 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 var displayString = typeArg.ToMinimalDisplayString(semanticModel, textSpan.Start);
                 nestedActions.Add(new MyCodeAction(
                     string.Format(FeaturesResources.Generate_for_0, displayString),
-                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c)));
+                    c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
+                    nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
             }
 
             context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
@@ -269,8 +271,8 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }
