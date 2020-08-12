@@ -7315,7 +7315,7 @@ class C<T> where T : struct? {}
 
 
         [Fact]
-        public void TestNullCheckedArgWithLeadingSpace()
+        public void TestNullCheckedArgSyntaxCorrection0()
         {
             UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
@@ -7356,7 +7356,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithLeadingNewLine()
+        public void TestNullCheckedArgSyntaxCorrection1()
         {
             UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
@@ -7397,7 +7397,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithTrailingSpace()
+        public void TestNullCheckedArgSyntaxCorrection2()
         {
             UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
@@ -7438,9 +7438,10 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithTrailingNewLine()
+        public void TestNullCheckedArgWithSyntaxCorrection3()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            UsingStatement(@"void M(string name!
+                    != null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7479,7 +7480,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithSpaceInbetween()
+        public void TestNullCheckedArgSyntaxCorrection4()
         {
             UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
                     // (1,21): error CS1525: Invalid expression term '!'
@@ -7523,7 +7524,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithSpaceAfterParam()
+        public void TestNullCheckedArgSyntaxCorrection5()
         {
             UsingStatement(@"void M(string name !!=null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
@@ -7564,7 +7565,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithSpaceAfterBangs()
+        public void TestNullCheckedArgSyntaxCorrection6()
         {
             UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
                     // (1,21): error CS1525: Invalid expression term '!'
@@ -7608,7 +7609,7 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithSpaceBeforeBangs()
+        public void TestNullCheckedArgSyntaxCorrection7()
         {
             UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
                     // (1,22): error CS1525: Invalid expression term '!'
@@ -7652,9 +7653,9 @@ class C<T> where T : struct? {}
         }
 
         [Fact]
-        public void TestNullCheckedArgWithSpaceAfterEquals()
+        public void TestNullCheckedArgSyntaxCorrection8()
         {
-            UsingStatement(@"void M(string name!!= null) { }", options: TestOptions.RegularPreview);
+            UsingStatement(@"void M(string name !!= null) { }", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
