@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             }
 
             var toolTipPresenter = _toolTipService.CreatePresenter(_textView, new ToolTipParameters(trackMouse: true, ignoreBufferChange: false, KeepOpen));
-            var startToolTip = StartToolTipServiceAsync(toolTipPresenter);
+            _ = StartToolTipServiceAsync(toolTipPresenter);
         }
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// </summary>
         private async Task StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
         {
-            var uiList = await await Task.Run(() => CreateDescriptionAsync(CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false);
+            var uiList = await Task.Run(() => CreateDescriptionAsync(_threadingContext.DisposalToken)).ConfigureAwait(false);
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);
