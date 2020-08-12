@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get;
         }
 
-        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity)
         {
             return new ExtendedErrorTypeSymbol(
                        container.EnsureCSharpSymbolOrNull(nameof(container)),
@@ -3260,7 +3260,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ITypeSymbol returnType,
             RefKind returnRefKind,
             ImmutableArray<ITypeSymbol> parameterTypes,
-            ImmutableArray<RefKind> parameterRefKinds)
+            ImmutableArray<RefKind> parameterRefKinds,
+            SignatureCallingConvention callingConvention,
+            ImmutableArray<INamedTypeSymbol> callingConventionTypes)
         {
             if (returnType is null)
             {
@@ -3297,11 +3299,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.OutIsNotValidForReturn);
             }
 
+            if (callingConvention != SignatureCallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty)
+            {
+                throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypesRequireUnmanaged, nameof(callingConventionTypes), nameof(callingConvention)));
+            }
+
+            if (!callingConvention.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(callingConvention));
+            }
+
             var returnTypeWithAnnotations = TypeWithAnnotations.Create(returnType.EnsureCSharpSymbolOrNull(nameof(returnType)), returnType.NullableAnnotation.ToInternalAnnotation());
             var parameterTypesWithAnnotations = parameterTypes.SelectAsArray(
                 type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
+            var internalCallingConvention = callingConvention.FromSignatureConvention();
+            var conventionModifiers = internalCallingConvention == CallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty
+                ? callingConventionTypes.SelectAsArray((type, i, @this) => getCustomModifierForType(type, @this, i), this)
+                : ImmutableArray<CustomModifier>.Empty;
 
-            return FunctionPointerTypeSymbol.CreateFromParts(returnTypeWithAnnotations, returnRefKind, parameterTypesWithAnnotations, parameterRefKinds, this).GetPublicSymbol();
+            return FunctionPointerTypeSymbol.CreateFromParts(
+                internalCallingConvention,
+                conventionModifiers,
+                returnTypeWithAnnotations,
+                returnRefKind: returnRefKind,
+                parameterTypes: parameterTypesWithAnnotations,
+                parameterRefKinds: parameterRefKinds,
+                compilation: this).GetPublicSymbol();
+
+            static CustomModifier getCustomModifierForType(INamedTypeSymbol type, CSharpCompilation @this, int index)
+            {
+                if (type is null)
+                {
+                    throw new ArgumentNullException($"{nameof(callingConventionTypes)}[{index}]");
+                }
+
+                var internalType = type.EnsureCSharpSymbolOrNull($"{nameof(callingConventionTypes)}[{index}]");
+                if (!FunctionPointerTypeSymbol.IsCallingConventionModifier(internalType) || @this.Assembly.CorLibrary != internalType.ContainingAssembly)
+                {
+                    throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypeIsInvalid, type.ToDisplayString()));
+                }
+
+                return CSharpCustomModifier.CreateOptional(internalType);
+            }
         }
 
         protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)

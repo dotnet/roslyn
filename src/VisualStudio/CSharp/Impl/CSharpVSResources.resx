@@ -608,4 +608,7 @@
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>
   </data>
+  <data name="Format_document" xml:space="preserve">
+    <value>Format document</value>
+  </data>
 </root>
