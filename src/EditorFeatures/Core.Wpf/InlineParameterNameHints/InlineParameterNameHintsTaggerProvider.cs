@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             }
 
             var tagAggregator = _viewTagAggregatorFactoryService.CreateTagAggregator<InlineParameterNameHintDataTag>(textView);
-            return new InlineParameterNameHintsTagger(this, textView, buffer, tagAggregator) as ITagger<T>;
+            return new InlineParameterNameHintsTagger(this, (IWpfTextView)textView, buffer, tagAggregator) as ITagger<T>;
         }
     }
 }
