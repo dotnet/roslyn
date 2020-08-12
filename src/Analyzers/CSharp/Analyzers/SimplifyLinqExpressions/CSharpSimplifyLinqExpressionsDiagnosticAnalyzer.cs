@@ -21,21 +21,21 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyLinqExpressionsDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        internal readonly ImmutableArray<string> s_validLinqCalls = ImmutableArray.Create(
-                nameof(Enumerable.First),
-                nameof(Enumerable.Last),
-                nameof(Enumerable.Single),
-                nameof(Enumerable.Any),
-                nameof(Enumerable.Count),
-                nameof(Enumerable.SingleOrDefault),
-                nameof(Enumerable.FirstOrDefault),
-                nameof(Enumerable.LastOrDefault)
+        private readonly ImmutableArray<string> s_validLinqCalls = ImmutableArray.Create(
+            nameof(Enumerable.First),
+            nameof(Enumerable.Last),
+            nameof(Enumerable.Single),
+            nameof(Enumerable.Any),
+            nameof(Enumerable.Count),
+            nameof(Enumerable.SingleOrDefault),
+            nameof(Enumerable.FirstOrDefault),
+            nameof(Enumerable.LastOrDefault)
             );
 
         public CSharpSimplifyLinqExpressionsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyLinqExpressionsDiagnosticId,
                    option: null,
-                   title: new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_linq_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                   title: new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_Linq_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -62,69 +62,77 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
             var enumMethods = enumNamedType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>();
 
-            if (enumMethods is null)
-            {
-                return;
-            }
-
-            AddIfNotNull(whereMethods, enumMethods);
+            whereMethods.UnionWith(enumMethods);
 
             // add all valid linq calls
             foreach (var id in s_validLinqCalls)
             {
-                enumMethods = enumNamedType?.GetMembers(id).OfType<IMethodSymbol>();
-                AddIfNotNull(linqMethods, enumMethods);
+                enumMethods = enumNamedType.GetMembers(id).OfType<IMethodSymbol>();
+                linqMethods.UnionWith(enumMethods);
             }
 
             if (whereMethods.Count > 0 && linqMethods.Count > 0)
             {
                 context.RegisterOperationAction(
-                    context => AnalyzeAction(
-                        context, whereMethods.ToImmutable(), linqMethods.ToImmutable()), OperationKind.Invocation);
+                    context => AnalyzeAction(context, whereMethods.ToImmutable(),
+                    linqMethods.ToImmutable()),
+                    OperationKind.Invocation);
             }
 
             return;
-
-            static void AddIfNotNull(ImmutableHashSet<IMethodSymbol>.Builder set, IEnumerable<IMethodSymbol>? others)
-            {
-                if (others != null)
-                {
-                    set.UnionWith(others);
-                }
-            }
         }
 
         public void AnalyzeAction(OperationAnalysisContext context, ImmutableHashSet<IMethodSymbol> whereMethods, ImmutableHashSet<IMethodSymbol> linqMethods)
         {
             var invocationOperation = (IInvocationOperation)context.Operation;
             var semanticModel = context.Operation.SemanticModel;
+            var invocationArgument = invocationOperation.Arguments.FirstOrDefault();
 
-            var firstChildArgument = invocationOperation.Children.FirstOrDefault(c => c is IArgumentOperation);
+            InvocationExpressionSyntax invocationExpressionSyntax;
+            ArgumentSyntax lambdaExpression;
+            MemberAccessExpressionSyntax targetMethod;
 
-            if (firstChildArgument is null)
+            // Check to make sure the invocation argument is an InvocationExpressionSyntax
+            // Example: If invocationOperation syntax is Data().Where(...).Single(), then invocationArgument is Data.Where(...)
+            if (invocationArgument is null || !(invocationArgument.Syntax is InvocationExpressionSyntax argumentSyntax))
             {
                 return;
             }
 
-            var whereClause = firstChildArgument.Children.FirstOrDefault(c => c is IInvocationOperation);
+            var targetInvocationOperation = invocationArgument.Children.FirstOrDefault(c => c is IInvocationOperation);
 
-            if (whereClause is null)
+            // Example: If targetInvocationOperation syntax is Data.Where(...), then the targetDefinition would be the original definition of .Where(...)
+            if (targetInvocationOperation is IInvocationOperation invocation)
             {
-                return;
+                var targetDefinition = invocation.TargetMethod.OriginalDefinition;
+
+                // Check to ensure the targetDefinition is one of the valid .Where(...) definitions
+                if (!whereMethods.Contains(targetDefinition))
+                {
+                    return;
+                }
+
+                var whereArgument = invocation.Arguments.FirstOrDefault(c => c.Syntax is ArgumentSyntax argSyntax && argSyntax.Expression is LambdaExpressionSyntax);
+
+                if (whereArgument is null)
+                {
+                    return;
+                }
+
+                lambdaExpression = whereArgument.Syntax as ArgumentSyntax;
+/*
+                var invocationExpressionArgument = invocation.Arguments.FirstOrDefault(c => c.Syntax is InvocationExpressionSyntax);
+
+                if (invocationExpressionArgument is null)
+                {
+                    return;
+                }*/
+
+                //invocationExpressionSyntax = invocationExpressionArgument.Syntax as InvocationExpressionSyntax;
+
             }
 
-            var isLambda = whereClause.Children.Any(c => c.Syntax is ArgumentSyntax argument && argument.Expression is SimpleLambdaExpressionSyntax);
-
-            if (!isLambda)
-            {
-                return;
-            }
-
-            if (whereClause is IInvocationOperation method && !whereMethods.Contains(method.TargetMethod.OriginalDefinition))
-            {
-                return;
-            }
-
+            //var isLambda = whereClause.Children.Any(c => c.Syntax is ArgumentSyntax argument && argument.Expression is SimpleLambdaExpressionSyntax);
             // check that the Where clause is followed by a call to a valid method i.e. one of First, FirstOrDefault, Single, SingleOrDefault, etc..
             // and that it is also not user defined
             var invocationDefinition = invocationOperation.TargetMethod.OriginalDefinition;
@@ -145,16 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var node = operation.Syntax;
 
             // check that the nodes expression is a MemberAccessExpressionSyntax
-            if (!((InvocationExpressionSyntax)node is InvocationExpressionSyntax invocation &&
-                (MemberAccessExpressionSyntax)invocation.Expression is MemberAccessExpressionSyntax))
+            if (node is InvocationExpressionSyntax invoc && invoc.Expression is MemberAccessExpressionSyntax)
             {
-                return;
+                var location = node.GetLocation();
+                context.ReportDiagnostic(
+                    DiagnosticHelper.Create(Descriptor, location, Descriptor.GetEffectiveSeverity(context.Compilation.Options),
+                    additionalLocations: null, properties: null));
             }
-
-            var location = node.GetLocation();
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, location, Descriptor.GetEffectiveSeverity(context.Compilation.Options),
-                additionalLocations: null, properties: null));
         }
     }
 }
