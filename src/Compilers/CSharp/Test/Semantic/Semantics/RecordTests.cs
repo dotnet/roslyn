@@ -22221,7 +22221,7 @@ public record X(int a)
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "4243");
+            CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
         }
     }
 }
