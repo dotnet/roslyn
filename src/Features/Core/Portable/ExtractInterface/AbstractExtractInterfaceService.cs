@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
             CancellationToken cancellationToken);
 
-        internal abstract string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace);
-
         internal abstract string GetContainingNamespaceDisplay(INamedTypeSymbol typeSymbol, CompilationOptions compilationOptions);
 
         internal abstract bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode);
@@ -254,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 navigationDocumentId: refactoringResult.DocumentToExtractFrom.Id);
         }
 
-        internal Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+        internal static Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             Document document,
             INamedTypeSymbol type,
             IEnumerable<ISymbol> extractableMembers,
@@ -266,7 +264,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-            var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);
+            var generatedNameTypeParameterSuffix = GetTypeParameterSuffix(document, type);
 
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
             return service.GetExtractInterfaceOptionsAsync(
@@ -278,6 +276,22 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
                 document.Project.Language);
+        }
+
+        private static string GetTypeParameterSuffix(Document document, INamedTypeSymbol type)
+        {
+            var typeParameters = type.TypeParameters;
+
+            if (type.TypeParameters.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var displayParts = type.ToDisplayParts();
+            var typeParameterNames = displayParts.Where(d => d.Kind == SymbolDisplayPartKind.TypeParameterName).SelectAsArray(d => d.ToString());
+
+            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace).ToString();
         }
 
         private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)

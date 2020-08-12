@@ -7,6 +7,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -15,10 +16,6 @@ namespace Microsoft.CodeAnalysis.ExtractClass
     internal abstract class AbstractExtractClassRefactoringProvider : CodeRefactoringProvider
     {
         private readonly IExtractClassOptionsService? _optionsService;
-
-        public AbstractExtractClassRefactoringProvider() : this(service: null)
-        {
-        }
 
         public AbstractExtractClassRefactoringProvider(IExtractClassOptionsService? service)
         {
@@ -39,13 +36,15 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // If we register the action on a class node, no need to find selected members. Just allow
             // the action to be invoked with the dialog and no selected members
             var action = await TryGetClassActionAsync(context, optionsService).ConfigureAwait(false)
-                ?? await RegisterMemberActionAsync(context, optionsService).ConfigureAwait(false);
+                ?? await TryGetMemberActionAsync(context, optionsService).ConfigureAwait(false);
 
             if (action != null)
+            {
                 context.RegisterRefactoring(action, action.Span);
+            }
         }
 
-        private async Task<ExtractClassWithDialogCodeAction?> RegisterMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
+        private async Task<ExtractClassWithDialogCodeAction?> TryGetMemberActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
         {
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (selectedMemberNode is null)
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
             var (document, span, cancellationToken) = context;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
+            var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode, cancellationToken);
             if (selectedMember is null || selectedMember.ContainingType is null)
             {
                 return null;
@@ -78,7 +77,10 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return null;
             }
 
-            return new ExtractClassWithDialogCodeAction(document, span, optionsService, selectedMember.ContainingType, selectedMember);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var containingTypeDeclarationNode = selectedMemberNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+
+            return new ExtractClassWithDialogCodeAction(document, span, optionsService, containingType, containingTypeDeclarationNode!, selectedMember);
         }
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
@@ -92,14 +94,14 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var (document, span, cancellationToken) = context;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var originalSymbol = semanticModel.GetDeclaredSymbol(selectedClassNode, cancellationToken);
+            var originalType = semanticModel.GetDeclaredSymbol(selectedClassNode, cancellationToken) as INamedTypeSymbol;
 
-            if (originalSymbol is INamedTypeSymbol originalType)
+            if (originalType is null)
             {
-                return new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType);
+                return null;
             }
 
-            return null;
+            return new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType, selectedClassNode);
         }
     }
 }

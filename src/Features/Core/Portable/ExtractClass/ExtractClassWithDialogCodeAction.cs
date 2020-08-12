@@ -29,16 +29,24 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly Document _document;
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
+        private readonly SyntaxNode _selectedTypeDeclarationNode;
         private readonly IExtractClassOptionsService _service;
 
         public TextSpan Span { get; }
         public override string Title => FeaturesResources.Pull_members_up_to_new_base_class;
 
-        public ExtractClassWithDialogCodeAction(Document document, TextSpan span, IExtractClassOptionsService service, INamedTypeSymbol selectedType, ISymbol? selectedMember = null)
+        public ExtractClassWithDialogCodeAction(
+            Document document,
+            TextSpan span,
+            IExtractClassOptionsService service,
+            INamedTypeSymbol selectedType,
+            SyntaxNode selectedTypeDeclarationNode,
+            ISymbol? selectedMember = null)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
+            _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
             _selectedMember = selectedMember;
             Span = span;
         }
@@ -58,18 +66,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var originalTypeDeclaration = root.FindNode(Span).FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
-
-                if (originalTypeDeclaration is null)
-                    throw new InvalidOperationException();
-
                 // Map the symbols we're removing to annotations
                 // so we can find them easily
                 var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
                 var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
                     extractClassOptions.MemberAnalysisResults.Select(m => m.Member),
                     _document.Project.Solution,
-                    originalTypeDeclaration,
+                    _selectedTypeDeclarationNode,
                     cancellationToken).ConfigureAwait(false);
 
                 var fileBanner = syntaxFacts.GetFileBanner(root);
@@ -117,12 +120,12 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 // After all the changes, make sure we're using the most up to date symbol 
                 // as the destination for pulling members into
                 var documentWithTypeDeclaration = solutionWithUpdatedOriginalType.GetRequiredDocument(updatedDocument.Id);
-                newType = await GetNewTypeSymbolAsync(documentWithTypeDeclaration, typeAnnotation, cancellationToken).ConfigureAwait(false);
+                var newTypeAfterEdits = await GetNewTypeSymbolAsync(documentWithTypeDeclaration, typeAnnotation, cancellationToken).ConfigureAwait(false);
 
                 // Use Members Puller to move the members to the new symbol
                 var finalSolution = await PullMembersUpAsync(
                     solutionWithUpdatedOriginalType,
-                    newType,
+                    newTypeAfterEdits,
                     symbolMapping,
                     extractClassOptions.MemberAnalysisResults,
                     cancellationToken).ConfigureAwait(false);

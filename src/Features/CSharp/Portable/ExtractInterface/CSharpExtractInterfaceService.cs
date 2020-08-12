@@ -49,17 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             return span.IntersectsWith(position) ? typeDeclaration : null;
         }
 
-        internal override string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace)
-        {
-            if (typeParameters.IsEmpty())
-            {
-                return string.Empty;
-            }
-
-            var typeParameterList = SyntaxFactory.TypeParameterList(SyntaxFactory.SeparatedList(typeParameters.Select(p => SyntaxFactory.TypeParameter(p.Name))));
-            return Formatter.Format(typeParameterList, workspace).ToString();
-        }
-
         internal override string GetContainingNamespaceDisplay(INamedTypeSymbol typeSymbol, CompilationOptions compilationOptions)
         {
             return typeSymbol.ContainingNamespace.IsGlobalNamespace
