@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
@@ -257,6 +258,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
 
+        protected virtual Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
+            => Formatter.OrganizeImportsAsync(document, cancellationToken);
+
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
@@ -315,8 +319,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 rootToFormat = documentWithFileHeader;
             }
 
-            // Sort using directives
-            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => Formatter.OrganizeImportsAsync(addedDocument, cancellationToken));
+            // Organize using directives
+            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
             rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
 
             // Format document

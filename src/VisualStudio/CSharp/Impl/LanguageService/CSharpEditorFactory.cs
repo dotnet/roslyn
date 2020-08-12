@@ -5,9 +5,12 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.FileHeaders;
+using Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FileHeaders;
@@ -29,5 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         protected override string LanguageName => LanguageNames.CSharp;
         protected override SyntaxGenerator SyntaxGenerator => CSharpSyntaxGenerator.Instance;
         protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
+
+        protected override async Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
+        {
+            var organizedDocument = await base.OrganizeUsingsCreatedFromTemplateAsync(document, cancellationToken).ConfigureAwait(false);
+            return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(organizedDocument, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
