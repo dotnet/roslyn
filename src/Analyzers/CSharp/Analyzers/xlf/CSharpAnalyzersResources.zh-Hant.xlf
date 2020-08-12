@@ -82,14 +82,14 @@
         <target state="translated">移除隱藏運算子中不需要的運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_Linq_expression">
+        <source>Simplify Linq expression</source>
+        <target state="new">Simplify Linq expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">簡化 'default' 運算式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_linq_expression">
-        <source>Simplify linq expression</source>
-        <target state="new">Simplify linq expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">

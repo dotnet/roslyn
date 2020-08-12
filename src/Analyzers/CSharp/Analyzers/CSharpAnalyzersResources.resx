@@ -289,7 +289,7 @@
   <data name="Suppression_operator_has_no_effect_and_can_be_misinterpreted" xml:space="preserve">
     <value>Suppression operator has no effect and can be misinterpreted</value>
   </data>
-  <data name="Simplify_linq_expression" xml:space="preserve">
-    <value>Simplify linq expression</value>
+  <data name="Simplify_Linq_expression" xml:space="preserve">
+    <value>Simplify Linq expression</value>
   </data>
 </root>

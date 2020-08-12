@@ -82,14 +82,14 @@
         <target state="translated">Usuń niepotrzebny operator pomijania</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_Linq_expression">
+        <source>Simplify Linq expression</source>
+        <target state="new">Simplify Linq expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Uprość wyrażenie „default”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_linq_expression">
-        <source>Simplify linq expression</source>
-        <target state="new">Simplify linq expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
