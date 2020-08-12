@@ -137,30 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool commonReferences = true,
             bool openDocuments = false)
         {
-            var documentElements = new List<XElement>();
-            var index = 0;
-
-            if (extension == null)
-            {
-                extension = language == LanguageNames.CSharp
-                ? CSharpExtension
-                : VisualBasicExtension;
-            }
-
-            foreach (var file in files)
-            {
-                documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
-            }
-
-            metadataReferences ??= Array.Empty<string>();
-            foreach (var reference in metadataReferences)
-            {
-                documentElements.Add(CreateMetadataReference(reference));
-            }
-
-            var workspaceElement = CreateWorkspaceElement(
-                CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
-
+            var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, metadataReferences, extension, commonReferences);
             return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind);
         }
 

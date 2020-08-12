@@ -261,8 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Submission:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
                         | DeclarationModifiers.Unsafe;
+
+                    if (!this.IsRecord)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Static;
+                    }
+
                     break;
                 case TypeKind.Struct:
                     allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
@@ -1567,7 +1573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //   following a field of the same name, or a field and a nested type of the same name.
                     //
 
-                    if ((object?)lastSym != null)
+                    if (lastSym is object)
                     {
                         if (symbol.Kind != SymbolKind.Method || lastSym.Kind != SymbolKind.Method)
                         {
@@ -2064,6 +2070,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsInterfaceType())
             {
                 // Interfaces are allowed to define Equals without GetHashCode if they want.
+                return;
+            }
+
+            if (IsRecord)
+            {
+                // For records the warnings reported below are simply going to echo record specific errors,
+                // producing more noise.
                 return;
             }
 
@@ -3023,6 +3036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addOtherEquals();
             addObjectEquals(thisEquals);
             addHashCode(equalityContract);
+            addEqualityOperators();
 
             memberSignatures.Free();
 
@@ -3354,6 +3368,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics));
                 }
+            }
+
+            void addEqualityOperators()
+            {
+                members.Add(new SynthesizedRecordEqualityOperator(this, memberOffset: members.Count, diagnostics));
+                members.Add(new SynthesizedRecordInequalityOperator(this, memberOffset: members.Count, diagnostics));
             }
         }
 

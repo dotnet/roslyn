@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AccessModMissingAccessor = 276,
         ERR_UnimplementedInterfaceAccessor = 277,
         WRN_PatternIsAmbiguous = 278,
-        WRN_PatternStaticOrInaccessible = 279,
+        WRN_PatternNotPublicOrNotInstance = 279,
         WRN_PatternBadSignature = 280,
         ERR_FriendRefNotEqualToThis = 281,
         WRN_SequentialOnPartialClass = 282,
@@ -1885,7 +1885,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UseDefViolationOut = 8886,
         WRN_UseDefViolation = 8887,
 
+        ERR_CannotSpecifyManagedWithUnmanagedSpecifiers = 8888,
+        ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv = 8889,
+        ERR_TypeNotFound = 8890,
+        ERR_TypeMustBePublic = 8891,
+
         #endregion diagnostics introduced for C# 9.0
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

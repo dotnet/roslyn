@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public SemanticModel GetOrCreateCachedSemanticModel(SyntaxTree tree, Compilation compilation, CancellationToken cancellationToken)
             {
-                SemanticModel model;
+                SemanticModel? model;
                 lock (_semanticModelsMap)
                 {
                     if (_semanticModelsMap.TryGetValue(tree, out model) && model.Compilation == compilation)
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out DeclarationAnalysisData cachedData))
+                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out var cachedData))
                     {
                         return cachedData;
                     }
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out DeclarationAnalysisData existingData))
+                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out var existingData))
                     {
                         _declarationAnalysisDataMap.Add(declaration, data);
                     }

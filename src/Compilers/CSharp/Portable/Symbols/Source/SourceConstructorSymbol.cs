@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              ConstructorDeclarationSyntax syntax,
              MethodKind methodKind,
              DiagnosticBag diagnostics) :
-             base(containingType, location, syntax)
+             base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax))
         {
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;

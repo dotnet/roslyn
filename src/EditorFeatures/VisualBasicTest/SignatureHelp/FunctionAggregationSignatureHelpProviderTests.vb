@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
@@ -15,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New FunctionAggregationSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(FunctionAggregationSignatureHelpProvider)
         End Function
 
         <WorkItem(529682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529682")>

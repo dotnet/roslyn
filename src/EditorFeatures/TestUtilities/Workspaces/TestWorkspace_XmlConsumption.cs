@@ -79,11 +79,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
         {
             var workspace = new TestWorkspace(exportProvider, composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
-            workspace.InitializeFromXml(workspaceElement, openDocuments, documentServiceProvider);
+            workspace.InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
             return workspace;
         }
 
-        internal void InitializeFromXml(
+        internal void InitializeDocuments(
+            string language,
+            CompilationOptions compilationOptions = null,
+            ParseOptions parseOptions = null,
+            string[] files = null,
+            string[] metadataReferences = null,
+            string extension = null,
+            bool commonReferences = true,
+            bool openDocuments = true,
+            IDocumentServiceProvider documentServiceProvider = null)
+        {
+            var workspaceElement = CreateWorkspaceElement(
+                language,
+                compilationOptions,
+                parseOptions,
+                files,
+                metadataReferences,
+                extension,
+                commonReferences);
+
+            InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
+        }
+
+        internal void InitializeDocuments(
             XElement workspaceElement,
             bool openDocuments = true,
             IDocumentServiceProvider documentServiceProvider = null)
