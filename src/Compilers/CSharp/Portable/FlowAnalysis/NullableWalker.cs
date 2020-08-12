@@ -539,15 +539,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 TypeWithAnnotations fieldType;
                 FieldSymbol? field;
+                Symbol symbol;
                 switch (member)
                 {
                     case FieldSymbol f:
                         fieldType = f.TypeWithAnnotations;
                         field = f;
+                        symbol = (Symbol?)(f.AssociatedSymbol as PropertySymbol) ?? f;
                         break;
                     case EventSymbol e:
                         fieldType = e.TypeWithAnnotations;
                         field = e.AssociatedField;
+                        symbol = e;
                         if (field is null)
                         {
                             return;
@@ -568,11 +571,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
-                var symbol = member switch
-                {
-                    FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
-                    _ => member
-                };
                 var annotations = symbol.GetFlowAnalysisAnnotations();
                 if ((annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.AllowNull)) != 0)
                 {
@@ -592,8 +590,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                      Diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, exitLocation ?? symbol.Locations.FirstOrNone(), symbol.Kind.Localize(), symbol.Name);
                 }
-
-               
             }
 
             void enforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
