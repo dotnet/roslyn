@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            // Certain types of workspace don't support document change, e.g. DebuggerIntelliSense
+            // Certain types of workspace don't support document change, e.g. DebuggerIntelliSenseWorkspace
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return false;
