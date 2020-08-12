@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity
         /// in the given optional container.
         /// </summary>
-        public INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        public INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity)
         {
             if (name == null)
             {
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             return CommonCreateErrorTypeSymbol(container, name, arity);
         }
 
-        protected abstract INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity);
+        protected abstract INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity);
 
         /// <summary>
         /// Returns a new INamespaceSymbol representing an error (missing) namespace with the given name.
@@ -961,13 +961,24 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException">
         /// If returnType is <see langword="null"/>, or if parameterTypes or parameterRefKinds are default,
         /// or if any of the types in parameterTypes are null.</exception>
-         // https://github.com/dotnet/roslyn/issues/39865 allow setting calling convention in creation
-        public IFunctionPointerTypeSymbol CreateFunctionPointerTypeSymbol(ITypeSymbol returnType, RefKind returnRefKind, ImmutableArray<ITypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
+        public IFunctionPointerTypeSymbol CreateFunctionPointerTypeSymbol(
+            ITypeSymbol returnType,
+            RefKind returnRefKind,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            SignatureCallingConvention callingConvention = SignatureCallingConvention.Default,
+            ImmutableArray<INamedTypeSymbol> callingConventionTypes = default)
         {
-            return CommonCreateFunctionPointerTypeSymbol(returnType, returnRefKind, parameterTypes, parameterRefKinds);
+            return CommonCreateFunctionPointerTypeSymbol(returnType, returnRefKind, parameterTypes, parameterRefKinds, callingConvention, callingConventionTypes);
         }
 
-        protected abstract IFunctionPointerTypeSymbol CommonCreateFunctionPointerTypeSymbol(ITypeSymbol returnType, RefKind returnRefKind, ImmutableArray<ITypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds);
+        protected abstract IFunctionPointerTypeSymbol CommonCreateFunctionPointerTypeSymbol(
+            ITypeSymbol returnType,
+            RefKind returnRefKind,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            SignatureCallingConvention callingConvention,
+            ImmutableArray<INamedTypeSymbol> callingConventionTypes);
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing a native integer.

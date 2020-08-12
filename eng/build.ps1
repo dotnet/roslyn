@@ -280,7 +280,7 @@ function GetIbcSourceBranchName() {
 
     $branchData = GetBranchPublishData $officialSourceBranchName
     if ($branchData -eq $null) {
-      Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
+      Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
       Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
       return $fallback
     }
@@ -322,7 +322,7 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $branchData = GetBranchPublishData $branchName
 
   if ($branchData -eq $null) {
-    Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. " -ForegroundColor Yellow
+    Write-LogIssue -Type warning -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. "
     $branchData = GetBranchPublishData $fallbackBranch
   }
 

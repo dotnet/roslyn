@@ -5246,9 +5246,9 @@ public record C : B
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record C : B
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(2, 19),
-                // (4,26): error CS8871: 'C.PrintMembers(StringBuilder)' does not override expected method from 'B'.
-                //     public override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(4, 26)
+                // (4,29): error CS8871: 'C.PrintMembers(StringBuilder)' does not override expected method from 'B'.
+                //     protected override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(4, 29)
                 );
         }
 
@@ -24627,6 +24627,31 @@ interface I1 {}
                         break;
                 }
             }
+        }
+
+        [Fact]
+        [WorkItem(46657, "https://github.com/dotnet/roslyn/issues/46657")]
+        public void CanDeclareIteratorInRecord()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public record X(int a)
+{
+    public static void Main()
+    {
+        foreach(var i in new X(42).GetItems())
+        {
+            System.Console.Write(i);
+        }
+    }
+    public IEnumerable<int> GetItems() { yield return a; yield return a + 1; }
+}";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
         }
     }
 }

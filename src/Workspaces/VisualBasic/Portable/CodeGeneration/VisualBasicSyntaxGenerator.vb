@@ -3061,7 +3061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
+        Friend Shared Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
             Select Case declaration.Kind
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(declaration, PropertyBlockSyntax).Accessors
