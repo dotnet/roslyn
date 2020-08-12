@@ -47,7 +47,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "UpdateCommand",
                 },
                 sinkMethodParameters: null);
-          
             sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypeNames.MicrosoftEntityFrameworkCoreRelationalQueryableExtensions,
                 SinkKind.Sql,
