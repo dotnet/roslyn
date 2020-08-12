@@ -2308,7 +2308,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void Dispose()
         {
-            CompilationEventQueue?.TryComplete();
+            _lazyCompilationEventQueue?.TryComplete();
             _lazyDiagnosticQueue?.TryComplete();
             _lazyQueueRegistration?.Dispose();
         }
