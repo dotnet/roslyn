@@ -6,7 +6,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.FileHeaders;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 
@@ -23,5 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         protected override string ContentTypeName => ContentTypeNames.CSharpContentType;
         protected override string LanguageName => LanguageNames.CSharp;
+        protected override SyntaxGenerator SyntaxGenerator => CSharpSyntaxGenerator.Instance;
+        protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
     }
 }
