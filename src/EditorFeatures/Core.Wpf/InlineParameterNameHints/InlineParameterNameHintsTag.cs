@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 FontSize = format.FontRenderingEmSize - (0.25 * format.FontRenderingEmSize),
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
-                Padding = new Thickness(0),
+                Padding = new Thickness(1, 0, 0, 0),
                 Text = text + ":",
                 VerticalAlignment = VerticalAlignment.Center,
             };
