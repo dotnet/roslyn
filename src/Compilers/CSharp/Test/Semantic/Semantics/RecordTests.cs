@@ -4481,78 +4481,6 @@ record C1(int A2, int B2) : Base(A2)
         }
 
         [Fact]
-        public void ToString_BadBase_MissingPrint()
-        {
-            var ilSource = @"
-.class public auto ansi beforefieldinit A
-    extends System.Object
-{
-    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig virtual instance int32 GetHashCode () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type A::get_EqualityContract()
-    }
-
-    .method public hidebysig virtual instance string ToString () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-";
-            var source = @"
-public record B : A {
-}";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
-                );
-        }
-
-        [Fact]
         public void ToString_BadBase_MissingToString()
         {
             var ilSource = @"
@@ -4591,8 +4519,9 @@ public record B : A {
 
     .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
     {
-        IL_0000: ldnull
-        IL_0001: throw
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
     }
 
     .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
@@ -4611,13 +4540,104 @@ public record B : A {
         IL_0000: ldnull
         IL_0001: throw
     }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldstr ""RAN""
+        IL_0005: ret
+    }
+}
+
+.class public auto ansi beforefieldinit B
+    extends A
+{
+    .method family hidebysig specialname virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Inequality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Equality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object obj ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public final hidebysig virtual instance bool Equals ( class A other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig newslot virtual instance bool Equals ( class B other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class B original ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void A::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    // no override for ToString
 }
 ";
             var source = @"
-public record B : A {
-}";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+var c = new C();
+System.Console.Write(c);
+
+public record C : B
+{
+    public override string ToString() => base.ToString();
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
         [Fact]
@@ -5073,6 +5093,162 @@ public record B : A {
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersNotOverriddenInBase()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi beforefieldinit B
+    extends A
+{
+    .method family hidebysig specialname virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Inequality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Equality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object obj ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public final hidebysig virtual instance bool Equals ( class A other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig newslot virtual instance bool Equals ( class B other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class B original ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+
+    // no override for PrintMembers
+}
+";
+
+            var source = @"
+public record C : B
+{
+    protected override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record C : B
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(2, 19),
+                // (4,26): error CS8871: 'C.PrintMembers(StringBuilder)' does not override expected method from 'B'.
+                //     public override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(4, 26)
                 );
         }
 
