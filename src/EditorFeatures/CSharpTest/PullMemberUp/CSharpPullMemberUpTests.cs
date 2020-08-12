@@ -1700,7 +1700,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected, index: 1);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task Pull()
         {
             var testText = @"
