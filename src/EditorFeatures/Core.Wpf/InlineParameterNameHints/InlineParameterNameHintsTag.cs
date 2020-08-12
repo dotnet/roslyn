@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 FontSize = format.FontRenderingEmSize - (0.25 * format.FontRenderingEmSize),
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
-                Padding = new Thickness(1, 0, 0, 0),
+
+                // Adds a little bit of padding to the left of the text relative to the border
+                // to make the text seem more balanced in the border
+                Padding = new Thickness(left: 1, top: 0, right: 0, bottom: 0),
                 Text = text + ":",
                 VerticalAlignment = VerticalAlignment.Center,
             };
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 CornerRadius = new CornerRadius(2),
                 Height = lineHeight - (0.25 * lineHeight),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, -0.20 * lineHeight, 5, 0),
+                Margin = new Thickness(left: 0, top: -0.20 * lineHeight, right: 5, bottom: 0),
                 Padding = new Thickness(1),
                 VerticalAlignment = VerticalAlignment.Center,
             };
