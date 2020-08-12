@@ -59,14 +59,6 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcConnection.cs">
-      <Link>Remote\JsonRpcConnection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\IPooledConnectionReclamation.cs">
-      <Link>Remote\IPooledConnectionReclamation.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" />

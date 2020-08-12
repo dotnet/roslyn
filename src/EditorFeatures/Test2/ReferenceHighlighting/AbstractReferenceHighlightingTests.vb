@@ -19,10 +19,9 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     <[UseExportProvider]>
     Public MustInherit Class AbstractReferenceHighlightingTests
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess).AddParts(
             GetType(NoCompilationContentTypeDefinitions),
-            GetType(NoCompilationContentTypeLanguageService),
-            GetType(InProcRemoteHostClientProvider.Factory))
+            GetType(NoCompilationContentTypeLanguageService))
 
         Protected Async Function VerifyHighlightsAsync(test As XElement, testHost As TestHost, Optional optionIsEnabled As Boolean = True) As Task
             Using workspace = TestWorkspace.Create(test, composition:=s_composition.WithTestHostParts(testHost))
