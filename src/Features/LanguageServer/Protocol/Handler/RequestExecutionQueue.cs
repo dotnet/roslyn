@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         /// <summary>
-        /// Queues a request to be handled by the specified handler, with mutating requests blocking future requests
+        /// Queues a request to be handled by the specified handler, with mutating requests blocking subsequent requests
         /// from starting until the mutation is complete.
         /// </summary>
         /// <param name="mutatesSolutionState">Whether or not the specified request needs to mutate the solution.</param>
@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (cancellationToken.IsCancellationRequested)
                     {
                         completion.SetCanceled();
+
+                        // Tell the queue to ignore any mutations from this request, not that we've given it a chance
+                        // to make any
                         return false;
                     }
 
@@ -63,6 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
+                        // Tell the queue that this was successful so that mutations (if any) can be applied
                         return true;
                     }
                     catch (OperationCanceledException)
@@ -72,9 +76,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     catch (Exception exception)
                     {
                         // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can observe but
-                        // don't let it escape from this callback, so it doens't affect the queue processing.
+                        // don't let it escape from this callback, so it doesn't affect the queue processing.
                         completion.SetException(exception);
                     }
+
+                    // Tell the queue to ignore any mutations from this request
                     return false;
                 });
             _queue.Enqueue(item);
@@ -88,6 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
+                // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
+                // to merge in the changes from any mutations that have been applied to open documents
                 var solution = GetCurrentSolution();
                 solution = MergeChanges(solution, _lastMutatedSolution);
 

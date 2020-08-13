@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         string? LanguageName { get; }
 
         /// <summary>
-        /// Whether or not handling this method results in changes to the current solution state
+        /// Whether or not handling this method results in changes to the current solution state.
+        /// Mutating requests will block subsequent requests from starting until after they have
+        /// completed and mutations have been applied. See <see cref="RequestExecutionQueue"/>.
         /// </summary>
         bool MutatesSolutionState { get; }
     }
