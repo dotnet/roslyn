@@ -535,7 +535,7 @@ public class TestClass
                 @"
 public class TestClass
 {
-    private void Caller()
+    public TestClass()
     {
         var x = Callee1(Cal[||]lee1(Callee1(Callee1(10))));
     }
@@ -548,7 +548,7 @@ public class TestClass
                 @"
 public class TestClass
 {
-    private void Caller()
+    public TestClass()
     {
         int j = Callee1(Callee1(10));
         var x = Callee1(1 + 2 + j);
