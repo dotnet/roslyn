@@ -384,6 +384,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
+        private static AnalyzerDriver CreateDriverForComputingDiagnosticsWithoutStateTracking(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            // Create and attach a new driver instance to compilation, do not used a pooled instance from '_driverPool'.
+            // Additionally, use a new AnalyzerManager and don't use the analyzer manager instance
+            // stored onto the field '_analyzerManager'.
+            // Pooled _driverPool and shared _analyzerManager is used for partial/state-based analysis, and
+            // we want to compute diagnostics without any state tracking here.
+
+            return compilation.CreateAnalyzerDriver(analyzers, new AnalyzerManager(analyzers), severityFilter: SeverityFilter.None);
+        }
+
         private async Task ComputeAnalyzerDiagnosticsWithoutStateTrackingAsync(CancellationToken cancellationToken)
         {
             // Exclude analyzers that have fully executed.
@@ -404,11 +415,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = true;
-                driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
+                driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
-                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
+                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
 
                 // Force compilation diagnostics and wait for analyzer execution to complete.
                 var compDiags = compilation.GetDiagnostics(cancellationToken);
@@ -445,11 +456,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Create and attach the driver to compilation.
                 var categorizeDiagnostics = false;
-                driver = compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None);
+                driver = CreateDriverForComputingDiagnosticsWithoutStateTracking(compilation, analyzers);
                 driver.Initialize(compilation, _analysisOptions, compilationData, categorizeDiagnostics, cancellationToken);
                 var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
                 var analysisScope = new AnalysisScope(compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics);
-                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue, analysisScope, cancellationToken);
+                driver.AttachQueueAndStartProcessingEvents(compilation.EventQueue!, analysisScope, cancellationToken);
 
                 // Force compilation diagnostics and wait for analyzer execution to complete.
                 var compDiags = compilation.GetDiagnostics(cancellationToken);
@@ -773,7 +784,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     driver = await GetAnalyzerDriverAsync(cancellationToken).ConfigureAwait(false);
 
                     // Driver must have been initialized.
-                    Debug.Assert(driver.WhenInitializedTask != null);
+                    Debug.Assert(driver.IsInitialized);
                     Debug.Assert(!driver.WhenInitializedTask.IsCanceled);
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -938,14 +949,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 try
                 {
                     // Start the initialization task, if required.
-                    if (driver.WhenInitializedTask == null)
+                    if (!driver.IsInitialized)
                     {
                         driver.Initialize(_compilation, _analysisOptions, _compilationData, categorizeDiagnostics: true, cancellationToken: cancellationToken);
                     }
 
                     // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
                     // Wait for driver initialization to complete: this executes the Initialize and CompilationStartActions to compute all registered actions per-analyzer.
-                    await driver.WhenInitializedTask!.ConfigureAwait(false);
+                    await driver.WhenInitializedTask.ConfigureAwait(false);
 
                     success = true;
                     return driver;
@@ -969,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (driver != null)
             {
                 // Throw away the driver instance if the initialization didn't succeed.
-                if (driver.WhenInitializedTask == null || driver.WhenInitializedTask.IsCanceled)
+                if (!driver.IsInitialized || driver.WhenInitializedTask.IsCanceled)
                 {
                     _driverPool.ForgetTrackedObject(driver);
                 }
@@ -987,6 +998,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
+                Debug.Assert(driver.IsInitialized);
                 Debug.Assert(!driver.WhenInitializedTask.IsCanceled);
 
                 if (eventQueue.Count > 0 || _analysisState.HasPendingSyntaxAnalysis(analysisScope))
@@ -1073,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var task in executingTasks)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await task.Item1.ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(task.Item1).ConfigureAwait(false);
                 }
 
                 executingTasks.Clear();
@@ -1129,12 +1141,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    await executingTreeTask.Item1.ConfigureAwait(false);
+                    await WaitForExecutingTaskAsync(executingTreeTask.Item1).ConfigureAwait(false);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private async Task WaitForExecutingTaskAsync(Task executingTask)
+        {
+            try
+            {
+                await executingTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Handle cancelled tasks gracefully.
             }
         }
 

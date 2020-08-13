@@ -139,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         End Try
 
                         Dim wrapperRCW = Marshal.GetObjectForIUnknown(wrapperUnknown)
-                        Return CType(wrapperRCW, IComWrapper)
+                        Return CType(wrapperRCW, IComWrapperFixed)
                     Finally
                         Marshal.Release(innerUnknown)
                     End Try

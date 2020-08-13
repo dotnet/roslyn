@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly IThreadingContext _threadingContext;
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
 
@@ -39,31 +37,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider,
-            IThreadingContext threadingContext)
+            ILspSolutionProvider solutionProvider)
             : base(solutionProvider)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
-            _threadingContext = threadingContext;
         }
 
-        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(
-            LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken)
+        public override async Task<LSP.VSCodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return Array.Empty<VSCodeAction>();
             }
 
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-                request, _codeActionsCache, document, _codeFixService, _codeRefactoringService, _threadingContext,
-                cancellationToken).ConfigureAwait(false);
+                request, _codeActionsCache, document, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             return codeActions;
         }

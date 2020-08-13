@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
@@ -24,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class RemoteHostClientServiceFactoryTests
     {
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
-            typeof(InProcRemoteHostClientProvider.Factory));
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
         private static AdhocWorkspace CreateWorkspace()
             => new AdhocWorkspace(s_composition.GetHostServices());
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
-            var mock = new MockLogAndProgressService();
+            var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             using var connection = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
@@ -151,15 +149,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             }
         }
 
-        private class MockLogAndProgressService : ISymbolSearchLogService, ISymbolSearchProgressService
+        private class MockLogService : ISymbolSearchLogService
         {
             public Task LogExceptionAsync(string exception, string text) => Task.CompletedTask;
             public Task LogInfoAsync(string text) => Task.CompletedTask;
-
-            public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
-            public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
         }
     }
 }

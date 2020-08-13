@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
-    [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Default), Shared, PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestExtractInterfaceOptionsService : IExtractInterfaceOptionsService
     {
         [ImportingConstructor]

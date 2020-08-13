@@ -802,11 +802,6 @@
         <target state="translated">Mise à jour de la gravité</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_editorconfig_compatibility_mode">
-        <source>Use .editorconfig compatibility mode (requires restart)</source>
-        <target state="translated">Utiliser le mode de compatibilité de .editorconfig (nécessite un redémarrage)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">Utiliser un corps d'expression pour les expressions lambda</target>

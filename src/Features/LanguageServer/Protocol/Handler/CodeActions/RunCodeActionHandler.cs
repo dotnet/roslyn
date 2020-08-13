@@ -52,16 +52,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public async Task<object> HandleRequestAsync(
-            LSP.ExecuteCommandParams request,
-            LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+        public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                _codeActionsCache, document, runRequest.Range, _codeFixService, _codeRefactoringService,
-                _threadingContext, cancellationToken).ConfigureAwait(false);
+                _codeActionsCache, document, runRequest.Range, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(actionToRun);

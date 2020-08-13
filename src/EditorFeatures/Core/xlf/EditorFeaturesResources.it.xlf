@@ -37,21 +37,6 @@
         <target state="translated">Procedere comunque? Il codice ottenuto potrebbe essere danneggiato.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider">
         <source>Error creating instance of CodeFixProvider</source>
         <target state="new">Error creating instance of CodeFixProvider</target>
