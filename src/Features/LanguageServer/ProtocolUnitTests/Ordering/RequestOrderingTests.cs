@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.True(responses[2].StartTime < responses[1].EndTime);
         }
 
-
         [Fact]
         public async Task NonMutatingOperatesOnTheRightSolutions()
         {
