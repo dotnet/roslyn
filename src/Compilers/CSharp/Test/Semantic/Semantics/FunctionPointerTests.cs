@@ -2083,6 +2083,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '(c?.GetP
 
         }
 
+        // PROTOTYPE
         [Fact]
         public void UnusedFunctionPointerAsResultOfQuestionDot()
         {

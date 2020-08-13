@@ -37,7 +37,7 @@ try {
   if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "master")
   {
     Write-Host "Checking no PROTOTYPE markers in compiler source"
-    Get-ChildItem -Path src/Compilers/*.cs,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch -OutVariable prototypes | Out-Null
+    $prototypes = Get-ChildItem -Path src/Compilers/*.cs,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
     if ($prototypes)
     {
       Write-Host "Found PROTOTYPE markers in compiler source:"
