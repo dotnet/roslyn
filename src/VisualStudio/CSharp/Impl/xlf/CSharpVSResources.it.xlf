@@ -32,6 +32,11 @@
         <target state="translated">Variabile discard</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="new">Format document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Impostazioni formattazione documento (sperimentale)</target>

@@ -9,15 +9,13 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10413,10 +10411,7 @@ namespace ClassLibrary9
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new ExtractMethodCommandHandler(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ITextBufferUndoManagerProvider>(),
-                workspace.GetService<IInlineRenameService>());
+            var handler = workspace.ExportProvider.GetCommandHandler<ExtractMethodCommandHandler>(PredefinedCommandHandlerNames.ExtractMethod, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new ExtractMethodCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

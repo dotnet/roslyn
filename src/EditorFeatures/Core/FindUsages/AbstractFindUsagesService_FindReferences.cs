@@ -111,9 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public static async Task FindSymbolReferencesAsync(
             IFindUsagesContext context, ISymbol symbol, Project project)
         {
-            var solution = project.Solution;
-            var monikerUsagesService = solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
-
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
@@ -123,14 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
-            //
-            // Kick off work to search the online code index system in parallel.
-            //
-            // Do both in parallel so we can get all the results as soon as possible.
-
-            await Task.WhenAll(
-                FindReferencesAsync(context, symbol, project, options),
-                FindSymbolMonikerReferencesAsync(monikerUsagesService, symbol, context)).ConfigureAwait(false);
+            await FindReferencesAsync(context, symbol, project, options).ConfigureAwait(false);
         }
 
         public static async Task FindReferencesAsync(

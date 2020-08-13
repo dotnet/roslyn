@@ -120,9 +120,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var cancellationToken = reader.CancellationToken;
 
-                var name = reader.ReadString();
+                var name = reader.ReadString()!;
                 var kind = (SymbolKind)reader.ReadInteger();
-                var locations = reader.ReadLocationArray(out var locationsFailureReason);
+#pragma warning disable IDE0007 // Use implicit type
+                PooledArrayBuilder<Location> locations = reader.ReadLocationArray(out var locationsFailureReason)!;
+#pragma warning restore IDE0007 // Use implicit type
                 var ordinal = reader.ReadInteger();
 
                 if (locationsFailureReason != null)

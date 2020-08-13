@@ -299,6 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
+            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, analyzerExecutor.Compilation, analyzerExecutor.AnalyzerOptions))
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions))
                 {
                     isSuppressed = false;
                 }
@@ -367,12 +368,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Compilation? compilation,
                 AnalyzerOptions? analyzerOptions)
             {
-                if (compilation != null)
+                if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
                     foreach (var tree in compilation.SyntaxTrees)
                     {
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
-                        if (tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredValue) ||
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, out var configuredValue) ||
                             analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out configuredValue))
                         {
                             if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
