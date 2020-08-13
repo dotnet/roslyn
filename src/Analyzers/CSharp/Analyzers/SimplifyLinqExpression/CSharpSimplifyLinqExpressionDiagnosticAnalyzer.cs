@@ -15,6 +15,7 @@ using System.Linq.Expressions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using System;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Roslyn.Utilities;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
@@ -55,8 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             var whereMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
             var linqMethods = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
 
-            var enumFullName = typeof(Enumerable).FullName ?? "System.Linq.Enumerable";
-            var enumNamedType = context.Compilation.GetTypeByMetadataName(enumFullName);
+#pragma warning disable CS8604 // Possible null reference argument.
+            var enumNamedType = context.Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
+#pragma warning restore CS8604 // Possible null reference argument.
 
             if (enumNamedType is null)
             {
@@ -64,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             }
 
             var enumMethods = enumNamedType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>();
-
             whereMethods.UnionWith(enumMethods);
 
             // add all valid linq calls
@@ -92,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             var invocationArgument = invocationOperation.Arguments.FirstOrDefault();
 
             Location argumentLocation;
-            Location invokedSyntaxLocation;
             Location targetMethodLocation;
             IEnumerable<Location> additionalLocations;
 
@@ -149,14 +149,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 //var invokedNode = node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault(d => d.Expression is IdentifierNameSyntax);
                 var targetMethodNode = node.DescendantNodes().OfType<IdentifierNameSyntax>().LastOrDefault();
                 var whereClauseSyntax = invocation.Syntax as InvocationExpressionSyntax;
-
-                if (whereClauseSyntax is null)
+                if (whereClauseSyntax is null ||
+                    targetMethodNode is null ||
+                    whereClauseSyntax.ArgumentList.Arguments.IsEmpty())
                 {
                     return;
                 }
 
                 argumentLocation = whereClauseSyntax.ArgumentList.GetLocation();
-                //invokedSyntaxLocation = invokedNode.GetLocation();
+
                 targetMethodLocation = targetMethodNode.GetLocation();
 
                 additionalLocations = new List<Location> { argumentLocation, targetMethodLocation };
