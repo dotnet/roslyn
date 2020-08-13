@@ -160,7 +160,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RoslynEx", "RoslynEx", "{80
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RoslynEx.Shared", "src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.shproj", "{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynEx.Interface", "src\RoslynEx\RoslynEx.Interface\RoslynEx.Interface.csproj", "{813E74A5-78C0-499E-AE2B-DC133B8A77BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynEx.Sdk", "src\RoslynEx\RoslynEx.Sdk\RoslynEx.Sdk.csproj", "{813E74A5-78C0-499E-AE2B-DC133B8A77BF}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

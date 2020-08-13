@@ -5,6 +5,13 @@
     <DefineConstants>ROSLYNEX_INTERFACE</DefineConstants>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <AssemblyName>RoslynEx.Interface</AssemblyName>
+    <PackageId>RoslynEx.Sdk</PackageId>
+    <PreReleaseVersionLabel>poc</PreReleaseVersionLabel>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <OfficialBuild>true</OfficialBuild>
+    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).9</OfficialBuildId>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <Import Project="..\RoslynEx.Shared\RoslynEx.Shared.projitems" Label="Shared" />

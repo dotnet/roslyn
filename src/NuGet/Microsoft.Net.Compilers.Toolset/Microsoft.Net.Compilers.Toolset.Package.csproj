@@ -25,6 +25,11 @@
 
     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
     <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp3.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+
+    <PreReleaseVersionLabel>poc</PreReleaseVersionLabel>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <OfficialBuild>true</OfficialBuild>
+    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).1</OfficialBuildId>
   </PropertyGroup>
 
   <ItemGroup>
