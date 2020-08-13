@@ -11337,5 +11337,20 @@ class Program {{
 ";
             await TestExtractMethodAsync(code, expected);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41895"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task DontCrashOnConditionalAccess()
+        {
+            var code = @"class C
+{
+    void Test()
+    {
+        System.Collections.Generic.List<int> b = null;
+        b?.[|Clear|]();
+        _ = b?.ToString();
+    }
+}";
+            await ExpectExtractMethodToFailAsync(code);
+        }
     }
 }
