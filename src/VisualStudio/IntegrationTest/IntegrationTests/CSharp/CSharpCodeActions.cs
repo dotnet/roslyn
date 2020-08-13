@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,7 +15,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -689,7 +686,7 @@ public class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public void ConfigureSeverity()
+        public void ConfigureSeverityWithCodeAction()
         {
             var markup = @"
 class C
@@ -736,6 +733,65 @@ class C
                         severity: expectedSeverity,
                         description: "The variable 'x' is declared but never used",
                         project: "TestProj.csproj",
+                        fileName: "Class1.cs",
+                        line: 7,
+                        column: 13)
+                };
+
+                var actualContents = visualStudio.ErrorList.GetErrorListContents();
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/46784"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [WorkItem(46784, "https://github.com/dotnet/roslyn/issues/46784")]
+        public void ConfigureSeverityWithManualEditsToEditorconfig()
+        {
+            var markup = @"
+class C
+{
+    public static void Main()
+    {
+        // CS0168: The variable 'x' is declared but never used
+        int $$x;
+    }
+}";
+            SetUpEditor(markup);
+
+            // Verify CS0168 warning in original code.
+            VerifyDiagnosticInErrorList("Warning", VisualStudio);
+
+            // Add an .editorconfig file to the project to change severity to error.
+            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", open: true);
+            VisualStudio.Editor.SendKeys(@"
+[*.cs]
+dotnet_diagnostic.CS0168.severity = ");
+
+            // NOTE: This is a critical delay in repro-ing the original regression.
+            Thread.Sleep(2000);
+
+            VisualStudio.Editor.SendKeys("error");
+
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
+
+            // Verify CS0168 is now reported as an error.
+            VerifyDiagnosticInErrorList("Error", VisualStudio);
+
+            return;
+
+            static void VerifyDiagnosticInErrorList(string expectedSeverity, VisualStudioInstance visualStudio)
+            {
+                visualStudio.ErrorList.ShowErrorList();
+                var expectedContents = new[] {
+                    new ErrorListItem(
+                        severity: expectedSeverity,
+                        description: "The variable 'x' is declared but never used",
+                        project: "TestProj",
                         fileName: "Class1.cs",
                         line: 7,
                         column: 13)
