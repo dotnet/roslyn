@@ -253,7 +253,7 @@ namespace N { namespace M { } }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("N.M"));
             compilation.VerifyDiagnostics(
-                // (2,25): error CS1556: 'N.M' specified for Main method must be a non-generic class, struct, or interface
+                // (2,25): error CS1556: 'N.M' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "M").WithArguments("N.M"));
         }
 
@@ -271,7 +271,7 @@ class C<T>
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C.D"));
             compilation.VerifyDiagnostics(
-                // (4,12): error CS1556: 'C<T>.D' specified for Main method must be a non-generic class, struct, or interface
+                // (4,12): error CS1556: 'C<T>.D' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "D").WithArguments("C<T>.D"));
         }
 
@@ -345,7 +345,7 @@ public static class E
             // Dev10 reports: CS1555: Could not find 'D.DD' specified for Main method
             compilation = CreateCompilation(cs, options: TestOptions.ReleaseExe.WithMainTypeName("D.DD"));
             compilation.VerifyDiagnostics(
-                // (18,25): error CS1556: 'D<T>.DD' specified for Main method must be a non-generic class, struct, or interface
+                // (18,25): error CS1556: 'D<T>.DD' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "DD").WithArguments("D<T>.DD"));
         }
 
@@ -422,7 +422,7 @@ public class A
 }";
             // Dev10 reports CS1555: Could not find 'A.B.C' specified for Main method
             CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("A.B.C")).VerifyDiagnostics(
-                // (14,11): error CS1556: 'A.B<T>.C' specified for Main method must be a non-generic class, struct, or interface
+                // (14,11): error CS1556: 'A.B<T>.C' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("A.B<T>.C"));
         }
 
@@ -467,7 +467,7 @@ class C<T>
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("C"));
             compilation.VerifyDiagnostics(
-                // (7,7): error CS1556: 'C<T>' specified for Main method must be a non-generic class, struct, or interface
+                // (7,7): error CS1556: 'C<T>' specified for Main method must be a non-generic class, record, struct, or interface
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("C<T>"));
         }
 

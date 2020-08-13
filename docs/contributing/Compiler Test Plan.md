@@ -96,6 +96,7 @@ This document provides guidance for thinking about language interactions and tes
 - Nullability annotations (`?`, attributes) and analysis
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
+- extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 
 # Misc
 - reserved keywords (sometimes contextual)

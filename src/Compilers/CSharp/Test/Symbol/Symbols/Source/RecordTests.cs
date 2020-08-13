@@ -1076,6 +1076,8 @@ record C
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
+                "System.Boolean C.operator !=(C? r1, C? r2)",
+                "System.Boolean C.operator ==(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -1174,6 +1176,21 @@ partial record C
   IL_0016:  call       ""object..ctor()""
   IL_001b:  ret
 }");
+        }
+
+        [Fact]
+        public void PartialTypes_04_PartialBeforeModifiers()
+        {
+            var src = @"
+partial public record C
+{
+}
+";
+            CreateCompilation(src).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // partial public record C
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1)
+                );
         }
 
         [Fact]

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class

@@ -5,11 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+
+[assembly: DebuggerTypeProxy(typeof(MefLanguageServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<ILanguageService, WorkspaceServiceMetadata>>))]
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
-    internal class MefLanguageServices : HostLanguageServices
+    internal sealed class MefLanguageServices : HostLanguageServices
     {
         private readonly MefWorkspaceServices _workspaceServices;
         private readonly string _language;
@@ -27,10 +32,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
             var hostServices = workspaceServices.HostExportProvider;
 
-            _services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>()
-                    .Concat(hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
-                                        .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata)))
-                    .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
+            var services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>();
+            var factories = hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
+                .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata));
+
+            _services = services.Concat(factories).Where(lz => lz.Metadata.Language == language).ToImmutableArray();
         }
 
         public override HostWorkspaceServices WorkspaceServices => _workspaceServices;
@@ -71,9 +77,16 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         private Lazy<ILanguageService, LanguageServiceMetadata> PickLanguageService(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services)
         {
-
+            Lazy<ILanguageService, LanguageServiceMetadata> service;
+#if !CODE_STYLE
+            // test layer overrides everything else
+            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
+            {
+                return service;
+            }
+#endif
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspaceServices.Workspace.Kind, services, out var service))
+            if (TryGetServiceByLayer(_workspaceServices.Workspace.Kind, services, out service))
             {
                 return service;
             }
@@ -110,6 +123,17 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
             return service != null;
+        }
+
+        internal sealed class LazyServiceMetadataDebuggerProxy
+        {
+            private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> _services;
+
+            public LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services) =>
+                _services = services;
+
+            public (string type, string layer)[] Metadata
+                => _services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
         }
     }
 }

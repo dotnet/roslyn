@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // bulk configuration should not be applied.
             // For example, 'dotnet_diagnostic.CA1000.severity = error'
             if (compilation.Options.SpecificDiagnosticOptions.ContainsKey(descriptor.Id) ||
-                tree.DiagnosticOptions.ContainsKey(descriptor.Id))
+                compilation.Options.SyntaxTreeOptionsProvider?.TryGetDiagnosticValue(tree, descriptor.Id, out _) == true)
             {
                 severity = default;
                 return false;

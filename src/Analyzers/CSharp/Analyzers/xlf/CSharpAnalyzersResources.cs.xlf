@@ -267,6 +267,11 @@
         <target state="translated">Příkaz if lze zjednodušit.</target>
         <note />
       </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">
         <source>use 'var' instead of explicit type</source>
         <target state="translated">Použít var místo explicitního typu</target>

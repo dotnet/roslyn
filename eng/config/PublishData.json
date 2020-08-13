@@ -193,12 +193,12 @@
       "vsBranch": "rel/d16.7",
       "vsMajorVersion": 16
     },
-    "release/dev16.8-preview1-vs-deps": {
+    "release/dev16.8-vs-deps": {
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.8.*",
       "packageFeeds": "default",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dev16.8p1" ],
+      "channels": [ "dev16.8p2" ],
       "vsBranch": "rel/d16.8",
       "vsMajorVersion": 16
     },
@@ -207,7 +207,7 @@
       "version": "3.8.*",
       "packageFeeds": "default",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dev16.8", "dev16.8p2" ],
+      "channels": [ "dev16.8", "dev16.8p3" ],
       "vsBranch": "master",
       "vsMajorVersion": 16
     },

@@ -820,5 +820,14 @@ class Program
 
             await TestAsync(code, expected, TestOptions.Regular);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestFunctionPointer()
+        {
+            var code = @"public unsafe class C { delegate*<$$int, int> functionPointer; }";
+            var expected = @"public unsafe class C { delegate*<int, int[|>|] functionPointer; }";
+
+            await TestAsync(code, expected, TestOptions.Regular);
+        }
     }
 }

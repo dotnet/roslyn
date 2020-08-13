@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -36,38 +37,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionResolveHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
+            IThreadingContext threadingContext,
             ILspSolutionProvider solutionProvider)
             : base(solutionProvider)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
+            _threadingContext = threadingContext;
         }
 
-        public override async Task<LSP.VSCodeAction> HandleRequestAsync(
-            LSP.VSCodeAction codeAction,
-            LSP.ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken)
+        public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
-            var document = SolutionProvider.GetDocument(data.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
             Contract.ThrowIfNull(document);
 
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 document,
                 _codeFixService,
                 _codeRefactoringService,
+                _threadingContext,
                 data.Range,
                 cancellationToken).ConfigureAwait(false);
 
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(
-                data.UniqueIdentifier, codeActions.ToImmutableArray());
+                data.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(codeActionToResolve);
 
             var operations = await codeActionToResolve.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
@@ -108,6 +109,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var removedDocuments = projectChanges.SelectMany(
                         pc => pc.GetRemovedDocuments().Concat(pc.GetRemovedAdditionalDocuments().Concat(pc.GetRemovedAnalyzerConfigDocuments())));
                     if (addedDocuments.Any() || removedDocuments.Any())
+                    {
+                        codeAction.Command = SetCommand(codeAction.Title, data);
+                        return codeAction;
+                    }
+
+                    // TO-DO: If the change involves adding or removing a project reference, execute via command instead of
+                    // WorkspaceEdit until adding/removing project references is supported in LSP:
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1166040
+                    var projectReferences = projectChanges.SelectMany(
+                        pc => pc.GetAddedProjectReferences().Concat(pc.GetRemovedProjectReferences()));
+                    if (projectReferences.Any())
                     {
                         codeAction.Command = SetCommand(codeAction.Title, data);
                         return codeAction;
