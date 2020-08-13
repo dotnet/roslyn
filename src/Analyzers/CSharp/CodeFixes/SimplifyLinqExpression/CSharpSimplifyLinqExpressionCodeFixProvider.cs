@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 additionalNodes.Add(editor.OriginalRoot.FindNode(locations.SourceSpan, getInnermostNodeForTie: true));
             }
             var expressionNode = ((InvocationExpressionSyntax)node).Expression;
-            var memberAccess = (MemberAccessExpressionSyntax)expressionNode;
 
             // Get the Linq expression being invoked
             // Example: 'Single' from 'Data.Where(x => x == 1).Single()'
@@ -79,7 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 
             // Get the data or object the query is being called on
             // Example: 'Data' from 'Data.Where(x => x == 1).Single()'
-            //var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
             if ((objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)) && expression is null)
             {
                 expression = (ExpressionSyntax)objectNodeSyntax;

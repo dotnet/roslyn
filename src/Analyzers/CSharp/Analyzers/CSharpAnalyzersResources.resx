@@ -293,6 +293,6 @@
     <value>'typeof' can be converted  to 'nameof'</value>
   </data>
   <data name="Simplify_Linq_expression" xml:space="preserve">
-    <value>Simplify Linq expression</value>
+    <value>Simplify LINQ expressions</value>
   </data>
 </root>

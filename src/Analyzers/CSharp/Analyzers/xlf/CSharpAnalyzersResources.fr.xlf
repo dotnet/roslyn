@@ -83,8 +83,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Simplify_Linq_expression">
-        <source>Simplify Linq expression</source>
-        <target state="new">Simplify Linq expression</target>
+        <source>Simplify LINQ expressions</source>
+        <target state="new">Simplify LINQ expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
