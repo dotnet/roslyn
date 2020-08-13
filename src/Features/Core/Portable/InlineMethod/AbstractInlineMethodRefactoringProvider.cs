@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
@@ -23,24 +22,21 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         where TArgumentSyntax : SyntaxNode
     {
         private readonly ISyntaxFacts _syntaxFacts;
-        private readonly IPrecedenceService _precedenceService;
 
         /// <summary>
         /// Check if the <param name="calleeMethodDeclarationSyntaxNode"/> has only one expression or it is using arrow expression.
         /// </summary>
         protected abstract bool IsSingleStatementOrExpressionMethod(SyntaxNode calleeMethodDeclarationSyntaxNode);
-        protected abstract SyntaxNode? GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
+        protected abstract TExpressionSyntax GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
         protected abstract IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, TArgumentSyntax argumentSyntaxNode, CancellationToken cancellationToken);
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
-        protected abstract bool ShouldCheckTheExpressionPrecedenceInCallee(SyntaxNode syntaxNode);
-        protected abstract bool NeedWrapInParenthesisWhenPrecedenceAreEqual(SyntaxNode calleeInvocationSyntaxNode);
         protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
         protected abstract bool IsStatementConsideredAsInvokingStatement(SyntaxNode node);
+        protected abstract TExpressionSyntax Parenthesize(TExpressionSyntax node);
 
-        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, IPrecedenceService precedenceService)
+        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts)
         {
             _syntaxFacts = syntaxFacts;
-            _precedenceService = precedenceService;
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -73,6 +69,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
                 var calleeMethodDeclarationSyntaxNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                 if (!IsSingleStatementOrExpressionMethod(calleeMethodDeclarationSyntaxNode))
+                {
+                    return;
+                }
+
+                var statementContainsCallee = GetStatementContainsCallee(calleeMethodInvocationSyntaxNode);
+                if (statementContainsCallee == null)
                 {
                     return;
                 }
@@ -119,7 +121,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var inlineContext = await InlineMethodContext.GetInlineContextAsync(
                 this,
                 _syntaxFacts,
-                _precedenceService,
                 document,
                 semanticModel,
                 calleeMethodInvocationSyntaxNode,
@@ -174,9 +175,27 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return documentEditor.GetChangedDocument();
         }
 
-        private SyntaxNode? GetStatementContainsCallee(SyntaxNode syntaxNode)
+        /// <summary>
+        /// Try to find the statement that contains the <param name="calleeInvocationSyntax"/>.
+        /// For example,
+        /// void Caller()
+        /// {
+        ///     var x = Callee();
+        /// }
+        /// The LocalDeclarationSyntaxNode will be returned.
+        ///
+        /// void Caller()
+        /// {
+        ///     if (Callee())
+        ///     {
+        ///     }
+        /// }
+        /// The IfStatementSyntax will be returned.
+        /// Return null if such node can't be found.
+        /// </summary>
+        private SyntaxNode? GetStatementContainsCallee(SyntaxNode calleeInvocationSyntax)
         {
-            for (var node = syntaxNode; node != null; node = node!.Parent)
+            for (var node = calleeInvocationSyntax; node != null; node = node!.Parent)
             {
                 if (node != null && IsStatementConsideredAsInvokingStatement(node))
                 {
@@ -184,8 +203,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
             }
 
-            // In case nothing is found, return null to prevent insert
-            // declaration before the invocation.
             return null;
         }
     }

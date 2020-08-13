@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public SyntaxNode? SyntaxNodeToReplace { get; }
 
             /// <summary>
-            /// Indicate is <see cref="InlineSyntaxNode"/> has Await Expression
+            /// Indicate is <see cref="InlineSyntaxNode"/> has Await Expression.
             /// </summary>
             public bool ContainsAwaitExpression { get; }
 
@@ -75,7 +74,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public static async Task<InlineMethodContext> GetInlineContextAsync(
                 AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
-                IPrecedenceService precedenceService,
                 Document document,
                 SemanticModel semanticModel,
                 SyntaxNode calleeInvocationSyntaxNode,
@@ -86,8 +84,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 CancellationToken cancellationToken)
             {
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                var rawInlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
-                var inlineSyntaxNode = rawInlineSyntaxNode;
+                var inlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
                 // The replacement/insertion work done might cause naming conflict.
                 // So first compute a mapping from symbol to newName (renameTable)
                 // Cases are:
@@ -191,15 +188,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // Example1: var x = Callee(); Then LocalDeclarationStatement is the containing syntax node.
                 // Example1: if (Callee()) {} Then IfStatement is the containing syntax node
                 var statementContainingCallee = inlineMethodRefactoringProvider.GetStatementContainsCallee(calleeInvocationSyntaxNode);
-                if (inlineSyntaxNode == null)
-                {
-                    return new InlineMethodContext(
-                        localDeclarationStatementsNeedInsert,
-                        statementContainingCallee,
-                        null,
-                        statementContainingCallee,
-                        false);
-                }
 
                 // Do the replacement work within the callee. Including:
                 // 1. Literal replacement
@@ -260,7 +248,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     syntaxGenerator,
                     renameTable);
 
-                inlineSyntaxNode = await ReplaceAllSyntaxNodesForSymbolAsync(
+                inlineSyntaxNode = (TExpressionSyntax)await ReplaceAllSyntaxNodesForSymbolAsync(
                     document,
                     inlineSyntaxNode,
                     syntaxGenerator,
@@ -273,7 +261,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .DescendantNodesAndSelf()
                     .Any(node => node != null && syntaxFacts.IsAwaitExpression(node));
 
-                if (syntaxFacts.IsExpressionStatement(statementContainingCallee)&& !calleeMethodSymbol.ReturnsVoid)
+                if (syntaxFacts.IsExpressionStatement(statementContainingCallee) && !calleeMethodSymbol.ReturnsVoid)
                 {
                     // If the callee is invoked like
                     // void Caller()
@@ -310,47 +298,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         containsAwaitExpression);
                 }
 
-                // Check if parenthesis is needed by comparing the Precedence.
-                // Example:
-                // Before:
-                // void Caller() { var x = Callee() * 3; }
-                // int Callee() => 1 + 2;
-                // After:
-                // void Caller() { var x = (1 + 2) * 3; }
-                // int Callee() => 1 + 2;
-                var parent = calleeInvocationSyntaxNode.Parent;
-                if (parent != null
-                    && !syntaxFacts.IsParenthesizedExpression(inlineSyntaxNode)
-                    && inlineMethodRefactoringProvider.ShouldCheckTheExpressionPrecedenceInCallee(parent)
-                    && inlineMethodRefactoringProvider.ShouldCheckTheExpressionPrecedenceInCallee(inlineSyntaxNode))
-                {
-                    var shouldWrapInParenthesis = false;
-                    var precedenceOfInlineExpression = precedenceService.GetOperatorPrecedence(inlineSyntaxNode);
-                    var precedenceOfInvocation = precedenceService.GetOperatorPrecedence(parent);
-                    if (precedenceOfInlineExpression != 0 && precedenceOfInvocation != 0)
-                    {
-                        if (precedenceOfInlineExpression < precedenceOfInvocation)
-                        {
-                            shouldWrapInParenthesis = true;
-                        }
-                        else if (precedenceOfInlineExpression == precedenceOfInvocation)
-                        {
-                            // If precedences are equal, do a more carefully check based on the associativity of the expression.
-                            shouldWrapInParenthesis = inlineMethodRefactoringProvider.NeedWrapInParenthesisWhenPrecedenceAreEqual(calleeInvocationSyntaxNode);
-                        }
-                    }
-
-                    if (shouldWrapInParenthesis)
-                    {
-                        inlineSyntaxNode = syntaxGenerator.AddParentheses(inlineSyntaxNode);
-                    }
-                }
-
                 return new InlineMethodContext(
                     localDeclarationStatementsNeedInsert,
                     statementContainingCallee,
+                    inlineMethodRefactoringProvider.Parenthesize(inlineSyntaxNode)
                     // add the trivia of the calleeInvocationSyntaxNode so that the format is correct
-                    inlineSyntaxNode
                         .WithLeadingTrivia(calleeInvocationSyntaxNode.GetLeadingTrivia())
                         .WithTrailingTrivia(calleeInvocationSyntaxNode.GetTrailingTrivia()),
                     calleeInvocationSyntaxNode,
@@ -408,7 +360,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             private static async Task<SyntaxNode> ReplaceAllSyntaxNodesForSymbolAsync(
                 Document document,
-                SyntaxNode inlineSyntaxNode,
+                TExpressionSyntax inlineSyntaxNode,
                 SyntaxGenerator syntaxGenerator,
                 SyntaxNode root,
                 ImmutableDictionary<ISymbol, SyntaxNode> replacementTable,

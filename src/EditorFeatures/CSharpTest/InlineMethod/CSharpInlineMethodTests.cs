@@ -499,35 +499,6 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestInlineMethodWithEmptyContent()
-            => TestVerifier.TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    private void Caller()
-    {
-        Call[||]ee();
-    }
-
-    private void Callee()
-    {
-        return;
-    }
-}",
-                @"
-public class TestClass
-{
-    private void Caller()
-    {
-    }
-
-    private void Callee()
-    {
-        return;
-    }
-}");
-
-        [Fact]
         public Task TestInlineMethodWithVariableDeclaration()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
@@ -638,7 +609,7 @@ public class TestClass
 {
     public void Caller(int j)
     {
-        int tmp = j + 1;
+        int temp = j + 1;
     }
 
     private int Callee(int i)
@@ -1581,7 +1552,7 @@ public class TestClass
     private string Callee() => ""H"" + ""L"";
 }");
 
-        [Fact(Skip = "No Precedence support")]
+        [Fact]
         public Task TestSwitchExpression()
             => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
@@ -1641,7 +1612,7 @@ public class TestClass
     private int Callee(int x) => x = 1;
 }");
 
-        [Fact(Skip = "No Precedence support")]
+        [Fact]
         public Task TestSuppressNullableWarningExpression()
             => TestVerifier.TestInRegularAndScript1Async(@"
 #nullable enable
