@@ -20,8 +20,10 @@ namespace Test.Utilities
 
         public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = ReferenceAssemblies.NetFramework.Net472.Default
             .AddAssemblies(ImmutableArray.Create("PresentationFramework", "System.DirectoryServices", "System.Web", "System.Web.Extensions", "System.Xaml"))
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("AntiXSS", "4.3.0")))
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.2.0")));
+            .AddPackages(ImmutableArray.Create(
+                new PackageIdentity("AntiXSS", "4.3.0"),
+                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.2.0"),
+                new PackageIdentity("Microsoft.EntityFrameworkCore.Relational", "2.0.3")));
 
         public static ReferenceAssemblies DefaultWithSerialization { get; } = ReferenceAssemblies.NetFramework.Net472.Default
             .AddAssemblies(ImmutableArray.Create("System.Runtime.Serialization"));
