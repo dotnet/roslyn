@@ -9195,6 +9195,7 @@ class C
         decimal x = 0;
         (var y, _) += 0.00m;
         (int z, _) += z;
+        (var t, _) += (1, 2);
     }
 }
 ";
@@ -9218,7 +9219,13 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int z").WithArguments("z").WithLocation(8, 10),
                 // (8,17): error CS0103: The name '_' does not exist in the current context
                 //         (int z, _) += z;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(8, 17),
+                // (9,10): error CS8185: A declaration is not allowed in this context.
+                //         (var t, _) += (1, 2);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var t").WithLocation(9, 10),
+                // (9,17): error CS0103: The name '_' does not exist in the current context
+                //         (var t, _) += (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 17)
                 );
         }
     }
