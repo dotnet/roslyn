@@ -48,6 +48,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
 
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.MicrosoftEntityFrameworkCoreRelationalQueryableExtensions,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "FromSql", new[] { "sql", } ),
+                });
+
             SinkInfos = sinkInfosBuilder.ToImmutableAndFree();
         }
     }

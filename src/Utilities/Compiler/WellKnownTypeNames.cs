@@ -52,6 +52,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
+        public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
