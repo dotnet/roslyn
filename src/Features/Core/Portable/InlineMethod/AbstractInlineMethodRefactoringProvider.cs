@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         where TArgumentSyntax : SyntaxNode
     {
         private readonly ISyntaxFacts _syntaxFacts;
+        private readonly ISemanticFactsService _semanticFactsService;
 
         /// <summary>
         /// Check if the <param name="calleeMethodDeclarationSyntaxNode"/> has only one expression or it is using arrow expression.
@@ -34,9 +35,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract bool IsStatementConsideredAsInvokingStatement(SyntaxNode node);
         protected abstract TExpressionSyntax Parenthesize(TExpressionSyntax node);
 
-        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts)
+        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, ISemanticFactsService semanticFactsService)
         {
             _syntaxFacts = syntaxFacts;
+            _semanticFactsService = semanticFactsService;
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -121,6 +123,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var inlineContext = await InlineMethodContext.GetInlineContextAsync(
                 this,
                 _syntaxFacts,
+                _semanticFactsService,
                 document,
                 semanticModel,
                 calleeMethodInvocationSyntaxNode,

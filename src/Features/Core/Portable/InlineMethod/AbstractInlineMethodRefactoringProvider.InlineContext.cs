@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax,
+        TArgumentSyntax>
         where TInvocationSyntaxNode : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public static async Task<InlineMethodContext> GetInlineContextAsync(
                 AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
+                ISemanticFactsService semanticFactsService,
                 Document document,
                 SemanticModel semanticModel,
                 SyntaxNode calleeInvocationSyntaxNode,
@@ -84,7 +85,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 CancellationToken cancellationToken)
             {
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                var inlineSyntaxNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
+                var inlineSyntaxNode =
+                    inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
                 // The replacement/insertion work done might cause naming conflict.
                 // So first compute a mapping from symbol to newName (renameTable)
                 // Cases are:
@@ -141,7 +143,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .Where(parameterAndName => parameterAndName.Name != null)
                     .ToImmutableArray();
 
-                var parametersWithVariableDeclarationArgumentToName = methodParametersInfo.ParametersWithVariableDeclarationArgument
+                var parametersWithVariableDeclarationArgumentToName = methodParametersInfo
+                    .ParametersWithVariableDeclarationArgument
                     .Select(parameterAndArgument =>
                         (parameterAndArgument.parameterSymbol,
                             semanticModel
@@ -150,29 +153,16 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .Where(parameterAndName => parameterAndName.Name != null)
                     .ToImmutableArray();
 
-                var allSymbolsOfCaller = semanticModel.LookupSymbols(calleeInvocationSyntaxNode.Span.End);
-                var inUsedNamesOfCaller = allSymbolsOfCaller
-                    .Select(symbol => symbol.Name)
-                    .ToImmutableHashSet();
-                var staticAndFieldNamesInClass = allSymbolsOfCaller
-                    .Where(symbol => symbol.IsStatic || symbol.IsKind(SymbolKind.Field))
-                    .Select(symbol => symbol.Name)
-                    .ToImmutableHashSet();
-                var operationVisitor = new VariableDeclaratorOperationVisitor(cancellationToken);
-                var calleeOperation = semanticModel.GetOperation(calleeMethodDeclarationSyntaxNode, cancellationToken);
-                var localSymbolOfCallee = operationVisitor.FindAllLocalSymbols(calleeOperation);
-                var inUsedNameOfCallee = localSymbolOfCallee
-                    .Select(symbol => symbol.Name)
-                    .Concat(staticAndFieldNamesInClass)
-                    .ToImmutableHashSet();
-
                 var renameTable = ComputeRenameTable(
+                    semanticFactsService,
+                    semanticModel,
+                    calleeInvocationSyntaxNode,
+                    inlineSyntaxNode,
                     parametersWithIdentifierArgumentToName!,
-                    methodParametersInfo.ParametersNeedGenerateDeclarations.SelectAsArray(parameterToArgument => parameterToArgument.parameterSymbol),
+                    methodParametersInfo.ParametersNeedGenerateDeclarations.SelectAsArray(parameterToArgument =>
+                        parameterToArgument.parameterSymbol),
                     parametersWithVariableDeclarationArgumentToName!,
-                    inUsedNamesOfCaller,
-                    localSymbolOfCallee,
-                    inUsedNameOfCallee);
+                    cancellationToken);
 
                 // Generate all the statements need to be put in the caller.
                 var localDeclarationStatementsNeedInsert = GetLocalDeclarationStatementsNeedInsert(
@@ -187,7 +177,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // The syntax node that contains the invocation syntax node.
                 // Example1: var x = Callee(); Then LocalDeclarationStatement is the containing syntax node.
                 // Example1: if (Callee()) {} Then IfStatement is the containing syntax node
-                var statementContainingCallee = inlineMethodRefactoringProvider.GetStatementContainsCallee(calleeInvocationSyntaxNode);
+                var statementContainingCallee =
+                    inlineMethodRefactoringProvider.GetStatementContainsCallee(calleeInvocationSyntaxNode);
 
                 // Do the replacement work within the callee. Including:
                 // 1. Literal replacement
@@ -282,18 +273,21 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     //     return 1;
                     // };
                     // One variable declaration needs to be generated.
-                    var unusedTemporaryName = GetUnusedName(
-                        TemporaryName,
-                        inUsedNamesOfCaller
-                            .Concat(inUsedNameOfCallee)
-                            .Concat(renameTable.Values)
-                            .ToImmutableHashSet());
+                    var unusedLocalName =
+                        semanticFactsService.GenerateUniqueLocalName(
+                            semanticModel,
+                            calleeInvocationSyntaxNode,
+                            null,
+                            TemporaryName,
+                            renameTable.Values,
+                            cancellationToken);
 
                     return new InlineMethodContext(
                         localDeclarationStatementsNeedInsert,
                         statementContainingCallee,
                         syntaxGenerator
-                            .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedTemporaryName, inlineSyntaxNode),
+                            .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedLocalName.Text,
+                                inlineSyntaxNode),
                         statementContainingCallee,
                         containsAwaitExpression);
                 }
@@ -302,7 +296,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     localDeclarationStatementsNeedInsert,
                     statementContainingCallee,
                     inlineMethodRefactoringProvider.Parenthesize(inlineSyntaxNode)
-                    // add the trivia of the calleeInvocationSyntaxNode so that the format is correct
+                        // add the trivia of the calleeInvocationSyntaxNode so that the format is correct
                         .WithLeadingTrivia(calleeInvocationSyntaxNode.GetLeadingTrivia())
                         .WithTrailingTrivia(calleeInvocationSyntaxNode.GetTrailingTrivia()),
                     calleeInvocationSyntaxNode,
@@ -310,21 +304,28 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static ImmutableArray<SyntaxNode> GetLocalDeclarationStatementsNeedInsert(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+                    inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 SyntaxGenerator syntaxGenerator,
-                ImmutableArray<(IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments)> parametersNeedGenerateDeclarations,
-                ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
+                ImmutableArray<(IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments)>
+                    parametersNeedGenerateDeclarations,
+                ImmutableArray<(IParameterSymbol parameterSymbol, string name)>
+                    parametersWithVariableDeclarationArgument,
                 ImmutableDictionary<ISymbol, string> renameTable,
                 CancellationToken cancellationToken)
                 => parametersNeedGenerateDeclarations
-                    .Select(parameterAndArguments => CreateLocalDeclarationStatement(inlineMethodRefactoringProvider, semanticModel, syntaxGenerator, renameTable, parameterAndArguments, cancellationToken))
+                    .Select(parameterAndArguments => CreateLocalDeclarationStatement(inlineMethodRefactoringProvider,
+                        semanticModel, syntaxGenerator, renameTable, parameterAndArguments, cancellationToken))
                     .Concat(parametersWithVariableDeclarationArgument
-                        .Select(parameterAndName => syntaxGenerator.LocalDeclarationStatement(parameterAndName.parameterSymbol.Type, parameterAndName.name)))
+                        .Select(parameterAndName =>
+                            syntaxGenerator.LocalDeclarationStatement(parameterAndName.parameterSymbol.Type,
+                                parameterAndName.name)))
                     .ToImmutableArray();
 
             private static SyntaxNode CreateLocalDeclarationStatement(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+                    inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 SyntaxGenerator syntaxGenerator,
                 ImmutableDictionary<ISymbol, string> renameTable,
@@ -332,17 +333,22 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 CancellationToken cancellationToken)
             {
                 var (parameterSymbol, arguments) = parameterAndArguments;
-                var name = renameTable.ContainsKey(parameterSymbol) ? renameTable[parameterSymbol] : parameterSymbol.Name;
+                var name = renameTable.ContainsKey(parameterSymbol)
+                    ? renameTable[parameterSymbol]
+                    : parameterSymbol.Name;
                 var generateArrayDeclarationStatement = parameterSymbol.IsParams
-                // If arguments number is not one, it means this paramsArray maps to multiple or zero arguments. An array declaration is needed.
-                    && (arguments.Length != 1
-                // If the arguments number is one, it could be the single element of the array (an array declaration is needed)
-                // Example: void Callee(params int[] x) {}
-                // void Caller() { Callee(1, 2, 3) }
-                // or it could an array (like array creation, and array declaration is not need)
-                // Example: void Callee(params int[] x) {}
-                // void Caller() { Callee(new int[] { 1, 2, 3}) }
-                        || (arguments.Length == 1 && !parameterSymbol.Type.Equals(semanticModel.GetTypeInfo(arguments[0], cancellationToken).Type)));
+                                                        // If arguments number is not one, it means this paramsArray maps to multiple or zero arguments. An array declaration is needed.
+                                                        && (arguments.Length != 1
+                                                            // If the arguments number is one, it could be the single element of the array (an array declaration is needed)
+                                                            // Example: void Callee(params int[] x) {}
+                                                            // void Caller() { Callee(1, 2, 3) }
+                                                            // or it could an array (like array creation, and array declaration is not need)
+                                                            // Example: void Callee(params int[] x) {}
+                                                            // void Caller() { Callee(new int[] { 1, 2, 3}) }
+                                                            || (arguments.Length == 1 &&
+                                                                !parameterSymbol.Type.Equals(semanticModel
+                                                                    .GetTypeInfo(arguments[0], cancellationToken)
+                                                                    .Type)));
 
                 if (generateArrayDeclarationStatement)
                 {
@@ -370,7 +376,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                 foreach (var (symbol, syntaxNode) in replacementTable)
                 {
-                    var allReferences = await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                    var allReferences = await SymbolFinder
+                        .FindReferencesAsync(symbol, document.Project.Solution, cancellationToken)
+                        .ConfigureAwait(false);
                     var allSyntaxNodesToReplace = allReferences
                         .SelectMany(reference => reference.Locations
                             .Select(location => root.FindNode(location.Location.SourceSpan)))
@@ -396,20 +404,25 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// is the replacement syntax node for all its occurence.
             /// </summary>
             private static ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+                    inlineMethodRefactoringProvider,
                 IMethodSymbol calleeMethodSymbol,
-                ImmutableArray<(IParameterSymbol parameterSymbol , SyntaxNode literalExpression)> parametersWithLiteralArgument,
+                ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpression)>
+                    parametersWithLiteralArgument,
                 ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
                 SyntaxGenerator syntaxGenerator,
                 ImmutableDictionary<ISymbol, string> renameTable)
             {
                 var typeParametersReplacementQuery = calleeMethodSymbol.TypeParameters
                     .Zip(calleeMethodSymbol.TypeArguments,
-                        (parameter, argument) => (parameter: (ISymbol)parameter, syntaxNode: inlineMethodRefactoringProvider.GenerateTypeSyntax(argument)));
+                        (parameter, argument) => (parameter: (ISymbol)parameter,
+                            syntaxNode: inlineMethodRefactoringProvider.GenerateTypeSyntax(argument)));
                 var defaultValueReplacementQuery = parametersWithDefaultValue
-                    .Select(symbol => (parameter: (ISymbol)symbol, syntaxNode: syntaxGenerator.LiteralExpression(symbol.ExplicitDefaultValue)));
+                    .Select(symbol => (parameter: (ISymbol)symbol,
+                        syntaxNode: syntaxGenerator.LiteralExpression(symbol.ExplicitDefaultValue)));
                 var literalArgumentReplacementQuery = parametersWithLiteralArgument
-                    .Select(parameterAndArgument => (parameter: (ISymbol)parameterAndArgument.parameterSymbol, syntaxNode: parameterAndArgument.literalExpression));
+                    .Select(parameterAndArgument => (parameter: (ISymbol)parameterAndArgument.parameterSymbol,
+                        syntaxNode: parameterAndArgument.literalExpression));
 
                 return renameTable
                     .Select(kvp => (parameter: kvp.Key,
@@ -420,32 +433,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .ToImmutableDictionary(tuple => tuple.parameter, tuple => tuple.syntaxNode);
             }
 
-            private static string GetUnusedName(string preferredNamePrefix, ImmutableHashSet<string> inUsedNames)
-            {
-                var newName = preferredNamePrefix;
-                while (inUsedNames.Contains(preferredNamePrefix))
-                {
-                    newName = GenerateNewName(preferredNamePrefix);
-                }
-
-                return newName;
-            }
-
             /// <summary>
             /// Get a map which key is the symbol is the identifier in <param name="calleeDeclarationSyntaxNode"/>, and value is
             /// its new name after inlining.
             /// </summary>
             private static ImmutableDictionary<ISymbol, string> ComputeRenameTable(
+                ISemanticFactsService semanticFacts,
+                SemanticModel semanticModel,
+                SyntaxNode calleeInvocationSyntaxNode,
+                SyntaxNode inlineSyntaxNode,
                 ImmutableArray<(IParameterSymbol parameterSymbol, string variableName)> identifierArguments,
                 ImmutableArray<IParameterSymbol> parametersNeedGenerateDeclaration,
                 ImmutableArray<(IParameterSymbol parameterSymbol, string variableName)> variableDeclarationArguments,
-                ImmutableHashSet<string> inUsedNamesOfCaller,
-                ImmutableArray<ILocalSymbol> localSymbolsOfCallee,
-                ImmutableHashSet<string> inUsedNamesOfCallee)
+                CancellationToken cancellationToken)
             {
+                var renameTable = new Dictionary<ISymbol, string>();
                 // After inlining, there might be naming conflict because
                 // case 1: caller's identifier is introduced to callee.
-                // Example:
+                // Example 1 (for identifier):
                 // Before:
                 // void Caller()
                 // {
@@ -466,8 +471,44 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     int i = 100;
                 // }
-                //
-                // case 2: callee's parameter is introduced to caller
+                // Example 2 (for variable declaration):
+                // Before:
+                // void Caller()
+                // {
+                //     int i = 10;
+                //     Callee(out i)
+                // }
+                // void Callee(out int j)
+                // {
+                //     DoSomething(out j, out int i);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     int i = 10;
+                //     DoSomething(out i, out int i2);
+                // }
+                // void Callee(out int j)
+                // {
+                //     DoSomething(out j, out int i);
+                // }
+                foreach (var (parameterSymbol, variableName) in identifierArguments.Concat(variableDeclarationArguments))
+                {
+                    if (!parameterSymbol.Name.Equals(variableName))
+                    {
+                        var usedNames = renameTable.Values;
+                        renameTable[parameterSymbol] = semanticFacts
+                            .GenerateUniqueLocalName(
+                                semanticModel,
+                                inlineSyntaxNode,
+                                null,
+                                variableName,
+                                usedNames,
+                                cancellationToken).Text;
+                    }
+                }
+
+                // Case 2: callee's parameter is introduced to caller
                 // Before:
                 // void Caller()
                 // {
@@ -489,106 +530,20 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     Bar(i);
                 // }
-                inUsedNamesOfCallee = inUsedNamesOfCallee
-                    .Concat(identifierArguments.Select(parameterAndName => parameterAndName.variableName))
-                    .Concat(variableDeclarationArguments.Select(parameterAndName => parameterAndName.variableName))
-                    .ToImmutableHashSet();
-
-                var renameTable = identifierArguments.Concat(variableDeclarationArguments)
-                    .ToDictionary(parameterAndName => (ISymbol)parameterAndName.parameterSymbol,
-                        parameterAndName => parameterAndName.variableName);
-
-                // Handle case 1 discussed above
-                foreach (var localSymbol in localSymbolsOfCallee)
-                {
-                    var localSymbolName = localSymbol.Name;
-                    while (inUsedNamesOfCallee.Contains(localSymbolName)
-                        || renameTable.ContainsValue(localSymbolName))
-                    {
-                        localSymbolName = GenerateNewName(localSymbolName);
-                    }
-
-                    if (!localSymbolName.Equals(localSymbol.Name))
-                    {
-                        renameTable[localSymbol] = localSymbolName;
-                    }
-                }
-
-                // Handle case 2 discussed above
                 foreach (var parameterSymbol in parametersNeedGenerateDeclaration)
                 {
-                    var parameterName = parameterSymbol.Name;
-                    while (inUsedNamesOfCaller.Contains(parameterName)
-                        || inUsedNamesOfCallee.Contains(parameterName)
-                        || renameTable.ContainsValue(parameterName))
-                    {
-                        parameterName = GenerateNewName(parameterName);
-                    }
-
-                    if (!parameterName.Equals(parameterSymbol.Name))
-                    {
-                        renameTable[parameterSymbol] = parameterName;
-                    }
+                    var usedNames = renameTable.Values;
+                    renameTable[parameterSymbol] = semanticFacts
+                        .GenerateUniqueLocalName(
+                            semanticModel,
+                            calleeInvocationSyntaxNode,
+                            null,
+                            parameterSymbol.Name,
+                            usedNames,
+                            cancellationToken).Text;
                 }
 
                 return renameTable.ToImmutableDictionary();
-            }
-
-            /// <summary>
-            /// Generate a new identifier name. If <param name="preferredName"/> has a number suffix,
-            /// increase it by 1. Otherwise, append 1 to it.
-            /// </summary>
-            private static string GenerateNewName(string preferredName)
-            {
-                var stack = new Stack<char>();
-                for (var i = preferredName.Length - 1; i >= 0; i--)
-                {
-                    var currentCharacter = preferredName[i];
-                    if (char.IsNumber(currentCharacter))
-                    {
-                        stack.Push(currentCharacter);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                var suffixNumber = stack.IsEmpty() ? 1 : int.Parse(new string(stack.ToArray())) + 1;
-                return preferredName.Substring(0, preferredName.Length - stack.Count) + suffixNumber;
-            }
-        }
-
-        private class VariableDeclaratorOperationVisitor : OperationWalker
-        {
-            private readonly CancellationToken _cancellationToken;
-            private readonly HashSet<ILocalSymbol> _localSymbols;
-
-            public VariableDeclaratorOperationVisitor(CancellationToken cancellationToken)
-            {
-                _cancellationToken = cancellationToken;
-                _localSymbols = new HashSet<ILocalSymbol>();
-            }
-
-            public ImmutableArray<ILocalSymbol> FindAllLocalSymbols(IOperation? operation)
-            {
-                if (operation != null)
-                {
-                    Visit(operation);
-                }
-
-                return _localSymbols.ToImmutableArray();
-            }
-
-            public override void Visit(IOperation operation)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                if (operation is IVariableDeclaratorOperation variableDeclaratorOperation)
-                {
-                    _localSymbols.Add(variableDeclaratorOperation.Symbol);
-                }
-
-                base.Visit(operation);
             }
         }
     }

@@ -19,6 +19,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected abstract SyntaxToken ToIdentifierToken(string identifier);
 
+        // local name can be same as field or property. but that will hide
+        // those and can cause semantic change later in some context.
+        // so to be safe, we consider field and property in scope when
+        // creating unique name for local
+        private static Func<ISymbol, bool> s_LocalNameFilter = s =>
+            s.Kind == SymbolKind.Local ||
+            s.Kind == SymbolKind.Parameter ||
+            s.Kind == SymbolKind.RangeVariable ||
+            s.Kind == SymbolKind.Field ||
+            s.Kind == SymbolKind.Property;
+
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
             string baseName, CancellationToken cancellationToken)
@@ -39,19 +50,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
             string baseName, CancellationToken cancellationToken)
         {
-            // local name can be same as field or property. but that will hide
-            // those and can cause semantic change later in some context.
-            // so to be safe, we consider field and property in scope when
-            // creating unique name for local
-            Func<ISymbol, bool> filter = s =>
-                s.Kind == SymbolKind.Local ||
-                s.Kind == SymbolKind.Parameter ||
-                s.Kind == SymbolKind.RangeVariable ||
-                s.Kind == SymbolKind.Field ||
-                s.Kind == SymbolKind.Property;
-
             return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, filter, usedNames: Enumerable.Empty<string>(), cancellationToken);
+                semanticModel, location, containerOpt, baseName, s_LocalNameFilter, usedNames: Enumerable.Empty<string>(), cancellationToken);
+        }
+
+        public SyntaxToken GenerateUniqueLocalName(
+            SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+            string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken)
+        {
+            return GenerateUniqueName(
+                semanticModel, location, containerOpt, baseName, s_LocalNameFilter, usedNames: usedNames, cancellationToken);
         }
 
         public SyntaxToken GenerateUniqueName(

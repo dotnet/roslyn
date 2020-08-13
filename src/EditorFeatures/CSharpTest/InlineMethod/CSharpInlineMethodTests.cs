@@ -288,9 +288,9 @@ public class TestClass
 {
     private void Caller(float s1, float s2)
     {
-        float s3 = SomeCaculation(s1);
-        float s4 = SomeCaculation(s2);
-        System.Console.WriteLine(""This is s1"" + s3 + ""This is s2"" + s4);
+        float s11 = SomeCaculation(s1);
+        float s21 = SomeCaculation(s2);
+        System.Console.WriteLine(""This is s1"" + s11 + ""This is s2"" + s21);
     }
 
     private void Callee(float s1, float s2)
