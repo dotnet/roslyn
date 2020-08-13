@@ -1185,11 +1185,11 @@
   <data name="WRN_PatternIsAmbiguous_Title" xml:space="preserve">
     <value>Type does not implement the collection pattern; members are ambiguous</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible" xml:space="preserve">
-    <value>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</value>
+  <data name="WRN_PatternNotPublicOrNotInstance" xml:space="preserve">
+    <value>'{0}' does not implement the '{1}' pattern. '{2}' is not a public instance or extension method.</value>
   </data>
-  <data name="WRN_PatternStaticOrInaccessible_Title" xml:space="preserve">
-    <value>Type does not implement the collection pattern; member is either static or not public</value>
+  <data name="WRN_PatternNotPublicOrNotInstance_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; member is is not a public instance or extension method.</value>
   </data>
   <data name="WRN_PatternBadSignature" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</value>
@@ -2699,16 +2699,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>#r is only allowed in scripts</value>
   </data>
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
   </data>
   <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement.</value>
@@ -4680,6 +4680,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
@@ -6125,7 +6126,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>&amp;method group</value>
   </data>
   <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
-    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</value>
+    <value>'{0}' is not a valid calling convention specifier for a function pointer.</value>
+  </data>
+  <data name="ERR_TypeNotFound" xml:space="preserve">
+    <value>Type '{0}' is not defined.</value>
+  </data>
+  <data name="ERR_TypeMustBePublic" xml:space="preserve">
+    <value>Type '{0}' must be public to be used as a calling convention.</value>
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
@@ -6316,17 +6323,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedCallingConvention" xml:space="preserve">
     <value>The calling convention of '{0}' is not supported by the language.</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv" xml:space="preserve">
+    <value>The target runtime doesn't support extensible or runtime-environment default calling conventions.</value>
+  </data>
   <data name="NotSameNumberParameterTypesAndRefKinds" xml:space="preserve">
     <value>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</value>
   </data>
   <data name="OutIsNotValidForReturn" xml:space="preserve">
     <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
   </data>
+  <data name="CallingConventionTypesRequireUnmanaged" xml:space="preserve">
+    <value>Passing '{0}' is not valid unless '{1}' is 'SignatureCallingConvention.Unmanaged'.</value>
+  </data>
+  <data name="CallingConventionTypeIsInvalid" xml:space="preserve">
+    <value>Cannot use '{0}' as a calling convention modifier.</value>
+  </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</value>
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</value>
+  </data>
+  <data name="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers" xml:space="preserve">
+    <value>'managed' calling convention cannot be combined with unmanaged calling convention specifiers.</value>
   </data>
   <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
@@ -6429,5 +6448,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
     <value>A module initializer must be an ordinary member method</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetAsyncEnumerator" xml:space="preserve">
+    <value>extension GetAsyncEnumerator</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
+    <value>extension GetEnumerator</value>
   </data>
 </root>

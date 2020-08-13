@@ -220,7 +220,7 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        protected static LSP.VSCompletionItem CreateCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters)
+        protected static LSP.VSCompletionItem CreateCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters, bool preselect = false)
             => new LSP.VSCompletionItem()
             {
                 FilterText = text,
@@ -235,7 +235,8 @@ namespace Roslyn.Test.Utilities
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position
                 },
-                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
+                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null,
+                Preselect = preselect
             };
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
@@ -292,7 +293,7 @@ namespace Roslyn.Test.Utilities
             UpdateSolutionProvider((TestWorkspace)workspace, newSolution);
         }
 
-        private static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
+        private protected static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
         {
             var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
             provider.UpdateSolution(solution);
