@@ -324,7 +324,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                     if (isSanitizingMethod)
                     {
-                        if (!sanitizedParameterPairs.Any())
+                        RoslynDebug.Assert(sanitizedParameterPairs != null, "sanitizedParameterPairs is not null when isSanitizingMethod is true as per IsSanitizingMethod declaration");
+                        if (sanitizedParameterPairs.Count == 0)
                         {
                             // it was either sanitizing constructor or
                             // the short form or registering sanitizer method by just the name
@@ -332,7 +333,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         }
                         else
                         {
-                            RoslynDebug.Assert(sanitizedParameterPairs != null, "sanitizedParameterPairs is not null when isSanitizingMethod is true as per IsSanitizingMethod declaration");
                             foreach ((string ifTaintedParameter, string thenSanitizedTarget) in sanitizedParameterPairs)
                             {
                                 if (thenSanitizedTarget == TaintedTargetValue.Return)
