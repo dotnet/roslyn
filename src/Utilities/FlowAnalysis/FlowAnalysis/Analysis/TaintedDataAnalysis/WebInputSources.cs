@@ -53,6 +53,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 classCache.TryAdd(methodSymbol.ContainingSymbol, false);
                                 return false;
                             }
+
+                            isController = true;
                         }
 
                         if (!isController)
