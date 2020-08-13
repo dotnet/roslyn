@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
-            var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
+            var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
             Contract.ThrowIfNull(document);
 
