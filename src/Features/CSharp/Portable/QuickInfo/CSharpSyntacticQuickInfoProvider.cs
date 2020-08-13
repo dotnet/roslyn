@@ -33,6 +33,44 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
+            var pragmaWarningDiagnosticId = token.Parent switch
+            {
+                PragmaWarningDirectiveTriviaSyntax pragmaWarning => pragmaWarning.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax,
+                IdentifierNameSyntax identifier when identifier.Parent is PragmaWarningDirectiveTriviaSyntax => identifier,
+                _ => null,
+            };
+            if (pragmaWarningDiagnosticId != null)
+            {
+                var pragma = (pragmaWarningDiagnosticId.Parent as PragmaWarningDirectiveTriviaSyntax)!;
+                var removedId = new SeparatedSyntaxList<ExpressionSyntax>().AddRange(pragma.ErrorCodes.Where(e => e != pragmaWarningDiagnosticId));
+                var newPragma = removedId.Count == 0
+                    ? null
+                    : pragma.WithErrorCodes(removedId);
+                var root = await pragma.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = newPragma == null
+                    ? root.RemoveNode(pragma, SyntaxRemoveOptions.KeepUnbalancedDirectives)
+                    : root.ReplaceNode(pragma, newPragma);
+                if (newRoot != null)
+                {
+                    var newDocument = document.WithSyntaxRoot(newRoot);
+                    var semanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    if (semanticModel != null)
+                    {
+                        var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
+                        var findDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
+                        if (findDiagnostic != null)
+                        {
+                            return QuickInfoItem.Create(pragma.Span, sections: new[]
+                                {
+                                    QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
+                                    {
+                                        new TaggedText(TextTags.Text, findDiagnostic.ToString())
+                                    }.ToImmutableArray())
+                                }.ToImmutableArray(), relatedSpans: new[] { findDiagnostic.Location.SourceSpan }.ToImmutableArray());
+                        }
+                    }
+                }
+            }
             if (token.Kind() != SyntaxKind.CloseBraceToken)
             {
                 return null;
