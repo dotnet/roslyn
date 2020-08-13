@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         /// <param name="mutatesSolutionState">Whether or not the specified request needs to mutate the solution.</param>
         /// <param name="handler">The handler that will handle the request.</param>
-        /// <param name="request">The request to hanel.</param>
+        /// <param name="request">The request to handle.</param>
         /// <param name="clientCapabilities">The client capabilities.</param>
         /// <param name="clientName">The client name.</param>
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
-            // Kepp track of solution state modifications made by LSP requests
+            // Keep track of solution state modifications made by LSP requests
             Solution? lastMutatedSolution = null;
             var queueToken = _cancelSource.Token;
 
