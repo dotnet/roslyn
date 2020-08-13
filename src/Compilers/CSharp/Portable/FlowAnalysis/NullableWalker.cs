@@ -537,6 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
+
                 TypeWithAnnotations fieldType;
                 FieldSymbol? field;
                 Symbol symbol;
@@ -574,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var annotations = symbol.GetFlowAnalysisAnnotations();
                 if ((annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.AllowNull)) != 0)
                 {
-                    // We assume that if a member allows null input then the user
+                    // We assume that if a member has MaybeNull or AllowNull then the user
                     // does not care that we exit at a point where the member might be null.
                     return;
                 }

@@ -993,6 +993,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NullableWalker.AnalyzeIfNeeded(
                             _compilation,
                             methodSymbol,
+                            // we analyze to produce an AfterInitializersState even if there are no initializers
+                            // because it conveniently allows us to capture all the 'default' states for applicable members
                             analyzedInitializers ?? GetSynthesizedEmptyBody(methodSymbol),
                             diagsForCurrentMethod,
                             useConstructorExitWarnings: false,
