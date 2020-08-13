@@ -9,10 +9,15 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.FileHeaders;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -40,6 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
+        protected abstract SyntaxGenerator SyntaxGenerator { get; }
+        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -251,6 +258,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
 
+        protected virtual Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
+            => Formatter.OrganizeImportsAsync(document, cancellationToken);
+
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
@@ -289,8 +299,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
             var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
 
-            var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, documentOptions, cancellationToken);
-            var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
+            // Apply file header preferences
+            var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
+            if (!string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                var documentWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
+                {
+                    var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
+                    var newLineTrivia = SyntaxGenerator.EndOfLine(newLineText);
+                    return AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
+                        SyntaxGenerator.SyntaxFacts,
+                        FileHeaderHelper,
+                        newLineTrivia,
+                        addedDocument,
+                        cancellationToken);
+                });
+
+                addedDocument = addedDocument.WithSyntaxRoot(documentWithFileHeader);
+                rootToFormat = documentWithFileHeader;
+            }
+
+            // Organize using directives
+            addedDocument = ThreadHelper.JoinableTaskFactory.Run(() => OrganizeUsingsCreatedFromTemplateAsync(addedDocument, cancellationToken));
+            rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+
+            // Format document
+            var unformattedText = addedDocument.GetTextSynchronously(cancellationToken);
+            var formattedRoot = Formatter.Format(rootToFormat, workspace, documentOptions, cancellationToken);
+            var formattedText = formattedRoot.GetText(unformattedText.Encoding, unformattedText.ChecksumAlgorithm);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
             var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine)!;
