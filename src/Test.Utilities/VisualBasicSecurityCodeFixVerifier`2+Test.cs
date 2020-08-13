@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing;
 
 namespace Test.Utilities
 {
@@ -17,15 +16,13 @@ namespace Test.Utilities
         {
             public Test()
             {
-                // These analyzers run on generated code by default.
-                TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
             }
 
             protected override Project ApplyCompilationOptions(Project project)
             {
                 var newProject = base.ApplyCompilationOptions(project);
 
-                var parseOptions = newProject.ParseOptions.WithFeatures(
+                var parseOptions = newProject.ParseOptions!.WithFeatures(
                     newProject.ParseOptions.Features.Concat(
                         new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
 

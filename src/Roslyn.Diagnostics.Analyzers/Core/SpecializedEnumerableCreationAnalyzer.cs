@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -26,7 +27,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
             s_localizableTitleUseEmptyEnumerable,
             s_localizableMessageUseEmptyEnumerable,
-            DiagnosticCategory.RoslyDiagnosticsPerformance,
+            DiagnosticCategory.RoslynDiagnosticsPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -38,7 +39,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
             s_localizableTitleUseSingletonEnumerable,
             s_localizableMessageUseSingletonEnumerable,
-            DiagnosticCategory.RoslyDiagnosticsPerformance,
+            DiagnosticCategory.RoslynDiagnosticsPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -125,9 +126,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
-            protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel)
+            protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                TypeInfo typeInfo = semanticModel.GetTypeInfo(expression);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
 
                 return typeInfo.ConvertedType != null &&
                     Equals(typeInfo.ConvertedType.OriginalDefinition, GenericEnumerableSymbol) &&
@@ -135,9 +136,9 @@ namespace Roslyn.Diagnostics.Analyzers
                     arrayType.Rank == 1;
             }
 
-            protected void AnalyzeMemberAccessName(SyntaxNode name, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic)
+            protected void AnalyzeMemberAccessName(SyntaxNode name, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
             {
-                if (semanticModel.GetSymbolInfo(name).Symbol is IMethodSymbol methodSymbol &&
+                if (semanticModel.GetSymbolInfo(name, cancellationToken).Symbol is IMethodSymbol methodSymbol &&
                     Equals(methodSymbol.OriginalDefinition, _genericEmptyEnumerableSymbol))
                 {
                     addDiagnostic(Diagnostic.Create(UseEmptyEnumerableRule, name.Parent.GetLocation()));
