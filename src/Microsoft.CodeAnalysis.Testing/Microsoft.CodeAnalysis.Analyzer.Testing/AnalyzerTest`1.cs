@@ -133,7 +133,17 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public List<string> DisabledDiagnostics { get; } = new List<string>();
 
+        /// <summary>
+        /// Gets or sets the reference assemblies to use.
+        /// </summary>
         public ReferenceAssemblies ReferenceAssemblies { get; set; } = ReferenceAssemblies.Default;
+
+        /// <summary>
+        /// Gets or sets an additional verifier for a diagnostic.
+        /// The action compares actual <see cref="Diagnostic"/> and the expected
+        /// <see cref="DiagnosticResult"/> based on custom test requirements not yet supported by the test framework.
+        /// </summary>
+        public Action<Diagnostic, DiagnosticResult, IVerifier>? DiagnosticVerifier { get; set; }
 
         /// <summary>
         /// Gets a collection of transformation functions to apply to <see cref="Workspace.Options"/> during diagnostic
@@ -371,6 +381,8 @@ namespace Microsoft.CodeAnalysis.Testing
                         StringComparer.Ordinal,
                         message);
                 }
+
+                DiagnosticVerifier?.Invoke(actual, expected, verifier);
             }
         }
 
