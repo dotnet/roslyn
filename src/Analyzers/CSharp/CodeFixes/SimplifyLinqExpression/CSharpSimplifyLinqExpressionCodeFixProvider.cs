@@ -17,13 +17,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 {
-    internal sealed class CSharpSimplifyLinqExpressionsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class CSharpSimplifyLinqExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpSimplifyLinqExpressionsCodeFixProvider()
+        public CSharpSimplifyLinqExpressionCodeFixProvider()
         {
         }
 
