@@ -1120,6 +1120,38 @@ public class TestClass2
     private int SomeInt() => 10;
 }");
 
+        [Fact]
+        public Task TestInlineExtensionMethod()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+static class Program
+{
+    static void Main(string[] args)
+    {
+        var value = 0; 
+        value.Ge[||]tNext();
+    }
+
+    private static int GetNext(this int i)
+    {
+        return i + 1;
+    }
+}",
+                @"
+static class Program
+{
+    static void Main(string[] args)
+    {
+        var value = 0; 
+        int tmp = value + 1;
+    }
+
+    private static int GetNext(this int i)
+    {
+        return i + 1;
+    }
+}");
+
         #region parenthesisTest
 
         [Fact]

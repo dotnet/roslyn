@@ -51,10 +51,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode, cancellationToken).GetAnySymbol();
+            var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode, cancellationToken).GetAnySymbol() as IMethodSymbol;
             if (calleeMethodSymbol == null
                 || calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private
-                || !calleeMethodSymbol.IsOrdinaryMethod())
+                || calleeMethodSymbol.IsConstructor()
+                || calleeMethodSymbol.IsUserDefinedOperator()
+                || calleeMethodSymbol.IsConversion()
+                || calleeMethodSymbol.IsDestructor())
             {
                 return;
             }
