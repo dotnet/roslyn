@@ -86,6 +86,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool RequiresValueContentAnalysis { get; }
 
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
         public bool RequiresParameterReferenceAnalysis { get; }
 
         /// <summary>
