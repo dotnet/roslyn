@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             thisSlot = GetOrCreateSlot(thisParameter);
                         }
                         // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
-                        var exitLocation = (method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault());
+                        var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
                         foreach (var member in method.ContainingType.GetMembersUnordered())
                         {
                             checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation);
@@ -695,8 +695,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
                                 if (memberSlot > 0)
                                 {
-                                    var type = memberToInitialize.GetTypeOrReturnType().Type;
-                                    this.State[memberSlot] = type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                                    var type = memberToInitialize.GetTypeOrReturnType();
+                                    if (!type.NullableAnnotation.IsOblivious())
+                                    {
+                                        this.State[memberSlot] = type.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                                    }
                                 }
                             }
                         }

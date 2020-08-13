@@ -1916,6 +1916,72 @@ class C
         }
 
         [Fact]
+        public void BaseMembersHaveDeclaredStateInDerivedCtor()
+        {
+            var source = @"
+class Base
+{
+    public string BaseProp { get; set; } // 1
+}
+
+class Derived : Base
+{
+    string DerivedProp { get; set; }
+
+    public Derived()
+    {
+        BaseProp.ToString();
+        DerivedProp.ToString(); // 2
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,19): warning CS8618: Non-nullable property 'BaseProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string BaseProp { get; set; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "BaseProp").WithArguments("property", "BaseProp").WithLocation(4, 19),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         DerivedProp.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "DerivedProp").WithLocation(14, 9));
+        }
+
+        [Fact]
+        public void NullableEnableWarnings_InitialState()
+        {
+            var source = @"
+#nullable enable warnings
+class C
+{
+    public string Prop { get; set; }
+    public C()
+    {
+        Prop.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableEnableWarnings_NoExitWarning()
+        {
+            var source = @"
+#nullable enable warnings
+class C
+{
+    public string Prop { get; set; }
+    public C()
+    {
+        Prop = null;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NotNullIfNotNull_StaticInitializers_01()
         {
             var source = @"
