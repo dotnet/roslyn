@@ -732,7 +732,7 @@ class C
                     new ErrorListItem(
                         severity: expectedSeverity,
                         description: "The variable 'x' is declared but never used",
-                        project: "TestProj.csproj",
+                        project: "TestProj",
                         fileName: "Class1.cs",
                         line: 7,
                         column: 13)

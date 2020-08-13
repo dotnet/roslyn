@@ -88,7 +88,7 @@ End Namespace
                 new ErrorListItem(
                     severity: "Error",
                     description: "'FF' is not declared. It may be inaccessible due to its protection level.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 6,
                     column: 13)
