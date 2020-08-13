@@ -4,6 +4,7 @@
 
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -47,31 +48,43 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                RemoveWhere(model, editor, node);
+                RemoveWhere(model, editor, node, diagnostic.AdditionalLocations);
             }
         }
 
-        private static void RemoveWhere(SemanticModel model, SyntaxEditor editor, SyntaxNode node)
+        private static void RemoveWhere(SemanticModel model, SyntaxEditor editor, SyntaxNode node, System.Collections.Generic.IReadOnlyList<Location> additionalLocations)
         {
-            var childNode = ((InvocationExpressionSyntax)node).Expression;
+            var additionalNodes = new List<SyntaxNode>();
+            foreach (var locations in additionalLocations)
+            {
+                additionalNodes.Add(editor.OriginalRoot.FindNode(locations.SourceSpan, getInnermostNodeForTie: true));
+            }
+            var expressionNode = ((InvocationExpressionSyntax)node).Expression;
+            var memberAccess = (MemberAccessExpressionSyntax)expressionNode;
 
             // Get the Linq expression being invoked
             // Example: 'Single' from 'Data.Where(x => x == 1).Single()'
-            var memberAccess = (MemberAccessExpressionSyntax)childNode;
+            var targetMethod = additionalNodes.LastOrDefault();
+            var objectNodeSyntax = additionalNodes.FirstOrDefault();
 
             // Retrieve the lambda expression from the node
             // Example: 'x => x == 1' from 'Data.Where(x => x == 1).Single()'
-            var lambda = ((InvocationExpressionSyntax)memberAccess.Expression).ArgumentList;
+            var arguments = additionalNodes.FirstOrDefault(c => c is ArgumentListSyntax);
+
+            ExpressionSyntax expression = null;
+            if (((ArgumentListSyntax)arguments).Arguments.Count > 1)
+            {
+                expression = SyntaxFactory.IdentifierName("Enumerable");
+            }
 
             // Get the data or object the query is being called on
             // Example: 'Data' from 'Data.Where(x => x == 1).Single()'
-            var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
-            ExpressionSyntax expression;
-            if (objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            //var objectNodeSyntax = model.GetOperation(memberAccess.Expression).Children.FirstOrDefault().Syntax;
+            if ((objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)) && expression is null)
             {
                 expression = (ExpressionSyntax)objectNodeSyntax;
             }
-            else
+            else if (expression is null)
             {
                 expression = SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text);
             }
@@ -79,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     expression,
-                                    memberAccess.Name))
-                            .WithArgumentList(lambda);
-            editor.ReplaceNode(childNode.Parent, newNode);
+                                    targetMethod as IdentifierNameSyntax))
+                            .WithArgumentList(arguments as ArgumentListSyntax);
+            editor.ReplaceNode(expressionNode.Parent, newNode);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

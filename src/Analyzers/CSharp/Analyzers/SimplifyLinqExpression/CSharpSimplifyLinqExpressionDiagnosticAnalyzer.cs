@@ -150,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 //var invokedNode = node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault(d => d.Expression is IdentifierNameSyntax);
                 var targetMethodNode = node.DescendantNodes().OfType<IdentifierNameSyntax>().LastOrDefault();
                 var whereClauseSyntax = invocation.Syntax as InvocationExpressionSyntax;
-                var invokeNodeSyntax = node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().FirstOrDefault(c => c.Expression is IdentifierNameSyntax);
+                var invokedNodeSyntax = targetOperation.Children.FirstOrDefault().Syntax;
 
-                if (invokeNodeSyntax is null)
-                {
-                    invokeNodeSyntax = node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().FirstOrDefault(c => c is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression is IdentifierNameSyntax);
-                }
+                //if (invokeNodeSyntax is null)
+                //{
+                //    invokeNodeSyntax = node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().FirstOrDefault(c => c is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression is IdentifierNameSyntax);
+                //}
 
                 if (whereClauseSyntax is null ||
                     targetMethodNode is null ||
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 }
 
                 argumentLocation = whereClauseSyntax.ArgumentList.GetLocation();
-                invokedNodeLocation = invokeNodeSyntax.GetLocation();
+                invokedNodeLocation = invokedNodeSyntax.GetLocation();
                 targetMethodLocation = targetMethodNode.GetLocation();
 
                 additionalLocations = new List<Location> { invokedNodeLocation, argumentLocation, targetMethodLocation };
