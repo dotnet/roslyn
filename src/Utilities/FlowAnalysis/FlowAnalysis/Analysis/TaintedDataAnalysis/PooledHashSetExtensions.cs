@@ -259,8 +259,41 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 fullTypeName,
                 isInterface: isInterface,
                 isConstructorSanitizing: isConstructorSanitizing,
-                sanitizingMethods: sanitizingMethods?.ToImmutableHashSet(StringComparer.Ordinal)
-                    ?? ImmutableHashSet<string>.Empty,
+                sanitizingMethods:
+                    sanitizingMethods
+                        ?.Select<string, (MethodMatcher, ImmutableHashSet<(string, string)>)>(o =>
+                            (
+                                (methodName, arguments) => methodName == o,
+                                ImmutableHashSet<(string, string)>.Empty))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
+                sanitizingInstanceMethods: sanitizingInstanceMethods?.ToImmutableHashSet(StringComparer.Ordinal)
+                    ?? ImmutableHashSet<string>.Empty);
+            builder.Add(info);
+        }
+
+        public static void AddSanitizerInfo(
+            this PooledHashSet<SanitizerInfo> builder,
+            string fullTypeName,
+            bool isInterface,
+            bool isConstructorSanitizing,
+            IEnumerable<(MethodMatcher methodMatcher, (string str, string sanitizedTargets)[] taintedArgumentToSanized)>? sanitizingMethods,
+            string[]? sanitizingInstanceMethods = null)
+        {
+            SanitizerInfo info = new SanitizerInfo(
+                fullTypeName,
+                isInterface: isInterface,
+                isConstructorSanitizing: isConstructorSanitizing,
+                sanitizingMethods:
+                    sanitizingMethods
+                        ?.Select(o =>
+                            (
+                                o.methodMatcher,
+                                o.taintedArgumentToSanized
+                                    ?.ToImmutableHashSet()
+                                ?? ImmutableHashSet<(string, string)>.Empty))
+                        ?.ToImmutableHashSet()
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)>.Empty,
                 sanitizingInstanceMethods: sanitizingInstanceMethods?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty);
             builder.Add(info);
