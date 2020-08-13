@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
     {
         private readonly ITagAggregator<InlineParameterNameHintDataTag> _tagAggregator;
         private readonly ITextBuffer _buffer;
-        private readonly ITextView _textView;
+        private readonly IWpfTextView _textView;
 
         /// <summary>
         /// stores the parameter hint tags in a global location 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-        public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
+        public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, IWpfTextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
             _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
-                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView.LineHeight, Format)));
+                        _cache.Add(new TagSpan<IntraTextAdornmentTag>(new SnapshotSpan(dataTagSpan.Start, 0), new InlineParameterNameHintsTag(textTag.ParameterName, _textView, Format)));
                     }
                 }
             }
