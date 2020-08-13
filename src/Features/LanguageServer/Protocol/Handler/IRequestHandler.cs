@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
 
         /// <summary>
-        /// Handles an LSP request.
+        /// Handles an LSP request in the context of the supplied document and/or solutuion.
         /// </summary>
-        /// <param name="context">The LSP request context.</param>
+        /// <param name="context">The LSP request context, which should have been filled in with document information from <see cref="GetTextDocumentIdentifier(RequestType)"/> if applicable.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
         /// <returns>The LSP response.</returns>
         Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
