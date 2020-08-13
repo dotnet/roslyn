@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _serviceProvider = serviceProvider;
 
-            var componentModel = _serviceProvider.GetService<SComponentModel, IComponentModel>();
+            var componentModel = IServiceProviderExtensions.GetService<SComponentModel, IComponentModel>(_serviceProvider);
             _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
         }
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (navInfo != null)
                 {
-                    var navigationTool = _serviceProvider.GetService<SVsObjBrowser, IVsNavigationTool>();
+                    var navigationTool = IServiceProviderExtensions.GetService<SVsObjBrowser, IVsNavigationTool>(_serviceProvider);
                     return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
                 }
 
@@ -132,10 +132,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var vsRunningDocumentTable4 = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
+            var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
-            var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+            var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_serviceProvider);
             openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
