@@ -79,6 +79,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         }
 
         [Fact]
+        public async Task MutatingDoesntWaitForNonMutating()
+        {
+            var requests = new[] {
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(NonMutatingRequestHandler.MethodName),
+                new TestRequest(MutatingRequestHandler.MethodName),
+            };
+
+            var responses = await TestAsync(requests);
+
+            // All tasks should start without waiting for any to finish
+            Assert.True(responses[1].StartTime < responses[0].EndTime);
+            Assert.True(responses[2].StartTime < responses[0].EndTime);
+            Assert.True(responses[1].StartTime < responses[2].EndTime);
+            Assert.True(responses[2].StartTime < responses[1].EndTime);
+        }
+
+
+        [Fact]
         public async Task NonMutatingOperatesOnTheRightSolutions()
         {
             var requests = new[] {
