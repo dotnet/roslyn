@@ -6022,6 +6022,7 @@ class Foo
             var model = comp.GetSemanticModel(tree);
 
             var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            // disconnect invocation from its Parent
             var newInvocation = invocation.WithoutTrivia();
 
             var symbolInfo = model.GetSpeculativeSymbolInfo(invocation.SpanStart, newInvocation, SpeculativeBindingOption.BindAsExpression);
