@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// (i.e. when hovering/previewing a code action).
     /// </summary>
     [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName), Shared]
-    internal class CodeActionResolveHandler : AbstractRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
+    internal class CodeActionResolveHandler : IRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
             => ((JToken)request.Data).ToObject<CodeActionResolveData>().TextDocument;
 
-        public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);

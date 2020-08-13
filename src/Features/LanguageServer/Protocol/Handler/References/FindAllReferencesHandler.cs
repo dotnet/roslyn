@@ -20,7 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspMethod(LSP.Methods.TextDocumentReferencesName), Shared]
-    internal class FindAllReferencesHandler : AbstractRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]>
+    internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
-        public override async Task<LSP.VSReferenceItem[]> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.VSReferenceItem[]> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
 

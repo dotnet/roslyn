@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         private readonly ILspSolutionProvider _solutionProvider;
 
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _solutionProvider = solutionProvider;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => null;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => null;
 
-        public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
