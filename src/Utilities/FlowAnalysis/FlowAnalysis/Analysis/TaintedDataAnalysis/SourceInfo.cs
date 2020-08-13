@@ -160,6 +160,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool RequiresValueContentAnalysis => this.TaintedMethodsNeedsValueContentAnalysis.Any();
 
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
+        public bool RequiresParameterReferenceAnalysis => this.TaintedArguments.Any();
+
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),

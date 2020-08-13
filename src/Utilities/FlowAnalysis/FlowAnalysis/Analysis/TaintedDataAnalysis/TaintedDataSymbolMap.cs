@@ -54,6 +54,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         RequiresValueContentAnalysis = true;
                     }
+
+                    if (info.RequiresParameterReferenceAnalysis)
+                    {
+                        RequiresParameterReferenceAnalysis = true;
+                    }
                 }
             }
 
@@ -80,6 +85,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that any <see cref="ITaintedDataInfo"/> in this <see cref="TaintedDataSymbolMap&lt;TInfo&gt;"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
         public bool RequiresValueContentAnalysis { get; }
+
+        public bool RequiresParameterReferenceAnalysis { get; }
 
         /// <summary>
         /// Gets an enumeration of infos for the given type.
