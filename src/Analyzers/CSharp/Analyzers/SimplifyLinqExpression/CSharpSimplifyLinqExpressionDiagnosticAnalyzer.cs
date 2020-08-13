@@ -19,10 +19,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyLinqExpressionsDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpSimplifyLinqExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private readonly ImmutableArray<string> s_validLinqCalls = ImmutableArray.Create(
             nameof(Enumerable.First),
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             nameof(Enumerable.LastOrDefault)
             );
 
-        public CSharpSimplifyLinqExpressionsDiagnosticAnalyzer()
+        public CSharpSimplifyLinqExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyLinqExpressionsDiagnosticId,
                    option: null,
                    title: new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_Linq_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -146,28 +146,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
 
                 // Example: if Data().Where(...).First()
                 // Then invokedNode is Data(), whereClauseSyntax is .Where(...), and the targetMethodNode is First.
-                var invokedNode = node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault(d => d.Expression is IdentifierNameSyntax);
+                //var invokedNode = node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault(d => d.Expression is IdentifierNameSyntax);
                 var targetMethodNode = node.DescendantNodes().OfType<IdentifierNameSyntax>().LastOrDefault();
                 var whereClauseSyntax = invocation.Syntax as InvocationExpressionSyntax;
 
-                if (whereClauseSyntax is null ||
-                    !(targetMethodNode is IdentifierNameSyntax) ||
-                    !(invokedNode is InvocationExpressionSyntax))
+                if (whereClauseSyntax is null)
                 {
                     return;
                 }
 
                 argumentLocation = whereClauseSyntax.ArgumentList.GetLocation();
-                invokedSyntaxLocation = invokedNode.GetLocation();
+                //invokedSyntaxLocation = invokedNode.GetLocation();
                 targetMethodLocation = targetMethodNode.GetLocation();
 
-                additionalLocations = new List<Location> { invokedSyntaxLocation, argumentLocation, targetMethodLocation };
-                if (node is InvocationExpressionSyntax)
-                {
-                    context.ReportDiagnostic(
+                additionalLocations = new List<Location> { argumentLocation, targetMethodLocation };
+                context.ReportDiagnostic(
                         DiagnosticHelper.Create(Descriptor, node.GetLocation(), Descriptor.GetEffectiveSeverity(context.Compilation.Options),
                         additionalLocations, properties: null));
-                }
             }
         }
     }
