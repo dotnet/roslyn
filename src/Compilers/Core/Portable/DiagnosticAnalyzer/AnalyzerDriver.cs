@@ -1504,18 +1504,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analysisState != null)
             {
                 await analysisState.OnCompilationEventProcessedAsync(compilationEvent, processedAnalyzers, onSymbolAndMembersProcessedAsync).ConfigureAwait(false);
+                return;
             }
-            else if (AnalyzerActions.SymbolStartActionsCount > 0 &&
-                compilationEvent is SymbolDeclaredCompilationEvent symbolDeclaredEvent)
+
+            switch (compilationEvent)
             {
-                foreach (var analyzer in processedAnalyzers)
-                {
-                    await onSymbolAndMembersProcessedAsync(symbolDeclaredEvent.Symbol, analyzer).ConfigureAwait(false);
-                }
-            }
-            else if (compilationEvent is CompilationUnitCompletedEvent compilationUnitCompletedEvent)
-            {
-                SemanticModelProvider.EnsureCachedSemanticModelRemoved(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
+                case SymbolDeclaredCompilationEvent symbolDeclaredEvent:
+                    if (AnalyzerActions.SymbolStartActionsCount > 0)
+                    {
+                        foreach (var analyzer in processedAnalyzers)
+                        {
+                            await onSymbolAndMembersProcessedAsync(symbolDeclaredEvent.Symbol, analyzer).ConfigureAwait(false);
+                        }
+                    }
+
+                    break;
+
+                case CompilationUnitCompletedEvent compilationUnitCompletedEvent:
+                    SemanticModelProvider.ClearCache(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
+                    break;
+
+                case CompilationCompletedEvent compilationCompletedEvent:
+                    SemanticModelProvider.ClearCache(compilationCompletedEvent.Compilation);
+                    break;
             }
 
             return;

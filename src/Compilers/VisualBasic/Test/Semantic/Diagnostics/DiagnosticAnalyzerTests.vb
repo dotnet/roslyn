@@ -1629,7 +1629,7 @@ End Class")
             End Function
 
             Public Sub VerifyCachedModel(tree As SyntaxTree, model As SemanticModel)
-                Assert.Equal(model, _cache(tree))
+                Assert.Same(model, _cache(tree))
             End Sub
         End Class
     End Class

@@ -6,45 +6,76 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
     /// Provider that caches semantic models for requested trees, with a strong reference to the model.
     /// Clients using this provider are responsible for maintaining the lifetime of the entries in this cache,
-    /// and should invoke <see cref="EnsureCachedSemanticModelRemoved(SyntaxTree, Compilation)"/> to clear entries when appropriate.
+    /// and should invoke <see cref="ClearCache(SyntaxTree, Compilation)"/> and <see cref="ClearCache(Compilation)"/> to clear entries when appropriate.
     /// For example, <see cref="CompilationWithAnalyzers"/> uses this provider to ensure that semantic model instances
     /// are shared between the compiler and analyzers for improved analyzer execution performance. The underlying
-    /// <see cref="AnalyzerDriver"/> executing analyzers clears entries in the cache whenever a <see cref="CompilationUnitCompletedEvent"/>
+    /// <see cref="AnalyzerDriver"/> executing analyzers clears per-tree entries in the cache whenever a <see cref="CompilationUnitCompletedEvent"/>
     /// has been processed, indicating all relevant analyzers have executed on the corresponding syntax tree for the event.
+    /// Similarly, it clears the entire compilation wide cache whenever a <see cref="CompilationCompletedEvent"/> has been processed,
+    /// indicating all relevant analyzers have executed on the entire compilation.
     /// </summary>
     internal sealed class CachingSemanticModelProvider : SemanticModelProvider
     {
-        private static readonly Func<(SyntaxTree, Compilation), SemanticModel> s_createSemanticModel =
-            ((SyntaxTree tree, Compilation compilation) tuple) => tuple.compilation.CreateSemanticModel(tuple.tree, ignoreAccessibility: false);
-
-        private readonly ConcurrentDictionary<(SyntaxTree, Compilation), SemanticModel> _semanticModelsMap;
+        private readonly ConditionalWeakTable<Compilation, PerCompilationProvider> _providerCache;
+        private readonly ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback _createProviderCallback;
 
         public CachingSemanticModelProvider()
         {
-            _semanticModelsMap = new ConcurrentDictionary<(SyntaxTree, Compilation), SemanticModel>();
+            _providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
+            _createProviderCallback = new ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback(compilation => new PerCompilationProvider(compilation));
         }
 
         public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
-        {
-            // We only care about caching semantic models for internal callers, which use the default 'ignoreAccessibility = false'.
-            if (!ignoreAccessibility)
-            {
-                return _semanticModelsMap.GetOrAdd((tree, compilation), s_createSemanticModel);
-            }
+            => _providerCache.GetValue(compilation, _createProviderCallback).GetSemanticModel(tree, ignoreAccessibility);
 
-            return s_createSemanticModel((tree, compilation));
+        internal void ClearCache(SyntaxTree tree, Compilation compilation)
+        {
+            if (_providerCache.TryGetValue(compilation, out var provider))
+            {
+                provider.ClearCachedSemanticModel(tree);
+            }
         }
 
-        internal void EnsureCachedSemanticModelRemoved(SyntaxTree tree, Compilation compilation)
+        internal void ClearCache(Compilation compilation)
         {
-            _semanticModelsMap.TryRemove((tree, compilation), out _);
+            _providerCache.Remove(compilation);
+        }
+
+        private sealed class PerCompilationProvider
+        {
+            private readonly Compilation _compilation;
+            private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _semanticModelsMap;
+
+            // Cached delegate to avoid allocations in ConcurrentDictionary.GetOrAdd invocations.
+            // We only care about caching semantic models for internal callers, which use the default 'ignoreAccessibility = false'.
+            private readonly Func<SyntaxTree, SemanticModel> _createSemanticModel;
+
+            public PerCompilationProvider(Compilation compilation)
+            {
+                _compilation = compilation;
+                _semanticModelsMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
+                _createSemanticModel = tree => compilation.CreateSemanticModel(tree, ignoreAccessibility: false);
+            }
+
+            public SemanticModel GetSemanticModel(SyntaxTree tree, bool ignoreAccessibility)
+            {
+                // We only care about caching semantic models for internal callers, which use the default 'ignoreAccessibility = false'.
+                return !ignoreAccessibility
+                    ? _semanticModelsMap.GetOrAdd(tree, _createSemanticModel)
+                    : _compilation.CreateSemanticModel(tree, ignoreAccessibility: true);
+            }
+
+            public void ClearCachedSemanticModel(SyntaxTree tree)
+            {
+                _semanticModelsMap.TryRemove(tree, out _);
+            }
         }
     }
 }

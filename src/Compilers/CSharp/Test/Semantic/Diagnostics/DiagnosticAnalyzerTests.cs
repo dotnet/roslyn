@@ -3778,7 +3778,7 @@ class C
 
             public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)
             {
-                Assert.Equal(model, _cache[tree]);
+                Assert.Same(model, _cache[tree]);
             }
         }
     }
