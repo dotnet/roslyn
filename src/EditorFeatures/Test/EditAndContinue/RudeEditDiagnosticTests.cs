@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.RenamingCapturedVariable,
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
+                RudeEditKind.MemberBodyInternalError,
+                RudeEditKind.SourceFileTooBig,
             };
 
             var arg3 = new HashSet<RudeEditKind>()
