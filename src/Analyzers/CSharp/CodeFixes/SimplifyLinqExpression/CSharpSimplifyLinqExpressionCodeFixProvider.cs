@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                RemoveWhere(model, editor, node, diagnostic.AdditionalLocations);
+                RemoveWhere(editor, node, diagnostic.AdditionalLocations);
             }
         }
 
-        private static void RemoveWhere(SemanticModel model, SyntaxEditor editor, SyntaxNode node, System.Collections.Generic.IReadOnlyList<Location> additionalLocations)
+        private static void RemoveWhere(SyntaxEditor editor, SyntaxNode node, System.Collections.Generic.IReadOnlyList<Location> additionalLocations)
         {
             var additionalNodes = new List<SyntaxNode>();
             foreach (var locations in additionalLocations)

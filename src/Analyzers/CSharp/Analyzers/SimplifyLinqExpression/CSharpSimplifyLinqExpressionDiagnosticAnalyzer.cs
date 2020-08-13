@@ -146,16 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 var node = context.Operation.Syntax;
 
                 // Example: if Data().Where(...).First()
-                // Then invokedNode is Data(), whereClauseSyntax is .Where(...), and the targetMethodNode is First.
-                //var invokedNode = node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault(d => d.Expression is IdentifierNameSyntax);
                 var targetMethodNode = node.DescendantNodes().OfType<IdentifierNameSyntax>().LastOrDefault();
                 var whereClauseSyntax = invocation.Syntax as InvocationExpressionSyntax;
                 var invokedNodeSyntax = targetOperation.Children.FirstOrDefault().Syntax;
-
-                //if (invokeNodeSyntax is null)
-                //{
-                //    invokeNodeSyntax = node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().FirstOrDefault(c => c is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression is IdentifierNameSyntax);
-                //}
 
                 if (whereClauseSyntax is null ||
                     targetMethodNode is null ||
