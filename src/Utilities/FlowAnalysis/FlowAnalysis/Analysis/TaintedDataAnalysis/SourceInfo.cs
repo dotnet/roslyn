@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -158,12 +157,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Indicates that this <see cref="SourceInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
-        public bool RequiresValueContentAnalysis => this.TaintedMethodsNeedsValueContentAnalysis.Any();
+        public bool RequiresValueContentAnalysis => !this.TaintedMethodsNeedsValueContentAnalysis.IsEmpty;
 
         /// <summary>
         /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
         /// </summary>
-        public bool RequiresParameterReferenceAnalysis => this.TaintedArguments.Any();
+        public bool RequiresParameterReferenceAnalysis => !this.TaintedArguments.IsEmpty;
 
         public override int GetHashCode()
         {
