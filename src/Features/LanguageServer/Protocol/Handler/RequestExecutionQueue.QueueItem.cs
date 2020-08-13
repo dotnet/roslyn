@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -18,13 +19,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public readonly bool MutatesSolutionState;
             public readonly string? ClientName;
             public readonly ClientCapabilities ClientCapabilities;
+            public readonly CancellationToken CancellationToken;
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, Func<RequestContext, Task<bool>> callback)
+            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, Func<RequestContext, CancellationToken, Task<bool>> callback, CancellationToken cancellationToken)
             {
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
                 Callback = callback;
+                CancellationToken = cancellationToken;
             }
         }
     }

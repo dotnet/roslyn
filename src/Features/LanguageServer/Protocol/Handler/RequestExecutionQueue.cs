@@ -16,17 +16,19 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Export(typeof(RequestExecutionQueue)), Shared]
-    internal partial class RequestExecutionQueue
+    internal partial class RequestExecutionQueue : IDisposable
     {
         private readonly AsyncQueue<QueueItem> _queue = new AsyncQueue<QueueItem>();
         private readonly ILspSolutionProvider _solutionProvider;
         private Solution? _lastMutatedSolution;
+        private readonly CancellationTokenSource _cancelSource;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _solutionProvider = solutionProvider;
+            _cancelSource = new CancellationTokenSource();
 
             // Start the queue processing
             _ = ProcessQueueAsync();
@@ -41,16 +43,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="request">The request to hanel.</param>
         /// <param name="clientCapabilities">The client capabilities.</param>
         /// <param name="clientName">The client name.</param>
-        /// <param name="cancellationToken">A cancellation token that will cancel the handing of this request.</param>
+        /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
+        /// The request could also be cancelled by the queue shutting down.</param>
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
-        public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request,
-            ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken) where TRequestType : class
+        public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
+            bool mutatesSolutionState,
+            IRequestHandler<TRequestType, TResponseType> handler,
+            TRequestType request,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken requestCancellationToken) where TRequestType : class
         {
             // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
 
             var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName,
-                callback: async (context) =>
+                callback: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
                     if (cancellationToken.IsCancellationRequested)
@@ -82,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                     // Tell the queue to ignore any mutations from this request
                     return false;
-                });
+                }, requestCancellationToken);
             _queue.Enqueue(item);
 
             return completion.Task;
@@ -91,8 +99,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private async Task ProcessQueueAsync()
         {
             while (true)
+            var queueToken = _cancelSource.Token;
+
+            while (!queueToken.IsCancellationRequested)
             {
                 var work = await _queue.DequeueAsync().ConfigureAwait(false);
+
+                // Create a linked cancellation token to cancel any requests in progress when this shuts down
+                var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(queueToken, work.CancellationToken).Token;
 
                 // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
                 // to merge in the changes from any mutations that have been applied to open documents
@@ -105,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (work.MutatesSolutionState)
                 {
                     // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                    var ranToCompletion = await work.Callback(context).ConfigureAwait(false);
+                    var ranToCompletion = await work.Callback(context, cancellationToken).ConfigureAwait(false);
 
                     // If the handling of the request failed, the exception will bubble back up to the caller, but we
                     // still need to react to it here by throwing away solution updates
@@ -117,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 else
                 {
                     // Non mutating request get given the current solution state, but are otherwise fire-and-forget
-                    _ = work.Callback(context);
+                    _ = work.Callback(context, cancellationToken);
                 }
             }
         }
@@ -131,5 +145,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private Solution GetCurrentSolution()
             => _solutionProvider.GetCurrentSolutionForMainWorkspace();
+
+        public void Dispose()
+        {
+            _cancelSource.Cancel();
+            _cancelSource.Dispose();
+        }
     }
 }
