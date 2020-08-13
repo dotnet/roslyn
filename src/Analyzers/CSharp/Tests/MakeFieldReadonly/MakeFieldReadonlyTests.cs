@@ -1709,7 +1709,7 @@ public class Repro
         }
 
         [WorkItem(45288, "https://github.com/dotnet/roslyn/pull/45288")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33009"), Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task UsedAsRef_NoDiagnostic()
         {
             await TestMissingInRegularAndScriptAsync(
