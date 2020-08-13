@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly struct QueueItem
         {
-            public Func<RequestContext, Task<bool>> Callback { get; }
-            public bool MutatesSolutionState { get; }
-            public string? ClientName { get; }
-            public ClientCapabilities ClientCapabilities { get; }
+            public readonly Func<RequestContext, CancellationToken, Task<bool>> Callback;
+            public readonly bool MutatesSolutionState;
+            public readonly string? ClientName;
+            public readonly ClientCapabilities ClientCapabilities;
 
             public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, Func<RequestContext, Task<bool>> callback)
             {
