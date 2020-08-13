@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -63,7 +65,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
-                RudeEditKind.SourceFileTooBig,
             };
 
             var arg3 = new HashSet<RudeEditKind>()
@@ -72,44 +73,49 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.DeleteLambdaWithMultiScopeCapture,
             };
 
-            foreach (RudeEditKind value in Enum.GetValues(typeof(RudeEditKind)))
+            var allKinds = Enum.GetValues(typeof(RudeEditKind)).Cast<RudeEditKind>();
+
+            foreach (var kind in allKinds)
             {
-                if (value == RudeEditKind.None)
+                if (kind == RudeEditKind.None)
                 {
                     continue;
                 }
 
-                if (arg0.Contains(value))
+                if (arg0.Contains(kind))
                 {
-                    var re = new RudeEditDiagnostic(value, TextSpan.FromBounds(1, 2));
+                    var re = new RudeEditDiagnostic(kind, TextSpan.FromBounds(1, 2));
                     var d = re.ToDiagnostic(tree);
-                    Assert.False(d.GetMessage().Contains("{"), value.ToString());
+                    Assert.False(d.GetMessage().Contains("{"), kind.ToString());
                 }
-                else if (arg2.Contains(value))
+                else if (arg2.Contains(kind))
                 {
-                    var re = new RudeEditDiagnostic(value, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>", "<2>" });
+                    var re = new RudeEditDiagnostic(kind, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>", "<2>" });
                     var d = re.ToDiagnostic(tree);
-                    Assert.True(d.GetMessage().Contains("<1>"), value.ToString());
-                    Assert.True(d.GetMessage().Contains("<2>"), value.ToString());
-                    Assert.False(d.GetMessage().Contains("{"), value.ToString());
+                    Assert.True(d.GetMessage().Contains("<1>"), kind.ToString());
+                    Assert.True(d.GetMessage().Contains("<2>"), kind.ToString());
+                    Assert.False(d.GetMessage().Contains("{"), kind.ToString());
                 }
-                else if (arg3.Contains(value))
+                else if (arg3.Contains(kind))
                 {
-                    var re = new RudeEditDiagnostic(value, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>", "<2>", "<3>" });
+                    var re = new RudeEditDiagnostic(kind, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>", "<2>", "<3>" });
                     var d = re.ToDiagnostic(tree);
-                    Assert.True(d.GetMessage().Contains("<1>"), value.ToString());
-                    Assert.True(d.GetMessage().Contains("<2>"), value.ToString());
-                    Assert.True(d.GetMessage().Contains("<3>"), value.ToString());
-                    Assert.False(d.GetMessage().Contains("{"), value.ToString());
+                    Assert.True(d.GetMessage().Contains("<1>"), kind.ToString());
+                    Assert.True(d.GetMessage().Contains("<2>"), kind.ToString());
+                    Assert.True(d.GetMessage().Contains("<3>"), kind.ToString());
+                    Assert.False(d.GetMessage().Contains("{"), kind.ToString());
                 }
                 else
                 {
-                    var re = new RudeEditDiagnostic(value, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>" });
+                    var re = new RudeEditDiagnostic(kind, TextSpan.FromBounds(1, 2), syntaxNode, new[] { "<1>" });
                     var d = re.ToDiagnostic(tree);
-                    Assert.True(d.GetMessage().Contains("<1>"), value.ToString());
-                    Assert.False(d.GetMessage().Contains("{"), value.ToString());
+                    Assert.True(d.GetMessage().Contains("<1>"), kind.ToString());
+                    Assert.False(d.GetMessage().Contains("{"), kind.ToString());
                 }
             }
+
+            // check that all values are unique:
+            AssertEx.Equal(allKinds, allKinds.Distinct());
         }
     }
 }
