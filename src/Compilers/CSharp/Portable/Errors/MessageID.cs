@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
