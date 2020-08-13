@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportLspMethod(MethodName, mutatesSolutionState: true)]
+    [Shared, ExportLspMethod(MethodName, mutatesSolutionState: true), PartNotDiscoverable]
     internal class FailingMutatingRequestHandler : AbstractRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(FailingMutatingRequestHandler);
