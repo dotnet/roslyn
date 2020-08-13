@@ -468,7 +468,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             // changes to document, so the cursor position is tracked correctly.
             var textView = WorkspaceFixture.CurrentDocument.GetTextView();
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, disallowAddingImports: false, CancellationToken.None);
+            var options = await document.GetOptionsAsync().ConfigureAwait(false);
+            var disallowAddingImports = options.GetOption(CompletionServiceOptions.DisallowAddingImports);
+
+            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, disallowAddingImports, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
