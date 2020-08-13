@@ -34,12 +34,10 @@ try {
   Push-Location $RepoRoot
 
   # Verify no PROTOTYPE marker left in master
-  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "master")
-  {
+  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "master") {
     Write-Host "Checking no PROTOTYPE markers in compiler source"
-    $prototypes = Get-ChildItem -Path src/Compilers/*.cs,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
-    if ($prototypes)
-    {
+    $prototypes = Get-ChildItem -Path src/Compilers/*.cs, src/Compilers/*.vb,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
+    if ($prototypes) {
       Write-Host "Found PROTOTYPE markers in compiler source:"
       Write-Host $prototypes
       throw "PROTOTYPE markers disallowed in compiler source"
