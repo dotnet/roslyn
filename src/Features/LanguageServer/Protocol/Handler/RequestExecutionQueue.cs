@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly AsyncQueue<QueueItem> _queue = new AsyncQueue<QueueItem>();
         private readonly ILspSolutionProvider _solutionProvider;
-        private Solution? _lastMutatedSolution;
         private readonly CancellationTokenSource _cancelSource;
 
         [ImportingConstructor]
@@ -98,7 +97,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
-            while (true)
+            // Kepp track of solution state modifications made by LSP requests
+            Solution? lastMutatedSolution = null;
             var queueToken = _cancelSource.Token;
 
             while (!queueToken.IsCancellationRequested)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
                 // to merge in the changes from any mutations that have been applied to open documents
                 var solution = GetCurrentSolution();
-                solution = MergeChanges(solution, _lastMutatedSolution);
+                solution = MergeChanges(solution, lastMutatedSolution);
 
                 Solution? mutatedSolution = null;
                 var context = new RequestContext(solution, s => mutatedSolution = s, work.ClientCapabilities, work.ClientName);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // still need to react to it here by throwing away solution updates
                     if (ranToCompletion)
                     {
-                        _lastMutatedSolution = mutatedSolution ?? _lastMutatedSolution;
+                        lastMutatedSolution = mutatedSolution ?? lastMutatedSolution;
                     }
                 }
                 else
