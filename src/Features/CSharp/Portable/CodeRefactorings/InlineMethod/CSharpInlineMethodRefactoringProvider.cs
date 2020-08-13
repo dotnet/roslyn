@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax>
+        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, MethodDeclarationSyntax>
     {
         /// <summary>
         /// All the syntax kind considered as the statement contains the invocation callee.
@@ -66,35 +66,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return false;
         }
 
-        protected override bool IsSingleStatementOrExpressionMethod(SyntaxNode calleeMethodDeclarationSyntaxNode)
+        protected override bool IsSingleStatementOrExpressionMethod(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
         {
-            if (calleeMethodDeclarationSyntaxNode is MethodDeclarationSyntax declarationSyntax)
+            var blockSyntaxNode = calleeMethodDeclarationSyntaxNode.Body;
+            // 1. If it is an ordinary method with block
+            if (blockSyntaxNode != null)
             {
-                var blockSyntaxNode = declarationSyntax.Body;
-                // 1. If it is an ordinary method with block
-                if (blockSyntaxNode != null)
-                {
-                    var blockStatements = blockSyntaxNode.Statements;
-                    return blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]);
-                }
-                else
-                {
-                    // 2. If it is an Arrow Expression
-                    var arrowExpressionNodes = declarationSyntax.ExpressionBody;
-                    return arrowExpressionNodes != null;
-                }
+                var blockStatements = blockSyntaxNode.Statements;
+                return blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]);
             }
-
-            return false;
+            else
+            {
+                // 2. If it is an Arrow Expression
+                var arrowExpressionNodes = calleeMethodDeclarationSyntaxNode.ExpressionBody;
+                return arrowExpressionNodes != null;
+            }
         }
 
         protected override IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, ArgumentSyntax argumentSyntaxNode, CancellationToken cancellationToken)
             => argumentSyntaxNode.DetermineParameter(semanticModel, allowParams: true, cancellationToken);
 
-        protected override ExpressionSyntax GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode)
+        protected override ExpressionSyntax GetInlineStatement(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
         {
-            var declarationSyntax = (MethodDeclarationSyntax)calleeMethodDeclarationSyntaxNode;
-            var blockSyntaxNode = declarationSyntax.Body;
+            var blockSyntaxNode = calleeMethodDeclarationSyntaxNode.Body;
             // Check has been done before to make sure block statements only has one statement
             // or the declarationSyntax has an ExpressionBody.
             if (blockSyntaxNode != null)
@@ -106,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             else
             {
                 // 2. If it is using Arrow Expression
-                var arrowExpressionNode = declarationSyntax.ExpressionBody;
+                var arrowExpressionNode = calleeMethodDeclarationSyntaxNode.ExpressionBody;
                 return arrowExpressionNode!.Expression;
             }
         }
@@ -124,11 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)
             => symbol.GenerateTypeSyntax(allowVar: false);
 
+        // TODO: Use the SyntaxGenerator array initialization when this
+        // https://github.com/dotnet/roslyn/issues/46651 is resolved.
         protected override SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments)
             => SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(arguments));
 
-        protected override bool IsStatementConsideredAsInvokingStatement(SyntaxNode node)
-            => s_syntaxKindsConsideredAsStatementInvokesCallee.Contains(node.Kind());
+        protected override bool ShouldConsideredAsContainingStatement(SyntaxNode syntaxNode)
+            => s_syntaxKindsConsideredAsStatementInvokesCallee.Contains(syntaxNode.Kind());
 
         protected override ExpressionSyntax Parenthesize(ExpressionSyntax expressionSyntax)
             => expressionSyntax.Parenthesize();

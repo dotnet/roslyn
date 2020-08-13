@@ -15,11 +15,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
         : CodeRefactoringProvider
         where TInvocationSyntaxNode : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
+        where TMethodDeclarationSyntax : SyntaxNode
     {
         private readonly ISyntaxFacts _syntaxFacts;
         private readonly ISemanticFactsService _semanticFactsService;
@@ -27,12 +28,27 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// <summary>
         /// Check if the <param name="calleeMethodDeclarationSyntaxNode"/> has only one expression or it is using arrow expression.
         /// </summary>
-        protected abstract bool IsSingleStatementOrExpressionMethod(SyntaxNode calleeMethodDeclarationSyntaxNode);
-        protected abstract TExpressionSyntax GetInlineStatement(SyntaxNode calleeMethodDeclarationSyntaxNode);
+        protected abstract bool IsSingleStatementOrExpressionMethod(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
+        protected abstract TExpressionSyntax GetInlineStatement(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
+
+        /// <summary>
+        /// Get the mapping parameterSymbol from the <param name="argumentSyntaxNode"/>.
+        /// Note: it could be null if there is error in the code.
+        /// </summary>
         protected abstract IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, TArgumentSyntax argumentSyntaxNode, CancellationToken cancellationToken);
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
         protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
-        protected abstract bool IsStatementConsideredAsInvokingStatement(SyntaxNode node);
+
+        /// <summary>
+        /// Check if the <param name="syntaxNode"/> should be considered as the statement that contains the method invocation.
+        /// Example:
+        /// void Caller()
+        /// {
+        ///     var x = Callee();
+        /// }
+        /// LocalDeclarationSyntaxNode here is considered as the containing statement of Callee()
+        /// </summary>
+        protected abstract bool ShouldConsideredAsContainingStatement(SyntaxNode syntaxNode);
         protected abstract TExpressionSyntax Parenthesize(TExpressionSyntax node);
 
         protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, ISemanticFactsService semanticFactsService)
@@ -44,16 +60,20 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            var calleeMethodInvocationSyntaxNode = await GetInvocationExpressionSyntaxNodeAsync(context).ConfigureAwait(false);
+            var calleeMethodInvocationSyntaxNode = await context.TryGetRelevantNodeAsync<TInvocationSyntaxNode>().ConfigureAwait(false);
             if (calleeMethodInvocationSyntaxNode == null)
             {
                 return;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode, cancellationToken).GetAnySymbol() as IMethodSymbol;
-            if (calleeMethodSymbol == null
-                || calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private
+            var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationSyntaxNode, cancellationToken).GetAnySymbol();
+            if (!(calleeMethodSymbol is IMethodSymbol))
+            {
+                return;
+            }
+
+            if (calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private
                 || calleeMethodSymbol.IsConstructor()
                 || calleeMethodSymbol.IsUserDefinedOperator()
                 || calleeMethodSymbol.IsConversion()
@@ -62,55 +82,47 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            if (calleeMethodSymbol is IMethodSymbol calleeMethodInvocationSymbol)
+            var calleeMethodDeclarationSyntaxReferences = calleeMethodSymbol.DeclaringSyntaxReferences;
+            if (calleeMethodDeclarationSyntaxReferences.Length != 1)
             {
-                var calleeMethodDeclarationSyntaxReferences = calleeMethodInvocationSymbol.DeclaringSyntaxReferences;
-
-                if (calleeMethodDeclarationSyntaxReferences.Length != 1)
-                {
-                    return;
-                }
-
-                var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
-                var calleeMethodDeclarationSyntaxNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                if (!IsSingleStatementOrExpressionMethod(calleeMethodDeclarationSyntaxNode))
-                {
-                    return;
-                }
-
-                var statementContainsCallee = GetStatementContainsCallee(calleeMethodInvocationSyntaxNode);
-                if (statementContainsCallee == null)
-                {
-                    return;
-                }
-
-                var codeAction = new CodeAction.DocumentChangeAction(
-                    string.Format(FeaturesResources.Inline_0, calleeMethodInvocationSymbol.ToNameDisplayString()),
-                    cancellationToken => InlineMethodAsync(
-                        document,
-                        calleeMethodInvocationSyntaxNode,
-                        calleeMethodInvocationSymbol,
-                        calleeMethodDeclarationSyntaxNode,
-                        cancellationToken));
-
-                context.RegisterRefactoring(codeAction);
+                return;
             }
-        }
 
-        private async Task<SyntaxNode?> GetInvocationExpressionSyntaxNodeAsync(CodeRefactoringContext context)
-        {
-            var syntaxNode = await context.TryGetRelevantNodeAsync<TInvocationSyntaxNode>().ConfigureAwait(false);
-            return syntaxNode;
-        }
+            var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
+            var calleeMethodDeclarationSyntaxNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+            if (!(calleeMethodDeclarationSyntaxNode is TMethodDeclarationSyntax))
+            {
+                return;
+            }
 
-        private static bool IsExpressionSyntax(SyntaxNode syntaxNode)
-            => syntaxNode is TExpressionSyntax;
+            if (!IsSingleStatementOrExpressionMethod((TMethodDeclarationSyntax)calleeMethodDeclarationSyntaxNode))
+            {
+                return;
+            }
+
+            var statementContainsCallee = GetStatementContainsCallee(calleeMethodInvocationSyntaxNode);
+            if (statementContainsCallee == null)
+            {
+                return;
+            }
+
+            var codeAction = new CodeAction.DocumentChangeAction(
+                string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
+                cancellationToken => InlineMethodAsync(
+                    document,
+                    calleeMethodInvocationSyntaxNode,
+                    (IMethodSymbol)calleeMethodSymbol,
+                    (TMethodDeclarationSyntax)calleeMethodDeclarationSyntaxNode,
+                    cancellationToken));
+
+            context.RegisterRefactoring(codeAction);
+        }
 
         private async Task<Document> InlineMethodAsync(
             Document document,
             SyntaxNode calleeMethodInvocationSyntaxNode,
             IMethodSymbol calleeMethodSymbol,
-            SyntaxNode calleeMethodDeclarationSyntaxNode,
+            TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -138,43 +150,27 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var statementContainsCalleeInvocationExpression = inlineContext.StatementContainingCallee;
-            // In case can't find the containing statement, don't do insertion
-            if (statementContainsCalleeInvocationExpression != null)
+            foreach (var statement in inlineContext.StatementsToInsertBeforeCallee)
             {
-                foreach (var statement in inlineContext.StatementsToInsertBeforeCallee)
-                {
-                    documentEditor.InsertBefore(
-                        statementContainsCalleeInvocationExpression,
-                        // Make sure the statement is aligned with the existing statement
-                        statement.WithLeadingTrivia(statementContainsCalleeInvocationExpression.GetLeadingTrivia()));
-                }
+                documentEditor.InsertBefore(
+                    statementContainsCalleeInvocationExpression,
+                    // Make sure the statement is aligned with the existing statement
+                    statement.WithLeadingTrivia(statementContainsCalleeInvocationExpression.GetLeadingTrivia()));
             }
 
             var syntaxNodeToReplace = inlineContext.SyntaxNodeToReplace;
             var inlineSyntaxNode = inlineContext.InlineSyntaxNode;
-            if (syntaxNodeToReplace != null)
-            {
-                if (inlineSyntaxNode == null)
-                {
-                    // When it has only one return statement in the callee & return void, just remove the whole statement.
-                    documentEditor.RemoveNode(syntaxNodeToReplace);
-                    return documentEditor.GetChangedDocument();
-                }
-                else
-                {
-                    documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
-                }
-            }
+            documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
 
             // If the inline content has 'await' expression, then make sure the caller is converted to 'async' method
             if (inlineContext.ContainsAwaitExpression)
             {
+                // TODO: handle local and lambda cases.
                 var callerMethodSyntaxNode = _syntaxFacts.GetContainingMemberDeclaration(root, calleeMethodInvocationSyntaxNode.SpanStart);
                 if (semanticModel.GetDeclaredSymbol(callerMethodSyntaxNode, cancellationToken) is IMethodSymbol callerMethodSymbol
                     && !callerMethodSymbol.IsAsync)
                 {
-                    documentEditor.SetModifiers(callerMethodSyntaxNode,
-                        DeclarationModifiers.From(calleeMethodSymbol).WithAsync(isAsync: true));
+                    documentEditor.SetModifiers(callerMethodSyntaxNode, DeclarationModifiers.From(calleeMethodSymbol).WithAsync(isAsync: true));
                 }
             }
 
@@ -188,7 +184,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// {
         ///     var x = Callee();
         /// }
-        /// The LocalDeclarationSyntaxNode will be returned.
+        /// LocalDeclarationSyntaxNode will be returned.
         ///
         /// void Caller()
         /// {
@@ -196,14 +192,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         ///     {
         ///     }
         /// }
-        /// The IfStatementSyntax will be returned.
+        /// IfStatementSyntax will be returned.
         /// Return null if such node can't be found.
         /// </summary>
         private SyntaxNode? GetStatementContainsCallee(SyntaxNode calleeInvocationSyntax)
         {
             for (var node = calleeInvocationSyntax; node != null; node = node!.Parent)
             {
-                if (node != null && IsStatementConsideredAsInvokingStatement(node))
+                if (node != null && ShouldConsideredAsContainingStatement(node))
                 {
                     return node;
                 }

@@ -12,10 +12,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
         where TInvocationSyntaxNode : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
+        where TMethodDeclarationSyntax : SyntaxNode
     {
         /// <summary>
         /// Information about the callee method parameters to compute <see cref="InlineMethodContext"/>.
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             public static MethodParametersInfo GetMethodParametersInfo(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 SemanticModel semanticModel,
                 SyntaxNode calleeInvocationSyntaxNode,
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static bool ParameterNeedsGenerateDeclarationFilter(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 SemanticModel semanticModel,
                 (IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments) parameterAndArguments,
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 if (!parameterSymbol.IsParams && arguments.Length == 1)
                 {
                     var argument = arguments[0];
-                    return IsExpressionSyntax(argument);
+                    return argument is TExpressionSyntax;
                 }
 
                 // Params array is special, if there are multiple arguments, then they needs to be put into a separate array.

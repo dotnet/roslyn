@@ -17,11 +17,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax,
-        TArgumentSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
         where TInvocationSyntaxNode : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
+        where TMethodDeclarationSyntax : SyntaxNode
     {
         private class InlineMethodContext
         {
@@ -33,18 +33,18 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// <summary>
             /// Statement invokes the callee. All the generated declarations should be put before this node.
             /// </summary>
-            public SyntaxNode? StatementContainingCallee { get; }
+            public SyntaxNode StatementContainingCallee { get; }
 
             /// <summary>
             /// Inline content for the callee method. It should replace <see cref="SyntaxNodeToReplace"/>.
             /// It will be null if nothing need to be inlined.
             /// </summary>
-            public SyntaxNode? InlineSyntaxNode { get; }
+            public SyntaxNode InlineSyntaxNode { get; }
 
             /// <summary>
             /// SyntaxNode needs to be replaced by <see cref="InlineSyntaxNode"/>
             /// </summary>
-            public SyntaxNode? SyntaxNodeToReplace { get; }
+            public SyntaxNode SyntaxNodeToReplace { get; }
 
             /// <summary>
             /// Indicate is <see cref="InlineSyntaxNode"/> has Await Expression.
@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             public static async Task<InlineMethodContext> GetInlineContextAsync(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax> inlineMethodRefactoringProvider,
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax> inlineMethodRefactoringProvider,
                 ISyntaxFacts syntaxFacts,
                 ISemanticFactsService semanticFactsService,
                 Document document,
                 SemanticModel semanticModel,
                 SyntaxNode calleeInvocationSyntaxNode,
                 IMethodSymbol calleeMethodSymbol,
-                SyntaxNode calleeMethodDeclarationSyntaxNode,
+                TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode,
                 MethodParametersInfo methodParametersInfo,
                 SyntaxNode root,
                 CancellationToken cancellationToken)
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             private static ImmutableArray<SyntaxNode> GetLocalDeclarationStatementsNeedInsert(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
                     inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 SyntaxGenerator syntaxGenerator,
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .ToImmutableArray();
 
             private static SyntaxNode CreateLocalDeclarationStatement(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
                     inlineMethodRefactoringProvider,
                 SemanticModel semanticModel,
                 SyntaxGenerator syntaxGenerator,
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// is the replacement syntax node for all its occurence.
             /// </summary>
             private static ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax>
+                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
                     inlineMethodRefactoringProvider,
                 IMethodSymbol calleeMethodSymbol,
                 ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpression)>
