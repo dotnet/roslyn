@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
         /// </summary>
         private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
-            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
+            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
 
         /// <summary>
         /// Statically constructs.
@@ -58,8 +58,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             return false;
                         }
 
-                        var classCache = s_classIsControllerByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<ISymbol, bool>());
-                        if (!classCache.TryGetValue(methodSymbol.ContainingSymbol, out bool isController))
+                        var classCache = s_classIsControllerByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<INamedTypeSymbol, bool>());
+                        if (!classCache.TryGetValue(typeSymbol, out bool isController))
                         {
                             if ((!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
                                 && (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute, out var controllerAttributeTypeSymbol)
@@ -67,7 +67,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute, out var nonControllerAttributeTypeSymbol)
                                 || typeSymbol.HasDerivedTypeAttribute(nonControllerAttributeTypeSymbol))
                             {
-                                classCache.TryAdd(methodSymbol.ContainingSymbol, false);
+                                classCache.TryAdd(typeSymbol, false);
                                 return false;
                             }
 
@@ -79,7 +79,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             return false;
                         }
 
-                        classCache.TryAdd(methodSymbol.ContainingSymbol, true);
+                        classCache.TryAdd(typeSymbol, true);
 
                         if (methodSymbol.DeclaredAccessibility != Accessibility.Public
                             || methodSymbol.IsConstructor()
