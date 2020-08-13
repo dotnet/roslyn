@@ -54,7 +54,7 @@
     <MicrosoftBuildRuntimeVersion>15.3.409</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
     
-    <NuGetVisualStudioContractsVersion>5.7.0-rtm.6702</NuGetVisualStudioContractsVersion>
+    <NuGetVisualStudioContractsVersion>5.7.0</NuGetVisualStudioContractsVersion>
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
     <MicrosoftVisualStudioRpcContractsVersion>16.6.74</MicrosoftVisualStudioRpcContractsVersion>
     
