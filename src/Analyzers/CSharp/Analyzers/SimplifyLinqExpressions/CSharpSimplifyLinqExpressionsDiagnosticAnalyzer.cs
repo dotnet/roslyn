@@ -12,6 +12,9 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq.Expressions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using System;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
@@ -88,77 +91,83 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions
             var semanticModel = context.Operation.SemanticModel;
             var invocationArgument = invocationOperation.Arguments.FirstOrDefault();
 
-            InvocationExpressionSyntax invocationExpressionSyntax;
-            ArgumentSyntax lambdaExpression;
-            MemberAccessExpressionSyntax targetMethod;
+            Location argumentLocation;
+            Location invokedSyntaxLocation;
+            Location targetMethodLocation;
+            IEnumerable<Location> additionalLocations;
 
             // Check to make sure the invocation argument is an InvocationExpressionSyntax
             // Example: If invocationOperation syntax is Data().Where(...).Single(), then invocationArgument is Data.Where(...)
-            if (invocationArgument is null || !(invocationArgument.Syntax is InvocationExpressionSyntax argumentSyntax))
+            if (invocationArgument is null)
             {
                 return;
             }
 
-            var targetInvocationOperation = invocationArgument.Children.FirstOrDefault(c => c is IInvocationOperation);
+            var targetOperation = invocationArgument.Children.FirstOrDefault(c => c is IOperation);
 
-            // Example: If targetInvocationOperation syntax is Data.Where(...), then the targetDefinition would be the original definition of .Where(...)
-            if (targetInvocationOperation is IInvocationOperation invocation)
+            // Example: If invocation is Data.Where(...), then the TargetMethod would be .Where(...)
+            if (targetOperation is IInvocationOperation invocation)
             {
                 var targetDefinition = invocation.TargetMethod.OriginalDefinition;
 
-                // Check to ensure the targetDefinition is one of the valid .Where(...) definitions
+                // True if the invocation.TargetMethod is a call to System.Linq.Enumerable.Where(...)
                 if (!whereMethods.Contains(targetDefinition))
                 {
                     return;
                 }
 
-                var whereArgument = invocation.Arguments.FirstOrDefault(c => c.Syntax is ArgumentSyntax argSyntax && argSyntax.Expression is LambdaExpressionSyntax);
+                // True if the arguments within the .Where(...) method are lambda expressions
+                var isLambda = invocation.Arguments.Any(c => c.Syntax is ArgumentSyntax argSyntax && argSyntax.Expression.IsAnyLambda() || c.Syntax is LambdaExpressionSyntax);
 
-                if (whereArgument is null)
+                if (!isLambda)
                 {
                     return;
                 }
 
-                lambdaExpression = whereArgument.Syntax as ArgumentSyntax;
-/*
-                var invocationExpressionArgument = invocation.Arguments.FirstOrDefault(c => c.Syntax is InvocationExpressionSyntax);
+                // check that the Where clause is followed by a call to a valid method i.e. one of First, FirstOrDefault, Single, SingleOrDefault, etc..
+                // Example: if Data.Where(...).Single(), then the invocationOperation.TargetMethod is Single
+                var invocationDefinition = invocationOperation.TargetMethod.OriginalDefinition;
 
-                if (invocationExpressionArgument is null)
+                // True if invocationDefinition is one of:
+                // First(), Last(), Sinlge(), Any(), Count(), FirstOrDefualt(), LastOrDefault(), or SingleOrDefault()
+                if (!linqMethods.Contains(invocationDefinition))
                 {
                     return;
-                }*/
+                }
 
-                //invocationExpressionSyntax = invocationExpressionArgument.Syntax as InvocationExpressionSyntax;
+                // Check that the Where clause is followed by a call with no predicate
+                var arguments = invocationOperation.TargetMethod.Parameters;
+                if (arguments.IsEmpty)
+                {
+                    return;
+                }
 
-            }
+                var node = context.Operation.Syntax;
 
-            //var isLambda = whereClause.Children.Any(c => c.Syntax is ArgumentSyntax argument && argument.Expression is SimpleLambdaExpressionSyntax);
-            // check that the Where clause is followed by a call to a valid method i.e. one of First, FirstOrDefault, Single, SingleOrDefault, etc..
-            // and that it is also not user defined
-            var invocationDefinition = invocationOperation.TargetMethod.OriginalDefinition;
+                // Example: if Data().Where(...).First()
+                // Then invokedNode is Data(), whereClauseSyntax is .Where(...), and the targetMethodNode is First.
+                var invokedNode = node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault(d => d.Expression is IdentifierNameSyntax);
+                var targetMethodNode = node.DescendantNodes().OfType<IdentifierNameSyntax>().LastOrDefault();
+                var whereClauseSyntax = invocation.Syntax as InvocationExpressionSyntax;
 
-            if (!linqMethods.Contains(invocationDefinition))
-            {
-                return;
-            }
+                if (whereClauseSyntax is null ||
+                    !(targetMethodNode is IdentifierNameSyntax) ||
+                    !(invokedNode is InvocationExpressionSyntax))
+                {
+                    return;
+                }
 
-            // Check that the Where clause is followed by a call with no predicate
-            var arguments = invocationOperation.TargetMethod.Parameters;
-            if (arguments.IsEmpty)
-            {
-                return;
-            }
+                argumentLocation = whereClauseSyntax.ArgumentList.GetLocation();
+                invokedSyntaxLocation = invokedNode.GetLocation();
+                targetMethodLocation = targetMethodNode.GetLocation();
 
-            var operation = context.Operation;
-            var node = operation.Syntax;
-
-            // check that the nodes expression is a MemberAccessExpressionSyntax
-            if (node is InvocationExpressionSyntax invoc && invoc.Expression is MemberAccessExpressionSyntax)
-            {
-                var location = node.GetLocation();
-                context.ReportDiagnostic(
-                    DiagnosticHelper.Create(Descriptor, location, Descriptor.GetEffectiveSeverity(context.Compilation.Options),
-                    additionalLocations: null, properties: null));
+                additionalLocations = new List<Location> { invokedSyntaxLocation, argumentLocation, targetMethodLocation };
+                if (node is InvocationExpressionSyntax)
+                {
+                    context.ReportDiagnostic(
+                        DiagnosticHelper.Create(Descriptor, node.GetLocation(), Descriptor.GetEffectiveSeverity(context.Compilation.Options),
+                        additionalLocations, properties: null));
+                }
             }
         }
     }
