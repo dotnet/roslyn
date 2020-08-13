@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
                 // The same behavior as if there was a syntax error - we are unable to analyze the document. 
-                // We expect OOM to be thrown durign the analysis if the number of top-level entities is too large.
+                // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
                 // In such case we report a rude edit for the document. If the host is actually running out of memory,
                 // it might throw another OOM here or later on.
                 var diagnostic = (e is OutOfMemoryException) ?
@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
-                // We expect OOM to be thrown durign the analysis if the number of statements is too large.
+                // We expect OOM to be thrown during the analysis if the number of statements is too large.
                 // In such case we report a rude edit for the document. If the host is actually running out of memory,
                 // it might throw another OOM here or later on.
                 diagnostics.Add(new RudeEditDiagnostic(
