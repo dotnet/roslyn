@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Class
 
         ' Public for testing purposes
-        Public Sub New(activeStatementSpanTracker As IActiveStatementSpanTracker, testFaultInjector As Action(Of SyntaxNode))
+        Public Sub New(activeStatementSpanTracker As IActiveStatementSpanTracker, Optional testFaultInjector As Action(Of SyntaxNode) = Nothing)
             MyBase.New(activeStatementSpanTracker, testFaultInjector)
         End Sub
 
