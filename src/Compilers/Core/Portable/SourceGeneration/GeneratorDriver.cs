@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
         private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false)
         {
             var message = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
-            var diagnostic = Diagnostic.Create(provider, message, generator.GetType().Name);
+            var diagnostic = Diagnostic.Create(provider, message, generator.GetType().Name, e.GetType().Name, e.Message, e.ToString());
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
         }
