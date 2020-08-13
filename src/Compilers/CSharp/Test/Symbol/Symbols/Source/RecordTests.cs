@@ -1076,7 +1076,7 @@ record C
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
-                "System.String! C.ToString()",
+                "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder! builder)",
                 "System.Boolean C.operator !=(C? r1, C? r2)",
                 "System.Boolean C.operator ==(C? r1, C? r2)",
