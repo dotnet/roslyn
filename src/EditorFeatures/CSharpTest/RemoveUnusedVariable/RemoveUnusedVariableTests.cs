@@ -715,5 +715,354 @@ class C
 @"
 ", TestOptions.Regular);
         }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideDo()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        int [|unused|];
+        do
+            unused = 0;
+        while (c);
+        return used;
+    }
+}
+",
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        do
+        {
+        }
+        while (c);
+        return used;
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideElse()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        int [|unused|];
+        if (c)
+            used = 1;
+        else
+            unused = 0;
+        return used;
+    }
+}
+",
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        if (c)
+            used = 1;
+        else
+        {
+        }
+
+        return used;
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideFixed()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    unsafe int M(int i)
+    {
+        int[] arr = { i };
+        int [|unused|];
+        fixed (int* p = arr)
+            unused = 0;
+        return arr[0];
+    }
+}
+",
+@"
+class C
+{
+    unsafe int M(int i)
+    {
+        int[] arr = { i };
+        fixed (int* p = arr)
+        {
+        }
+
+        return arr[0];
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideForEach()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M(int i)
+    {
+        int[] arr = { i };
+        int [|unused|];
+        foreach (var j in arr)
+            unused = 0;
+        return arr[0];
+    }
+}
+",
+@"
+class C
+{
+    int M(int i)
+    {
+        int[] arr = { i };
+        foreach (var j in arr)
+        {
+        }
+
+        return arr[0];
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideFor()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        int [|unused|];
+        for (var i = 0; i < 5; i++)
+            unused = 0;
+        return used;
+    }
+}
+",
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        for (var i = 0; i < 5; i++)
+        {
+        }
+
+        return used;
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideIf()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        int [|unused|];
+        if (c)
+            unused = 0;
+        return used;
+    }
+}
+",
+@"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        if (c)
+        {
+        }
+
+        return used;
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideLabeledStatement()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        int [|unused|];
+    a:
+        unused = 0;
+        if (c)
+            goto a;
+        return used;
+    }
+}
+",
+    @"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+    a:
+        {
+        }
+
+        if (c)
+            goto a;
+        return used;
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideLock()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+class C
+{
+    int M(object o)
+    {
+        int used = 0;
+        int [|unused|];
+        lock(o)
+            unused = 0;
+        return used;
+    }
+}
+",
+    @"
+class C
+{
+    int M(object o)
+    {
+        int used = 0;
+        lock(o)
+        {
+        }
+
+        return used;
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideUsing()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+class C
+{
+    int M(IDisposable d)
+    {
+        int used = 0;
+        int [|unused|];
+        using (d)
+            unused = 0;
+        return used;
+    }
+}
+",
+    @"
+class C
+{
+    int M(IDisposable d)
+    {
+        int used = 0;
+        using (d)
+        {
+        }
+
+        return used;
+    }
+}
+");
+        }
+
+        [WorkItem(44885, "https://github.com/dotnet/roslyn/issues/44885")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveEmbeddedInsideWhile()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        int [|unused|];
+        while (c)
+            unused = 0;
+        return used;
+    }
+}
+",
+    @"
+class C
+{
+    int M(bool c)
+    {
+        int used = 0;
+        while (c)
+        {
+        }
+
+        return used;
+    }
+}
+");
+        }
     }
 }
