@@ -507,9 +507,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void LangVersion8()
         {
             UsingStatement("delegate* unmanaged[cdecl]<string, Goo, int> ptr;", options: TestOptions.Regular8,
-                    // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate* unmanaged[cdecl]<string, Goo, int>").WithArguments("function pointers").WithLocation(1, 1));
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate* unmanaged[cdecl]<string, Goo, int>").WithArguments("function pointers", "9.0").WithLocation(1, 1));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
