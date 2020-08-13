@@ -79,13 +79,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public static void AddSourceInfo(
             this PooledHashSet<SourceInfo> builder,
-            string dependencyFullTypeName,
+            ImmutableArray<string> dependencyFullTypeNames,
             string fullTypeName,
             IEnumerable<ParameterMatcher> taintedArguments)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
-                dependencyFullTypeName: dependencyFullTypeName,
+                dependencyFullTypeNames: dependencyFullTypeNames,
                 isInterface: false,
                 taintedProperties: ImmutableHashSet<string>.Empty,
                 taintedArguments:

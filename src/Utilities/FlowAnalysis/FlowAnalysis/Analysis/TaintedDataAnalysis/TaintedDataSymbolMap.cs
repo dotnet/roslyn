@@ -16,6 +16,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal class TaintedDataSymbolMap<TInfo> : IEquatable<TaintedDataSymbolMap<TInfo>?>
         where TInfo : ITaintedDataInfo
     {
+        private static bool TryResolveDependencies(TInfo info, WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            if (info.DependencyFullTypeNames == null)
+            {
+                return true;
+            }
+
+            foreach (var dependency in info.DependencyFullTypeNames)
+            {
+                if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(dependency, out INamedTypeSymbol? _))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         public TaintedDataSymbolMap(WellKnownTypeProvider wellKnownTypeProvider, IEnumerable<TInfo> taintedDataInfos)
         {
             if (wellKnownTypeProvider == null)
@@ -33,8 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             foreach (TInfo info in taintedDataInfos)
             {
-                if (info.DependencyFullTypeName != null
-                    && !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(info.DependencyFullTypeName, out INamedTypeSymbol? _))
+                if (!TryResolveDependencies(info, wellKnownTypeProvider))
                 {
                     continue;
                 }

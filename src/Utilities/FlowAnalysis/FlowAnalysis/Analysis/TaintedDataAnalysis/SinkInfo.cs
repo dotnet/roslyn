@@ -64,9 +64,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public bool RequiresParameterReferenceAnalysis => false;
 
         /// <summary>
-        /// Qualified name of the optional dependency type.
+        /// Qualified names of the optional dependency types.
         /// </summary>
-        public string? DependencyFullTypeName => null;
+        public ImmutableArray<string>? DependencyFullTypeNames => null;
 
         public override int GetHashCode()
         {

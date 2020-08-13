@@ -22,6 +22,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
             new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
 
+        private static readonly ImmutableArray<string> s_dependencyFullTypeNames = ImmutableArray.Create<string>(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
+                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute,
+                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute,
+                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute,
+                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute);
+
         /// <summary>
         /// Statically constructs.
         /// </summary>
@@ -48,7 +54,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             sourceInfosBuilder.AddSourceInfo(
                 // checking all System.Object derived types is expensive, so it first checks if MicrosoftAspNetCoreMvcControllerBase is resolvable
-                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
+                s_dependencyFullTypeNames,
                 WellKnownTypeNames.SystemObject,
                  new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
@@ -62,10 +68,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         if (!classCache.TryGetValue(typeSymbol, out bool isController))
                         {
                             if ((!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
-                                && (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute, out var controllerAttributeTypeSymbol)
-                                    || !typeSymbol.HasDerivedTypeAttribute(controllerAttributeTypeSymbol)))
-                                || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute, out var nonControllerAttributeTypeSymbol)
-                                || typeSymbol.HasDerivedTypeAttribute(nonControllerAttributeTypeSymbol))
+                                && (!typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute))))
+                                || typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute)))
                             {
                                 isController = false;
                             }
@@ -85,14 +89,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         if (methodSymbol.DeclaredAccessibility != Accessibility.Public
                             || methodSymbol.IsConstructor()
                             || methodSymbol.IsStatic
-                            || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute, out var nonActionAttributeTypeSymbol)
-                            || methodSymbol.HasDerivedMethodAttribute(nonActionAttributeTypeSymbol))
+                            || methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute)))
                         {
                             return false;
                         }
 
-                        if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute, out var fromServicesAttributeTypeSymbol)
-                            || parameter.HasAttribute(fromServicesAttributeTypeSymbol))
+                        if (parameter.HasAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute)))
                         {
                             return false;
                         }

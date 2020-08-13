@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
@@ -16,9 +17,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         string FullTypeName { get; }
 
         /// <summary>
-        /// Qualified name of the optional dependency type.
+        /// Qualified names of the optional dependency types.
         /// </summary>
-        string? DependencyFullTypeName { get; }
+        ImmutableArray<string>? DependencyFullTypeNames { get; }
 
         /// <summary>
         /// Indicates that the type is an interface, rather than a concrete type.

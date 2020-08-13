@@ -39,7 +39,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> taintedMethodsNeedsValueContentAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
             bool taintConstantArray,
-            string? dependencyFullTypeName = null)
+            ImmutableArray<string>? dependencyFullTypeNames = null)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
@@ -50,7 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
-            DependencyFullTypeName = dependencyFullTypeName;
+            DependencyFullTypeNames = dependencyFullTypeNames;
         }
 
         /// <summary>
@@ -59,9 +59,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public string FullTypeName { get; }
 
         /// <summary>
-        /// Full type name of the optional dependency referenced type that should be resolved.
+        /// Full type names of the optional dependency/referenced types that should be resolved.
         /// </summary>
-        public string? DependencyFullTypeName { get; }
+        public ImmutableArray<string>? DependencyFullTypeNames { get; }
 
         /// <summary>
         /// Indicates this type is an interface.
