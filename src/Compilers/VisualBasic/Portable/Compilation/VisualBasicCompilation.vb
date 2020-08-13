@@ -1852,7 +1852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceType As ITypeSymbol = source.Type
 
-            Dim sourceConstantValue as ConstantValue = source.GetConstantValue()
+            Dim sourceConstantValue As ConstantValue = source.GetConstantValue()
             If sourceType Is Nothing Then
                 If sourceConstantValue IsNot Nothing AndAlso sourceConstantValue.IsNothing AndAlso destination.IsReferenceType Then
                     constantValue = sourceConstantValue
@@ -1990,7 +1990,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' SemanticModel.
         '''</summary> 
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
-            Return If(SemanticModelProvider?.GetSemanticModel(syntaxTree, Me, ignoreAccessibility), CreateSemanticModel(syntaxTree, ignoreAccessibility))
+            Dim model As SemanticModel = Nothing
+            If SemanticModelProvider IsNot Nothing Then
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, ignoreAccessibility)
+                Debug.Assert(model IsNot Nothing)
+            End If
+
+            Return If(model, CreateSemanticModel(syntaxTree, ignoreAccessibility))
         End Function
 
         Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel

@@ -23,17 +23,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class CachingSemanticModelProvider : SemanticModelProvider
     {
+        private static readonly ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback s_createProviderCallback
+            = new ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback(compilation => new PerCompilationProvider(compilation));
+
         private readonly ConditionalWeakTable<Compilation, PerCompilationProvider> _providerCache;
-        private readonly ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback _createProviderCallback;
 
         public CachingSemanticModelProvider()
         {
             _providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
-            _createProviderCallback = new ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback(compilation => new PerCompilationProvider(compilation));
         }
 
         public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
-            => _providerCache.GetValue(compilation, _createProviderCallback).GetSemanticModel(tree, ignoreAccessibility);
+            => _providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, ignoreAccessibility);
 
         internal void ClearCache(SyntaxTree tree, Compilation compilation)
         {
