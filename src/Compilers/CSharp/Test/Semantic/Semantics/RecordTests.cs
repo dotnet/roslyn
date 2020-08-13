@@ -4107,6 +4107,33 @@ record C2: Error;
         }
 
         [Fact]
+        public void ToString_SelfReferentialBase()
+        {
+            var src = @"
+record R : R;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0146: Circular base type dependency involving 'R' and 'R'
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R", "R").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.ToString()': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.ToString()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.EqualityContract': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.EqualityContract").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.Equals(object?)': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.GetHashCode()': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.GetHashCode()").WithLocation(2, 8)
+                );
+        }
+
+        [Fact]
         public void ToString_TopLevelRecord_Empty_AbstractSealed()
         {
             var src = @"
@@ -4223,8 +4250,12 @@ record C1
 {
     public string field1;
     public string field2;
-    private int field3;
-    internal int field4;
+
+    private string field3;
+    internal string field4;
+    protected string field5;
+    protected internal string field6;
+    private protected string field7;
 }
 ";
 
@@ -4478,6 +4509,54 @@ record C1(int A2, int B2) : Base(A2)
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1 { A2 = 42, A1 = 100, B2 = 43, B1 = 101 }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_TwoFieldsAndTwoProperties_Partial()
+        {
+            var src1 = @"
+var c1 = new C1() { A1 = 100, B1 = 101 };
+System.Console.Write(c1.ToString());
+
+partial record C1
+{
+    public int A1;
+}
+";
+            var src2 = @"
+partial record C1
+{
+    public int B1;
+}
+";
+
+            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { A1 = 100, B1 = 101 }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_TwoFieldsAndTwoProperties_Partial_ReverseOrder()
+        {
+            var src1 = @"
+var c1 = new C1() { A1 = 100, B1 = 101 };
+System.Console.Write(c1.ToString());
+
+partial record C1
+{
+    public int B1;
+}
+";
+            var src2 = @"
+partial record C1
+{
+    public int A1;
+}
+";
+
+            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { B1 = 101, A1 = 100 }", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]
@@ -5706,18 +5785,18 @@ record C1
             var src = @"
 sealed record C1
 {
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+    protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
 }
 ";
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (4,28): error CS0549: 'C1.PrintMembers(StringBuilder)' is a new virtual member in sealed type 'C1'
-                //     protected virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
-                Diagnostic(ErrorCode.ERR_NewVirtualInSealed, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "C1").WithLocation(4, 28),
-                // (4,28): error CS8879: Record member 'C1.PrintMembers(StringBuilder)' must be private.
-                //     protected virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
-                Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 28)
+                // (4,20): warning CS0628: 'C1.PrintMembers(StringBuilder)': new protected member declared in sealed type
+                //     protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 20),
+                // (4,20): error CS8879: Record member 'C1.PrintMembers(StringBuilder)' must be private.
+                //     protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 20)
                 );
         }
 

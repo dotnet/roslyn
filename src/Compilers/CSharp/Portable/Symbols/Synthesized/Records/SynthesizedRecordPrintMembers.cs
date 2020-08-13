@@ -109,13 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers()
                     .WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public && (m.Kind is SymbolKind.Field or SymbolKind.Property));
 
-                if (printableMembers.Any(m => SymbolExtensions.GetTypeOrReturnType(m).Type.IsErrorType()))
-                {
-                    F.CloseMethod(F.ThrowNull());
-                    return;
-                }
-
-                if (ReturnType.IsErrorType())
+                if (ReturnType.IsErrorType() ||
+                    printableMembers.Any(m => m.GetTypeOrReturnType().Type.IsErrorType()))
                 {
                     F.CloseMethod(F.ThrowNull());
                     return;
@@ -205,23 +200,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static MethodSymbol? FindValidPrintMembersMethod(TypeSymbol containingType, CSharpCompilation compilation)
         {
-            if (containingType.IsErrorType() || containingType.IsObjectType())
+            if (containingType.IsObjectType())
             {
                 return null;
             }
 
             MethodSymbol? candidate = null;
-            var accessibility = (containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && containingType.IsSealed)
-                ? Accessibility.Private
-                : Accessibility.Protected;
-
             var stringBuilder = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Text_StringBuilder));
 
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.PrintMembersMethodName))
             {
-                if (member is MethodSymbol { DeclaredAccessibility: var foundAccessibility, IsStatic: false, ParameterCount: 1, Arity: 0, ParameterTypesWithAnnotations: var parameters } method &&
-                    foundAccessibility == accessibility &&
-                    parameters[0].Equals(stringBuilder, TypeCompareKind.AllIgnoreOptions))
+                if (member is MethodSymbol { DeclaredAccessibility: Accessibility.Protected, IsStatic: false, ParameterCount: 1, Arity: 0, ParameterTypesWithAnnotations: var parameterTypes } method &&
+                    parameterTypes[0].Equals(stringBuilder, TypeCompareKind.AllIgnoreOptions))
                 {
                     if (candidate is object)
                     {
