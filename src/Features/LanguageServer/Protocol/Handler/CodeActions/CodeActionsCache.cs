@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 // If there's a value in the cache with the same document and range we're searching for,
                 // remove and replace it with our updated value.
-                var previousCachedItem = _cachedItems.Where(c => IsMatch(document, range, c));
-                if (!previousCachedItem.IsEmpty())
+                var previousCachedItem = _cachedItems.FirstOrNull(c => IsMatch(document, range, c));
+                if (previousCachedItem.HasValue)
                 {
-                    _cachedItems.Remove(previousCachedItem.First());
+                    _cachedItems.Remove(previousCachedItem.Value);
                 }
                 // If the cache is full, remove the oldest cached value.
                 else if (_cachedItems.Count >= MaxCacheSize)
