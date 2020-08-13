@@ -19,7 +19,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
         /// </summary>
-        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>> s_classIsControllerByCompilation =
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
             new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<ISymbol, bool>>();
 
         /// <summary>

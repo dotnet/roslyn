@@ -702,10 +702,14 @@ namespace Analyzer.Utilities.Extensions
             while (symbol != null)
             {
                 if (symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute)))
+                {
                     return true;
+                }
 
                 if (symbol.BaseType == null)
+                {
                     return false;
+                }
 
                 symbol = symbol.BaseType;
             }
@@ -737,10 +741,14 @@ namespace Analyzer.Utilities.Extensions
             while (symbol != null)
             {
                 if (symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute)))
+                {
                     return true;
+                }
 
                 if (symbol.OverriddenMethod == null)
+                {
                     return false;
+                }
 
                 symbol = symbol.OverriddenMethod;
             }
