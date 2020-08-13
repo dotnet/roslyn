@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 
             Location argumentLocation;
             Location targetMethodLocation;
+            Location invokedNodeLocation;
             IEnumerable<Location> additionalLocations;
 
             // Check to make sure the invocation argument is an InvocationExpressionSyntax
@@ -149,6 +150,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 //var invokedNode = node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault(d => d.Expression is IdentifierNameSyntax);
                 var targetMethodNode = node.DescendantNodes().OfType<IdentifierNameSyntax>().LastOrDefault();
                 var whereClauseSyntax = invocation.Syntax as InvocationExpressionSyntax;
+                var invokeNodeSyntax = node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().FirstOrDefault(c => c.Expression is IdentifierNameSyntax);
+
+                if (invokeNodeSyntax is null)
+                {
+                    invokeNodeSyntax = node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().FirstOrDefault(c => c is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression is IdentifierNameSyntax);
+                }
+
                 if (whereClauseSyntax is null ||
                     targetMethodNode is null ||
                     whereClauseSyntax.ArgumentList.Arguments.IsEmpty())
@@ -157,10 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 }
 
                 argumentLocation = whereClauseSyntax.ArgumentList.GetLocation();
-
+                invokedNodeLocation = invokeNodeSyntax.GetLocation();
                 targetMethodLocation = targetMethodNode.GetLocation();
 
-                additionalLocations = new List<Location> { argumentLocation, targetMethodLocation };
+                additionalLocations = new List<Location> { invokedNodeLocation, argumentLocation, targetMethodLocation };
                 context.ReportDiagnostic(
                         DiagnosticHelper.Create(Descriptor, node.GetLocation(), Descriptor.GetEffectiveSeverity(context.Compilation.Options),
                         additionalLocations, properties: null));
