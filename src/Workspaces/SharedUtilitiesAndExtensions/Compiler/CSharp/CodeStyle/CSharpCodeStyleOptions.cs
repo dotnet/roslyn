@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferNotPattern),
             defaultValue: s_trueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_not_pattern"),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_not_pattern"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferNotPattern)}")});
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
