@@ -67,26 +67,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 {
                     Expression: IsPatternExpressionSyntax
                     {
-                        Pattern: DeclarationPatternSyntax declarationPattern,
+                        Pattern: DeclarationPatternSyntax,
                     } isPattern,
-                } parenthesizedExpression,
+                },
             } notExpression))
             {
                 return;
             }
 
-            // Looks good!
-            var additionalLocations = ImmutableArray.Create(
-                notExpression.GetLocation(),
-                parenthesizedExpression.GetLocation(),
-                declarationPattern.GetLocation());
-
-            // Put a diagnostic with the appropriate severity on the declaration-statement itself.
+            // Put a diagnostic with the appropriate severity on `is` keyword.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 isPattern.IsKeyword.GetLocation(),
                 styleOption.Notification.Severity,
-                additionalLocations,
+                ImmutableArray.Create(notExpression.GetLocation()),
                 properties: null));
         }
     }
