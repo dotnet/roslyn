@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             this Document document,
             bool explicitFormat,
             IIndentationManagerService indentationManagerService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
             CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -28,10 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             if (snapshot != null)
             {
                 indentationManagerService.GetIndentation(snapshot.TextBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
+                var editorOptions = editorOptionsFactoryService.GetOptions(snapshot.TextBuffer);
+                var newline = editorOptions.GetOptionValue(DefaultOptions.NewLineCharacterOptionId);
+                var insertFinalNewLine = editorOptions.GetOptionValue(DefaultOptions.InsertFinalNewLineOptionId);
 
                 options = options.WithChangedOption(FormattingOptions.UseTabs, !convertTabsToSpaces)
                                  .WithChangedOption(FormattingOptions.IndentationSize, indentSize)
-                                 .WithChangedOption(FormattingOptions.TabSize, tabSize);
+                                 .WithChangedOption(FormattingOptions.TabSize, tabSize)
+                                 .WithChangedOption(FormattingOptions.NewLine, newline)
+                                 .WithChangedOption(FormattingOptions.InsertFinalNewLine, insertFinalNewLine);
             }
 
             return options;

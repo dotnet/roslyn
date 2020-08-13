@@ -24,36 +24,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     internal sealed class InferredIndentationDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly IIndentationManagerService _indentationManagerService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InferredIndentationDocumentOptionsProviderFactory(IIndentationManagerService indentationManagerService)
-            => _indentationManagerService = indentationManagerService;
+        public InferredIndentationDocumentOptionsProviderFactory(
+            IIndentationManagerService indentationManagerService,
+            IEditorOptionsFactoryService editorOptionsFactoryService)
+        {
+            _indentationManagerService = indentationManagerService;
+            _editorOptionsFactoryService = editorOptionsFactoryService;
+        }
 
         public IDocumentOptionsProvider? TryCreate(Workspace workspace)
-            => new DocumentOptionsProvider(_indentationManagerService);
+            => new DocumentOptionsProvider(_indentationManagerService, _editorOptionsFactoryService);
 
         private class DocumentOptionsProvider : IDocumentOptionsProvider
         {
             private readonly IIndentationManagerService _indentationManagerService;
+            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
-            public DocumentOptionsProvider(IIndentationManagerService indentationManagerService)
-                => _indentationManagerService = indentationManagerService;
+            public DocumentOptionsProvider(IIndentationManagerService indentationManagerService, IEditorOptionsFactoryService editorOptionsFactoryService)
+            {
+                _indentationManagerService = indentationManagerService;
+                _editorOptionsFactoryService = editorOptionsFactoryService;
+            }
 
             public Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
-                => Task.FromResult<IDocumentOptions?>(new DocumentOptions(document.Project.Solution.Workspace, document.Id, _indentationManagerService));
+                => Task.FromResult<IDocumentOptions?>(new DocumentOptions(document.Project.Solution.Workspace, document.Id, _indentationManagerService, _editorOptionsFactoryService));
 
             private sealed class DocumentOptions : IDocumentOptions
             {
                 private readonly Workspace _workspace;
                 private readonly DocumentId _documentId;
                 private readonly IIndentationManagerService _indentationManagerService;
+                private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
-                public DocumentOptions(Workspace workspace, DocumentId id, IIndentationManagerService indentationManagerService)
+                public DocumentOptions(Workspace workspace, DocumentId id, IIndentationManagerService indentationManagerService, IEditorOptionsFactoryService editorOptionsFactoryService)
                 {
                     _workspace = workspace;
                     _documentId = id;
                     _indentationManagerService = indentationManagerService;
+                    _editorOptionsFactoryService = editorOptionsFactoryService;
                 }
 
                 public bool TryGetDocumentOption(OptionKey option, out object? value)
@@ -97,6 +109,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     else if (option.Option == FormattingOptions.IndentationSize)
                     {
                         value = _indentationManagerService.GetIndentSize(textBuffer, explicitFormat: false);
+                        return true;
+                    }
+                    else if (option.Option == FormattingOptions.NewLine)
+                    {
+                        value = _editorOptionsFactoryService.GetOptions(textBuffer).GetOptionValue(DefaultOptions.NewLineCharacterOptionId);
+                        return true;
+                    }
+                    else if (option.Option == FormattingOptions.InsertFinalNewLine)
+                    {
+                        value = _editorOptionsFactoryService.GetOptions(textBuffer).GetOptionValue(DefaultOptions.InsertFinalNewLineOptionId);
                         return true;
                     }
                     else

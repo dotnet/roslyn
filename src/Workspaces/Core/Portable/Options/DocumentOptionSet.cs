@@ -50,6 +50,18 @@ namespace Microsoft.CodeAnalysis.Options
         internal DocumentOptionSet WithChangedOption<T>(PerLanguageOption2<T> option, T value)
             => (DocumentOptionSet)WithChangedOption(option, _language, value);
 
+        /// <summary>
+        /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
+        /// </summary>
+        internal new DocumentOptionSet WithChangedOption<T>(Option<T> option, T value)
+            => (DocumentOptionSet)base.WithChangedOption(option, value);
+
+        /// <summary>
+        /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
+        /// </summary>
+        internal new DocumentOptionSet WithChangedOption<T>(Option2<T> option, T value)
+            => (DocumentOptionSet)base.WithChangedOption(option, value);
+
         private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
         {
             Debug.Assert((language ?? _language) == _language, $"Use of a {nameof(DocumentOptionSet)} is not expected to differ from the language it was constructed with.");

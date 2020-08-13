@@ -39,11 +39,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
         private readonly IIndentationManagerService _indentationManagerService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorFormattingService(IIndentationManagerService indentationManagerService)
-            => _indentationManagerService = indentationManagerService;
+        public CSharpEditorFormattingService(IIndentationManagerService indentationManagerService, IEditorOptionsFactoryService editorOptionsFactoryService)
+        {
+            _indentationManagerService = indentationManagerService;
+            _editorOptionsFactoryService = editorOptionsFactoryService;
+        }
 
         public bool SupportsFormatDocument => true;
         public bool SupportsFormatOnPaste => true;
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
 
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: true, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: true, _indentationManagerService, _editorOptionsFactoryService, cancellationToken: cancellationToken).ConfigureAwait(false);
             return Formatter.GetFormattedTextChanges(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
                 document.Project.Solution.Workspace, options, cancellationToken);
@@ -126,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, _indentationManagerService, _editorOptionsFactoryService, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
@@ -228,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // If the user hits `}` then we will properly smart indent the `}` to match the `{`.
             // However, we won't touch any of the other code in that block, unlike if we were
             // formatting.
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, _indentationManagerService, _editorOptionsFactoryService, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var onlySmartIndent =
                 (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(options)) ||

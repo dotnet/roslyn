@@ -8,7 +8,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Internal.Log
@@ -23,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Implements ICommitFormatter
 
         Private ReadOnly _indentationManagerService As IIndentationManagerService
+        Private ReadOnly _editorOptionsFactoryService As IEditorOptionsFactoryService
 
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
@@ -32,8 +32,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(indentationManagerService As IIndentationManagerService)
+        Public Sub New(indentationManagerService As IIndentationManagerService, editorOptionsFactoryService As IEditorOptionsFactoryService)
             _indentationManagerService = indentationManagerService
+            _editorOptionsFactoryService = editorOptionsFactoryService
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -57,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerService, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerService, _editorOptionsFactoryService, cancellationToken).WaitAndGetResult(cancellationToken)
                 If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
