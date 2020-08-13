@@ -40,16 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            //var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 RemoveWhere(editor, node, diagnostic.AdditionalLocations);
             }
+            return Task.CompletedTask;
         }
 
         private static void RemoveWhere(SyntaxEditor editor, SyntaxNode node, System.Collections.Generic.IReadOnlyList<Location> additionalLocations)
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             // Example: 'x => x == 1' from 'Data.Where(x => x == 1).Single()'
             var arguments = additionalNodes.FirstOrDefault(c => c is ArgumentListSyntax);
 
-            ExpressionSyntax expression = null;
+            ExpressionSyntax? expression = null;
             if (((ArgumentListSyntax)arguments).Arguments.Count > 1)
             {
                 expression = SyntaxFactory.IdentifierName("Enumerable");
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             {
                 expression = SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text);
             }
+#pragma warning disable CS8604 // Possible null reference argument.
             var newNode = SyntaxFactory.InvocationExpression(
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
@@ -93,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                                     targetMethod as IdentifierNameSyntax))
                             .WithArgumentList(arguments as ArgumentListSyntax);
             editor.ReplaceNode(expressionNode.Parent, newNode);
+#pragma warning restore CS8604 // Possible null reference argument.
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
