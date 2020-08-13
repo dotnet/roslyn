@@ -67,19 +67,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 || !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute, out var nonControllerAttributeTypeSymbol)
                                 || typeSymbol.HasDerivedTypeAttribute(nonControllerAttributeTypeSymbol))
                             {
-                                classCache.TryAdd(typeSymbol, false);
-                                return false;
+                                isController = false;
+                            }
+                            else
+                            {
+                                isController = true;
                             }
 
-                            isController = true;
+                            classCache.TryAdd(typeSymbol, isController);
                         }
 
                         if (!isController)
                         {
                             return false;
                         }
-
-                        classCache.TryAdd(typeSymbol, true);
 
                         if (methodSymbol.DeclaredAccessibility != Accessibility.Public
                             || methodSymbol.IsConstructor()
