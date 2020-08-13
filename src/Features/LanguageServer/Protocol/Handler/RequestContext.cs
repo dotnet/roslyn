@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public void UpdateSolution(Solution solution)
         {
-            Debug.Assert(_solutionUpdater != null, "This request doesn't allow mutation, so any updates will be ignored by future requests. Do you need to change your ExportLspMethod attribute?");
+            Contract.ThrowIfNull(_solutionUpdater, "Mutating solution not allowed in a non-mutating request handler");
             _solutionUpdater?.Invoke(solution);
         }
     }
