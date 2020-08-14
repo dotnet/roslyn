@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseIndexOperator = "CodeActions.UseIndexOperator";
             public const string CodeActionsUseInferredMemberName = "CodeActions.UseInferredMemberName";
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
+            public const string CodeActionsUseIsNotExpression = "CodeActions.UseIsNotExpression";
             public const string CodeActionsUseIsNullCheck = "CodeActions.UseIsNullCheck";
             public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";

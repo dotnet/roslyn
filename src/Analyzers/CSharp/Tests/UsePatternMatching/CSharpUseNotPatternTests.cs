@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     public partial class CSharpUseNotPatternTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
         {
             await new VerifyCS.Test
