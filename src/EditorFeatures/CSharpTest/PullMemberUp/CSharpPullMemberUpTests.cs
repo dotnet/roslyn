@@ -1701,7 +1701,7 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
-        public async Task Pull()
+        public async Task TestPullAsyncMethod()
         {
             var testText = @"
 using System.Threading.Tasks;

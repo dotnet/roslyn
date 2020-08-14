@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Editing
                     isVirtual: symbol.IsVirtual,
                     isOverride: symbol.IsOverride,
                     isSealed: symbol.IsSealed,
-                    isConst: field != null && field.IsConst,
+                    isConst: field?.IsConst == true,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
-                    isVolatile: field != null && field.IsVolatile,
+                    isVolatile: field?.IsVolatile == true,
                     isExtern: symbol.IsExtern,
                     isAsync: method?.IsAsync == true);
             }
