@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 {
+    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed class CSharpSimplifyLinqExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
