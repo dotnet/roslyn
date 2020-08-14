@@ -19,6 +19,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
+            sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
+                WellKnownTypeNames.SystemWebHttpServerUtility,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethodsNeedsPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: null,
+                transferMethods: new (MethodMatcher, (string, string)[])[]{
+                    (
+                        (methodName, arguments) =>
+                            methodName == "HtmlEncode" &&
+                            arguments.Length == 2,
+                        new (string, string)[]{
+                            ("s", "output"),
+                        }
+                    )
+                });
+
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebHttpCookie,
                 isInterface: false,
