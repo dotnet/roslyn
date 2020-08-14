@@ -10696,8 +10696,8 @@ class C
             });
 
             var expectedDiagnostic = outOfMemory ?
-                Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", "method") :
-                Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", "method");
+                Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method) :
+                Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method);
 
             validator.VerifyRudeDiagnostics(edits, active, new[] { expectedDiagnostic });
         }
