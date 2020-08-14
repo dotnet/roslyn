@@ -90,7 +90,9 @@ End Module
 
             VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
             VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);
+            VisualStudio.Editor.Verify.IsNotSaved();
             VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.S, ShiftState.Ctrl));
+            VisualStudio.Editor.Verify.IsSaved();
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x   As   Integer)");
