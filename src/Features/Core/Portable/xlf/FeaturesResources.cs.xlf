@@ -645,6 +645,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Povýšit členy na základní typ...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="new">Pull member(s) up to new base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">Před kvantifikátorem {x,y} není nic uvedeno.</target>
