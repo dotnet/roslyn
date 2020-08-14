@@ -2691,13 +2691,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Поле {0} "{1}", не допускающее значение NULL, не инициализировано. Попробуйте объявить {0} как допускающее значение NULL.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Поле, не допускающее значение NULL, не инициализировано. Рекомендуется объявить его как допускающее значение NULL.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Поле, не допускающее значение NULL, не инициализировано. Рекомендуется объявить его как допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

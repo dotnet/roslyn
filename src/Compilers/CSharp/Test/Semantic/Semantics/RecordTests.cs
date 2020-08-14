@@ -1508,6 +1508,9 @@ record C
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.X' is never used
+                //     public event Action X;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(5, 25)
             );
         }
 
@@ -2072,6 +2075,9 @@ record C9 : System.ICloneable
                 // (5,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone; // 2
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(5, 12),
+                // (5,12): warning CS0169: The field 'C2.Clone' is never used
+                //     string Clone; // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Clone").WithArguments("C2.Clone").WithLocation(5, 12),
                 // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
@@ -2081,6 +2087,9 @@ record C9 : System.ICloneable
                 // (13,17): error CS8859: Members named 'Clone' are disallowed in records.
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(13, 17),
+                // (13,17): warning CS0169: The field 'C4.Clone' is never used
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Clone").WithArguments("C4.Clone").WithLocation(13, 17),
                 // (17,10): error CS8859: Members named 'Clone' are disallowed in records.
                 //     void Clone() { } // 5
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(17, 10),
@@ -2095,7 +2104,10 @@ record C9 : System.ICloneable
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(26, 19),
                 // (30,25): error CS8859: Members named 'Clone' are disallowed in records.
                 //     event System.Action Clone;  // 9
-                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25)
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25),
+                // (30,25): warning CS0067: The event 'C8.Clone' is never used
+                //     event System.Action Clone;  // 9
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Clone").WithArguments("C8.Clone").WithLocation(30, 25)
                 );
         }
 
@@ -10587,7 +10599,12 @@ public record C(object P1, object P2) : B(3, 4) { }
 }";
             var comp = CreateCompilation(source);
 
-            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics(
+                // (3,17): warning CS0414: The field 'C.field' is assigned but its value is never used
+                //     private int field = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field").WithLocation(3, 17)
+                );
+
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size       55 (0x37)
@@ -12249,7 +12266,10 @@ record C(int X)
             comp.VerifyDiagnostics(
                 // (6,9): error CS0102: The type 'C' already contains a definition for 'X'
                 //     int X;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9),
+                // (6,9): warning CS0169: The field 'C.X' is never used
+                //     int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("C.X").WithLocation(6, 9));
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X)",
@@ -12286,7 +12306,10 @@ record C(Action X)
             comp.VerifyDiagnostics(
                 // (6,18): error CS0102: The type 'C' already contains a definition for 'X'
                 //     event Action X;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 18),
+                // (6,18): warning CS0067: The event 'C.X' is never used
+                //     event Action X;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(6, 18)
                 );
 
             Assert.Equal(
@@ -20958,7 +20981,10 @@ record C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record C
 {
     int x = 0;
-}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1)
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1),
+                // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
+                //     int x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x").WithLocation(4, 9)
                 );
         }
 
@@ -22572,6 +22598,9 @@ record C<T>([property: NotNull] T? P1, T? P2) where T : class
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
+                // (9,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = P1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P1").WithLocation(9, 15),
                 // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T y = P2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P2").WithLocation(10, 15)
