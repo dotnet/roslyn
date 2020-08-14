@@ -26,6 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
+        public static string Option_use_64bit_analysis_process
+            => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
+
         public static string Option_Display_inline_parameter_name_hints
             => ServicesVSResources.Display_inline_parameter_name_hints;
 

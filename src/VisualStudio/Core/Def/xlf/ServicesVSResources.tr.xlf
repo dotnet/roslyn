@@ -802,6 +802,11 @@
         <target state="translated">Önem derecesi güncelleştiriliyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
+        <source>Use 64-bit process for code analysis (requires restart)</source>
+        <target state="new">Use 64-bit process for code analysis (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">Lambdalar için ifade gövdesi kullan</target>
