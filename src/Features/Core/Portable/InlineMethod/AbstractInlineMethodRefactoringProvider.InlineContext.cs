@@ -236,11 +236,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                    cancellationToken).ConfigureAwait(false);
 
                 // Check if there is await expression. It is used later if the caller should be changed to async
-                var containsAwaitExpression =  inlineNode
+                var containsAwaitExpression = inlineNode
                     .DescendantNodesAndSelf()
                     .Any(node => node != null && syntaxFacts.IsAwaitExpression(node));
 
-                if (syntaxFacts.IsExpressionStatement(statementContainsCallee) && !calleeMethodSymbol.ReturnsVoid)
+                if (syntaxFacts.IsExpressionStatement(statementContainsCallee)
+                    && !calleeMethodSymbol.ReturnsVoid
+                    && !syntaxFacts.IsArgument(calleeInvocationNode.Parent))
                 {
                     // If the callee is invoked like
                     // void Caller()

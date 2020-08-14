@@ -1194,6 +1194,38 @@ static class Program
 }");
 
         [Fact]
+        public Task TestNestedInline()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+static class Program
+{
+    public static void Caller()
+    {
+        int i = 0;
+        int j = 0;
+        Mulitple(A[||]dd(i, j), Add(j, i));
+    }
+
+    private static int Mulitple(int a, int b) => a * b;
+
+    private static int Add(int a, int b) => a + b;
+}",
+                @"
+static class Program
+{
+    public static void Caller()
+    {
+        int i = 0;
+        int j = 0;
+        Mulitple(i + j, Add(j, i));
+    }
+
+    private static int Mulitple(int a, int b) => a * b;
+
+    private static int Add(int a, int b) => a + b;
+}");
+
+        [Fact]
         public Task TestInlineExtensionMethod2()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
