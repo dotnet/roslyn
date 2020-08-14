@@ -105,14 +105,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static RemoteHostPlatform DecideServiceHubPlatform(HostWorkspaceServices services)
         {
-            var useCore64 = Environment.GetEnvironmentVariable("RoslynServiceHubCore");
-            if (!useCore64.IsNullOrWhiteSpace())
+            if (RemoteHostOptions.IsServiceHubProcess64Bit(services))
             {
-                return RemoteHostPlatform.Core64;
+                var useServiceHubCore =
+                    services.GetRequiredService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.ServiceHubCore) == true ||
+                    !Environment.GetEnvironmentVariable("RoslynServiceHubCore").IsNullOrWhiteSpace();
+
+                return useServiceHubCore ? RemoteHostPlatform.Core64 : RemoteHostPlatform.Desktop64;
             }
 
-            var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
-            return is64bit ? RemoteHostPlatform.Desktop64 : RemoteHostPlatform.Desktop32;
+            return RemoteHostPlatform.Desktop32;
         }
 
         public static async Task<Stream> RequestServiceAsync(
