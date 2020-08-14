@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -147,6 +148,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ClearReportedRunModeDiagnostics();
 
             debuggingSession.Dispose();
+
+            // Clear global buffer pool - the buffers are not gonna be needed until the next debugging session.
+            // If the type is used for other non-debugging purposes this will result it allocation of more buffers,
+            // but won't affect correctness. Starting debugging session is relatively infrequent.
+            LongestCommonSubsequence.ClearBufferPool();
         }
 
         internal static bool SupportsEditAndContinue(Project project)
