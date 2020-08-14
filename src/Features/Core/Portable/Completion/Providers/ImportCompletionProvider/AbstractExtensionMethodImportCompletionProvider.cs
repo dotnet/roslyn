@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract string GenericSuffix { get; }
 
-        protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext, Document document)
-            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(syntaxContext.Workspace, document, completionContext.Options.GetOption(CompletionServiceOptions.DisallowAddingImports));
+        protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
+            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document, completionContext.Options.GetOption(CompletionServiceOptions.DisallowAddingImports));
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();

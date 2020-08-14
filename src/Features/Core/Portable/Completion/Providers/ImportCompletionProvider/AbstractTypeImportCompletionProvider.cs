@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractTypeImportCompletionProvider : AbstractImportCompletionProvider
     {
-        protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext, Document document)
+        protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
             => syntaxContext.IsTypeContext;
 
         protected override void LogCommit()

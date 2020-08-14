@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext, Document document);
+        protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
             // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
-            if (!ShouldProvideCompletion(completionContext, syntaxContext, document))
+            if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
                 return;
             }
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
-                if (!IsAddingImportsSupported(document.Project.Solution.Workspace, document, disallowAddingImports))
+                if (!IsAddingImportsSupported(document, disallowAddingImports))
                 {
                     return true;
                 }
@@ -204,12 +204,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 && !IsFinalSemicolonOfUsingOrExtern(node, leftToken);
         }
 
-        protected static bool IsAddingImportsSupported(Workspace workspace, Document document, bool disallowAddingImports)
+        protected static bool IsAddingImportsSupported(Document document, bool disallowAddingImports)
         {
             if (disallowAddingImports)
             {
                 return false;
             }
+
+            var workspace = document.Project.Solution.Workspace;
 
             // Certain types of workspace don't support document change, e.g. DebuggerIntelliSenseWorkspace
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
