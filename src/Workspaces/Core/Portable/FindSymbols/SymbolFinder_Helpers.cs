@@ -55,10 +55,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namespace2Count = namespace2.ConstituentNamespaces.Length;
                 if (namespace1Count != namespace2Count)
                 {
-                    if ((namespace1Count > 1 &&
-                        namespace1.ConstituentNamespaces.Any(n => NamespaceSymbolsMatch(solution, n, namespace2, cancellationToken))) ||
-                        (namespace2Count > 1 &&
-                        namespace2.ConstituentNamespaces.Any(n2 => NamespaceSymbolsMatch(solution, namespace1, n2, cancellationToken))))
+                    if ((namespace1Count > 1 && namespace1.ConstituentNamespaces.Any(n => NamespaceSymbolsMatch(solution, n, namespace2, cancellationToken))) ||
+                        (namespace2Count > 1 && namespace2.ConstituentNamespaces.Any(n2 => NamespaceSymbolsMatch(solution, namespace1, n2, cancellationToken))))
                     {
                         return true;
                     }
