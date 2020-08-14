@@ -76,6 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
         /// <returns>true when the adornment should be added</returns>
         private static bool IsExpressionWithNoName(ExpressionSyntax arg)
         {
+            if (arg.Parent.Parent is BracketedArgumentListSyntax bracketList)
+            {
+                // Do not need to add hints for array accesses if the length is 1
+                if (bracketList.Arguments.Count == 1)
+                {
+                    return false;
+                }
+
+                return true;
+            }
             if (arg is LiteralExpressionSyntax)
             {
                 // We want to adorn literals no matter what
@@ -104,16 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                 // Recurse until we find a literal
                 // If so, then we should add the adornment
                 return IsExpressionWithNoName(negation.Operand);
-            }
-            if (arg.Parent is BracketedArgumentListSyntax bracketList)
-            {
-                // Do not need to add hints for array accesses if the length is 1
-                if (bracketList.Arguments.Count == 1)
-                {
-                    return false;
-                }
-
-                return true;
             }
 
             return false;

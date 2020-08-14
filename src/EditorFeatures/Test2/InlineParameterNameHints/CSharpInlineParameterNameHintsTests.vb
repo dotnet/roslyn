@@ -360,5 +360,69 @@ class A
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestSingleBracketedList() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        var twoParameterIndexer = new OneParameterIndexer();
+        var x = twoParameterIndexer[1];
+    }
+}
+class OneParameterIndexer
+{
+    public int this[int param1]
+    {
+        get
+        {
+            return 42;
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineParameterNameHints)>
+        Public Async Function TestDoubleBracketedList() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        var twoParameterIndexer = new TwoParameterIndexer();
+        var x = twoParameterIndexer[{|param1:1|}, {|param2:2|}];
+    }
+}
+class TwoParameterIndexer
+{
+    public int this[int param1, int param2]
+    {
+        get
+        {
+            return 42;
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
+
+
     End Class
 End Namespace
