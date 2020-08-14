@@ -43,6 +43,7 @@ param (
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
+  [switch]$oop64bit = $true,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -331,12 +332,14 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $vsMajorVersion = $branchData.vsMajorVersion
   $vsChannel = "int.$vsBranchSimpleName"
 
-  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
+  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"
   Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
 
   $insertionDir = Join-Path $VSSetupDir "Insertion"
-  $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-  Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  if (Test-Path $insertionDir) {
+    $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
+    Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  }
 }
 
 # Core function for running our unit / integration tests tests
@@ -594,6 +597,8 @@ function Setup-IntegrationTestRun() {
     # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
     Capture-Screenshot $screenshotPath
   }
+
+  $env:ROSLYN_OOP64BIT = "$oop64bit"
 }
 
 function Prepare-TempDir() {

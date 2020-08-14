@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (declaration.Kind == DeclarationKind.Record)
                 {
-                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null)
+                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteDiagnostics) is null ||
+                        SynthesizedRecordPrintMembers.FindValidPrintMembersMethod(localBase, DeclaringCompilation) is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
                     }
