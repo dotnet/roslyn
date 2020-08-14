@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                   leavingRegions: ImmutableArray<ControlFlowRegion>.Empty,
                   finallyRegions: ImmutableArray<ControlFlowRegion>.Empty,
                   kind: ControlFlowBranchSemantics.Regular,
-                  branchValueOpt: null,
+                  branchValue: null,
                   controlFlowConditionKind: ControlFlowConditionKind.None,
                   leavingRegionLocals: ImmutableHashSet<ILocalSymbol>.Empty,
                   leavingRegionFlowCaptures: ImmutableHashSet<CaptureId>.Empty)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ImmutableArray<ControlFlowRegion> leavingRegions,
             ImmutableArray<ControlFlowRegion> finallyRegions,
             ControlFlowBranchSemantics kind,
-            IOperation? branchValueOpt,
+            IOperation? branchValue,
             ControlFlowConditionKind controlFlowConditionKind,
             IEnumerable<ILocalSymbol> leavingRegionLocals,
             IEnumerable<CaptureId> leavingRegionFlowCaptures)
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             EnteringRegions = enteringRegions;
             LeavingRegions = leavingRegions;
             FinallyRegions = finallyRegions;
-            BranchValueOpt = branchValueOpt;
+            BranchValue = branchValue;
             ControlFlowConditionKind = controlFlowConditionKind;
             LeavingRegionLocals = leavingRegionLocals;
             LeavingRegionFlowCaptures = leavingRegionFlowCaptures;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public ImmutableArray<ControlFlowRegion> EnteringRegions { get; }
         public ImmutableArray<ControlFlowRegion> FinallyRegions { get; }
         public ImmutableArray<ControlFlowRegion> LeavingRegions { get; }
-        public IOperation? BranchValueOpt { get; }
+        public IOperation? BranchValue { get; }
 
 #pragma warning disable CA1721 // Property names should not match get methods - https://github.com/dotnet/roslyn-analyzers/issues/2085
         public ControlFlowConditionKind ControlFlowConditionKind { get; }
@@ -77,18 +77,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 leavingRegions: ImmutableArray<ControlFlowRegion>.Empty,
                 finallyRegions: ImmutableArray<ControlFlowRegion>.Empty,
                 kind: Kind,
-                branchValueOpt: BranchValueOpt,
+                branchValue: BranchValue,
                 controlFlowConditionKind: ControlFlowConditionKind,
                 leavingRegionLocals: ImmutableHashSet<ILocalSymbol>.Empty,
                 leavingRegionFlowCaptures: ImmutableHashSet<CaptureId>.Empty);
         }
 
         internal BranchWithInfo With(
-            IOperation? branchValueOpt,
+            IOperation? branchValue,
             ControlFlowConditionKind controlFlowConditionKind)
         {
             return new BranchWithInfo(Destination, EnteringRegions, LeavingRegions,
-                FinallyRegions, Kind, branchValueOpt, controlFlowConditionKind,
+                FinallyRegions, Kind, branchValue, controlFlowConditionKind,
                 LeavingRegionLocals, LeavingRegionFlowCaptures);
         }
 
