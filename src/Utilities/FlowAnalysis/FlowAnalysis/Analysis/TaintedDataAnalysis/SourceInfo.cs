@@ -50,7 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
-            DependencyFullTypeNames = dependencyFullTypeNames;
+            DependencyFullTypeNames = dependencyFullTypeNames ?? ImmutableArray<string>.Empty;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Full type names of the optional dependency/referenced types that should be resolved.
         /// </summary>
-        public ImmutableArray<string>? DependencyFullTypeNames { get; }
+        public ImmutableArray<string> DependencyFullTypeNames { get; }
 
         /// <summary>
         /// Indicates this type is an interface.

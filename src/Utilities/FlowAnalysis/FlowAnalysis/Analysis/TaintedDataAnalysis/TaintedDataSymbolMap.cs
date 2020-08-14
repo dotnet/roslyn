@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return true;
             }
 
-            foreach (var dependency in info.DependencyFullTypeNames)
+            foreach (string dependency in info.DependencyFullTypeNames)
             {
                 if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(dependency, out INamedTypeSymbol? _))
                 {
