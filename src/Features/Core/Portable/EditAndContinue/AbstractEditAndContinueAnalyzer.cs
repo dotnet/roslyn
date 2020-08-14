@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,22 +22,17 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
     {
         internal const int DefaultStatementPart = 0;
 
-        private readonly IActiveStatementSpanTracker _activeStatementSpanTracker;
-
         // used by tests to validate correct handlign of unexpected exceptions
         private readonly Action<SyntaxNode>? _testFaultInjector;
 
-        protected AbstractEditAndContinueAnalyzer(IActiveStatementSpanTracker activeStatementSpanTracker, Action<SyntaxNode>? testFaultInjector)
+        protected AbstractEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector)
         {
-            _activeStatementSpanTracker = activeStatementSpanTracker;
             _testFaultInjector = testFaultInjector;
         }
 
@@ -377,6 +374,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Document? oldDocument,
             ImmutableArray<ActiveStatement> baseActiveStatements,
             Document document,
+            ImmutableArray<TextSpan?> oldSpansInNewDocument,
             CancellationToken cancellationToken)
         {
             DocumentAnalysisResults.Log.Write("Analyzing document {0}", document.Name);
@@ -385,8 +383,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldDocument == null || oldDocument.SupportsSemanticModel);
             Debug.Assert(document.SupportsSyntaxTree);
             Debug.Assert(document.SupportsSemanticModel);
-
-            Debug.Assert(document.Project.Solution.Workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker() == _activeStatementSpanTracker);
 
             try
             {
@@ -498,8 +494,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     editMap,
                     oldText,
                     newText,
-                    document.Id,
                     baseActiveStatements,
+                    oldSpansInNewDocument,
                     newActiveStatements,
                     newExceptionRegions,
                     updatedMethods,
@@ -639,8 +635,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dictionary<SyntaxNode, EditKind> editMap,
             SourceText oldText,
             SourceText newText,
-            DocumentId documentId,
             ImmutableArray<ActiveStatement> oldActiveStatements,
+            ImmutableArray<TextSpan?> oldSpansInNewText,
             [Out] ActiveStatement[] newActiveStatements,
             [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
             [Out] List<UpdatedMemberInfo> updatedMethods,
@@ -654,11 +650,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var edit = script.Edits[i];
 
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
+                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, oldActiveStatements, oldSpansInNewText, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
                 ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
             }
 
-            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, oldActiveStatements, newActiveStatements, newExceptionRegions);
+            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, oldActiveStatements, oldSpansInNewText, newActiveStatements, newExceptionRegions);
 
             Debug.Assert(newActiveStatements.All(a => a != null));
         }
@@ -668,11 +664,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Match<SyntaxNode> topMatch,
             SourceText oldText,
             SourceText newText,
-            DocumentId documentId,
             ImmutableArray<ActiveStatement> oldActiveStatements,
+            ImmutableArray<TextSpan?> oldSpansInNewText,
             [In, Out] ActiveStatement[] newActiveStatements,
             [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions)
         {
+            Debug.Assert(oldActiveStatements.Length == oldSpansInNewText.Length);
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
 
@@ -684,7 +681,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (newActiveStatements[i] == null)
                 {
                     Contract.ThrowIfFalse(newExceptionRegions[i].IsDefault);
-                    var isTracked = _activeStatementSpanTracker.TryGetSpan(new ActiveStatementId(documentId, i), newText, out var trackedSpan);
+                    var trackedSpan = oldSpansInNewText[i].GetValueOrDefault();
+                    var isTracked = oldSpansInNewText[i].HasValue;
                     if (!TryGetTextSpan(oldText.Lines, oldActiveStatements[i].Span, out var oldStatementSpan))
                     {
                         DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
@@ -913,13 +911,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dictionary<SyntaxNode, EditKind> editMap,
             SourceText oldText,
             SourceText newText,
-            DocumentId documentId,
             ImmutableArray<ActiveStatement> oldActiveStatements,
+            ImmutableArray<TextSpan?> oldSpansInNewText,
             [Out] ActiveStatement[] newActiveStatements,
             [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
             [Out] List<UpdatedMemberInfo> updatedMembers,
             [Out] List<RudeEditDiagnostic> diagnostics)
         {
+            Debug.Assert(oldActiveStatements.Length == oldSpansInNewText.Length);
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
 
@@ -1019,7 +1018,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Tracking spans corresponding to the active statements from the tracking service.
                     // We seed the method body matching algorithm with tracking spans (unless they were deleted)
                     // to get precise matching.
-                    var isTracked = _activeStatementSpanTracker.TryGetSpan(new ActiveStatementId(documentId, ordinal), newText, out var trackedSpan);
+                    var trackedSpan = oldSpansInNewText[ordinal].GetValueOrDefault();
+                    var isTracked = oldSpansInNewText[ordinal].HasValue;
 
                     if (isTracked)
                     {
@@ -3880,22 +3880,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
                 => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
 
-            internal ref readonly IActiveStatementSpanTracker ActiveStatementSpanTracker
-                => ref _abstractEditAndContinueAnalyzer._activeStatementSpanTracker;
-
             internal void AnalyzeSyntax(
                 EditScript<SyntaxNode> script,
                 Dictionary<SyntaxNode, EditKind> editMap,
                 SourceText oldText,
                 SourceText newText,
-                DocumentId documentId,
                 ImmutableArray<ActiveStatement> oldActiveStatements,
+                ImmutableArray<TextSpan?> oldSpansInNewText,
                 [Out] ActiveStatement[] newActiveStatements,
                 [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
                 [Out] List<UpdatedMemberInfo> updatedMethods,
                 [Out] List<RudeEditDiagnostic> diagnostics)
             {
-                _abstractEditAndContinueAnalyzer.AnalyzeSyntax(script, editMap, oldText, newText, documentId, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
+                _abstractEditAndContinueAnalyzer.AnalyzeSyntax(script, editMap, oldText, newText, oldActiveStatements, oldSpansInNewText, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
             }
 
             internal void AnalyzeUnchangedDocument(

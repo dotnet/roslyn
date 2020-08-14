@@ -440,7 +440,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, cancellationToken).ConfigureAwait(false);
+                        var oldSpansInNewDocumentBuilder = ImmutableArray.CreateBuilder<TextSpan?>(documentBaseActiveStatements.Length);
+                        oldSpansInNewDocumentBuilder.Count = documentBaseActiveStatements.Length;
+                        var oldSpansInNewDocument = oldSpansInNewDocumentBuilder.MoveToImmutable();
+                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, oldSpansInNewDocument, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {

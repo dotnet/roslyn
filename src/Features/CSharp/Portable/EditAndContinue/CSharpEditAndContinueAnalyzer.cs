@@ -38,16 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             {
-                var activeStatementSpanTracker = languageServices.WorkspaceServices.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker();
-                return new CSharpEditAndContinueAnalyzer(activeStatementSpanTracker, testFaultInjector: null);
+                return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
             }
         }
 
         // Public for testing purposes
-        public CSharpEditAndContinueAnalyzer(IActiveStatementSpanTracker activeStatementSpanTracker, Action<SyntaxNode>? testFaultInjector = null)
-            : base(activeStatementSpanTracker, testFaultInjector)
-        {
-        }
+        public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
+            : base(testFaultInjector)
 
         #region Syntax Analysis
 
