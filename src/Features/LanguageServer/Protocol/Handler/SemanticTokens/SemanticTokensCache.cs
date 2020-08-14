@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Maps a LSP token type to its respective index recognized by LSP.
         /// </summary>
-        public static readonly Dictionary<string, int> TokenTypesToIndex;
+        public static readonly Dictionary<string, int> TokenTypeToIndex;
 
         /// <summary>
         /// Number of cached token sets we store per document. Must be >= 1.
@@ -37,7 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private readonly int _maxCachesPerDoc = 5;
 
         /// <summary>
-        /// The next resultId available to use.
+        /// The next resultId available to use. Atomically incremented with Interlocked,
+        /// so this doesn't need to be protected by _semaphore.
         /// </summary>
         private long _nextResultId;
 
@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         static SemanticTokensCache()
         {
             // Computes the mapping between a LSP token type and its respective index recognized by LSP.
-            TokenTypesToIndex = new Dictionary<string, int>();
+            TokenTypeToIndex = new Dictionary<string, int>();
             for (var i = 0; i < LSP.SemanticTokenTypes.AllTypes.Count; i++)
             {
-                TokenTypesToIndex.Add(LSP.SemanticTokenTypes.AllTypes[i], i);
+                TokenTypeToIndex.Add(LSP.SemanticTokenTypes.AllTypes[i], i);
             }
         }
 
@@ -81,12 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             LSP.SemanticTokens tokens,
             CancellationToken cancellationToken)
         {
-            // If the resultId of the semantic tokens is null, don't cache anything since we'll
-            // be unable to retrieve the results later.
-            if (tokens.ResultId == null)
-            {
-                return;
-            }
+            Contract.ThrowIfNull(tokens.ResultId);
 
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // document request, so caching range results is unnecessary since the whole document
             // handler will cache the results anyway.
             var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypesToIndex,
+                request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypeToIndex,
                 request.Range, cancellationToken).ConfigureAwait(false);
             return new LSP.SemanticTokens { ResultId = resultId, Data = tokensData };
         }

@@ -4,9 +4,7 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,29 +112,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(classifiedSpans);
 
-            // A TextSpan can be associated with multiple ClassifiedSpans (i.e. if  a token has
-            // modifiers). We perform this group by since LSP requires that each token is
-            // reported together with all its modifiers.
-            var groupedSpans = classifiedSpans.GroupBy(s => s.TextSpan);
-
             // TO-DO: We should implement support for streaming once this LSP bug is fixed:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1132601
-            return ComputeTokens(text.Lines, groupedSpans, tokenTypesToIndex);
+            return ComputeTokens(text.Lines, classifiedSpans.ToArray(), tokenTypesToIndex);
         }
 
         private static int[] ComputeTokens(
             TextLineCollection lines,
-            IEnumerable<IGrouping<TextSpan, ClassifiedSpan>> groupedSpans,
+            ClassifiedSpan[] classifiedSpans,
             Dictionary<string, int> tokenTypesToIndex)
         {
-            using var _ = ArrayBuilder<int>.GetInstance(out var data);
+            // A TextSpan can be associated with multiple ClassifiedSpans (i.e. if  a token has
+            // modifiers). We perform this grouping since LSP requires that each token is
+            // reported together with all its modifiers.
+            using var _1 = PooledDictionary<TextSpan, List<string>>.GetInstance(out var textSpanToClassificationTypes);
+            GroupClassificationTypesByTextSpan(classifiedSpans, textSpanToClassificationTypes);
+
+            using var _2 = ArrayBuilder<int>.GetInstance(out var data);
 
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            foreach (var span in groupedSpans)
+            foreach (var textSpanToClassificationType in textSpanToClassificationTypes)
             {
-                ComputeNextToken(lines, ref lastLineNumber, ref lastStartCharacter, span, tokenTypesToIndex,
+                ComputeNextToken(lines, ref lastLineNumber, ref lastStartCharacter, textSpanToClassificationType.Key,
+                    textSpanToClassificationType.Value, tokenTypesToIndex,
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
                     out var tokenType, out var tokenModifiers);
 
@@ -144,13 +144,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
 
             return data.ToArray();
+
+            // Local functions
+            static void GroupClassificationTypesByTextSpan(
+                ClassifiedSpan[] classifiedSpans,
+                PooledDictionary<TextSpan, List<string>> textSpanToClassificationTypes)
+            {
+                foreach (var classifiedSpan in classifiedSpans)
+                {
+                    if (!textSpanToClassificationTypes.TryGetValue(classifiedSpan.TextSpan, out var classificationTypes))
+                    {
+                        textSpanToClassificationTypes.Add(classifiedSpan.TextSpan, new List<string> { classifiedSpan.ClassificationType });
+                    }
+                    else
+                    {
+                        classificationTypes.Add(classifiedSpan.ClassificationType);
+                    }
+                }
+            }
         }
 
         private static void ComputeNextToken(
             TextLineCollection lines,
             ref int lastLineNumber,
             ref int lastStartCharacter,
-            IGrouping<TextSpan, ClassifiedSpan> textSpanToClassifiedSpans,
+            TextSpan textSpan,
+            List<string> classificationTypes,
             Dictionary<string, int> tokenTypesToIndex,
             // Out params
             out int deltaLineOut,
@@ -166,7 +185,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             //     4. Token type (index) - looked up in SemanticTokensLegend.tokenTypes
             //     5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
 
-            var textSpan = textSpanToClassifiedSpans.Key;
             var linePosition = lines.GetLinePositionSpan(textSpan).Start;
             var lineNumber = linePosition.Line;
             var startCharacter = linePosition.Character;
@@ -190,13 +208,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // modifiers are added in the future.
             var modifierBits = TokenModifiers.None;
             var tokenTypeIndex = 0;
-            foreach (var classifiedSpan in textSpanToClassifiedSpans)
+            foreach (var classificationType in classificationTypes)
             {
-                if (classifiedSpan.ClassificationType != ClassificationTypeNames.StaticSymbol)
+                if (classificationType != ClassificationTypeNames.StaticSymbol)
                 {
                     // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
                     // from integer to LSP token types).
-                    tokenTypeIndex = GetTokenTypeIndex(classifiedSpan, tokenTypesToIndex);
+                    tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
                 }
                 else
                 {
@@ -215,9 +233,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             tokenModifiersOut = (int)modifierBits;
         }
 
-        private static int GetTokenTypeIndex(ClassifiedSpan tokenTypeClassifiedSpan, Dictionary<string, int> tokenTypesToIndex)
+        private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
         {
-            s_classificationTypeToSemanticTokenTypeMap.TryGetValue(tokenTypeClassifiedSpan.ClassificationType, out var tokenTypeStr);
+            s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr);
             Contract.ThrowIfNull(tokenTypeStr);
 
             if (!tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex))

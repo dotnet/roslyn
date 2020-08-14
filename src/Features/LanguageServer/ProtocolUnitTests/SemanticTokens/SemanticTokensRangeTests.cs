@@ -33,11 +33,11 @@ static class C { }
                 Data = new int[]
                 {
                     // Line | Char | Len | Token type                                                            | Modifier
-                       1,     0,     6,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
-                       0,     7,     5,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
-                       0,     6,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                       0,     2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                       1,     0,     6,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                       0,     7,     5,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                       0,     6,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                       0,     2,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                       0,     2,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
                 },
                 ResultId = "1"
             };

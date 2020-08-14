@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(request.TextDocument);
             var resultId = _tokensCache.GetNextResultId();
             var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypesToIndex,
+                request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
             var tokens = new LSP.SemanticTokens { ResultId = resultId, Data = tokensData };

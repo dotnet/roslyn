@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         private static int[] StandardCase()
             => new int[] {
                 // Line | Char | Len | Token type                                                            | Modifier
-                0,        0,     10,   SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
-                1,        0,     6,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
-                0,        7,     5,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
-                0,        6,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
-                0,        2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
-                0,        2,     1,    SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
+                0,        0,     10,   SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],  0, // '// Comment'
+                1,        0,     6,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'static'
+                0,        7,     5,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],  0, // 'class'
+                0,        6,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Class],    (int)TokenModifiers.Static, // 'C'
+                0,        2,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator], 0, // '{'
+                0,        2,     1,    SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator], 0, // '}'
             };
 
         /*
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         private static int[] SingleLineCase()
             => new int[] {
                 // Line | Char | Len | Token type                                                           | Modifier
-                0,        0,     10,   SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0, // '// Comment'
+                0,        0,     10,   SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0, // '// Comment'
             };
 
         [Fact]
@@ -113,7 +113,7 @@ static class C { }
                 workspace, locations["caret"].First(), StandardCase(), previousResultId: "1", cache);
 
             var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(
-                start: 30, deleteCount: 0, data: new int[] { 1, 0, 10, SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0 });
+                start: 30, deleteCount: 0, data: new int[] { 1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0 });
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits.First());
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
@@ -144,8 +144,8 @@ static class C { }
                 start: 0, deleteCount: 5,
                 data: new int[]
                 {
-                    0, 0, 5, SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Keyword], 0,
-                    1, 0, 10, SemanticTokensCache.TokenTypesToIndex[LSP.SemanticTokenTypes.Comment], 0
+                    0, 0, 5, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword], 0,
+                    1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0
                 });
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits[0]);
