@@ -6,9 +6,8 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
@@ -49,9 +48,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpressionSyntaxNode)> ParametersWithLiteralArgument { get; }
 
             private MethodParametersInfo(
-                ImmutableArray<(IParameterSymbol, SyntaxNode)> parametersWithIdentifierArgument,
+                ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode identifierSyntaxNode)> parametersWithIdentifierArgument,
                 ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode variableDeclarationNode)> parametersWithVariableDeclarationArgument,
-                ImmutableArray<(IParameterSymbol, ImmutableArray<SyntaxNode>)> parametersNeedGenerateDeclarations,
+                ImmutableArray<(IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments)> parametersNeedGenerateDeclarations,
                 ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
                 ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpressionSyntaxNode)> parametersWithLiteralArgument)
             {
@@ -62,37 +61,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 ParametersWithLiteralArgument = parametersWithLiteralArgument;
             }
 
-            public static MethodParametersInfo GetMethodParametersInfo(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax> inlineMethodRefactoringProvider,
+            public static MethodParametersInfo GetMethodParametersInfo2(
                 ISyntaxFacts syntaxFacts,
-                SemanticModel semanticModel,
-                SyntaxNode calleeInvocationSyntaxNode,
-                IMethodSymbol calleeMethodSymbol,
-                CancellationToken cancellationToken)
+                IInvocationOperation invocationOperation)
             {
-                // Classify the parameters into:
-                // 1. If the parameter accept an identifier from Caller, then use this identifier to replace all the occurence of the parameter.
-                // (So that after inlining, the same identifier could be found in the caller)
-                // 2. If the parameter accept literal/no argument but has default value, replace all the occurence of the parameter by using the
-                // literal expression
-                // 3. If the argument has variable declarations ('out var' in C#), then insert an additional declaration. Also replace all the
-                // occurence of parameter by using this identifier.
-                // 4. For the rest of the parameters (might include method invocation and different expressions), use the parameter's name to
-                // generate a declaration for them and insert that into caller.
-                var allArguments = syntaxFacts.GetArgumentsOfInvocationExpression(calleeInvocationSyntaxNode);
-                var parameterSymbolAndArguments = allArguments
-                    .Select(argument => (
-                        parameterSymbol: inlineMethodRefactoringProvider.GetParameterSymbol(semanticModel, (TArgumentSyntax)argument,
-                            cancellationToken),
-                        argumentExpression: syntaxFacts.GetExpressionOfArgument(argument)))
-                    .Where(parameterAndArgument =>
-                        parameterAndArgument.parameterSymbol != null
-                        && !parameterAndArgument.parameterSymbol.IsDiscard)
-                    // For params array, it could map to multiple arguments so group it.
-                    .GroupBy(keySelector: parameterAndArgument => parameterAndArgument.parameterSymbol!,
-                        elementSelector: parameterAndArgument => parameterAndArgument.argumentExpression)
-                    .SelectAsArray(grouping => (parameterSymbol: grouping.Key, arguments: grouping.ToImmutableArray()));
-                var allParametersWithArgument = parameterSymbolAndArguments.SelectAsArray(g => g.parameterSymbol);
+                var allArgumentOperations = invocationOperation.Arguments
+                    .Select(operation => (argumentOperation: operation,
+                        argumentExpressionOperation: operation.Children.FirstOrDefault()))
+                    .Where(argumentAndArgumentOperation => argumentAndArgumentOperation.argumentExpressionOperation != null)
+                    .ToImmutableArray();
 
                 // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
                 // For params array, it should be included here if it is accept an array identifier as argument.
@@ -115,10 +92,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     DoSomething(a, b, c);
                 // }
-                var parametersWithIdentifier = parameterSymbolAndArguments
-                    .Where(parameterAndArguments => ParameterWithIdentifierArgumentFilter(syntaxFacts, semanticModel,
-                        parameterAndArguments, cancellationToken))
-                    .ToImmutableArray();
+                var operationsWithIdentifier = allArgumentOperations
+                    .WhereAsArray(argumentAndArgumentOperation =>
+                        syntaxFacts.IsIdentifierName(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
 
                 // 2. Find all the declaration arguments (e.g. out var declaration in C#).
                 // After inlining, an declaration needs to be put before the invocation. And also use the declared identifier to replace the mapping parameter in callee.
@@ -137,10 +113,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 //     x = 100;
                 // }
                 // void Callee(out int i) => i = 100;
-                var parametersWithVariableDeclarationArgument = parameterSymbolAndArguments
-                    .Where(parameterAndArguments =>
-                        ParameterWithVariableDeclarationArgumentFilter(syntaxFacts, parameterAndArguments))
-                    .ToImmutableArray();
+                var operationsWithVariableDeclaration = allArgumentOperations
+                    .WhereAsArray(argumentAndArgumentOperation =>
+                        syntaxFacts.IsDeclarationExpression(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
 
                 // 3. Find the literal arguments, and the mapping parameter will be replaced by that literal expression
                 // Example:
@@ -162,12 +137,35 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     DoSomething(i, j);
                 // }
-                var parametersWithLiteralArgument = parameterSymbolAndArguments
-                    .Where(parameterAndArguments =>
-                        ParameterWithLiteralArgumentFilter(syntaxFacts, parameterAndArguments))
-                    .ToImmutableArray();
+                var operationsWithLiteralArgument = allArgumentOperations
+                    .WhereAsArray(argumentAndArgumentOperation =>
+                        syntaxFacts.IsLiteralExpression(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
 
-                // 4. All the remaining arguments, which might includes method call and a lot of other expressions.
+                // 4. Find the default value parameters. Similarly to 3, they should be replaced by the default value.
+                // Example:
+                // Before:
+                // void Caller(int k)
+                // {
+                //     Callee();
+                // }
+                // void Callee(int i = 1, int j = 2)
+                // {
+                //     DoSomething(i, k);
+                // }
+                // After:
+                // void Caller(int k)
+                // {
+                //     DoSomething(1, 2);
+                // }
+                // void Callee(int i = 1, int j = 2)
+                // {
+                //     DoSomething(i, j);
+                // }
+                var operationsWithDefaultValue = allArgumentOperations
+                    .WhereAsArray(argumentAndArgumentOperation =>
+                        argumentAndArgumentOperation.argumentOperation.ArgumentKind == ArgumentKind.DefaultValue);
+
+                // 5. All the remaining arguments, which might includes method call and a lot of other expressions.
                 // Generate a declaration in the caller.
                 // Example:
                 // Before:
@@ -190,165 +188,51 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     DoSomething(a, b);
                 // }
-                var parametersNeedGenerateDeclarations = parameterSymbolAndArguments
-                    .RemoveRange(parametersWithIdentifier)
-                    .RemoveRange(parametersWithVariableDeclarationArgument)
-                    .RemoveRange(parametersWithLiteralArgument)
-                    .Where(parameterAndArguments => ParameterNeedsGenerateDeclarationFilter(
-                        inlineMethodRefactoringProvider,
-                        syntaxFacts, semanticModel, parameterAndArguments, cancellationToken))
-                    .ToImmutableArray();
-
-                // 5. Parameter without any argument.
-                // Case 1: only parameter has default value would be left here. The parameter will be replaced by the default value.
-                // Case 2: there is no arguments and the parameter is params array. An array needs to be declared in the caller. Similarly to what is done in step 4
-                // Example for case 1:
-                // Before:
-                // void Caller()
-                // {
-                //     Callee();
-                // }
-                // void Callee(int i = 10, bool f = true)
-                // {
-                //     DoSomething(i, f);
-                // }
-                // After:
-                // void Caller()
-                // {
-                //     DoSomething(10, true);
-                // }
-                // void Callee(int i = 10, bool f = true)
-                // {
-                //     DoSomething(i, f);
-                // }
-                // Example for case 2:
-                // Before:
-                // void Caller(bool x)
-                // {
-                //     Callee();
-                // }
-                // void Callee(params int[] a)
-                // {
-                //     DoSomething(a);
-                // }
-                // After:
-                // void Caller(bool x)
-                // {
-                //     int[] a = { };
-                //     DoSomething(a);
-                // }
-                // void Callee(params int[] a)
-                // {
-                //     DoSomething(a);
-                // }
-                var parametersWithoutArgument = calleeMethodSymbol.Parameters.RemoveRange(allParametersWithArgument);
-                if (parametersWithoutArgument.Length == 1 && parametersWithoutArgument[0].IsParams)
-                {
-                    parametersNeedGenerateDeclarations = parametersNeedGenerateDeclarations.Concat((
-                        parametersWithoutArgument[0], ImmutableArray<SyntaxNode>.Empty));
-                }
-
-                var parametersWithDefaultValue = parametersWithoutArgument
-                    .Where(parameterSymbol => parameterSymbol.HasExplicitDefaultValue)
-                    .ToImmutableArray();
+                var parametersNeedGenerateDeclarations = allArgumentOperations
+                    .RemoveRange(operationsWithIdentifier)
+                    .RemoveRange(operationsWithVariableDeclaration)
+                    .RemoveRange(operationsWithLiteralArgument)
+                    .RemoveRange(operationsWithDefaultValue)
+                    .SelectAsArray(argumentAndArgumentOperation =>
+                        (argumentAndArgumentOperation.argumentOperation.Parameter,
+                            GetArgumentSyntaxFromOperation(argumentAndArgumentOperation)));
 
                 return new MethodParametersInfo(
-                    parametersWithIdentifier.SelectAsArray(parameterAndArgument =>
-                        (parameterAndArgument.parameterSymbol, parameterAndArgument.arguments[0])),
-                    parametersWithVariableDeclarationArgument.SelectAsArray(parameterAndArgument =>
-                        (parameterAndArgument.parameterSymbol, parameterAndArgument.arguments[0])),
+                    operationsWithIdentifier
+                        .SelectAsArray(argumentAndArgumentOperation => (
+                            argumentAndArgumentOperation.argumentOperation.Parameter,
+                            argumentAndArgumentOperation.argumentExpressionOperation.Syntax)),
+                    operationsWithVariableDeclaration
+                        .SelectAsArray(argumentAndArgumentOperation => (
+                            argumentAndArgumentOperation.argumentOperation.Parameter,
+                            argumentAndArgumentOperation.argumentExpressionOperation.Syntax)),
                     parametersNeedGenerateDeclarations,
-                    parametersWithDefaultValue,
-                    parametersWithLiteralArgument.SelectAsArray(parameterAndArgument =>
-                        (parameterAndArgument.parameterSymbol, parameterAndArgument.arguments[0])));
+                    operationsWithDefaultValue.SelectAsArray(argumentAndArgumentOperation =>
+                        argumentAndArgumentOperation.argumentOperation.Parameter),
+                    operationsWithLiteralArgument
+                        .SelectAsArray(argumentAndArgumentOperation => (
+                            argumentAndArgumentOperation.argumentOperation.Parameter,
+                            argumentAndArgumentOperation.argumentExpressionOperation.Syntax)));
             }
 
-            private static bool ParameterNeedsGenerateDeclarationFilter(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax> inlineMethodRefactoringProvider,
-                ISyntaxFacts syntaxFacts,
-                SemanticModel semanticModel,
-                (IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments) parameterAndArguments,
-                CancellationToken cancellationToken)
+            private static ImmutableArray<SyntaxNode> GetArgumentSyntaxFromOperation(
+                (IArgumentOperation argumentOperation, IOperation argumentExpressionOperation) argumentAndArgumentOperation)
             {
-                var (parameterSymbol, arguments) = parameterAndArguments;
-                if (!parameterSymbol.IsParams && arguments.Length == 1)
+                var (argumentOperation, argumentExpressionOperation) = argumentAndArgumentOperation;
+                // if this argument is a param array & the array creation operation is implicitly generated,
+                // it means it is in this format:
+                // void caller() { Callee(1, 2, 3); }
+                // void Callee(params int[] x) { }
+                // Collect each of these arguments.
+                // Note: it could be empty.
+                if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
+                    && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
+                    && argumentOperation.IsImplicit)
                 {
-                    var argument = arguments[0];
-                    return argument is TExpressionSyntax;
+                    return arrayCreationOperation.Initializer.ElementValues.SelectAsArray(value => value.Syntax);
                 }
 
-                // Params array is special, if there are multiple arguments, then they needs to be put into a separate array.
-                if (parameterSymbol.IsParams)
-                {
-                    if (arguments.Length != 1)
-                    {
-                        // If there is no argument or multiple arguments, a array initializer expression should be
-                        // put into caller
-                        return true;
-                    }
-                    else
-                    {
-                        // If there is only one argument, it has 3 cases
-                        // 1. This argument is an array (identifier)
-                        // 2. This argument is an array (array creation expression)
-                        // 3. This argument is the single element in the array. (identifier or literal)
-                        // Generate the declaration for case 2 & 3
-                        var argument = arguments[0];
-                        var typeOfElement = (IArrayTypeSymbol)parameterSymbol.Type;
-                        var typeOfArgument = semanticModel.GetTypeInfo(argument, cancellationToken).Type;
-                        return !(typeOfElement.Equals(typeOfArgument) && syntaxFacts.IsIdentifierName(argument));
-                    }
-                }
-
-                return false;
-            }
-
-            private static bool ParameterWithLiteralArgumentFilter(
-                ISyntaxFacts syntaxFacts,
-                (IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments) parameterAndArguments)
-            {
-                var (parameterSymbol, arguments) = parameterAndArguments;
-                if (!parameterSymbol.IsParams && arguments.Length == 1)
-                {
-                    return syntaxFacts.IsLiteralExpression(arguments[0]);
-                }
-
-                return false;
-            }
-
-            private static bool ParameterWithVariableDeclarationArgumentFilter(
-                ISyntaxFacts syntaxFacts,
-                (IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments) parameterAndArguments)
-            {
-                var (_, arguments) = parameterAndArguments;
-                return arguments.Length == 1 && syntaxFacts.IsDeclarationExpression(arguments[0]);
-            }
-
-            private static bool ParameterWithIdentifierArgumentFilter(
-                ISyntaxFacts syntaxFacts,
-                SemanticModel semanticModel,
-                (IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments) parameterAndArguments,
-                CancellationToken cancellationToken)
-            {
-                var (parameterSymbol, arguments) = parameterAndArguments;
-                if (arguments.Length == 1)
-                {
-                    var argument = arguments[0];
-                    var isIdentifier = syntaxFacts.IsIdentifierName(argument);
-                    if (parameterSymbol.IsParams && isIdentifier)
-                    {
-                        // If there is only one identifier argument,
-                        // it could be an identifier to an array or single element.
-                        // Only treat the array case as 'identifier'.
-                        var typeOfParameter = (IArrayTypeSymbol)parameterSymbol.Type;
-                        var typeOfArgument = semanticModel.GetTypeInfo(argument, cancellationToken).Type;
-                        return typeOfParameter.Equals(typeOfArgument);
-                    }
-
-                    return isIdentifier;
-                }
-
-                return false;
+                return ImmutableArray.Create(argumentExpressionOperation.Syntax);
             }
         }
     }

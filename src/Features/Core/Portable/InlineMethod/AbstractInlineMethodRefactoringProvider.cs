@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
@@ -106,6 +107,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
+            var invocationOperation = semanticModel.GetOperation(calleeMethodInvocationSyntaxNode, cancellationToken);
+            if (!(invocationOperation is IInvocationOperation))
+            {
+                return;
+            }
+
             var codeAction = new CodeAction.DocumentChangeAction(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 cancellationToken => InlineMethodAsync(
@@ -113,6 +120,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     calleeMethodInvocationSyntaxNode,
                     (IMethodSymbol)calleeMethodSymbol,
                     (TMethodDeclarationSyntax)calleeMethodDeclarationSyntaxNode,
+                    (IInvocationOperation)invocationOperation,
                     cancellationToken));
 
             context.RegisterRefactoring(codeAction);
@@ -123,17 +131,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             SyntaxNode calleeMethodInvocationSyntaxNode,
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode,
+            IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodParametersInfo = MethodParametersInfo.GetMethodParametersInfo(
-                this,
-                _syntaxFacts,
-                semanticModel,
-                calleeMethodInvocationSyntaxNode,
-                calleeMethodSymbol,
-                cancellationToken);
-
+            var methodParametersInfo = MethodParametersInfo.GetMethodParametersInfo2(_syntaxFacts, invocationOperation);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var inlineContext = await InlineMethodContext.GetInlineContextAsync(
                 this,

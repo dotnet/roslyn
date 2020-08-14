@@ -467,10 +467,10 @@ public class TestClass
 {
     private void Caller()
     {
-        Ca[||]llee(1, 2, 3, 4, 5, 6);
+        Ca[||]llee(""Hello"", 1, 2, 3, 4, 5, 6);
     }
 
-    private void Callee(params int[] x)
+    private void Callee(string z, params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
@@ -492,7 +492,7 @@ public class TestClass
         System.Console.WriteLine(x.Length);
     }
 
-    private void Callee(params int[] x)
+    private void Callee(string z, params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
@@ -1121,14 +1121,14 @@ public class TestClass2
 }");
 
         [Fact]
-        public Task TestInlineExtensionMethod()
+        public Task TestInlineExtensionMethod1()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
 static class Program
 {
     static void Main(string[] args)
     {
-        var value = 0; 
+        var value = 0;
         value.Ge[||]tNext();
     }
 
@@ -1142,9 +1142,74 @@ static class Program
 {
     static void Main(string[] args)
     {
-        var value = 0; 
-        int tmp = value + 1;
+        var value = 0;
+        int temp = value + 1;
     }
+
+    private static int GetNext(this int i)
+    {
+        return i + 1;
+    }
+}");
+
+        [Fact]
+        public Task TestInlineExtensionMethod2()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+static class Program
+{
+    static void Main(string[] args)
+    {
+        var x = 0.Ge[||]tNext();
+    }
+
+    private static int GetNext(this int i)
+    {
+        return i + 1;
+    }
+}",
+                @"
+static class Program
+{
+    static void Main(string[] args)
+    {
+        var x = 0 + 1;
+    }
+
+    private static int GetNext(this int i)
+    {
+        return i + 1;
+    }
+}");
+
+        [Fact]
+        public Task TestInlineExtensionMethod3()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+static class Program
+{
+    static void Main(string[] args)
+    {
+        GetInt().Ge[||]tNext();
+    }
+
+    private static int GetInt() => 10;
+
+    private static int GetNext(this int i)
+    {
+        return i + 1;
+    }
+}",
+                @"
+static class Program
+{
+    static void Main(string[] args)
+    {
+        int i = GetInt();
+        int temp = i + 1;
+    }
+
+    private static int GetInt() => 10;
 
     private static int GetNext(this int i)
     {

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // those and can cause semantic change later in some context.
         // so to be safe, we consider field and property in scope when
         // creating unique name for local
-        private readonly static Func<ISymbol, bool> s_LocalNameFilter = s =>
+        private static readonly Func<ISymbol, bool> s_LocalNameFilter = s =>
             s.Kind == SymbolKind.Local ||
             s.Kind == SymbolKind.Parameter ||
             s.Kind == SymbolKind.RangeVariable ||
