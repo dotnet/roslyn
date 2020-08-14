@@ -12,16 +12,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
-        where TInvocationSyntaxNode : SyntaxNode
-        where TExpressionSyntax : SyntaxNode
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName>
+        where TInvocationNode : SyntaxNode
+        where TExpression : SyntaxNode
         where TArgumentSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
+        where TIdentifierName : SyntaxNode
     {
         private class InlineMethodContext
         {
@@ -31,13 +32,20 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public ImmutableArray<SyntaxNode> StatementsToInsertBeforeCallee { get; }
 
             /// <summary>
-            /// Statement invokes the callee. All the generated declarations should be put before this node.
+            /// Statement containing the callee. All the generated declarations should be put before this node.
+            /// Example:
+            /// void Caller()
+            /// {
+            ///     var x = Callee(Foo());
+            /// }
+            /// void Callee(int i) { DoSomething(); }
+            /// LocalDeclarationSyntaxNode of x will the <see cref="StatementContainingCallee"/>.
+            /// And if there is any statements needs inserted, it needs to be inserted before this node.
             /// </summary>
             public SyntaxNode StatementContainingCallee { get; }
 
             /// <summary>
             /// Inline content for the callee method. It should replace <see cref="SyntaxNodeToReplace"/>.
-            /// It will be null if nothing need to be inlined.
             /// </summary>
             public SyntaxNode InlineSyntaxNode { get; }
 
@@ -54,14 +62,32 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// <summary>
             /// A preferred name used to generated a declaration when the
             /// inline method has a return value but is not assigned to a variable.
+            /// Example:
+            /// void Caller()
+            /// {
+            ///     Callee();
+            /// }
+            /// int Callee()
+            /// {
+            ///     return 1;
+            /// };
+            /// After it should be:
+            /// void Caller()
+            /// {
+            ///     int temp = 1;
+            /// }
+            /// int Callee()
+            /// {
+            ///     return 1;
+            /// };
             /// </summary>
             private const string TemporaryName = "temp";
 
             private InlineMethodContext(
                 ImmutableArray<SyntaxNode> statementsToInsertBeforeCallee,
-                SyntaxNode? statementContainingCallee,
-                SyntaxNode? inlineSyntaxNode,
-                SyntaxNode? syntaxNodeToReplace,
+                SyntaxNode statementContainingCallee,
+                SyntaxNode inlineSyntaxNode,
+                SyntaxNode syntaxNodeToReplace,
                 bool containsAwaitExpression)
             {
                 StatementsToInsertBeforeCallee = statementsToInsertBeforeCallee;
@@ -72,48 +98,77 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             public static async Task<InlineMethodContext> GetInlineContextAsync(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax> inlineMethodRefactoringProvider,
-                ISyntaxFacts syntaxFacts,
-                ISemanticFactsService semanticFactsService,
+                AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName> inlineMethodRefactoringProvider,
                 Document document,
-                SemanticModel semanticModel,
-                SyntaxNode calleeInvocationSyntaxNode,
+                SyntaxNode calleeInvocationNode,
                 IMethodSymbol calleeMethodSymbol,
-                TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode,
+                TMethodDeclarationSyntax calleeMethodDeclarationNode,
+                SyntaxNode statementContainsCallee,
                 MethodParametersInfo methodParametersInfo,
-                SyntaxNode root,
                 CancellationToken cancellationToken)
             {
+                var syntaxFacts = inlineMethodRefactoringProvider._syntaxFacts;
+                var semanticFactsService = inlineMethodRefactoringProvider._semanticFactsService;
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                var inlineSyntaxNode =
-                    inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationSyntaxNode);
-                // The replacement/insertion work done might cause naming conflict.
-                // So first compute a mapping from symbol to newName (renameTable)
-                // Cases are:
-                // 1. Replace the callee's parameter withe caller's identifier might cause conflict in callee.
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var inlineNode = inlineMethodRefactoringProvider.GetInlineStatement(calleeMethodDeclarationNode);
+
+                // Get the parameterSymbol to identifier's name mappings.
                 // Example:
-                // Before:
                 // void Caller()
                 // {
-                //     int i, j = 10;
-                //     Callee(i, j);
+                //     int i = 10;
+                //     Callee(i);
                 // }
-                // void Callee(int a, int b)
+                // void Callee(int a)
                 // {
-                //     DoSomething(a, b, out int i);
+                //     DoSomething(a);
                 // }
-                // After:
+                // Input is an array of (ParameterSymbol(int a), IdentifierSyntaxNode(int i))
+                // Output is an array of (ParameterSymbol(int a), string i)
+                var parametersWithIdentifierArgumentToName = methodParametersInfo.ParametersWithIdentifierArgument
+                    .Select(parameterAndArgument =>
+                        (parameterAndArgument.parameterSymbol, semanticModel.GetSymbolInfo(parameterAndArgument.identifierSyntaxNode, cancellationToken).GetAnySymbol()?.Name))
+                    .Where(parameterAndName => parameterAndName.Name != null)
+                    .ToImmutableArray();
+
+                // Get the parameterSymbol to variable declaration name mapping.
+                // Example:
                 // void Caller()
                 // {
-                //     int i, j = 10;
-                //     DoSomething(a, b, out int i1);
+                //     Callee(out int i);
                 // }
-                // void Callee(int a, int b)
+                // void Callee(out int a)
                 // {
-                //     DoSomething(a, b, out int i);
+                //     DoSomething(out a);
                 // }
-                // 2. Use the parameter's name to generate declarations in caller might cause conflict in the caller
-                // In either case, rename the symbol in Callee.
+                // Input is an array of (ParameterSymbol(int a), IdentifierSyntaxNode(int i))
+                // Output is an array of (ParameterSymbol(int a), string i)
+                var parametersWithVariableDeclarationArgumentToName = methodParametersInfo
+                    .ParametersWithVariableDeclarationArgument
+                    .Select(parameterAndArgument =>
+                        (parameterAndArgument.parameterSymbol,
+                            semanticModel
+                                .GetSymbolInfo(parameterAndArgument.variableDeclarationNode, cancellationToken)
+                                .GetAnySymbol()?.Name))
+                    .Where(parameterAndName => parameterAndName.Name != null)
+                    .ToImmutableArray();
+
+                // Based on the information get above, generate a map which the key is the symbol need renaming, value is the new name.
+                var renameTable = ComputeRenameTable(
+                    semanticFactsService,
+                    semanticModel,
+                    calleeInvocationNode,
+                     inlineNode,
+                    parametersWithIdentifierArgumentToName!,
+                    methodParametersInfo.OperationsNeedGenerateDeclarations.SelectAsArray(operation => operation.Parameter),
+                    parametersWithVariableDeclarationArgumentToName!,
+                    cancellationToken);
+
+                // Generate all the statements need to be put in the caller.
+                // Use the parameter's name to generate declarations in caller might cause conflict in the caller,
+                // so the rename table is needed to provide with a valid name.
                 // Example:
                 // Before:
                 // void Caller(int i, int j)
@@ -135,102 +190,34 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     DoSomething(i, j);
                 // }
-                var parametersWithIdentifierArgumentToName = methodParametersInfo.ParametersWithIdentifierArgument
-                    .Select(parameterAndArgument =>
-                        (parameterAndArgument.parameterSymbol,
-                            semanticModel.GetSymbolInfo(parameterAndArgument.identifierSyntaxNode, cancellationToken)
-                                .GetAnySymbol()?.Name))
-                    .Where(parameterAndName => parameterAndName.Name != null)
-                    .ToImmutableArray();
-
-                var parametersWithVariableDeclarationArgumentToName = methodParametersInfo
-                    .ParametersWithVariableDeclarationArgument
-                    .Select(parameterAndArgument =>
-                        (parameterAndArgument.parameterSymbol,
-                            semanticModel
-                                .GetSymbolInfo(parameterAndArgument.variableDeclarationNode, cancellationToken)
-                                .GetAnySymbol()?.Name))
-                    .Where(parameterAndName => parameterAndName.Name != null)
-                    .ToImmutableArray();
-
-                var renameTable = ComputeRenameTable(
-                    semanticFactsService,
-                    semanticModel,
-                    calleeInvocationSyntaxNode,
-                    inlineSyntaxNode,
-                    parametersWithIdentifierArgumentToName!,
-                    methodParametersInfo.ParametersNeedGenerateDeclarations.SelectAsArray(parameterToArgument =>
-                        parameterToArgument.parameterSymbol),
-                    parametersWithVariableDeclarationArgumentToName!,
-                    cancellationToken);
-
-                // Generate all the statements need to be put in the caller.
+                // Here two declaration is generated.
+                // Another case is
+                // void Caller()
+                // {
+                //     Callee(out int i)
+                // }
+                // void Callee(out int j)
+                // {
+                //     DoSomething(out j, out int i);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     int i = 10;
+                //     DoSomething(out i, out int i2);
+                // }
+                // void Callee(out int j)
+                // {
+                //     DoSomething(out j, out int i);
+                // }
                 var localDeclarationStatementsNeedInsert = GetLocalDeclarationStatementsNeedInsert(
                     inlineMethodRefactoringProvider,
-                    semanticModel,
                     syntaxGenerator,
-                    methodParametersInfo.ParametersNeedGenerateDeclarations,
+                    methodParametersInfo.OperationsNeedGenerateDeclarations,
                     parametersWithVariableDeclarationArgumentToName!,
-                    renameTable,
-                    cancellationToken);
+                    renameTable);
 
-                // The syntax node that contains the invocation syntax node.
-                // Example1: var x = Callee(); Then LocalDeclarationStatement is the containing syntax node.
-                // Example1: if (Callee()) {} Then IfStatement is the containing syntax node
-                var statementContainingCallee =
-                    inlineMethodRefactoringProvider.GetStatementContainsCallee(calleeInvocationSyntaxNode);
-
-                // Do the replacement work within the callee. Including:
-                // 1. Literal replacement
-                // Example:
-                // Before:
-                // void Caller()
-                // {
-                //     Callee(20)
-                // }
-                // void Callee(int i, int j = 10)
-                // {
-                //     Bar(i, j);
-                // }
-                // After:
-                // void Caller()
-                // {
-                //     Bar(20, 10);
-                // }
-                // void Callee(int i, int j = 10)
-                // {
-                //     Bar(i, j);
-                // }
-                // 2. Identifier rename
-                // Example:
-                // Before:
-                // void Caller()
-                // {
-                //     int a, b;
-                //     Callee(a, b)
-                // }
-                // void Callee(int i, int j)
-                // {
-                //     Bar(i, j);
-                // }
-                // After:
-                // void Caller()
-                // {
-                //     int a, b;
-                //     Bar(a, b);
-                // }
-                // void Callee(int i, int j = 10)
-                // {
-                //     Bar(i, j);
-                // }
-                // 3. Type arguments (generics)
-                // Example:
-                // Before:
-                // void Caller() { Callee<int>(); }
-                // void Callee<T>() => Print(typeof<T>);
-                // After:
-                // void Caller() { Print(typeof(int)); }
-                // void Callee<T>() => Print(typeof<T>);
+                // Get a table which the key is the symbol needs replacement work. Value is the replacement syntax node
                 var replacementTable = ComputeReplacementTable(
                     inlineMethodRefactoringProvider,
                     calleeMethodSymbol,
@@ -239,20 +226,21 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     syntaxGenerator,
                     renameTable);
 
-                inlineSyntaxNode = (TExpressionSyntax)await ReplaceAllSyntaxNodesForSymbolAsync(
-                    document,
-                    inlineSyntaxNode,
-                    syntaxGenerator,
-                    root,
-                    replacementTable,
-                    cancellationToken).ConfigureAwait(false);
+                // Do the replacement work within the callee's body so that it can be inserted to the caller later.
+                inlineNode = (TExpression)await ReplaceAllSyntaxNodesForSymbolAsync(
+                   document,
+                   inlineNode,
+                   syntaxGenerator,
+                   root,
+                   replacementTable,
+                   cancellationToken).ConfigureAwait(false);
 
                 // Check if there is await expression. It is used later if the caller should be changed to async
-                var containsAwaitExpression = inlineSyntaxNode
+                var containsAwaitExpression =  inlineNode
                     .DescendantNodesAndSelf()
                     .Any(node => node != null && syntaxFacts.IsAwaitExpression(node));
 
-                if (syntaxFacts.IsExpressionStatement(statementContainingCallee) && !calleeMethodSymbol.ReturnsVoid)
+                if (syntaxFacts.IsExpressionStatement(statementContainsCallee) && !calleeMethodSymbol.ReturnsVoid)
                 {
                     // If the callee is invoked like
                     // void Caller()
@@ -266,7 +254,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     // After it should be:
                     // void Caller()
                     // {
-                    //     int tmp = 1;
+                    //     int temp = 1;
                     // }
                     // int Callee()
                     // {
@@ -276,7 +264,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     var unusedLocalName =
                         semanticFactsService.GenerateUniqueLocalName(
                             semanticModel,
-                            calleeInvocationSyntaxNode,
+                            calleeInvocationNode,
                             null,
                             TemporaryName,
                             renameTable.Values,
@@ -284,100 +272,106 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
                     return new InlineMethodContext(
                         localDeclarationStatementsNeedInsert,
-                        statementContainingCallee,
+                        statementContainsCallee,
                         syntaxGenerator
                             .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedLocalName.Text,
-                                inlineSyntaxNode),
-                        statementContainingCallee,
+                                 inlineNode),
+                        statementContainsCallee,
                         containsAwaitExpression);
                 }
 
                 return new InlineMethodContext(
                     localDeclarationStatementsNeedInsert,
-                    statementContainingCallee,
-                    inlineMethodRefactoringProvider.Parenthesize(inlineSyntaxNode)
+                    statementContainsCallee,
+                    inlineMethodRefactoringProvider.Parenthesize(inlineNode)
                         // add the trivia of the calleeInvocationSyntaxNode so that the format is correct
-                        .WithLeadingTrivia(calleeInvocationSyntaxNode.GetLeadingTrivia())
-                        .WithTrailingTrivia(calleeInvocationSyntaxNode.GetTrailingTrivia()),
-                    calleeInvocationSyntaxNode,
+                        .WithLeadingTrivia(calleeInvocationNode.GetLeadingTrivia())
+                        .WithTrailingTrivia(calleeInvocationNode.GetTrailingTrivia()),
+                    calleeInvocationNode,
                     containsAwaitExpression);
             }
 
             private static ImmutableArray<SyntaxNode> GetLocalDeclarationStatementsNeedInsert(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
-                    inlineMethodRefactoringProvider,
-                SemanticModel semanticModel,
+                AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName> inlineMethodRefactoringProvider,
                 SyntaxGenerator syntaxGenerator,
-                ImmutableArray<(IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments)>
-                    parametersNeedGenerateDeclarations,
-                ImmutableArray<(IParameterSymbol parameterSymbol, string name)>
-                    parametersWithVariableDeclarationArgument,
-                ImmutableDictionary<ISymbol, string> renameTable,
-                CancellationToken cancellationToken)
-                => parametersNeedGenerateDeclarations
-                    .Select(parameterAndArguments => CreateLocalDeclarationStatement(inlineMethodRefactoringProvider,
-                        semanticModel, syntaxGenerator, renameTable, parameterAndArguments, cancellationToken))
+                ImmutableArray<IArgumentOperation> operationsNeedGenerateDeclarations,
+                ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
+                ImmutableDictionary<ISymbol, string> renameTable)
+                => operationsNeedGenerateDeclarations
+                    .Select(parameterAndArguments =>
+                        CreateLocalDeclarationStatement(inlineMethodRefactoringProvider, syntaxGenerator, renameTable, parameterAndArguments))
                     .Concat(parametersWithVariableDeclarationArgument
                         .Select(parameterAndName =>
                             syntaxGenerator.LocalDeclarationStatement(parameterAndName.parameterSymbol.Type,
                                 parameterAndName.name)))
                     .ToImmutableArray();
 
+            private static ImmutableArray<TExpression> GetArgumentSyntaxFromOperation(
+                (IArgumentOperation argumentOperation, IOperation argumentExpressionOperation) argumentAndArgumentOperation)
+            {
+                var (argumentOperation, argumentExpressionOperation) = argumentAndArgumentOperation;
+                // if this argument is a param array & the array creation operation is implicitly generated,
+                // it means it is in this format:
+                // void caller() { Callee(1, 2, 3); }
+                // void Callee(params int[] x) { }
+                // Collect each of these arguments.
+                // Note: it could be empty.
+                if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
+                    && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
+                    && argumentOperation.IsImplicit)
+                {
+                    return arrayCreationOperation.Initializer.ElementValues.SelectAsArray(value => (TExpression)value.Syntax);
+                }
+
+                return ImmutableArray.Create((TExpression)argumentExpressionOperation.Syntax);
+            }
+
             private static SyntaxNode CreateLocalDeclarationStatement(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
-                    inlineMethodRefactoringProvider,
-                SemanticModel semanticModel,
+                AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName> inlineMethodRefactoringProvider,
                 SyntaxGenerator syntaxGenerator,
                 ImmutableDictionary<ISymbol, string> renameTable,
-                (IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments) parameterAndArguments,
-                CancellationToken cancellationToken)
+                IArgumentOperation argumentOperation)
             {
-                var (parameterSymbol, arguments) = parameterAndArguments;
-                var name = renameTable.ContainsKey(parameterSymbol)
-                    ? renameTable[parameterSymbol]
-                    : parameterSymbol.Name;
-                var generateArrayDeclarationStatement = parameterSymbol.IsParams
-                                                        // If arguments number is not one, it means this paramsArray maps to multiple or zero arguments. An array declaration is needed.
-                                                        && (arguments.Length != 1
-                                                            // If the arguments number is one, it could be the single element of the array (an array declaration is needed)
-                                                            // Example: void Callee(params int[] x) {}
-                                                            // void Caller() { Callee(1, 2, 3) }
-                                                            // or it could an array (like array creation, and array declaration is not need)
-                                                            // Example: void Callee(params int[] x) {}
-                                                            // void Caller() { Callee(new int[] { 1, 2, 3}) }
-                                                            || (arguments.Length == 1 &&
-                                                                !parameterSymbol.Type.Equals(semanticModel
-                                                                    .GetTypeInfo(arguments[0], cancellationToken)
-                                                                    .Type)));
-
-                if (generateArrayDeclarationStatement)
+                var parameterSymbol = argumentOperation.Parameter;
+                var name = renameTable.ContainsKey(parameterSymbol) ? renameTable[parameterSymbol] : parameterSymbol.Name;
+                // Check has been done before to make sure there is only one child.
+                var argumentExpressionOperation = argumentOperation.Children.First();
+                if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
+                    && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
+                    && argumentOperation.IsImplicit)
                 {
+                    // if this argument is a param array & the array creation operation is implicitly generated,
+                    // it means it is in this format:
+                    // void caller() { Callee(1, 2, 3); }
+                    // void Callee(params int[] x) { }
+                    // Collect each of these arguments and generate a new array for it.
+                    // Note: it could be empty.
                     return syntaxGenerator.LocalDeclarationStatement(
                         parameterSymbol.Type,
                         name,
-                        inlineMethodRefactoringProvider.GenerateArrayInitializerExpression(arguments));
+                        inlineMethodRefactoringProvider.GenerateArrayInitializerExpression(arrayCreationOperation.Initializer.ElementValues.SelectAsArray(op => op.Syntax)));
                 }
                 else
                 {
                     // In all the other cases, one parameter should only maps to one arguments.
-                    return syntaxGenerator.LocalDeclarationStatement(parameterSymbol.Type, name, arguments[0]);
+                    return syntaxGenerator.LocalDeclarationStatement(parameterSymbol.Type, name, argumentExpressionOperation.Syntax);
                 }
             }
 
             private static async Task<SyntaxNode> ReplaceAllSyntaxNodesForSymbolAsync(
                 Document document,
-                TExpressionSyntax inlineSyntaxNode,
+                TExpression inlineNode,
                 SyntaxGenerator syntaxGenerator,
                 SyntaxNode root,
                 ImmutableDictionary<ISymbol, SyntaxNode> replacementTable,
                 CancellationToken cancellationToken)
             {
-                var editor = new SyntaxEditor(inlineSyntaxNode, syntaxGenerator);
+                var editor = new SyntaxEditor(inlineNode, syntaxGenerator);
 
-                foreach (var (symbol, syntaxNode) in replacementTable)
+                foreach (var kvp in replacementTable)
                 {
                     var allReferences = await SymbolFinder
-                        .FindReferencesAsync(symbol, document.Project.Solution, cancellationToken)
+                        .FindReferencesAsync(kvp.Key, document.Project.Solution, cancellationToken)
                         .ConfigureAwait(false);
                     var allSyntaxNodesToReplace = allReferences
                         .SelectMany(reference => reference.Locations
@@ -388,7 +382,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     {
                         if (editor.OriginalRoot.Contains(nodeToReplace))
                         {
-                            var replacementNodeWithTrivia = syntaxNode
+                            var replacementNodeWithTrivia = kvp.Value
                                 .WithLeadingTrivia(nodeToReplace.GetLeadingTrivia())
                                 .WithTrailingTrivia(nodeToReplace.GetTrailingTrivia());
                             editor.ReplaceNode(nodeToReplace, replacementNodeWithTrivia);
@@ -404,26 +398,82 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// is the replacement syntax node for all its occurence.
             /// </summary>
             private static ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
-                AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
+                AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName>
                     inlineMethodRefactoringProvider,
                 IMethodSymbol calleeMethodSymbol,
-                ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpression)>
-                    parametersWithLiteralArgument,
+                ImmutableArray<(IParameterSymbol parameterSymbol, TExpression literalExpression)> parametersWithLiteralArgument,
                 ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
                 SyntaxGenerator syntaxGenerator,
                 ImmutableDictionary<ISymbol, string> renameTable)
             {
+                // 1. Type arguments (generics)
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     Callee<int>();
+                // }
+                // void Callee<T>() => Print(typeof<T>);
+                // After:
+                // void Caller()
+                // {
+                //     Callee<int>();
+                // }
+                // void Callee<T>() => Print(typeof<int>);
                 var typeParametersReplacementQuery = calleeMethodSymbol.TypeParameters
                     .Zip(calleeMethodSymbol.TypeArguments,
                         (parameter, argument) => (parameter: (ISymbol)parameter,
                             syntaxNode: inlineMethodRefactoringProvider.GenerateTypeSyntax(argument)));
+                // 2. Literal replacement
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     Callee(20)
+                // }
+                // void Callee(int i, int j = 10)
+                // {
+                //     Bar(i, j);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     Callee(20)
+                // }
+                // void Callee(int i, int j = 10)
+                // {
+                //     Bar(20, 10);
+                // }
                 var defaultValueReplacementQuery = parametersWithDefaultValue
                     .Select(symbol => (parameter: (ISymbol)symbol,
                         syntaxNode: syntaxGenerator.LiteralExpression(symbol.ExplicitDefaultValue)));
                 var literalArgumentReplacementQuery = parametersWithLiteralArgument
                     .Select(parameterAndArgument => (parameter: (ISymbol)parameterAndArgument.parameterSymbol,
-                        syntaxNode: parameterAndArgument.literalExpression));
+                        syntaxNode: (SyntaxNode)parameterAndArgument.literalExpression));
 
+                // 3. Identifier
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     int a, b, c;
+                //     Callee(a, b)
+                // }
+                // void Callee(int i, int j)
+                // {
+                //     Bar(i, j, out int c);
+                // }
+                // After:
+                // void Caller()
+                // {
+                //     int a, b, c;
+                //     Callee(a, b)
+                // }
+                // void Callee(int i, int j = 10)
+                // {
+                //     Bar(a, b, out int c1);
+                // }
+                // The Rename table has all the local identifier needs rename
                 return renameTable
                     .Select(kvp => (parameter: kvp.Key,
                         syntaxNode: syntaxGenerator.IdentifierName(kvp.Value)))
@@ -433,14 +483,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .ToImmutableDictionary(tuple => tuple.parameter, tuple => tuple.syntaxNode);
             }
 
-            /// <summary>
-            /// Get a map which key is the symbol is the identifier in <param name="calleeDeclarationSyntaxNode"/>, and value is
-            /// its new name after inlining.
-            /// </summary>
             private static ImmutableDictionary<ISymbol, string> ComputeRenameTable(
                 ISemanticFactsService semanticFacts,
                 SemanticModel semanticModel,
-                SyntaxNode calleeInvocationSyntaxNode,
+                SyntaxNode calleeInvocationNode,
                 SyntaxNode inlineSyntaxNode,
                 ImmutableArray<(IParameterSymbol parameterSymbol, string variableName)> identifierArguments,
                 ImmutableArray<IParameterSymbol> parametersNeedGenerateDeclaration,
@@ -513,32 +559,36 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // void Caller()
                 // {
                 //     int i = 0;
+                //     int j = 1;
                 //     Callee(Foo())
                 // }
                 // void Callee(int i)
                 // {
-                //     Bar(i);
+                //     Bar(i, out int j);
                 // }
-                // After inline it should be:
+                // After:
                 // void Caller()
                 // {
                 //     int i = 10;
+                //     int j = 1;
                 //     int i1 = Foo();
-                //     Bar(i1);
+                //     Bar(i1, out int j2);
                 // }
                 // void Callee(int i)
                 // {
-                //     Bar(i);
+                //     Bar(i, out int j);
                 // }
-                foreach (var parameterSymbol in parametersNeedGenerateDeclaration)
+                var existingSymbolInCalleeQuery = semanticModel.LookupSymbols(inlineSyntaxNode.Span.End)
+                    .Where(symbol => symbol.IsKind(SymbolKind.Local));
+                foreach (var symbol in parametersNeedGenerateDeclaration.Concat(existingSymbolInCalleeQuery))
                 {
                     var usedNames = renameTable.Values;
-                    renameTable[parameterSymbol] = semanticFacts
+                    renameTable[symbol] = semanticFacts
                         .GenerateUniqueLocalName(
                             semanticModel,
-                            calleeInvocationSyntaxNode,
+                            calleeInvocationNode,
                             null,
-                            parameterSymbol.Name,
+                            symbol.Name,
                             usedNames,
                             cancellationToken).Text;
                 }

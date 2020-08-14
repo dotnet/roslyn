@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, MethodDeclarationSyntax>
+        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, MethodDeclarationSyntax, IdentifierNameSyntax>
     {
         /// <summary>
         /// All the syntax kind considered as the statement contains the invocation callee.
@@ -115,6 +115,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
             // Check has been done before to make sure it will not hit here.
             throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override SyntaxNode? GetEnclosingMethod(SyntaxNode syntaxNode)
+        {
+            for (var node = syntaxNode; node != null; node = node.Parent)
+            {
+                if (node.IsKind(SyntaxKind.MethodDeclaration)
+                    || node.IsKind(SyntaxKind.LocalFunctionStatement)
+                    || node is LambdaExpressionSyntax)
+                {
+                    return node;
+                }
+            }
+
+            return null;
         }
 
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)

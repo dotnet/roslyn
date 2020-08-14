@@ -8,14 +8,16 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntaxNode, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax>
-        where TInvocationSyntaxNode : SyntaxNode
-        where TExpressionSyntax : SyntaxNode
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName>
+        where TInvocationNode : SyntaxNode
+        where TExpression : SyntaxNode
         where TArgumentSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
+        where TIdentifierName : SyntaxNode
     {
         /// <summary>
         /// Information about the callee method parameters to compute <see cref="InlineMethodContext"/>.
@@ -23,53 +25,110 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private class MethodParametersInfo
         {
             /// <summary>
-            /// Parameters map to identifier argument.
+            /// Parameters map to identifier argument. The identifier from Caller will be used to replace
+            /// the mapping callee's parameter.
+            /// Example:
+            /// Before:
+            /// void Caller(int i, int j, bool[] k)
+            /// {
+            ///     Callee(i, j, k);
+            /// }
+            /// void Callee(int a, int b, params bool[] c)
+            /// {
+            ///     DoSomething(a, b, c);
+            /// }
+            /// After:
+            /// void Caller(int i, int j, bool[] k)
+            /// {
+            ///     DoSomething(i, j, k);
+            /// }
+            /// void Callee(int a, int b, params bool[] c)
+            /// {
+            ///     DoSomething(a, b, c);
+            /// }
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode identifierSyntaxNode)> ParametersWithIdentifierArgument { get; }
+            public ImmutableArray<(IParameterSymbol parameterSymbol, TIdentifierName identifierSyntaxNode)> ParametersWithIdentifierArgument { get; }
 
             /// <summary>
-            /// Parameters map to variable declaration argument (out var declaration in C#)
+            /// Parameters map to variable declaration argument.
+            /// This is only used for C# to support the 'out' variable declaration. For VB it should always be empty.
+            /// Before:
+            /// void Caller()
+            /// {
+            ///     Callee(out var x);
+            /// }
+            /// void Callee(out int i) => i = 100;
+            ///
+            /// After:
+            /// void Caller()
+            /// {
+            ///     int x;
+            ///     x = 100;
+            /// }
+            /// void Callee(out int i) => i = 100;
             /// </summary>
             public ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode variableDeclarationNode)> ParametersWithVariableDeclarationArgument { get; }
 
             /// <summary>
-            /// Parameters map to other expression arguments. Note: params array could maps to multiple arguments.
+            /// Operations that represent Parameter has argument but the argument is not identifier or literal.
+            /// For these parameters they are considered to be put into a declaration statement after inlining.
+            /// Note: params array could maps to multiple/zero arguments.
+            /// Example:
+            /// Before:
+            /// void Caller(bool x)
+            /// {
+            ///     Callee(Foo(), x ? Foo() : Bar())
+            /// }
+            /// void Callee(int a, int b)
+            /// {
+            ///     DoSomething(a, b);
+            /// }
+            /// After:
+            /// void Caller(bool x)
+            /// {
+            ///     int a = Foo();
+            ///     int b = x ? Foo() : Bar();
+            ///     DoSomething(a, b);
+            /// }
+            /// void Callee(int a, int b)
+            /// {
+            ///     DoSomething(a, b);
+            /// }
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments)> ParametersNeedGenerateDeclarations { get; }
+            public ImmutableArray<IArgumentOperation> OperationsNeedGenerateDeclarations { get; }
 
             /// <summary>
-            /// Parameters has no argument input and have default value.
+            /// Parameters has no argument input and have default value. They will be replaced by their default value.
             /// </summary>
             public ImmutableArray<IParameterSymbol> ParametersWithDefaultValue { get; }
 
             /// <summary>
-            /// Parameters map to literal expression argument.
+            /// Parameters map to literal expression argument. They will be replaced by the literal value.
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpressionSyntaxNode)> ParametersWithLiteralArgument { get; }
+            public ImmutableArray<(IParameterSymbol parameterSymbol, TExpression literalExpressionSyntaxNode)> ParametersWithLiteralArgument { get; }
 
             private MethodParametersInfo(
-                ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode identifierSyntaxNode)> parametersWithIdentifierArgument,
+                ImmutableArray<(IParameterSymbol parameterSymbol, TIdentifierName identifierSyntaxNode)> parametersWithIdentifierArgument,
                 ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode variableDeclarationNode)> parametersWithVariableDeclarationArgument,
-                ImmutableArray<(IParameterSymbol parameterSymbol, ImmutableArray<SyntaxNode> arguments)> parametersNeedGenerateDeclarations,
+                ImmutableArray<IArgumentOperation> operationsNeedGenerateDeclarations,
                 ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
-                ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode literalExpressionSyntaxNode)> parametersWithLiteralArgument)
+                ImmutableArray<(IParameterSymbol parameterSymbol, TExpression literalExpressionSyntaxNode)> parametersWithLiteralArgument)
             {
                 ParametersWithIdentifierArgument = parametersWithIdentifierArgument;
                 ParametersWithVariableDeclarationArgument = parametersWithVariableDeclarationArgument;
-                ParametersNeedGenerateDeclarations = parametersNeedGenerateDeclarations;
+                OperationsNeedGenerateDeclarations = operationsNeedGenerateDeclarations;
                 ParametersWithDefaultValue = parametersWithDefaultValue;
                 ParametersWithLiteralArgument = parametersWithLiteralArgument;
             }
 
-            public static MethodParametersInfo GetMethodParametersInfo2(
+            public static MethodParametersInfo GetMethodParametersInfo(
                 ISyntaxFacts syntaxFacts,
                 IInvocationOperation invocationOperation)
             {
                 var allArgumentOperations = invocationOperation.Arguments
-                    .Select(operation => (argumentOperation: operation,
-                        argumentExpressionOperation: operation.Children.FirstOrDefault()))
-                    .Where(argumentAndArgumentOperation => argumentAndArgumentOperation.argumentExpressionOperation != null)
-                    .ToImmutableArray();
+                    .Where(operation => operation.Children.IsSingle())
+                    .SelectAsArray(operation => (argumentOperation: operation,
+                        argumentExpressionOperation: operation.Children.First()));
 
                 // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
                 // For params array, it should be included here if it is accept an array identifier as argument.
@@ -92,7 +151,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     DoSomething(a, b, c);
                 // }
-                var operationsWithIdentifier = allArgumentOperations
+                var operationsWithIdentifierArgument = allArgumentOperations
                     .WhereAsArray(argumentAndArgumentOperation =>
                         syntaxFacts.IsIdentifierName(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
 
@@ -113,7 +172,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 //     x = 100;
                 // }
                 // void Callee(out int i) => i = 100;
-                var operationsWithVariableDeclaration = allArgumentOperations
+                var operationsWithVariableDeclarationArgument = allArgumentOperations
                     .WhereAsArray(argumentAndArgumentOperation =>
                         syntaxFacts.IsDeclarationExpression(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
 
@@ -188,51 +247,29 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // {
                 //     DoSomething(a, b);
                 // }
-                var parametersNeedGenerateDeclarations = allArgumentOperations
-                    .RemoveRange(operationsWithIdentifier)
-                    .RemoveRange(operationsWithVariableDeclaration)
+                var operationsToGenerateFreshVariablesFor = allArgumentOperations
+                    .RemoveRange(operationsWithIdentifierArgument)
+                    .RemoveRange(operationsWithVariableDeclarationArgument)
                     .RemoveRange(operationsWithLiteralArgument)
                     .RemoveRange(operationsWithDefaultValue)
-                    .SelectAsArray(argumentAndArgumentOperation =>
-                        (argumentAndArgumentOperation.argumentOperation.Parameter,
-                            GetArgumentSyntaxFromOperation(argumentAndArgumentOperation)));
+                    .SelectAsArray(argumentAndArgumentOperation => argumentAndArgumentOperation.argumentOperation);
 
                 return new MethodParametersInfo(
-                    operationsWithIdentifier
+                    operationsWithIdentifierArgument
+                        .SelectAsArray(argumentAndArgumentOperation => (
+                            argumentAndArgumentOperation.argumentOperation.Parameter,
+                            (TIdentifierName)argumentAndArgumentOperation.argumentExpressionOperation.Syntax)),
+                    operationsWithVariableDeclarationArgument
                         .SelectAsArray(argumentAndArgumentOperation => (
                             argumentAndArgumentOperation.argumentOperation.Parameter,
                             argumentAndArgumentOperation.argumentExpressionOperation.Syntax)),
-                    operationsWithVariableDeclaration
-                        .SelectAsArray(argumentAndArgumentOperation => (
-                            argumentAndArgumentOperation.argumentOperation.Parameter,
-                            argumentAndArgumentOperation.argumentExpressionOperation.Syntax)),
-                    parametersNeedGenerateDeclarations,
+                    operationsToGenerateFreshVariablesFor,
                     operationsWithDefaultValue.SelectAsArray(argumentAndArgumentOperation =>
                         argumentAndArgumentOperation.argumentOperation.Parameter),
                     operationsWithLiteralArgument
                         .SelectAsArray(argumentAndArgumentOperation => (
                             argumentAndArgumentOperation.argumentOperation.Parameter,
-                            argumentAndArgumentOperation.argumentExpressionOperation.Syntax)));
-            }
-
-            private static ImmutableArray<SyntaxNode> GetArgumentSyntaxFromOperation(
-                (IArgumentOperation argumentOperation, IOperation argumentExpressionOperation) argumentAndArgumentOperation)
-            {
-                var (argumentOperation, argumentExpressionOperation) = argumentAndArgumentOperation;
-                // if this argument is a param array & the array creation operation is implicitly generated,
-                // it means it is in this format:
-                // void caller() { Callee(1, 2, 3); }
-                // void Callee(params int[] x) { }
-                // Collect each of these arguments.
-                // Note: it could be empty.
-                if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
-                    && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
-                    && argumentOperation.IsImplicit)
-                {
-                    return arrayCreationOperation.Initializer.ElementValues.SelectAsArray(value => value.Syntax);
-                }
-
-                return ImmutableArray.Create(argumentExpressionOperation.Syntax);
+                            (TExpression)argumentAndArgumentOperation.argumentExpressionOperation.Syntax)));
             }
         }
     }

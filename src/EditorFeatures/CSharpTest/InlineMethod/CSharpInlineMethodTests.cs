@@ -705,7 +705,7 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestAwaitExpression()
+        public Task TestAwaitExpressionInMethod()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
 using System.Threading.Tasks;
@@ -731,6 +731,47 @@ public class TestClass
         System.Console.WriteLine("""");
         int j = x ? 1 : 2;
         return await Task.FromResult(10 + j);
+    }
+
+    private async Task<int> Callee(int i, int j)
+    {
+        return await Task.FromResult(i + j);
+    }
+}");
+
+        [Fact]
+        public Task TestAwaitExpressionInLocalMethod()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    private void Method()
+    {
+        Task<int> Caller(bool x)
+        {
+            System.Console.WriteLine("""");
+            return Call[||]ee(10, x ? 1 : 2);
+        }
+    }
+
+    private async Task<int> Callee(int i, int j)
+    {
+        return await Task.FromResult(i + j);
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    private void Method()
+    {
+        async Task<int> Caller(bool x)
+        {
+            System.Console.WriteLine("""");
+            int j = x ? 1 : 2;
+            return await Task.FromResult(10 + j);
+        }
     }
 
     private async Task<int> Callee(int i, int j)
