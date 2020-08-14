@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <RoslynExToolsetVersion>3.8.0-poc.20414.9</RoslynExToolsetVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <UsingTask TaskName="RewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <NuspecFile />
+      <ToolsetVersion />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Xml.Linq" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            XNamespace ns = "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd";
+
+            var doc = XDocument.Load(NuspecFile);
+            var groups = doc.Element(ns + "package").Element(ns + "metadata").Element(ns + "dependencies").Elements(ns + "group");
+
+            foreach (var group in groups)
+            {
+                var sdk = group.Elements(ns + "dependency").SingleOrDefault(e => e.Attribute("id").Value == "RoslynEx.Sdk");
+                sdk?.Remove();
+
+                var toolset = new XElement(ns + "dependency", new XAttribute("id", "RoslynEx.Toolset"), new XAttribute("version", ToolsetVersion));
+                group.Add(toolset);
+            }
+
+            doc.Save(NuspecFile);
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <!-- based on https://github.com/NuGet/NuGet.Client/blob/1f3a4d9/src/NuGet.Core/NuGet.Build.Tasks.Pack/NuGet.Build.Tasks.Pack.targets#L195 -->
+  <Target Name="RoslynExGenerateNuspec"
+          DependsOnTargets="$(GenerateNuspecDependsOn);_CalculateInputsOutputsForPack;_GetProjectReferenceVersions;_InitializeNuspecRepositoryInformationProperties"
+          Condition="$(IsPackable) == 'true'" Inputs="@(NuGetPackInput)" Outputs="@(NuGetPackOutput)">
+    <PackTask PackItem="$(PackProjectInputFile)"
+              PackageFiles="@(_PackageFiles)"
+              PackageFilesToExclude="@(_PackageFilesToExclude)"
+              PackageVersion="$(PackageVersion)"
+              PackageId="$(PackageId)"
+              Title="$(Title)"
+              Authors="$(Authors)"
+              Description="$(PackageDescription)"
+              Copyright="$(Copyright)"
+              RequireLicenseAcceptance="$(PackageRequireLicenseAcceptance)"
+              LicenseUrl="$(PackageLicenseUrl)"
+              ProjectUrl="$(PackageProjectUrl)"
+              IconUrl="$(PackageIconUrl)"
+              ReleaseNotes="$(PackageReleaseNotes)"
+              Tags="$(PackageTags)"
+              DevelopmentDependency="$(DevelopmentDependency)"
+              BuildOutputInPackage="@(_BuildOutputInPackage)"
+              ProjectReferencesWithVersions="@(_ProjectReferencesWithVersions)"
+              TargetPathsToSymbols="@(_TargetPathsToSymbols)"
+              TargetFrameworks="@(_TargetFrameworks)"
+              FrameworksWithSuppressedDependencies="@(_FrameworksWithSuppressedDependencies)"
+              AssemblyName="$(AssemblyName)"
+              PackageOutputPath="$(PackageOutputAbsolutePath)"
+              IncludeSymbols="$(IncludeSymbols)"
+              IncludeSource="$(IncludeSource)"
+              PackageTypes="$(PackageType)"
+              IsTool="$(IsTool)"
+              RepositoryUrl="$(RepositoryUrl)"
+              RepositoryType="$(RepositoryType)"
+              RepositoryBranch="$(RepositoryBranch)"
+              RepositoryCommit="$(RepositoryCommit)"
+              SourceFiles="@(_SourceFiles->Distinct())"
+              NoPackageAnalysis="$(NoPackageAnalysis)"
+              NoDefaultExcludes="$(NoDefaultExcludes)"
+              MinClientVersion="$(MinClientVersion)"
+              Serviceable="$(Serviceable)"
+              FrameworkAssemblyReferences="@(_FrameworkAssemblyReferences)"
+              ContinuePackingAfterGeneratingNuspec="$(ContinuePackingAfterGeneratingNuspec)"
+              NuspecOutputPath="$(NuspecOutputAbsolutePath)"
+              IncludeBuildOutput="$(IncludeBuildOutput)"
+              BuildOutputFolders="$(BuildOutputTargetFolder)"
+              ContentTargetFolders="$(ContentTargetFolders)"
+              RestoreOutputPath="$(RestoreOutputAbsolutePath)"
+              NuspecFile="$(NuspecFileAbsolutePath)"
+              NuspecBasePath="$(NuspecBasePath)"
+              NuspecProperties="$(NuspecProperties)"
+              AllowedOutputExtensionsInPackageBuildOutputFolder="$(AllowedOutputExtensionsInPackageBuildOutputFolder)"
+              AllowedOutputExtensionsInSymbolsPackageBuildOutputFolder="$(AllowedOutputExtensionsInSymbolsPackageBuildOutputFolder)"
+              NoWarn="$(NoWarn)"
+              WarningsAsErrors="$(WarningsAsErrors)"
+              TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
+              OutputFileNamesWithoutVersion="$(OutputFileNamesWithoutVersion)"
+              InstallPackageToOutputPath="$(InstallPackageToOutputPath)"
+              SymbolPackageFormat="$(SymbolPackageFormat)"
+              PackageLicenseFile="$(PackageLicenseFile)"
+              PackageLicenseExpression="$(PackageLicenseExpression)"
+              PackageLicenseExpressionVersion="$(PackageLicenseExpressionVersion)"
+              Deterministic="$(Deterministic)"
+              PackageIcon="$(PackageIcon)"
+              ContinueOnError="true"
+              />
+  </Target>
+
+  <Target Name="UpdateNuspec" DependsOnTargets="RoslynExGenerateNuspec">
+    <ItemGroup>
+      <FilteredOutput Include="@(NuGetPackOutput)" Condition="%(Extension) == '.nuspec'" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <NuspecFileAbsolutePath>@(FilteredOutput)</NuspecFileAbsolutePath>
+    </PropertyGroup>
+
+    <RewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)" ToolsetVersion="$(RoslynExToolsetVersion)" />
+
+  </Target>
+
+  <PropertyGroup>
+    <BeforePack>$(BeforePack); UpdateNuspec</BeforePack>
+  </PropertyGroup>
+
+</Project>

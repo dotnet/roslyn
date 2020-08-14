@@ -10,11 +10,14 @@
     <PreReleaseVersionLabel>poc</PreReleaseVersionLabel>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <OfficialBuild>true</OfficialBuild>
-    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).9</OfficialBuildId>
-    <DevelopmentDependency>true</DevelopmentDependency>
+    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).3</OfficialBuildId>
   </PropertyGroup>
 
   <Import Project="..\RoslynEx.Shared\RoslynEx.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <None Include="build\RoslynEx.Sdk.targets" Pack="true" PackagePath="build" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
