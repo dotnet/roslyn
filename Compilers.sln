@@ -160,7 +160,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RoslynEx", "RoslynEx", "{80
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RoslynEx.Shared", "src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.shproj", "{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynEx.Sdk", "src\RoslynEx\RoslynEx.Sdk\RoslynEx.Sdk.csproj", "{813E74A5-78C0-499E-AE2B-DC133B8A77BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynEx.Sdk", "src\RoslynEx\RoslynEx.Sdk\RoslynEx.Sdk.csproj", "{813E74A5-78C0-499E-AE2B-DC133B8A77BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynEx.Interface.TypeForwards", "src\RoslynEx\RoslynEx.Interface.TypeForwards\RoslynEx.Interface.TypeForwards.csproj", "{BDC4CFCA-200F-4BD9-88C0-E75D8577D636}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -452,6 +454,10 @@ Global
 		{813E74A5-78C0-499E-AE2B-DC133B8A77BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{813E74A5-78C0-499E-AE2B-DC133B8A77BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{813E74A5-78C0-499E-AE2B-DC133B8A77BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDC4CFCA-200F-4BD9-88C0-E75D8577D636}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDC4CFCA-200F-4BD9-88C0-E75D8577D636}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDC4CFCA-200F-4BD9-88C0-E75D8577D636}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDC4CFCA-200F-4BD9-88C0-E75D8577D636}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -525,6 +531,7 @@ Global
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87} = {3FF38FD4-DF16-44B0-924F-0D5AE155495B}
 		{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
 		{813E74A5-78C0-499E-AE2B-DC133B8A77BF} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
+		{BDC4CFCA-200F-4BD9-88C0-E75D8577D636} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

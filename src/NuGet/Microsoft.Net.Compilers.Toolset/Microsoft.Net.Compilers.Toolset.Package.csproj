@@ -25,19 +25,20 @@
 
     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
     <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp3.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+    <_DependsOn>$(_DependsOn);InitializeRoslynExCompilerArtifacts</_DependsOn>
 
     <PreReleaseVersionLabel>poc</PreReleaseVersionLabel>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <OfficialBuild>true</OfficialBuild>
-    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).1</OfficialBuildId>
+    <OfficialBuildId>$([System.DateTime]::Now.ToString(yyyyMMdd)).7</OfficialBuildId>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\CSharp\csc\csc.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\vbc\vbc.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\Compilers\CSharp\csc\csc.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\vbc\vbc.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\Interactive\csi\csi.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All" />
 
     <ProjectReference Update="@(ProjectReference)"
                       Targets="Publish"
@@ -49,12 +50,14 @@
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
-      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp3.1"/>
-      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp3.1"/>
-      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp3.1/bincore"/>
-      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp3.1/bincore/runtimes"/>
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472" />
+      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472" />
+      <_File Include="@(RoslynExCompilerArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
+      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp3.1" />
+      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp3.1" />
+      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp3.1/bincore" />
+      <_File Include="@(RoslynExCompilerArtifact)" TargetDir="tasks/netcoreapp3.1/bincore" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp3.1/bincore/runtimes" />
      
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
      
@@ -64,4 +67,5 @@
 
   <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
   <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+  <Import Project="RoslynExCompilerArtifacts.targets" />
 </Project>

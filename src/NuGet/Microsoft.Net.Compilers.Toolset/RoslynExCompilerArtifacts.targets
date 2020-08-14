@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <Target Name="InitializeRoslynExCompilerArtifacts">
+    <ItemGroup>
+      
+      <RoslynExCompilerArtifact Include="$(ArtifactsBinDir)RoslynEx.Interface.TypeForwards\$(Configuration)\netstandard2.0\RoslynEx.Interface.dll" />
+
+    </ItemGroup>
+  </Target>
+</Project>
