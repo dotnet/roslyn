@@ -105,10 +105,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineParameterNameHints
                 // If so, then we should add the adornment
                 return IsExpressionWithNoName(negation.Operand);
             }
-            if (arg.Parent is BracketedArgumentListSyntax)
+            if (arg.Parent is BracketedArgumentListSyntax bracketList)
             {
-                // Do not need to add hints for array accesses
-                return false;
+                // Do not need to add hints for array accesses if the length is 1
+                if (bracketList.Arguments.Count == 1)
+                {
+                    return false;
+                }
+
+                return true;
             }
 
             return false;
