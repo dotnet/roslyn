@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string ConvertTypeOfToNameOfDiagnosticId = "IDE0082";
 
         public const string UseNotPatternDiagnosticId = "IDE0083";
-        public const string UseIsNotExpressionDiagnosticId = "IDE0083";
+        public const string UseIsNotExpressionDiagnosticId = "IDE0084";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
