@@ -39,14 +39,14 @@ End Module
                 new ErrorListItem(
                     severity: "Error",
                     description: "Type 'P' is not defined.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 4,
                     column: 24),
                 new ErrorListItem(
                     severity: "Error",
                     description: "'Goo' is not declared. It may be inaccessible due to its protection level.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 9,
                     column: 9)
