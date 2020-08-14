@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjName = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -89,11 +89,19 @@ End Module
 ");
 
             VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
-            VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("x   As   integer", VirtualKey.Tab);
             VisualStudio.Editor.Verify.IsNotSaved();
             VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.S, ShiftState.Ctrl));
-            VisualStudio.Editor.Verify.IsSaved();
-            VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
+            var savedFileName = VisualStudio.Editor.Verify.IsSaved();
+            try
+            {
+                VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException($"Unexpected failure after saving document '{savedFileName}'", e);
+            }
+
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x   As   Integer)");
             VisualStudio.Editor.Verify.CaretPosition(45);
