@@ -526,5 +526,52 @@ public class [|Impl|] : IInterface
 
             Await TestAsync(workspace, host)
         End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateStringAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;string&gt; CreateStringAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;string&gt; [|CreateStringAsync|]()
+    {
+        return "Another hello world - async!";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
     End Class
 End Namespace
