@@ -301,9 +301,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // See https://github.com/dotnet/roslyn/issues/29589
                 const bool includeSuppressionFixes = true;
 
-                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixes_MustBeCalledFromUIThread(
+                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, _owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken);
+                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // then we want to filter out refactorings outside the selection span.
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
-                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactorings_MustBeCalledFromUIThread(
+                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                     workspace, _owner._codeRefactoringService, document, selection, isBlocking: true,
-                    addOperationScope, filterOutsideSelection, cancellationToken);
+                    addOperationScope, filterOutsideSelection, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
             public Task<bool> HasSuggestedActionsAsync(

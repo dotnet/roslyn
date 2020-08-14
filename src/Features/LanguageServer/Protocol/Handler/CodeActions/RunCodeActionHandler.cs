@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = _solutionProvider.GetDocument(runRequest.TextDocument);
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 document, _codeFixService, _codeRefactoringService,
-                _threadingContext, runRequest.Range, cancellationToken).ConfigureAwait(false);
+                runRequest.Range, cancellationToken).ConfigureAwait(false);
 
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(actionToRun);

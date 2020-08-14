@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -14,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -37,20 +35,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionResolveHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
             ILspSolutionProvider solutionProvider)
             : base(solutionProvider)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
-            _threadingContext = threadingContext;
         }
 
         public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
@@ -63,7 +58,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 document,
                 _codeFixService,
                 _codeRefactoringService,
-                _threadingContext,
                 data.Range,
                 cancellationToken).ConfigureAwait(false);
 
