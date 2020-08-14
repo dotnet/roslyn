@@ -4291,7 +4291,7 @@ record C1
                 // (14,30): warning CS0649: Field 'C1.field7' is never assigned to, and will always have its default value null
                 //     private protected string field7;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field7").WithArguments("C1.field7", "null").WithLocation(14, 30)
-);
+                );
             var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }", verify: Verification.Skipped /* init-only */);
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
@@ -4355,7 +4355,8 @@ record C1(int Property)
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Property2").WithArguments("C1.Property2").WithLocation(7, 17),
                 // (8,18): warning CS0649: Field 'C1.Property3' is never assigned to, and will always have its default value 0
                 //     internal int Property3;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Property3").WithArguments("C1.Property3", "0").WithLocation(8, 18));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Property3").WithArguments("C1.Property3", "0").WithLocation(8, 18)
+                );
             var v = CompileAndVerify(comp, expectedOutput: "C1 { Property = 42 }", verify: Verification.Skipped /* init-only */);
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
