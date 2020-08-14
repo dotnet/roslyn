@@ -627,7 +627,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Modificar fuente archivo {0} evitará que la sesión de depuración continua debido a un error interno: {1}.</target>
+        <target state="needs-review-translation">Modificar fuente archivo {0} evitará que la sesión de depuración continua debido a un error interno: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
