@@ -3727,7 +3727,7 @@ System.Console.Write(c1.ToString());
 record C1;
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
 
@@ -3798,7 +3798,7 @@ record C2 : C1
     public override string ToString() => base.ToString();
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
 
@@ -3871,7 +3871,7 @@ record C2 : C1
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
 
@@ -4042,7 +4042,7 @@ System.Console.Write(c1.ToString());
 sealed record C1;
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1 {  }");
 
@@ -4074,7 +4074,7 @@ abstract record C1(int I1);
 sealed record C2(int I1, int I2) : C1(I1);
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C2 { I1 = 42, I2 = 43 }", verify: Verification.Skipped /* init-only */);
         }
@@ -4177,7 +4177,7 @@ record C1
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
 
@@ -4259,7 +4259,7 @@ record C1
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }", verify: Verification.Skipped /* init-only */);
 
@@ -4317,7 +4317,7 @@ record C1(int Property)
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 { Property = 42 }", verify: Verification.Skipped /* init-only */);
 
@@ -4359,7 +4359,7 @@ record C1<T1, T2>(T1 Property1, T2 Property2)
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1 { Property1 = 42, Property2 = , field1 = 43, field2 = hi }", verify: Verification.Skipped /* init-only */);
         }
@@ -4381,7 +4381,7 @@ record C1(int A1, int B1) : Base(A1)
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             var v = CompileAndVerify(comp, expectedOutput: "C1 { A1 = 42, A2 = 100, B1 = 43, B2 = 101 }", verify: Verification.Skipped /* init-only */);
 
@@ -4506,7 +4506,7 @@ record C1(int A2, int B2) : Base(A2)
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1 { A2 = 42, A1 = 100, B2 = 43, B1 = 101 }", verify: Verification.Skipped /* init-only */);
         }
@@ -4530,7 +4530,7 @@ partial record C1
 }
 ";
 
-            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1 { A1 = 100, B1 = 101 }", verify: Verification.Skipped /* init-only */);
         }
@@ -4554,7 +4554,7 @@ partial record C1
 }
 ";
 
-            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1 { B1 = 101, A1 = 100 }", verify: Verification.Skipped /* init-only */);
         }
@@ -4714,7 +4714,7 @@ public record C : B
     public override string ToString() => base.ToString();
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "RAN");
         }
@@ -4783,7 +4783,7 @@ public record C : B
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0108: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. Use the new keyword if hiding was intended.
                 // public record B : A {
@@ -4858,7 +4858,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
@@ -4930,7 +4930,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 // public record B : A {
@@ -5011,7 +5011,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 // public record B : A {
@@ -5080,7 +5080,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
@@ -5164,7 +5164,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 // public record B : A {
@@ -5320,7 +5320,7 @@ public record C : B
     protected override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record C : B
@@ -5401,7 +5401,7 @@ public record C : B
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics();
 
             var print = comp.GetMember<MethodSymbol>("B." + WellKnownMemberNames.PrintMembersMethodName);
@@ -5479,7 +5479,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.ToString()' does not override expected method from 'object'.
                 // public record B : A {
@@ -5557,7 +5557,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
                 // public record B : A {
@@ -5578,7 +5578,7 @@ record C1
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "RAN");
 
@@ -5756,7 +5756,7 @@ record C1
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1 { RAN }");
         }
@@ -5856,7 +5856,7 @@ System.Console.Write(c1.ToString());
 record @base;
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "base {  }");
         }
@@ -5881,7 +5881,7 @@ record R2(int I1, int I2) : R1(I1);
 record R3(int I1, int I2, int I3) : R2(I1, I2);
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "R1 { I1 = 1 }  R2 { I1 = 10, I2 = 11 }  R3 { I1 = 20, I2 = 21, I3 = 22 }", verify: Verification.Skipped /* init-only */);
         }
