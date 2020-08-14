@@ -322,5 +322,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        protected static bool HasInitializer(Symbol field) => field switch
+        {
+            SourceMemberFieldSymbol f => f.HasInitializer,
+            SynthesizedBackingFieldSymbol f => f.HasInitializer,
+            SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
+            _ => false
+        };
     }
 }
