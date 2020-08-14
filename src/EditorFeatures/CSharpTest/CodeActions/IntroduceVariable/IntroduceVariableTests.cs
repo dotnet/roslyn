@@ -3212,7 +3212,7 @@ index: 2);
         }
 
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
-        [Fact(Skip = "PROTOTYPE(CONSTISTR) - Switched from introducing a local to introducing a constant."), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceVariableTextDoesntSpanLines2()
         {
             await TestSmartTagTextAsync(
@@ -3226,7 +3226,7 @@ b
 c""|];
     }
 }",
-string.Format(FeaturesResources.Introduce_local_for_0, @"$@""a b c"""));
+string.Format(FeaturesResources.Introduce_constant_for_0, @"$@""a b c"""));
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -4565,7 +4565,7 @@ class TestClass
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestNoConstantForInterpolatedStrings1()
+        public async Task TestNoConstantForInterpolatedStrings()
         {
             var code =
     @"using System;
@@ -4592,8 +4592,8 @@ class TestClass
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
-        [Fact(Skip = "PROTOTYPE(CONSTISTR) - Expected changed var into a private const."), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestNoConstantForInterpolatedStrings2()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestConstantForInterpolatedStrings()
         {
             var code =
     @"using System;
@@ -4610,11 +4610,12 @@ class TestClass
     @"using System;
 class TestClass
 {
+    private const string {|Rename:Value|} = $""Text{{s}}"";
+
     static void Test(string[] args)
     {
-        var {|Rename:value|} = $""Text{{s}}"";
-        Console.WriteLine(value);
-        Console.WriteLine(value);
+        Console.WriteLine(Value);
+        Console.WriteLine(Value);
     }
 }";
 
