@@ -267,7 +267,7 @@
         <target state="new">'{0}' does not override expected property from '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DoesNotOverrideBaseEquals">
+      <trans-unit id="ERR_DoesNotOverrideBaseMethod">
         <source>'{0}' does not override expected method from '{1}'.</source>
         <target state="new">'{0}' does not override expected method from '{1}'.</target>
         <note />
@@ -757,7 +757,7 @@
         <target state="new">The target runtime doesn't support extensible or runtime-environment default calling conventions.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SealedGetHashCodeInRecord">
+      <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>
         <note />
