@@ -767,8 +767,13 @@ class C
 [*.cs]
 dotnet_diagnostic.CS0168.severity = ");
 
-            // NOTE: This is a critical delay in repro-ing the original regression.
-            Thread.Sleep(2000);
+            // NOTE: Below wait is a critical step in repro-ing the original regression.
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
 
             VisualStudio.Editor.SendKeys("error");
 
