@@ -308,26 +308,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                                 parameterAndName.name)))
                     .ToImmutableArray();
 
-            private static ImmutableArray<TExpression> GetArgumentSyntaxFromOperation(
-                (IArgumentOperation argumentOperation, IOperation argumentExpressionOperation) argumentAndArgumentOperation)
-            {
-                var (argumentOperation, argumentExpressionOperation) = argumentAndArgumentOperation;
-                // if this argument is a param array & the array creation operation is implicitly generated,
-                // it means it is in this format:
-                // void caller() { Callee(1, 2, 3); }
-                // void Callee(params int[] x) { }
-                // Collect each of these arguments.
-                // Note: it could be empty.
-                if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
-                    && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
-                    && argumentOperation.IsImplicit)
-                {
-                    return arrayCreationOperation.Initializer.ElementValues.SelectAsArray(value => (TExpression)value.Syntax);
-                }
-
-                return ImmutableArray.Create((TExpression)argumentExpressionOperation.Syntax);
-            }
-
             private static SyntaxNode CreateLocalDeclarationStatement(
                 AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName> inlineMethodRefactoringProvider,
                 SyntaxGenerator syntaxGenerator,
