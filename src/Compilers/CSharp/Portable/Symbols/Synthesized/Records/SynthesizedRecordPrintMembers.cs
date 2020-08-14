@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.PrintMembersMethodName))
             {
-                if (member is MethodSymbol { DeclaredAccessibility: Accessibility.Protected, IsStatic: false, ParameterCount: 1, Arity: 0, ParameterTypesWithAnnotations: var parameterTypes } method &&
-                    parameterTypes[0].Equals(stringBuilder, TypeCompareKind.AllIgnoreOptions))
+                if (member is MethodSymbol { DeclaredAccessibility: Accessibility.Protected, IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
+                    method.ParameterTypesWithAnnotations[0].Equals(stringBuilder, TypeCompareKind.AllIgnoreOptions))
                 {
                     if (candidate is object)
                     {
