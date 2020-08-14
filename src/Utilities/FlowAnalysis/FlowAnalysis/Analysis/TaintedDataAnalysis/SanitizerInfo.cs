@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -68,6 +69,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that this <see cref="SanitizerInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
         public bool RequiresValueContentAnalysis => false;
+
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
+        public bool RequiresParameterReferenceAnalysis => false;
+
+        /// <summary>
+        /// Qualified names of the optional dependency types.
+        /// </summary>
+        public ImmutableArray<string> DependencyFullTypeNames => ImmutableArray<string>.Empty;
 
         public override int GetHashCode()
         {
