@@ -22,17 +22,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
             new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
 
-        private static readonly ImmutableArray<string> s_dependencyFullTypeNames = ImmutableArray.Create<string>(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
-                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute,
-                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute,
-                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute,
-                                                                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute);
-
         /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
         {
+            var dependencyFullTypeNames = ImmutableArray.Create(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute);
+
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
@@ -54,7 +54,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             sourceInfosBuilder.AddSourceInfo(
                 // checking all System.Object derived types is expensive, so it first checks if MicrosoftAspNetCoreMvcControllerBase is resolvable
-                s_dependencyFullTypeNames,
+                dependencyFullTypeNames,
                 WellKnownTypeNames.SystemObject,
                  new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
