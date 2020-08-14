@@ -6,7 +6,6 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression.VisualBasicUseIsNotExpressionDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression.VisualBasicUseIsNotExpressionCodeFixProvider)
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNotExpression
     Partial Public Class UseIsNotExpressionTests
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNotExpression)>
