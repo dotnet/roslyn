@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             debuggingSession.Dispose();
 
-            // Clear global buffer pool - the buffers are not gonna be needed until the next debugging session.
+            // Clear global buffer pool - the buffers are not going to be needed until the next debugging session.
             // If the type is used for other non-debugging purposes this will result it allocation of more buffers,
             // but won't affect correctness. Starting debugging session is relatively infrequent.
             LongestCommonSubsequence.ClearBufferPool();

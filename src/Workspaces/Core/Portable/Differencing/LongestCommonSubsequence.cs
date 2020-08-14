@@ -234,8 +234,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
         protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            var stack = CreateStack();
-            ComputeEditPaths(ref stack, oldSequence, oldLength, newSequence, newLength);
+            var stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
             var x = oldLength;
             var y = newLength;
@@ -283,8 +282,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         protected IEnumerable<SequenceEdit> GetEdits(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            var stack = CreateStack();
-            ComputeEditPaths(ref stack, oldSequence, oldLength, newSequence, newLength);
+            var stack = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
 
             var x = oldLength;
             var y = newLength;
@@ -416,10 +414,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// 
         /// VArrays store just the y index because x can be calculated: x = y + k.
         /// </remarks>
-        private void ComputeEditPaths(ref VStack stack, TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
+        private VStack ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
             var reachedEnd = false;
             VArray currentV = default;
+
+            var stack = CreateStack();
 
             for (var d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {
@@ -472,6 +472,8 @@ namespace Microsoft.CodeAnalysis.Differencing
                     }
                 }
             }
+
+            return stack;
         }
     }
 }
