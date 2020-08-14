@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 {
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
                     HoverProvider = true,
-                    FoldingRangeProvider = new FoldingRangeOptions { },
+                    FoldingRangeProvider = new FoldingRangeProviderOptions { },
                     TextDocumentSync = new TextDocumentSyncOptions
                     {
                         Change = TextDocumentSyncKind.None
