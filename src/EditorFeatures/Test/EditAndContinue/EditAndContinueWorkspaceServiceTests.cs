@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public sealed class EditAndContinueWorkspaceServiceTests : TestBase
     {
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(
-            typeof(TestActiveStatementSpanTrackerFactory));
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features;
 
         private static readonly ActiveStatementProvider s_noActiveStatements =
             cancellationToken => Task.FromResult(ImmutableArray<ActiveStatementDebugInfo>.Empty);
@@ -84,8 +83,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private EditAndContinueWorkspaceService CreateEditAndContinueService(Workspace workspace)
         {
-            Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
-
             return new EditAndContinueWorkspaceService(
                 workspace,
                 _mockCompilationOutputsProvider,
@@ -2253,11 +2250,11 @@ class C1
             var activeLineSpan21 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan21);
             var activeLineSpan22 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan22);
 
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
-            spanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
-            {
-                { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
-            };
+            //var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            //spanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
+            //{
+            //    { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
+            //};
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -2315,7 +2312,7 @@ class C1
             var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
             // tracking span update triggered by the edit:
-            spanTracker.Spans[documentId] = new TextSpan?[] { activeSpan21, activeSpan22 };
+            //spanTracker.Spans[documentId] = new TextSpan?[] { activeSpan21, activeSpan22 };
 
             baseSpans = await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(documentId), CancellationToken.None).ConfigureAwait(false);
             AssertEx.Equal(new[]
@@ -2369,11 +2366,11 @@ class C1
             var activeLineSpan21 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan21);
             var activeLineSpan22 = sourceTextV2.Lines.GetLinePositionSpan(activeSpan22);
 
-            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
-            spanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
-            {
-                { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
-            };
+            //var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+            //spanTracker.Spans = new Dictionary<DocumentId, TextSpan?[]>
+            //{
+            //    { documentId, new TextSpan?[] { activeSpan11, activeSpan12 } }
+            //};
 
             var service = CreateEditAndContinueService(workspace);
 
@@ -2406,7 +2403,7 @@ class C1
             var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
             // tracking span update triggered by the edit:
-            spanTracker.Spans[documentId] = new TextSpan?[] { activeSpan21, activeSpan22 };
+            //spanTracker.Spans[documentId] = new TextSpan?[] { activeSpan21, activeSpan22 };
 
             var baseSpans = await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(documentId), CancellationToken.None).ConfigureAwait(false);
 
@@ -2434,9 +2431,7 @@ class C1
         [Fact]
         public async Task ActiveStatements_ForeignDocument()
         {
-            var composition = FeaturesTestCompositions.Features.AddParts(
-                typeof(DummyLanguageService),
-                typeof(TestActiveStatementSpanTrackerFactory));
+            var composition = FeaturesTestCompositions.Features.AddParts(typeof(DummyLanguageService));
 
             using var workspace = new TestWorkspace(composition: composition);
             var solution = workspace.CurrentSolution;
