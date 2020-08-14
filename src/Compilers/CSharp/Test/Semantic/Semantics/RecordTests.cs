@@ -4247,7 +4247,10 @@ record C1
             comp.VerifyEmitDiagnostics(
                 // (4,12): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //     public Error field;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(4, 12),
+                // (4,18): warning CS0649: Field 'C1.field' is never assigned to, and will always have its default value null
+                //     public Error field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C1.field", "null").WithLocation(4, 18)
                 );
         }
 
@@ -4272,7 +4275,23 @@ record C1
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (10,20): warning CS0169: The field 'C1.field3' is never used
+                //     private string field3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field3").WithArguments("C1.field3").WithLocation(10, 20),
+                // (11,21): warning CS0649: Field 'C1.field4' is never assigned to, and will always have its default value null
+                //     internal string field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field4").WithArguments("C1.field4", "null").WithLocation(11, 21),
+                // (12,22): warning CS0649: Field 'C1.field5' is never assigned to, and will always have its default value null
+                //     protected string field5;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field5").WithArguments("C1.field5", "null").WithLocation(12, 22),
+                // (13,31): warning CS0649: Field 'C1.field6' is never assigned to, and will always have its default value null
+                //     protected internal string field6;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field6").WithArguments("C1.field6", "null").WithLocation(13, 31),
+                // (14,30): warning CS0649: Field 'C1.field7' is never assigned to, and will always have its default value null
+                //     private protected string field7;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field7").WithArguments("C1.field7", "null").WithLocation(14, 30)
+);
             var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }", verify: Verification.Skipped /* init-only */);
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
@@ -4330,7 +4349,13 @@ record C1(int Property)
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,17): warning CS0169: The field 'C1.Property2' is never used
+                //     private int Property2;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Property2").WithArguments("C1.Property2").WithLocation(7, 17),
+                // (8,18): warning CS0649: Field 'C1.Property3' is never assigned to, and will always have its default value 0
+                //     internal int Property3;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Property3").WithArguments("C1.Property3", "0").WithLocation(8, 18));
             var v = CompileAndVerify(comp, expectedOutput: "C1 { Property = 42 }", verify: Verification.Skipped /* init-only */);
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
