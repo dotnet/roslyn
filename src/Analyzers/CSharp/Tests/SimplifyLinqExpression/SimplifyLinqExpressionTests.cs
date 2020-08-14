@@ -9,15 +9,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 using Xunit;
-using Microsoft.CodeAnalysis.Testing;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpressions.CSharpSimplifyLinqExpressionsCodeFixProvider>;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpression
 {
     public partial class SimplifyLinqExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SimplifyLinqExpressionTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyLinqExpressionDiagnosticAnalyzer(), new CSharpSimplifyLinqExpressionCodeFixProvider());
 

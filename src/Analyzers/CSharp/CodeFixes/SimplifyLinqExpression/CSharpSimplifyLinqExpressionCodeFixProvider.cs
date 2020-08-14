@@ -13,7 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -38,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
         {
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)), context.Diagnostics);
+
             return Task.CompletedTask;
         }
 
@@ -54,49 +54,49 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             return Task.CompletedTask;
         }
 
-        private static void RemoveWhere(SyntaxEditor editor, SyntaxNode node, System.Collections.Generic.IReadOnlyList<Location> additionalLocations)
+        private static void RemoveWhere(SyntaxEditor editor, SyntaxNode node, IReadOnlyList<Location> additionalLocations)
         {
             var additionalNodes = new List<SyntaxNode>();
             foreach (var locations in additionalLocations)
             {
                 additionalNodes.Add(editor.OriginalRoot.FindNode(locations.SourceSpan, getInnermostNodeForTie: true));
             }
+
             var expressionNode = ((InvocationExpressionSyntax)node).Expression;
 
             // Get the Linq expression being invoked
             // Example: 'Single' from 'Data.Where(x => x == 1).Single()'
-            var targetMethod = additionalNodes.LastOrDefault();
-            var objectNodeSyntax = additionalNodes.FirstOrDefault();
+            var targetMethod = additionalNodes.OfType<IdentifierNameSyntax>().Last();
+            var objectNodeSyntax = additionalNodes.First();
 
             // Retrieve the lambda expression from the node
             // Example: 'x => x == 1' from 'Data.Where(x => x == 1).Single()'
-            var arguments = additionalNodes.FirstOrDefault(c => c is ArgumentListSyntax);
+            var arguments = additionalNodes.OfType<ArgumentListSyntax>().First();
 
-            ExpressionSyntax? expression = null;
-            if (((ArgumentListSyntax)arguments).Arguments.Count > 1)
-            {
-                expression = SyntaxFactory.IdentifierName("Enumerable");
-            }
+            var expression = GetExpression(objectNodeSyntax, arguments);
 
-            // Get the data or object the query is being called on
-            // Example: 'Data' from 'Data.Where(x => x == 1).Single()'
-            if ((objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) || objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)) && expression is null)
-            {
-                expression = (ExpressionSyntax)objectNodeSyntax;
-            }
-            else if (expression is null)
-            {
-                expression = SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text);
-            }
-#pragma warning disable CS8604 // Possible null reference argument.
             var newNode = SyntaxFactory.InvocationExpression(
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     expression,
-                                    targetMethod as IdentifierNameSyntax))
-                            .WithArgumentList(arguments as ArgumentListSyntax);
-            editor.ReplaceNode(expressionNode.Parent, newNode);
-#pragma warning restore CS8604 // Possible null reference argument.
+                                    targetMethod))
+                            .WithArgumentList(arguments);
+            editor.ReplaceNode(expressionNode.Parent!, newNode);
+        }
+
+        private static ExpressionSyntax GetExpression(SyntaxNode objectNodeSyntax, SyntaxNode arguments)
+        {
+            if (((ArgumentListSyntax)arguments).Arguments.Count > 1)
+            {
+                return SyntaxFactory.IdentifierName("Enumerable");
+            }
+
+            // Get the data or object the query is being called on
+            // Example: 'Data' from 'Data.Where(x => x == 1).Single()'
+            return objectNodeSyntax.IsKind(SyntaxKind.InvocationExpression) ||
+                   objectNodeSyntax.IsKind(SyntaxKind.SimpleMemberAccessExpression)
+                ? (ExpressionSyntax)objectNodeSyntax
+                : SyntaxFactory.IdentifierName(((IdentifierNameSyntax)objectNodeSyntax).Identifier.Text);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
