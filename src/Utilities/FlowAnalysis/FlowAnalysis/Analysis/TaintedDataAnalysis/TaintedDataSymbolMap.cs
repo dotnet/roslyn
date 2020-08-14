@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     {
         private static bool TryResolveDependencies(TInfo info, WellKnownTypeProvider wellKnownTypeProvider)
         {
-            if (info.DependencyFullTypeNames == null)
+            if (info.DependencyFullTypeNames.IsEmpty)
             {
                 return true;
             }
