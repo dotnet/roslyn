@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -66,43 +65,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return false;
         }
 
-        protected override bool IsSingleStatementOrExpressionMethod(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
+        private static bool TryGetSingleStatementOrExpressionMethod(MethodDeclarationSyntax methodDeclarationSyntax, out ExpressionSyntax expressionSyntax)
         {
-            var blockSyntaxNode = calleeMethodDeclarationSyntaxNode.Body;
-            // 1. If it is an ordinary method with block
-            if (blockSyntaxNode != null)
-            {
-                var blockStatements = blockSyntaxNode.Statements;
-                return blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]);
-            }
-            else
-            {
-                // 2. If it is an Arrow Expression
-                var arrowExpressionNodes = calleeMethodDeclarationSyntaxNode.ExpressionBody;
-                return arrowExpressionNodes != null;
-            }
-        }
-
-        protected override IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, ArgumentSyntax argumentSyntaxNode, CancellationToken cancellationToken)
-            => argumentSyntaxNode.DetermineParameter(semanticModel, allowParams: true, cancellationToken);
-
-        protected override ExpressionSyntax GetInlineStatement(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
-        {
-            var blockSyntaxNode = calleeMethodDeclarationSyntaxNode.Body;
-            // Check has been done before to make sure block statements only has one statement
-            // or the declarationSyntax has an ExpressionBody.
+            var blockSyntaxNode = methodDeclarationSyntax.Body;
+            expressionSyntax = null;
             if (blockSyntaxNode != null)
             {
                 // 1. If it is an ordinary method with block
                 var blockStatements = blockSyntaxNode.Statements;
-                return GetExpressionFromStatementSyntaxNode(blockStatements[0]);
+                if (blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]))
+                {
+                    expressionSyntax = GetExpressionFromStatementSyntaxNode(blockStatements[0]);
+                    return true;
+                }
             }
             else
             {
-                // 2. If it is using Arrow Expression
-                var arrowExpressionNode = calleeMethodDeclarationSyntaxNode.ExpressionBody;
-                return arrowExpressionNode!.Expression;
+                // 2. If it is an Arrow Expression
+                var arrowExpressionNode = methodDeclarationSyntax.ExpressionBody;
+                if (arrowExpressionNode != null)
+                {
+                    expressionSyntax = arrowExpressionNode.Expression;
+                    return true;
+                }
             }
+
+            return false;
         }
 
         private static ExpressionSyntax GetExpressionFromStatementSyntaxNode(StatementSyntax statementSyntax)
@@ -114,6 +102,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax.Expression,
                 _ => throw ExceptionUtilities.Unreachable
             };
+
+        protected override bool IsSingleStatementOrExpressionMethod(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
+            => TryGetSingleStatementOrExpressionMethod(calleeMethodDeclarationSyntaxNode, out _);
+
+        protected override ExpressionSyntax GetInlineStatement(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
+        {
+            if (TryGetSingleStatementOrExpressionMethod(calleeMethodDeclarationSyntaxNode, out var expressionSyntax))
+            {
+                return expressionSyntax;
+            }
+
+            // Check has been done before to make sure it will not hit here.
+            throw ExceptionUtilities.Unreachable;
+        }
 
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)
             => symbol.GenerateTypeSyntax(allowVar: false);

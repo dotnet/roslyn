@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// Get the mapping parameterSymbol from the <param name="argumentSyntaxNode"/>.
         /// Note: it could be null if there is error in the code.
         /// </summary>
-        protected abstract IParameterSymbol? GetParameterSymbol(SemanticModel semanticModel, TArgumentSyntax argumentSyntaxNode, CancellationToken cancellationToken);
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
         protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
 
