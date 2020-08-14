@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports RoslynEx
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
@@ -46,9 +47,10 @@ Friend Class MockVisualBasicCompiler
         messageProvider As CommonMessageProvider,
         skipAnalyzers As Boolean,
         ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
-        ByRef generators As ImmutableArray(Of ISourceGenerator))
+        ByRef generators As ImmutableArray(Of ISourceGenerator),
+        ByRef transformers As ImmutableArray(Of ISourceTransformer))
 
-        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, analyzers, generators)
+        MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, analyzers, generators, transformers)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
