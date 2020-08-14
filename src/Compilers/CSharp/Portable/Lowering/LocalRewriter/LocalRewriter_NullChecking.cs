@@ -66,10 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var argumentName = ImmutableArray.Create<BoundExpression>(factory.StringLiteral(parameter.Name));
-            BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), argumentName);
-            BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
+            //BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), argumentName);
+            //BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
 
-            return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
+            BoundExpressionStatement callThrow = factory.ExpressionStatement(factory.Call(receiver: null, method: null, args: argumentName));
+
+            //return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
+            return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, callThrow));
         }
     }
 }
