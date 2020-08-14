@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SolutionCreator
     {
+#pragma warning disable IDE0052 // used only in DEBUG builds
         private readonly HostServices _hostServices;
+#pragma warning restore
+
         private readonly AssetProvider _assetProvider;
         private readonly Solution _baseSolution;
         private readonly CancellationToken _cancellationToken;
