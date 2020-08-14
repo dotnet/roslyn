@@ -89,7 +89,7 @@ End Module
 ");
 
             VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
-            VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("x   As   integer", VirtualKey.Tab);
             VisualStudio.Editor.Verify.IsNotSaved();
             VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.S, ShiftState.Ctrl));
             var savedFileName = VisualStudio.Editor.Verify.IsSaved();
