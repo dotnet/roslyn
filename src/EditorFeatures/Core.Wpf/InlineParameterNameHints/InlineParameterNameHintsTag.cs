@@ -13,12 +13,13 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.CodeAnalysis.Text;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
@@ -65,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         /// <param name="textView">The view of the editor</param>
         /// <param name="span">The span that has the location of the hint</param>
         /// <param name="key">The symbolkey associated with each parameter</param>
-        public static InlineParameterNameHintsTag Create(string text, double lineHeight, TextFormattingRunProperties format,
-                                                         ITextView textView, SnapshotSpan span, SymbolKey key,
+        public static InlineParameterNameHintsTag Create(string text, TextFormattingRunProperties format,
+                                                         IWpfTextView textView, SnapshotSpan span, SymbolKey key,
                                                          InlineParameterNameHintsTaggerProvider taggerProvider)
         {
-            return new InlineParameterNameHintsTag(CreateElement(text, lineHeight, format), textView,
+            return new InlineParameterNameHintsTag(CreateElement(text, textView, format), textView,
                                                    span, key, taggerProvider);
         }
 
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
             return uiCollection;
         }
 
-        private static FrameworkElement CreateElement(string text, double lineHeight, TextFormattingRunProperties format)
+        private static FrameworkElement CreateElement(string text, IWpfTextView textView, TextFormattingRunProperties format)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
@@ -145,12 +146,22 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
-                Height = lineHeight - (0.25 * lineHeight),
+                Height = textView.LineHeight - (0.25 * textView.LineHeight),
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(left: 0, top: -0.20 * lineHeight, right: 5, bottom: 0),
+                Margin = new Thickness(left: 0, top: -0.20 * textView.LineHeight, right: 5, bottom: 0),
                 Padding = new Thickness(1),
-                VerticalAlignment = VerticalAlignment.Center,
+
+                // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
+                SnapsToDevicePixels = textView.VisualElement.SnapsToDevicePixels,
+                UseLayoutRounding = textView.VisualElement.UseLayoutRounding,
+                VerticalAlignment = VerticalAlignment.Center
             };
+
+            // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
+            // affect layout
+            TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(textView.VisualElement));
+            TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(textView.VisualElement));
+            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(textView.VisualElement));
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             return border;

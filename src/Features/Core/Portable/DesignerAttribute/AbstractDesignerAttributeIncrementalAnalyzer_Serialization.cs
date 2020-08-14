@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
-    internal partial class RemoteDesignerAttributeIncrementalAnalyzer
+    internal partial class AbstractDesignerAttributeIncrementalAnalyzer
     {
         /// <summary>
         /// Our current serialization format.  Increment whenever it changes so that we don't read
