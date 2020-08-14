@@ -603,8 +603,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     Marshal.ThrowExceptionForHR(hresult);
                     var activeVsTextView = (IVsUserData)vsTextView;
 
-                    var editorGuid = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
-                    hresult = activeVsTextView.GetData(editorGuid, out var wpfTextViewHost);
+                    hresult = activeVsTextView.GetData(Editor_InProc.IWpfTextViewId, out var wpfTextViewHost);
                     Marshal.ThrowExceptionForHR(hresult);
 
                     var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;

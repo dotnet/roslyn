@@ -267,7 +267,7 @@
         <target state="new">'{0}' does not override expected property from '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DoesNotOverrideBaseEquals">
+      <trans-unit id="ERR_DoesNotOverrideBaseMethod">
         <source>'{0}' does not override expected method from '{1}'.</source>
         <target state="new">'{0}' does not override expected method from '{1}'.</target>
         <note />
@@ -757,7 +757,7 @@
         <target state="new">The target runtime doesn't support extensible or runtime-environment default calling conventions.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SealedGetHashCodeInRecord">
+      <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>
         <note />
@@ -2689,13 +2689,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">O {0} não anulável '{1}' não foi inicializado. Considere declarar o {0} como anulável.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">O campo não anulável não foi inicializado. Considere declará-lo como anulável.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">O campo não anulável não foi inicializado. Considere declará-lo como anulável.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

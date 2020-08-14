@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -114,7 +115,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
+            {
+                StartScanningForDesignerAttributesInCurrentProcess(cancellationToken);
                 return;
+            }
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
@@ -128,6 +132,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        public void StartScanningForDesignerAttributesInCurrentProcess(CancellationToken cancellation)
+        {
+            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            var analyzerProvider = new InProcDesignerAttributeIncrementalAnalyzerProvider(this);
+
+            registrationService.AddAnalyzerProvider(
+                analyzerProvider,
+                new IncrementalAnalyzerProviderMetadata(
+                    nameof(InProcDesignerAttributeIncrementalAnalyzerProvider),
+                    highPriorityForActiveFile: false,
+                    workspaceKinds: WorkspaceKind.Host));
         }
 
         private async Task NotifyProjectSystemAsync(
