@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,10 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
     internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
     {
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpSyntacticQuickInfoProvider()
+        public CSharpSyntacticQuickInfoProvider(IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
+            _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -41,34 +45,19 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             };
             if (pragmaWarningDiagnosticId != null)
             {
-                var pragma = (pragmaWarningDiagnosticId.Parent as PragmaWarningDirectiveTriviaSyntax)!;
-                var removedId = new SeparatedSyntaxList<ExpressionSyntax>().AddRange(pragma.ErrorCodes.Where(e => e != pragmaWarningDiagnosticId));
-                var newPragma = removedId.Count == 0
-                    ? null
-                    : pragma.WithErrorCodes(removedId);
-                var root = await pragma.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var newRoot = newPragma == null
-                    ? root.RemoveNode(pragma, SyntaxRemoveOptions.KeepUnbalancedDirectives)
-                    : root.ReplaceNode(pragma, newPragma);
-                if (newRoot != null)
+                var diagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(document.Project.Solution.Workspace, document.Project.Id, document.Id,
+                    includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                var findDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
+                if (findDiagnostic != null)
                 {
-                    var newDocument = document.WithSyntaxRoot(newRoot);
-                    var semanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    if (semanticModel != null)
-                    {
-                        var diagnostics = semanticModel.GetDiagnostics(cancellationToken: cancellationToken);
-                        var findDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
-                        if (findDiagnostic != null)
+                    return QuickInfoItem.Create(pragmaWarningDiagnosticId.Span, sections: new[]
                         {
-                            return QuickInfoItem.Create(pragma.Span, sections: new[]
-                                {
-                                    QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
-                                    {
-                                        new TaggedText(TextTags.Text, findDiagnostic.ToString())
-                                    }.ToImmutableArray())
-                                }.ToImmutableArray(), relatedSpans: new[] { findDiagnostic.Location.SourceSpan }.ToImmutableArray());
-                        }
-                    }
+                            QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
+                            {
+                                new TaggedText(TextTags.Text, findDiagnostic.Message)
+                            }.ToImmutableArray())
+                        }.ToImmutableArray(), relatedSpans: new[] { findDiagnostic.GetTextSpan() }.ToImmutableArray());
                 }
             }
             if (token.Kind() != SyntaxKind.CloseBraceToken)
