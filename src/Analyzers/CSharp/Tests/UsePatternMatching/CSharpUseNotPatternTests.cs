@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 
     public partial class CSharpUseNotPatternTests
     {
+#if !CODE_STYLE
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
         [WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
         public async Task UnavailableInCSharp8()
         {
@@ -65,5 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
+
+#endif
     }
 }
