@@ -660,6 +660,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Esegui pull dei membri fino al tipo di base...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pull_members_up_to_new_base_class">
+        <source>Pull member(s) up to new base class...</source>
+        <target state="new">Pull member(s) up to new base class...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">Il quantificatore {x,y} non segue alcun elemento</target>
