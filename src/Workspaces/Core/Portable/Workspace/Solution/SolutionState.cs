@@ -1428,7 +1428,8 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(newProject,
+                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions) : null);
         }
 
         /// <summary>
