@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string GetHelpLink(ErrorCode code)
         {
-            return $"https://msdn.microsoft.com/query/dev16.query?appId=Dev16IDEF1&l=EN-US&k=k({GetId(code)});k(DevLang-csharp)&rd=true.";
+            return $"https://msdn.microsoft.com/query/dev16.query?appId=Dev16IDEF1&l={CultureInfo.CurrentCulture}&k=k({GetId(code)});k(DevLang-csharp)&rd=true.";
         }
 
         public static string GetCategory(ErrorCode code)
