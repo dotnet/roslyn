@@ -131,6 +131,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         /// <summary>
+        /// Determines if the given parameter is a tainted data source.
+        /// </summary>
+        /// <param name="sourceSymbolMap"></param>
+        /// <param name="parameterSymbol"></param>
+        /// <returns></returns>
+        public static bool IsSourceParameter(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IParameterSymbol parameterSymbol, WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            ISymbol containingSymbol = parameterSymbol.ContainingSymbol;
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(containingSymbol.ContainingType))
+            {
+                if (sourceInfo.TaintedArguments.Any(match => match(parameterSymbol, wellKnownTypeProvider)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Determines if the given array can be a tainted data source when its elements are all constant.
         /// </summary>
         /// <param name="sourceSymbolMap"></param>

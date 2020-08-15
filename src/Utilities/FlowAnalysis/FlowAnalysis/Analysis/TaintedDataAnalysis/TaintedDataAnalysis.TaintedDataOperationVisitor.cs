@@ -115,6 +115,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 base.ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             }
 
+            protected override TaintedDataAbstractValue GetDefaultValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+            {
+                if (this.DataFlowAnalysisContext.SourceInfos.IsSourceParameter(parameter, WellKnownTypeProvider))
+                {
+                    return TaintedDataAbstractValue.CreateTainted(parameter, parameter.DeclaringSyntaxReferences[0].GetSyntax(), this.OwningSymbol);
+                }
+
+                return ValueDomain.UnknownOrMayBeValue;
+            }
+
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
             {
                 if (value.Kind == TaintedDataAbstractValueKind.Tainted

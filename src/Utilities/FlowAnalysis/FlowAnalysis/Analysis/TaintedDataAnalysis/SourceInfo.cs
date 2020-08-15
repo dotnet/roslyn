@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -12,6 +12,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal delegate bool PointsToCheck(ImmutableArray<PointsToAbstractValue> pointsTos);
     internal delegate bool ValueContentCheck(ImmutableArray<PointsToAbstractValue> pointsTos, ImmutableArray<ValueContentAbstractValue> valueContents);
     internal delegate bool MethodMatcher(string methodName, ImmutableArray<IArgumentOperation> arguments);
+    internal delegate bool ParameterMatcher(IParameterSymbol parameter, WellKnownTypeProvider wellKnownTypeProvider);
 
     /// <summary>
     /// Info for tainted data sources, which generate tainted data.
@@ -23,6 +24,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         /// <param name="fullTypeName">Full type name of the...type (namespace + type).</param>
         /// <param name="taintedProperties">Properties that generate tainted data.</param>
+        /// <param name="taintedArguments">Method's arguments that are tainted sources.</param>
         /// <param name="taintedMethods">Methods that generate tainted data and whose arguments don't need extra analysis.</param>
         /// <param name="taintedMethodsNeedsPointsToAnalysis">Methods that generate tainted data and whose arguments don't need extra value content analysis.</param>
         /// <param name="taintedMethodsNeedsValueContentAnalysis">Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.</param>
@@ -31,26 +33,35 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             ImmutableHashSet<string> taintedProperties,
+            ImmutableHashSet<ParameterMatcher> taintedArguments,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)> taintedMethods,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> taintedMethodsNeedsValueContentAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
-            bool taintConstantArray)
+            bool taintConstantArray,
+            ImmutableArray<string>? dependencyFullTypeNames = null)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
+            TaintedArguments = taintedArguments ?? throw new ArgumentNullException(nameof(taintedArguments));
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
+            DependencyFullTypeNames = dependencyFullTypeNames ?? ImmutableArray<string>.Empty;
         }
 
         /// <summary>
         /// Full type name of the...type (namespace + type).
         /// </summary>
         public string FullTypeName { get; }
+
+        /// <summary>
+        /// Full type names of the optional dependency/referenced types that should be resolved.
+        /// </summary>
+        public ImmutableArray<string> DependencyFullTypeNames { get; }
 
         /// <summary>
         /// Indicates this type is an interface.
@@ -67,6 +78,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// TaintedTarget is the tainted target (arguments / return value).
         /// </summary>
         public ImmutableHashSet<(MethodMatcher MethodMatcher, ImmutableHashSet<string> TaintedTargets)> TaintedMethods { get; }
+
+        /// <summary>
+        /// Arguments that generate tainted data.
+        /// </summary>
+        public ImmutableHashSet<ParameterMatcher> TaintedArguments { get; }
 
         /// <summary>
         /// Methods that generate tainted data and whose arguments don't need extra value content analysis.
@@ -141,18 +157,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Indicates that this <see cref="SourceInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
-        public bool RequiresValueContentAnalysis => this.TaintedMethodsNeedsValueContentAnalysis.Any();
+        public bool RequiresValueContentAnalysis => !this.TaintedMethodsNeedsValueContentAnalysis.IsEmpty;
+
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
+        public bool RequiresParameterReferenceAnalysis => !this.TaintedArguments.IsEmpty;
 
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
                 HashUtilities.Combine(this.TaintedProperties,
+                HashUtilities.Combine(this.TaintedArguments,
                 HashUtilities.Combine(this.TaintedMethods,
                 HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
                 HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
                 HashUtilities.Combine(this.TransferMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))))))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))))));
         }
 
         public override bool Equals(object obj)
@@ -166,6 +188,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.FullTypeName == other.FullTypeName
                 && this.IsInterface == other.IsInterface
                 && this.TaintedProperties == other.TaintedProperties
+                && this.TaintedArguments == other.TaintedArguments
                 && this.TaintedMethods == other.TaintedMethods
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis

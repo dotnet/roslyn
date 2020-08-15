@@ -16,6 +16,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal class TaintedDataSymbolMap<TInfo> : IEquatable<TaintedDataSymbolMap<TInfo>?>
         where TInfo : ITaintedDataInfo
     {
+        private static bool TryResolveDependencies(TInfo info, WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            foreach (string dependency in info.DependencyFullTypeNames)
+            {
+                if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(dependency, out INamedTypeSymbol? _))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         public TaintedDataSymbolMap(WellKnownTypeProvider wellKnownTypeProvider, IEnumerable<TInfo> taintedDataInfos)
         {
             if (wellKnownTypeProvider == null)
@@ -33,6 +45,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             foreach (TInfo info in taintedDataInfos)
             {
+                if (!TryResolveDependencies(info, wellKnownTypeProvider))
+                {
+                    continue;
+                }
+
                 if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(info.FullTypeName, out INamedTypeSymbol? namedTypeSymbol))
                 {
                     if (info.IsInterface)
@@ -47,6 +64,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     if (info.RequiresValueContentAnalysis)
                     {
                         RequiresValueContentAnalysis = true;
+                    }
+
+                    if (info.RequiresParameterReferenceAnalysis)
+                    {
+                        RequiresParameterReferenceAnalysis = true;
                     }
                 }
             }
@@ -74,6 +96,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that any <see cref="ITaintedDataInfo"/> in this <see cref="TaintedDataSymbolMap&lt;TInfo&gt;"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
         public bool RequiresValueContentAnalysis { get; }
+
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
+        public bool RequiresParameterReferenceAnalysis { get; }
 
         /// <summary>
         /// Gets an enumeration of infos for the given type.

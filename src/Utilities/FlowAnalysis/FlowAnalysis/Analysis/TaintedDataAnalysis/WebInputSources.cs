@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -13,10 +17,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public static ImmutableHashSet<SourceInfo> SourceInfos { get; }
 
         /// <summary>
+        /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
+        /// </summary>
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
+            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
+
+        /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
         {
+            var dependencyFullTypeNames = ImmutableArray.Create(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerBase,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute,
+                                                                WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute);
+
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
@@ -36,6 +52,56 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     )
                 });
 
+            sourceInfosBuilder.AddSourceInfo(
+                // checking all System.Object derived types is expensive, so it first checks if MicrosoftAspNetCoreMvcControllerBase is resolvable
+                dependencyFullTypeNames,
+                WellKnownTypeNames.SystemObject,
+                 new ParameterMatcher[]{
+                    (parameter, wellKnownTypeProvider) => {
+                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol)
+                            || !(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
+                        {
+                            return false;
+                        }
+
+                        var classCache = s_classIsControllerByCompilation.GetOrCreateValue(wellKnownTypeProvider.Compilation, (compilation) => new ConcurrentDictionary<INamedTypeSymbol, bool>());
+                        if (!classCache.TryGetValue(typeSymbol, out bool isController))
+                        {
+                            if ((!typeSymbol.GetBaseTypesAndThis().Any(x => x.Name.EndsWith("Controller", System.StringComparison.Ordinal))
+                                && (!typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcControllerAttribute))))
+                                || typeSymbol.HasDerivedTypeAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonControllerAttribute)))
+                            {
+                                isController = false;
+                            }
+                            else
+                            {
+                                isController = true;
+                            }
+
+                            classCache.TryAdd(typeSymbol, isController);
+                        }
+
+                        if (!isController)
+                        {
+                            return false;
+                        }
+
+                        if (methodSymbol.DeclaredAccessibility != Accessibility.Public
+                            || methodSymbol.IsConstructor()
+                            || methodSymbol.IsStatic
+                            || methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute)))
+                        {
+                            return false;
+                        }
+
+                        if (parameter.HasAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute)))
+                        {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                 });
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypeNames.SystemWebHttpCookie,
                 isInterface: false,
