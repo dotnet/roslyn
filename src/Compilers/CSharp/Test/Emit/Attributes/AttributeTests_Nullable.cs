@@ -2339,7 +2339,7 @@ public class Program
     public T F8<T>() where T : notnull => default;
     public T? F9<T>() where T : notnull => default!;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             var expected =
 @"[NullableContext(1)] [Nullable(0)] Program
     T F1<T>()

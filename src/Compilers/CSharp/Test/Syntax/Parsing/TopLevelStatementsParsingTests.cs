@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.RegularPreview);
+            return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Regular9);
         }
 
         private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)

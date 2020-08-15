@@ -272,6 +272,7 @@ public struct StructWithValue
                 kind: SourceCodeKind.Regular);
 
             yield return parseOptions;
+            yield return parseOptions.WithLanguageVersion(LanguageVersion.CSharp9);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Latest);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Preview);
         }
