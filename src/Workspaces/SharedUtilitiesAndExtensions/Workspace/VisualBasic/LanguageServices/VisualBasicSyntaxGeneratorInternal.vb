@@ -115,5 +115,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.Token(SyntaxKind.ColonToken),
                 SyntaxFactory.InterpolatedStringTextToken(format, format))
         End Function
+
+        Friend Overrides Function TypeParameterList(typeParameterNames As IEnumerable(Of String)) As SyntaxNode
+            Return SyntaxFactory.TypeParameterList(
+                SyntaxFactory.SeparatedList(Of TypeParameterSyntax)(
+                    typeParameterNames.Select(Function(n) SyntaxFactory.TypeParameter(n))))
+        End Function
     End Class
 End Namespace

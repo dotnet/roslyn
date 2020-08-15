@@ -607,7 +607,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     foreach (var doc in project.Documents)
                     {
                         var root = await doc.GetSyntaxRootAsync();
-                        var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
+                        var expectedDocuments = expectedProject.Documents.Where(d => d.Name == doc.Name);
+
+                        if (expectedDocuments.Any())
+                        {
+                            Assert.Single(expectedDocuments);
+                        }
+                        else
+                        {
+                            AssertEx.Fail($"Could not find document with name '{doc.Name}'");
+                        }
+
+                        var expectedDocument = expectedDocuments.Single();
+
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
                         VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
                     }
