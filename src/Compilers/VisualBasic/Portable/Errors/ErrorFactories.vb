@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function GetHelpLink(id As ERRID) As String
-            Dim idWithLanguagePrefix As String = MessageProvider.Instance.GetIdForErrorCode(CInt(id));
+            Dim idWithLanguagePrefix As String = MessageProvider.Instance.GetIdForErrorCode(CInt(id))
             Return $"https://msdn.microsoft.com/query/dev16.query?appId=Dev16IDEF1&l={CultureInfo.CurrentCulture}&k=k({GetId(code)});k(DevLang-csharp)&rd=true"
         End Function
 
