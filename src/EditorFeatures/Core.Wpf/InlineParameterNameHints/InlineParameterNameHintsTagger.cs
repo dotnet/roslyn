@@ -6,10 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -48,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
         private readonly InlineParameterNameHintsTaggerProvider _inlineParameterNameHintsTaggerProvider;
 
         private readonly ITextBuffer _buffer;
-        private readonly ITextView _textView;
+        private readonly IWpfTextView _textView;
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-        public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, ITextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
+        public InlineParameterNameHintsTagger(InlineParameterNameHintsTaggerProvider taggerProvider, IWpfTextView textView, ITextBuffer buffer, ITagAggregator<InlineParameterNameHintDataTag> tagAggregator)
         {
             _cache = new List<ITagSpan<IntraTextAdornmentTag>>();
 
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineParameterNameHints
                     {
                         var dataTagSpan = dataTagSpans[0];
                         var parameterHintSnapshotSpan = new SnapshotSpan(dataTagSpan.Start, 0);
-                        var parameterHintUITag = InlineParameterNameHintsTag.Create(textTag.ParameterName, _textView.LineHeight,
+                        var parameterHintUITag = InlineParameterNameHintsTag.Create(textTag.ParameterName,
                                    Format, _textView, dataTagSpan, textTag.ParameterSymbolKey, _inlineParameterNameHintsTaggerProvider);
 
                         _cache.Add(new TagSpan<IntraTextAdornmentTag>(parameterHintSnapshotSpan, parameterHintUITag));
