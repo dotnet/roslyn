@@ -260,7 +260,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
                 }
 
-                bool isSanitizingMethod = false;
                 PooledHashSet<string>? taintedTargets = null;
                 PooledHashSet<(string, string)>? taintedParameterPairs = null;
                 PooledHashSet<(string, string)>? sanitizedParameterPairs = null;
@@ -284,20 +283,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     taintedParameterNamesCached = PooledHashSet<string>.GetInstance();
                     taintedParameterNamesCached.UnionWith(GetTaintedParameterNames());
 
-                    if (this.IsSanitizingMethod(
-                        method,
-                        visitedArguments,
-                        taintedParameterNamesCached,
-                        out sanitizedParameterPairs))
-                    {
-                        isSanitizingMethod = true;
-                    }
-                    else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
-                    {
-                        result = TaintedDataAbstractValue.NotTainted;
-                        SetTaintedForEntity(visitedInstance, result);
-                    }
-                    else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
+                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
                         method,
                         visitedArguments,
                         new Lazy<PointsToAnalysisResult?>(() => DataFlowAnalysisContext.PointsToAnalysisResultOpt),
@@ -361,19 +347,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         }
                     }
 
-                    if (isSanitizingMethod)
+                    if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
                     {
-                        RoslynDebug.Assert(sanitizedParameterPairs != null, "sanitizedParameterPairs is not null when isSanitizingMethod is true as per IsSanitizingMethod declaration");
+                        SetTaintedForEntity(visitedInstance, TaintedDataAbstractValue.NotTainted);
+                    }
+
+                    if (this.IsSanitizingMethod(
+                        method,
+                        visitedArguments,
+                        taintedParameterNamesCached,
+                        out sanitizedParameterPairs))
+                    {
                         if (sanitizedParameterPairs.Count == 0)
                         {
                             // it was either sanitizing constructor or
                             // the short form or registering sanitizer method by just the name
                             result = TaintedDataAbstractValue.NotTainted;
-
-                            if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
-                            {
-                                SetTaintedForEntity(visitedInstance, result);
-                            }
                         }
                         else
                         {
