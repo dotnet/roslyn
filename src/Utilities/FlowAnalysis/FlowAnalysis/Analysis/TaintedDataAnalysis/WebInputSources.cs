@@ -36,6 +36,62 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
+                WellKnownTypeNames.SystemTextStringBuilder,
+                isInterface: false,
+                taintedProperties: null,
+                taintedMethodsNeedsPointsToAnalysis: null,
+                taintedMethodsNeedsValueContentAnalysis: null,
+                transferMethods: new (MethodMatcher, (string, string)[])[]{
+                    (
+                        (methodName, arguments) =>
+                            methodName == "Append",
+                        new (string, string)[]{
+                            ("value", ".This"),
+                        }
+                    ),
+                    (
+                        (methodName, arguments) =>
+                            methodName == "AppendFormat",
+                        new (string, string)[]{
+                            ("format", ".This"),
+                            ("arg0", ".This"),
+                            ("arg1", ".This"),
+                            ("arg2", ".This"),
+                            ("args", ".This"),
+                        }
+                    ),
+                    (
+                        (methodName, arguments) =>
+                            methodName == "AppendLine",
+                        new (string, string)[]{
+                            ("value", ".This"),
+                        }
+                    ),
+                    (
+                        (methodName, arguments) =>
+                            methodName == "CopyTo",
+                        new (string, string)[]{
+                            (".This", "destination"),
+                        }
+                    ),
+                    (
+                        (methodName, arguments) =>
+                            methodName == "Insert",
+                        new (string, string)[]{
+                            ("value", ".This"),
+                        }
+                    ),
+                    (
+                        (methodName, arguments) =>
+                            methodName == "Replace",
+                        new (string, string)[]{
+                            ("newValue", ".This"),
+                            ("newChar", ".This"),
+                        }
+                    ),
+                });
+
+            sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
                 WellKnownTypeNames.SystemWebHttpServerUtility,
                 isInterface: false,
                 taintedProperties: null,
