@@ -65,8 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     Descriptor,
                     nameColonEquals.GetLocation(),
                     preference.Notification.Severity,
-                    additionalLocations:={syntaxTree.GetLocation(fadeSpan)},
-                    tagIndices:=ImmutableDictionary(Of String, IEnumerable(Of Integer)).Empty.Add(NameOf(WellKnownDiagnosticTags.Unnecessary), {0})))
+                    additionalLocations:=ImmutableArray(Of Location).Empty,
+                    additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
 
         Private Sub ReportDiagnosticsIfNeeded(
@@ -95,8 +95,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
                     preference.Notification.Severity,
-                    additionalLocations:={syntaxTree.GetLocation(fadeSpan)},
-                    tagIndices:=ImmutableDictionary(Of String, IEnumerable(Of Integer)).Empty.Add(NameOf(WellKnownDiagnosticTags.Unnecessary), {0})))
+                    additionalLocations:=ImmutableArray(Of Location).Empty,
+                    additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
     End Class
 End Namespace

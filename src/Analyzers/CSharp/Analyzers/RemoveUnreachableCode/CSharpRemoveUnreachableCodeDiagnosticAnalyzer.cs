@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -114,14 +113,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
             // 'additionalLocations' is how we always pass along the locaiton of the first unreachable
             // statement in this group.
-            var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
+            var additionalLocations = ImmutableArray.Create(firstStatementLocation);
 
             if (fadeOutCode)
             {
-                var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
-                    .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 0 });
-                context.ReportDiagnostic(
-                    DiagnosticHelper.CreateWithLocationTags(Descriptor, firstStatementLocation, ReportDiagnostic.Default, additionalLocations, tagIndices));
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    firstStatementLocation,
+                    ReportDiagnostic.Default,
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: additionalLocations));
             }
             else
             {
@@ -134,22 +135,18 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             {
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
                 var location = root.SyntaxTree.GetLocation(span);
+                var additionalUnnecessaryLocations = ImmutableArray<Location>.Empty;
 
                 // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
                 if (fadeOutCode)
                 {
-                    var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
-                        .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { additionalLocations.Count() });
-                    context.ReportDiagnostic(
-                        DiagnosticHelper.CreateWithLocationTags(Descriptor, location, ReportDiagnostic.Default, additionalLocations.Concat(location), tagIndices, s_subsequentSectionProperties));
+                    additionalUnnecessaryLocations = ImmutableArray.Create(location);
                 }
-                else
-                {
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(Descriptor, location, additionalLocations, s_subsequentSectionProperties));
-                }
+
+                context.ReportDiagnostic(
+                    DiagnosticHelper.CreateWithLocationTags(Descriptor, location, ReportDiagnostic.Default, additionalLocations, additionalUnnecessaryLocations, s_subsequentSectionProperties));
             }
         }
     }

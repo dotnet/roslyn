@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -52,9 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                     Descriptor,
                     defaultExpression.GetLocation(),
                     preference.Notification.Severity,
-                    additionalLocations: new[] { defaultExpression.SyntaxTree.GetLocation(fadeSpan) },
-                    tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
-                        .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 0 })));
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(defaultExpression.SyntaxTree.GetLocation(fadeSpan))));
         }
     }
 }

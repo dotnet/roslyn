@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// <see langword="null"/> if the message is identical to the title.
         /// </param>
-        /// <param name="isUnnecessary"></param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// <see langword="null"/> if the message is identical to the title.
         /// </param>
-        /// <param name="isUnnecessary"></param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// Null if the message is identical to the title.
         /// </param>
-        /// <param name="isUnnecessary"></param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Message for the diagnostic descriptor.
         /// Null if the message is identical to the title.
         /// </param>
-        /// <param name="isUnnecessary"></param>
+        /// <param name="isUnnecessary"><see langword="true"/> if the diagnostic is reported on unnecessary code; otherwise, <see langword="false"/>.</param>
         /// <param name="configurable">Flag indicating if the reported diagnostics are configurable by the end users</param>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,

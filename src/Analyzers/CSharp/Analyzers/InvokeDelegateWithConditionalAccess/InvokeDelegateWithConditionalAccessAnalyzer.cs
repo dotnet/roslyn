@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
@@ -173,9 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Descriptor,
                 fadeLocation,
                 ReportDiagnostic.Default,
-                additionalLocations.Add(fadeLocation),
-                tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
-                    .Add(nameof(WellKnownDiagnosticTags.Unnecessary), SpecializedCollections.SingletonEnumerable(additionalLocations.Length)),
+                additionalLocations,
+                additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
                 properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
@@ -193,9 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     Descriptor,
                     fadeLocation,
                     ReportDiagnostic.Default,
-                    additionalLocations.Add(fadeLocation),
-                    tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
-                        .Add(nameof(WellKnownDiagnosticTags.Unnecessary), SpecializedCollections.SingletonEnumerable(additionalLocations.Length)),
+                    additionalLocations,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
                     properties));
             }
         }

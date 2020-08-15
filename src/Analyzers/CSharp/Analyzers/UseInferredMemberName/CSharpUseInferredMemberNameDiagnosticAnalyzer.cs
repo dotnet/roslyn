@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -61,9 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     Descriptor,
                     nameColon.GetLocation(),
                     preference.Notification.Severity,
-                    additionalLocations: new[] { syntaxTree.GetLocation(fadeSpan) },
-                    tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
-                        .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 0 })));
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
 
         private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context, AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
@@ -89,9 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                     Descriptor,
                     nameEquals.GetLocation(),
                     preference.Notification.Severity,
-                    additionalLocations: new[] { syntaxTree.GetLocation(fadeSpan) },
-                    tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
-                        .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 0 })));
+                    additionalLocations: ImmutableArray<Location>.Empty,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
         }
     }
 }

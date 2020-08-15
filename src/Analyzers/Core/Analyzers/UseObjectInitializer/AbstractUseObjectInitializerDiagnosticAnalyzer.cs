@@ -4,14 +4,12 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
@@ -132,11 +130,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                         Descriptor,
                         location1,
                         ReportDiagnostic.Default,
-                        additionalLocations: locations.Add(Location.Create(syntaxTree, TextSpan.FromBounds(
-                            match.Initializer.FullSpan.End,
-                            match.Statement.Span.End))),
-                        tagIndices: ImmutableDictionary<string, IEnumerable<int>>.Empty
-                            .Add(nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { locations.Length })));
+                        additionalLocations: locations,
+                        additionalUnnecessaryLocations: ImmutableArray.Create(
+                            syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));
                 }
                 else
                 {
