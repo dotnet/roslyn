@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function GetHelpLink(id As ERRID) As String
             Dim idWithLanguagePrefix As String = MessageProvider.Instance.GetIdForErrorCode(CInt(id));
-            Return $"https://msdn.microsoft.com/query/dev16.query?appId=Dev16IDEF1&l={CultureInfo.CurrentCulture}&k=k({GetId(code)});k(DevLang-csharp)&rd=true."
+            Return $"https://msdn.microsoft.com/query/dev16.query?appId=Dev16IDEF1&l={CultureInfo.CurrentCulture}&k=k({GetId(code)});k(DevLang-csharp)&rd=true"
         End Function
 
         Public Shared Function GetCategory(id As ERRID) As String
