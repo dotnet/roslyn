@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Classification
             return GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
         }
 
+        /// <summary>
+        /// Returns classified spans in order.
+        /// </summary>
         public static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             SemanticModel semanticModel,
             TextSpan textSpan,

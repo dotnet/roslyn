@@ -112,14 +112,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// </summary>
         public async Task<int[]?> GetCachedTokensDataAsync(
             Uri uri,
-            string? resultId,
+            string resultId,
             CancellationToken cancellationToken)
         {
-            if (resultId == null)
-            {
-                return null;
-            }
-
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (!_tokens.TryGetValue(uri, out var tokenSets))

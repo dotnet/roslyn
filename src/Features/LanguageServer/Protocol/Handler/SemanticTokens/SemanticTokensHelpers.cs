@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -122,21 +123,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassifiedSpan[] classifiedSpans,
             Dictionary<string, int> tokenTypesToIndex)
         {
-            // A TextSpan can be associated with multiple ClassifiedSpans (i.e. if  a token has
-            // modifiers). We perform this grouping since LSP requires that each token is
-            // reported together with all its modifiers.
-            using var _1 = PooledDictionary<TextSpan, List<string>>.GetInstance(out var textSpanToClassificationTypes);
-            GroupClassificationTypesByTextSpan(classifiedSpans, textSpanToClassificationTypes);
+            using var _ = ArrayBuilder<int>.GetInstance(out var data);
 
-            using var _2 = ArrayBuilder<int>.GetInstance(out var data);
-
+            // We keep track of the last line number and last start character since tokens are
+            // reported relative to each other.
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            foreach (var textSpanToClassificationType in textSpanToClassificationTypes)
+            for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
             {
-                ComputeNextToken(lines, ref lastLineNumber, ref lastStartCharacter, textSpanToClassificationType.Key,
-                    textSpanToClassificationType.Value, tokenTypesToIndex,
+                currentClassifiedSpanIndex = ComputeNextToken(
+                    lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
+                    currentClassifiedSpanIndex, tokenTypesToIndex,
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
                     out var tokenType, out var tokenModifiers);
 
@@ -144,32 +142,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
 
             return data.ToArray();
-
-            // Local functions
-            static void GroupClassificationTypesByTextSpan(
-                ClassifiedSpan[] classifiedSpans,
-                PooledDictionary<TextSpan, List<string>> textSpanToClassificationTypes)
-            {
-                foreach (var classifiedSpan in classifiedSpans)
-                {
-                    if (!textSpanToClassificationTypes.TryGetValue(classifiedSpan.TextSpan, out var classificationTypes))
-                    {
-                        textSpanToClassificationTypes.Add(classifiedSpan.TextSpan, new List<string> { classifiedSpan.ClassificationType });
-                    }
-                    else
-                    {
-                        classificationTypes.Add(classifiedSpan.ClassificationType);
-                    }
-                }
-            }
         }
 
-        private static void ComputeNextToken(
+        private static int ComputeNextToken(
             TextLineCollection lines,
             ref int lastLineNumber,
             ref int lastStartCharacter,
-            TextSpan textSpan,
-            List<string> classificationTypes,
+            ClassifiedSpan[] classifiedSpans,
+            int currentClassifiedSpanIndex,
             Dictionary<string, int> tokenTypesToIndex,
             // Out params
             out int deltaLineOut,
@@ -185,7 +165,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             //     4. Token type (index) - looked up in SemanticTokensLegend.tokenTypes
             //     5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
 
-            var linePosition = lines.GetLinePositionSpan(textSpan).Start;
+            var classifiedSpan = classifiedSpans[currentClassifiedSpanIndex];
+            var linePosition = lines.GetLinePositionSpan(classifiedSpan.TextSpan).Start;
             var lineNumber = linePosition.Line;
             var startCharacter = linePosition.Character;
 
@@ -202,14 +183,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
 
             // 3. Token length
-            var tokenLength = textSpan.Length;
+            var tokenLength = classifiedSpan.TextSpan.Length;
 
             // We currently only have one modifier (static). The logic below will need to change in the future if other
             // modifiers are added in the future.
             var modifierBits = TokenModifiers.None;
             var tokenTypeIndex = 0;
-            foreach (var classificationType in classificationTypes)
+            var originalTextSpan = classifiedSpan.TextSpan;
+
+            // Classified spans with the same text span should be combined into one token.
+            while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
             {
+                var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;
                 if (classificationType != ClassificationTypeNames.StaticSymbol)
                 {
                     // 4. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
@@ -221,6 +206,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
                     modifierBits = TokenModifiers.Static;
                 }
+
+                if (currentClassifiedSpanIndex + 1 >= classifiedSpans.Length || classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan != originalTextSpan)
+                {
+                    break;
+                }
+
+                currentClassifiedSpanIndex++;
             }
 
             lastLineNumber = lineNumber;
@@ -231,6 +223,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             tokenLengthOut = tokenLength;
             tokenTypeOut = tokenTypeIndex;
             tokenModifiersOut = (int)modifierBits;
+
+            return currentClassifiedSpanIndex;
         }
 
         private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
