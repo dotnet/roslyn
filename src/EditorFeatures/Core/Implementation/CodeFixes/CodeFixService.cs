@@ -743,26 +743,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var fixer in allFixers)
             {
                 await extensionManager.PerformActionAsync(fixer, () => fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask).ConfigureAwait(false);
-                foreach (var fix in fixes)
-                {
-                    if (!fix.Action.PerformFinalApplicabilityCheck)
-                    {
-                        return true;
-                    }
-
-                    // Have to see if this fix is still applicable.  Jump to the foreground thread
-                    // to make that check.
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-                    var applicable = fix.Action.IsApplicable(document.Project.Solution.Workspace);
-
-                    await TaskScheduler.Default;
-
-                    if (applicable)
-                    {
-                        return true;
-                    }
-                }
+                if (fixes.Count > 0)
+                    return true;
             }
 
             return false;

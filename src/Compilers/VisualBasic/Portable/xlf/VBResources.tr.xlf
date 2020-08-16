@@ -127,6 +127,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -211,7 +212,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic Derleyici Seçenekleri
+        <target state="needs-review-translation">                  Visual Basic Derleyici Seçenekleri
 
                                   - ÇIKIŞ DOSYASI -
 -out:&lt;dosya&gt;                       Çıkış dosyası adını belirtir.

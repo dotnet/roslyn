@@ -299,6 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
+            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, analyzerExecutor.Compilation, analyzerExecutor.AnalyzerOptions))
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions))
                 {
                     isSuppressed = false;
                 }

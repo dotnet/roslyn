@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -20,14 +21,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     {
         private static Dictionary<string, string>? s_capturedFileContent;
 
-        private static TelemetrySession? s_telemetrySession;
-        private static TraceSource? s_logger;
+        private static readonly object _guard = new object();
+        private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
+        private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
 
-        public static void InitializeFatalErrorHandlers(TelemetrySession session)
+        public static void InitializeFatalErrorHandlers()
         {
-            Debug.Assert(s_telemetrySession == null);
-            s_telemetrySession = session;
-
             var fatalReporter = new Action<Exception>(ReportFatal);
             var nonFatalReporter = new Action<Exception>(ReportNonFatal);
 
@@ -43,10 +42,36 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalReporter);
         }
 
-        public static void InitializeLogger(TraceSource logger)
+        public static void RegisterTelemetrySesssion(TelemetrySession session)
         {
-            Debug.Assert(s_logger == null);
-            s_logger = logger;
+            lock (_guard)
+            {
+                s_telemetrySessions = s_telemetrySessions.Add(session);
+            }
+        }
+
+        public static void UnregisterTelemetrySesssion(TelemetrySession session)
+        {
+            lock (_guard)
+            {
+                s_telemetrySessions = s_telemetrySessions.Remove(session);
+            }
+        }
+
+        public static void RegisterLogger(TraceSource logger)
+        {
+            lock (_guard)
+            {
+                s_loggers = s_loggers.Add(logger);
+            }
+        }
+
+        public static void UnregisterLogger(TraceSource logger)
+        {
+            lock (_guard)
+            {
+                s_loggers = s_loggers.Remove(logger);
+            }
         }
 
         public static void ReportFatal(Exception exception)
@@ -69,52 +94,59 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void ReportNonFatal(Exception exception)
         {
-            if (exception is OutOfMemoryException)
+            try
+            {
+                var emptyCallstack = exception.SetCallstackIfEmpty();
+                var currentProcess = Process.GetCurrentProcess();
+
+                // write the exception to a log file:
+                var logMessage = $"[{currentProcess.ProcessName}:{currentProcess.Id}] Unexpected exception: {exception}";
+                foreach (var logger in s_loggers)
+                {
+                    logger.TraceEvent(TraceEventType.Error, 1, logMessage);
+                }
+
+                var faultEvent = new FaultEvent(
+                    eventName: FunctionId.NonFatalWatson.GetEventName(),
+                    description: GetDescription(exception),
+                    FaultSeverity.Diagnostic,
+                    exceptionObject: exception,
+                    gatherEventDetails: faultUtility =>
+                    {
+                        if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
+                        {
+                            // add ServiceHub log files:
+                            foreach (var path in CollectServiceHubLogFilePaths())
+                            {
+                                faultUtility.AddFile(path);
+                            }
+                        }
+
+                        // Returning "0" signals that, if sampled, we should send data to Watson. 
+                        // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
+                        // we'll let TargetedNotifications determine if a dump should be collected.
+                        // See https://aka.ms/roslynnfwdocs for more details
+                        return 0;
+                    });
+
+                // add extra bucket parameters to bucket better in NFW
+                // we do it here so that it gets bucketted better in both
+                // watson and telemetry. 
+                faultEvent.SetExtraParameters(exception, emptyCallstack);
+
+                foreach (var session in s_telemetrySessions)
+                {
+                    session.PostEvent(faultEvent);
+                }
+            }
+            catch (OutOfMemoryException)
             {
                 FailFast.OnFatalException(exception);
             }
-
-            var emptyCallstack = exception.SetCallstackIfEmpty();
-            var currentProcess = Process.GetCurrentProcess();
-
-            // write the exception to a log file:
-            s_logger?.TraceEvent(TraceEventType.Error, 1, $"[{currentProcess.ProcessName}:{currentProcess.Id}] Unexpected exception: {exception}");
-
-            var session = s_telemetrySession;
-            if (session == null)
+            catch (Exception e)
             {
-                return;
+                FailFast.OnFatalException(e);
             }
-
-            var faultEvent = new FaultEvent(
-                eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: GetDescription(exception),
-                FaultSeverity.Diagnostic,
-                exceptionObject: exception,
-                gatherEventDetails: faultUtility =>
-                {
-                    if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
-                    {
-                        // add ServiceHub log files:
-                        foreach (var path in CollectServiceHubLogFilePaths())
-                        {
-                            faultUtility.AddFile(path);
-                        }
-                    }
-
-                    // Returning "0" signals that, if sampled, we should send data to Watson. 
-                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
-                    // we'll let TargetedNotifications determine if a dump should be collected.
-                    // See https://aka.ms/roslynnfwdocs for more details
-                    return 0;
-                });
-
-            // add extra bucket parameters to bucket better in NFW
-            // we do it here so that it gets bucketted better in both
-            // watson and telemetry. 
-            faultEvent.SetExtraParameters(exception, emptyCallstack);
-
-            session.PostEvent(faultEvent);
         }
 
         private static string GetDescription(Exception exception)

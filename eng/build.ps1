@@ -43,6 +43,7 @@ param (
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
+  [switch]$oop64bit = $true,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -280,7 +281,7 @@ function GetIbcSourceBranchName() {
 
     $branchData = GetBranchPublishData $officialSourceBranchName
     if ($branchData -eq $null) {
-      Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
+      Write-LogIssue -Type "warning" -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'."
       Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
       return $fallback
     }
@@ -322,7 +323,7 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $branchData = GetBranchPublishData $branchName
 
   if ($branchData -eq $null) {
-    Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. " -ForegroundColor Yellow
+    Write-LogIssue -Type warning -Message "Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. "
     $branchData = GetBranchPublishData $fallbackBranch
   }
 
@@ -331,12 +332,14 @@ function SetVisualStudioBootstrapperBuildArgs() {
   $vsMajorVersion = $branchData.vsMajorVersion
   $vsChannel = "int.$vsBranchSimpleName"
 
-  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
+  Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"
   Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
 
   $insertionDir = Join-Path $VSSetupDir "Insertion"
-  $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-  Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  if (Test-Path $insertionDir) {
+    $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
+    Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
+  }
 }
 
 # Core function for running our unit / integration tests tests
@@ -594,6 +597,8 @@ function Setup-IntegrationTestRun() {
     # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
     Capture-Screenshot $screenshotPath
   }
+
+  $env:ROSLYN_OOP64BIT = "$oop64bit"
 }
 
 function Prepare-TempDir() {

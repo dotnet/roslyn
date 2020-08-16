@@ -1209,11 +1209,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">Küme Ayracı Tamamlama</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Tüm oluşumları şurada düzelt:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">İşlem bir yeniden adlandırma oturumu etkinken uygulanamaz.</target>

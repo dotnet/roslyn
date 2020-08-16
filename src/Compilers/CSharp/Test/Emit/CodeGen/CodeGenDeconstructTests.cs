@@ -5111,7 +5111,7 @@ System.Console.Write($""{x} {y}"");
 System.Console.Write(x);
 System.Console.Write(y);
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
 

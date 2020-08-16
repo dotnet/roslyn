@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -315,6 +314,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_OutAttribute,
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,
 
+        System_Text_StringBuilder,
+
         NextAvailable,
 
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -621,6 +622,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
             "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
+
+            "System.Text.StringBuilder",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

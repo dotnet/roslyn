@@ -208,11 +208,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddStandaloneFile(string fileName)
             => _inProc.AddStandaloneFile(fileName);
-
-        public void BeginWatchForCodingConventionsChange(ProjectUtils.Project project, string fileName)
-            => _inProc.BeginWatchForCodingConventionsChange(project.Name, fileName);
-
-        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
-            => _inProc.EndWaitForCodingConventionsChange(timeout);
     }
 }
