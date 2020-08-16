@@ -161,15 +161,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             return Commit(
-                triggerDocument, completionService, session.TextView, subjectBuffer,
+                session, triggerDocument, completionService, subjectBuffer,
                 roslynItem, completionListSpan, commitChar, triggerLocation.Snapshot, serviceRules,
                 filterText, cancellationToken);
         }
 
         private AsyncCompletionData.CommitResult Commit(
+            IAsyncCompletionSession session,
             Document document,
             CompletionService completionService,
-            ITextView view,
             ITextBuffer subjectBuffer,
             RoslynCompletionItem roslynItem,
             TextSpan completionListSpan,
@@ -195,6 +195,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
+            var disallowAddingImports = session.Properties.ContainsProperty(CompletionSource.DisallowAddingImports);
+
             CompletionChange change;
 
             // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // See https://github.com/dotnet/roslyn/issues/38455.
             try
             {
-                change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+                change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, disallowAddingImports, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportWithoutCrash(e))
             {
@@ -210,6 +212,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            var view = session.TextView;
 
             if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
             {
