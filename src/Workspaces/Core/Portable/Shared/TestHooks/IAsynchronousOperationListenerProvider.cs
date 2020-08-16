@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -124,8 +125,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
         /// representing the remaining work.
         /// </remarks>
-        public async Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null)
+        public async Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null, TimeSpan? timeout = null)
         {
+            var startTime = Stopwatch.StartNew();
             var smallTimeout = TimeSpan.FromMilliseconds(10);
 
             Task[] tasks = null;
@@ -157,6 +159,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     // in unit test where it uses fake foreground task scheduler such as StaTaskScheduler
                     // we need to yield for the scheduler to run inlined tasks
                     await Task.Yield();
+
+                    if (startTime.Elapsed > timeout && timeout != Timeout.InfiniteTimeSpan)
+                    {
+                        throw new TimeoutException();
+                    }
                 } while (true);
             }
 

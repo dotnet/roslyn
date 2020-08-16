@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             SymbolKeyResolution resolvedSymbolKey;
             try
             {
-                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, document.Project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
+                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, document.Project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
             }
             catch
             {

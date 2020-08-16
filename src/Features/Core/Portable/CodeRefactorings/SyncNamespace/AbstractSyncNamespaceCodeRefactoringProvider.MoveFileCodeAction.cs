@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 _newfolders = newFolders;
             }
 
-            internal override bool PerformFinalApplicabilityCheck => true;
-
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 var id = _state.Document.Id;

@@ -511,6 +511,10 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
 
+        System_Text_StringBuilder__AppendString,
+        System_Text_StringBuilder__AppendObject,
+        System_Text_StringBuilder__ctor,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
-            options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
+            options ??= Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap));
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
@@ -770,16 +771,6 @@ namespace Microsoft.CodeAnalysis
                 return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
             }
         }
-
-        /// <summary>
-        /// Update a new solution instance with a fork of the specified project.
-        ///
-        /// TODO: https://github.com/dotnet/roslyn/issues/42448
-        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
-        /// until then, this will explicitly fork current solution snapshot
-        /// </summary>
-        internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
-            => ForkProject(GetRequiredProjectState(projectId));
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
@@ -1437,7 +1428,8 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(newProject,
+                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions) : null);
         }
 
         /// <summary>
@@ -1933,10 +1925,21 @@ namespace Microsoft.CodeAnalysis
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
 
-        internal ImmutableHashSet<string> GetProjectLanguages()
-            => GetProjectLanguages(ProjectStates);
+        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
+            => GetRemoteSupportedProjectLanguages(ProjectStates);
 
-        private static ImmutableHashSet<string> GetProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
-            => projectStates.Select(p => p.Value.Language).ToImmutableHashSet();
+        private static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var projectState in projectStates)
+            {
+                if (RemoteSupportedLanguages.IsSupported(projectState.Value.Language))
+                {
+                    builder.Add(projectState.Value.Language);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
     }
 }

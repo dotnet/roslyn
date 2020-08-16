@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal ImmutableArray<BoundInitializer> BoundInitializers { get; set; }
             internal BoundStatement? LoweredInitializers { get; set; }
+            internal NullableWalker.VariableState AfterInitializersState;
             internal bool HasErrors { get; set; }
             internal ImportChain? FirstImportChain { get; set; }
         }
