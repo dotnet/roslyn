@@ -301,4 +301,7 @@
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>
   </data>
+  <data name="Prefer_IsNot_expression" xml:space="preserve">
+    <value>Prefer 'IsNot' expression</value>
+  </data>
 </root>

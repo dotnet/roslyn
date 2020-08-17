@@ -208,7 +208,7 @@
       "packageFeeds": "default",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.8", "dev16.8p3" ],
-      "vsBranch": "master",
+      "vsBranch": "main",
       "vsMajorVersion": 16
     },
     "features/NullableReferenceTypes": {
@@ -244,7 +244,7 @@
       "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "compilerNext" ],
-      "vsBranch": "master",
+      "vsBranch": "main",
       "vsMajorVersion": 16
     },
     "features/UsedAssemblyReferences": {
@@ -253,7 +253,7 @@
       "packageFeeds": "arcade",
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "UsedAssemblyReferences" ],
-      "vsBranch": "master",
+      "vsBranch": "main",
       "vsMajorVersion": 16
     },
     "features/unitTesting": {
