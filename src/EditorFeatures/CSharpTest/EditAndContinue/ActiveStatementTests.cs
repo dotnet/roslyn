@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Roslyn.Test.Utilities;
@@ -10641,6 +10643,63 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Theory, CombinatorialData]
+        public void MemberBodyInternalError(bool outOfMemory)
+        {
+            var src1 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:1>G();</AS:1>
+    }
+
+    public static void G()
+    {
+        <AS:0>H(1);</AS:0>
+    }
+
+    public static void H(int x)
+    {
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:1>G();</AS:1>
+    }
+
+    public static void G()
+    {
+        <AS:0>H(2);</AS:0>
+    }
+
+    public static void H(int x)
+    {
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+            var validator = CSharpEditAndContinueTestHelpers.CreateInstance(node =>
+            {
+                if (node.Parent is MethodDeclarationSyntax methodDecl && methodDecl.Identifier.Text == "G")
+                {
+                    throw outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
+                }
+            });
+
+            var expectedDiagnostic = outOfMemory ?
+                Diagnostic(RudeEditKind.MemberBodyTooBig, "public static void G()", FeaturesResources.method) :
+                Diagnostic(RudeEditKind.MemberBodyInternalError, "public static void G()", FeaturesResources.method);
+
+            validator.VerifyRudeDiagnostics(edits, active, new[] { expectedDiagnostic });
         }
 
         #endregion

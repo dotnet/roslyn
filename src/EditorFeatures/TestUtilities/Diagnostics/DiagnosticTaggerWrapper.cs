@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -103,14 +104,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync();
-        }
-
-        private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
-        {
-            internal MyDiagnosticAnalyzerService(IAsynchronousOperationListener listener)
-                : base(new MockDiagnosticUpdateSourceRegistrationService(), listener)
-            {
-            }
         }
     }
 }

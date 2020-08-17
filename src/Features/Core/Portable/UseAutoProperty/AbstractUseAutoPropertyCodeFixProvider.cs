@@ -148,10 +148,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             propertyDocument = solution.GetRequiredDocument(propertyDocument.Id);
             Debug.Assert(fieldDocument.Project == propertyDocument.Project);
 
-            compilation = await fieldDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            compilation = await fieldDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            fieldSymbol = (IFieldSymbol)fieldSymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-            propertySymbol = (IPropertySymbol)propertySymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+            fieldSymbol = (IFieldSymbol?)fieldSymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+            propertySymbol = (IPropertySymbol?)propertySymbol.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
             Contract.ThrowIfTrue(fieldSymbol == null || propertySymbol == null);
 
             declarator = (TVariableDeclarator)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);

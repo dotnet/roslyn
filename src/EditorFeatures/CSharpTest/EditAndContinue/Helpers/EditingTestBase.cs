@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
         {
-            return new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker());
+            return new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker(), testFaultInjector: null);
         }
 
         internal enum MethodKind

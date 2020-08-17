@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Function pointer type adjustments
-            if (previousParentKind == SyntaxKindEx.FunctionPointerType && currentParentKind == SyntaxKindEx.FunctionPointerType)
+            if (previousParentKind == SyntaxKindEx.FunctionPointerType)
             {
                 // No spacing between delegate and *
                 if (currentKind == SyntaxKind.AsteriskToken && previousKind == SyntaxKind.DelegateKeyword)
@@ -330,23 +330,88 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // Force a space between * and the calling convention
-                if (currentKind == SyntaxKind.IdentifierToken && previousKind == SyntaxKind.AsteriskToken)
+                if (previousKind == SyntaxKind.AsteriskToken && currentParentKind == SyntaxKindEx.FunctionPointerCallingConvention)
                 {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
-
-                if (currentKind == SyntaxKind.LessThanToken)
-                {
-                    switch (previousKind)
+                    switch (currentKind)
                     {
-                        // No spacing between the * and < tokens if there is no calling convention
-                        case SyntaxKind.AsteriskToken:
-                        // No spacing between the calling convention and opening angle bracket of function pointer types:
-                        // delegate* cdecl<
                         case SyntaxKind.IdentifierToken:
-                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                        case SyntaxKindEx.ManagedKeyword:
+                        case SyntaxKindEx.UnmanagedKeyword:
+                            return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     }
                 }
+            }
+
+            if (currentParentKind == SyntaxKindEx.FunctionPointerParameterList && currentKind == SyntaxKind.LessThanToken)
+            {
+                switch (previousKind)
+                {
+                    // No spacing between the * and < tokens if there is no calling convention
+                    case SyntaxKind.AsteriskToken:
+                    // No spacing between the calling convention and opening angle bracket of function pointer types:
+                    // delegate* managed<
+                    case SyntaxKindEx.ManagedKeyword:
+                    case SyntaxKindEx.UnmanagedKeyword:
+                    // No spacing between the calling convention specifier and the opening angle
+                    // delegate* unmanaged[Cdecl]<
+                    case SyntaxKind.CloseBracketToken when previousParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList:
+                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+            }
+
+            // No space between unmanaged and the [
+            // delegate* unmanaged[
+            if (previousParentKind == SyntaxKindEx.FunctionPointerCallingConvention && currentParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList && currentKind == SyntaxKind.OpenBracketToken)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // Function pointer calling convention adjustments
+            if (currentParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList && previousParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList)
+            {
+                if (currentKind == SyntaxKind.IdentifierToken)
+                {
+                    // No space after the [
+                    // unmanaged[Cdecl
+                    if (previousKind == SyntaxKind.OpenBracketToken)
+                    {
+                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    }
+                    // Space after the ,
+                    // unmanaged[Cdecl, Thiscall
+                    else if (previousKind == SyntaxKind.CommaToken)
+                    {
+                        return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    }
+                }
+
+                // No space between identifier and comma
+                // unmanaged[Cdecl,
+                if (currentKind == SyntaxKind.CommaToken)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                // No space before the ]
+                // unmanaged[Cdecl]
+                if (currentKind == SyntaxKind.CloseBracketToken)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+            }
+
+            // Respect spacing setting for after the < in function pointer parameter lists
+            // delegate*<void
+            if (previousKind == SyntaxKind.LessThanToken && previousParentKind == SyntaxKindEx.FunctionPointerParameterList)
+            {
+                return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinMethodDeclarationParenthesis);
+            }
+
+            // Respect spacing setting for before the > in function pointer parameter lists
+            // delegate*<void>
+            if (currentKind == SyntaxKind.GreaterThanToken && currentParentKind == SyntaxKindEx.FunctionPointerParameterList)
+            {
+                return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinMethodDeclarationParenthesis);
             }
 
             // For spacing after the 'not' pattern operator

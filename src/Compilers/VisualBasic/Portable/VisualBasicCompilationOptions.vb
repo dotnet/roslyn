@@ -128,6 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
+                syntaxTreeOptionsProvider:=Nothing,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
@@ -238,6 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
+            SyntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
@@ -268,6 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=debugPlusMode,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
+                syntaxTreeOptionsProvider:=syntaxTreeOptionsProvider,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
@@ -320,6 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=other.DebugPlusMode,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
                 sourceReferenceResolver:=other.SourceReferenceResolver,
+                syntaxTreeOptionsProvider:=other.SyntaxTreeOptionsProvider,
                 metadataReferenceResolver:=other.MetadataReferenceResolver,
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
@@ -937,6 +941,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.SourceReferenceResolver = resolver}
         End Function
 
+        Public Shadows Function WithSyntaxTreeOptionsProvider(provider As SyntaxTreeOptionsProvider) As VisualBasicCompilationOptions
+            If provider Is Me.SyntaxTreeOptionsProvider Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.SyntaxTreeOptionsProvider = provider}
+        End Function
+
         Public Shadows Function WithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As VisualBasicCompilationOptions
             If resolver Is Me.MetadataReferenceResolver Then
                 Return Me
@@ -989,6 +1001,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonWithSourceReferenceResolver(resolver As SourceReferenceResolver) As CompilationOptions
             Return WithSourceReferenceResolver(resolver)
+        End Function
+
+        Protected Overrides Function CommonWithSyntaxTreeOptionsProvider(provider As SyntaxTreeOptionsProvider) As CompilationOptions
+            Return WithSyntaxTreeOptionsProvider(provider)
         End Function
 
         Protected Overrides Function CommonWithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As CompilationOptions
@@ -1111,7 +1127,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
-            Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions)
+            Return VisualBasicDiagnosticFilter.Filter(
+                diagnostic,
+                GeneralDiagnosticOption,
+                SpecificDiagnosticOptions,
+                SyntaxTreeOptionsProvider)
         End Function
 
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
@@ -1308,6 +1328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
+                syntaxTreeOptionsProvider:=Nothing,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,

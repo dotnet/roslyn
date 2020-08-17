@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 
+        private readonly string[] _secondaryBufferFileExtensions = new string[] { ".cshtml", ".razor", ".html", ".aspx", ".vue" };
         private readonly CSharpLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
@@ -66,9 +67,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 // We don't want to add cshtml files to the workspace since the Roslyn will add the generated secondary buffer of a cshtml
                 // file to a different project but with the same path. This used to be ok in Dev15 but in Dev16 this confuses Roslyn and causes downstream
                 // issues. There's no need to add the actual cshtml file to the workspace - so filter those out.
+                // This is also the case for files for which TypeScript adds the generated TypeScript buffer to a different project.
                 var filesTasks = project.SourceFiles
                     .Where(f => f.Scheme != SystemUriSchemeExternal)
-                    .Where(f => !f.LocalPath.EndsWith(".cshtml"))
+                    .Where(f => !this._secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
                 var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray());

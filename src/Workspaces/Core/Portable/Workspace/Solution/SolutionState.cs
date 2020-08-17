@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
-            options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
+            options ??= Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap));
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
@@ -772,16 +773,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Update a new solution instance with a fork of the specified project.
-        ///
-        /// TODO: https://github.com/dotnet/roslyn/issues/42448
-        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
-        /// until then, this will explicitly fork current solution snapshot
-        /// </summary>
-        internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
-            => ForkProject(GetRequiredProjectState(projectId));
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
@@ -1102,14 +1093,13 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            // Adding a new analyzer config potentially impacts all syntax trees and the diagnostic reporting information
-            // attached to them, so we'll just replace all syntax trees in that case.
+            // Adding a new analyzer config potentially modifies the compilation options
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
                 });
         }
 
@@ -1120,7 +1110,7 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documentIds, _) =>
                 {
                     var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
                 });
         }
 
@@ -1438,7 +1428,8 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(newProject,
+                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions) : null);
         }
 
         /// <summary>
@@ -1934,10 +1925,21 @@ namespace Microsoft.CodeAnalysis
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
 
-        internal ImmutableHashSet<string> GetProjectLanguages()
-            => GetProjectLanguages(ProjectStates);
+        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
+            => GetRemoteSupportedProjectLanguages(ProjectStates);
 
-        private static ImmutableHashSet<string> GetProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
-            => projectStates.Select(p => p.Value.Language).ToImmutableHashSet();
+        private static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var projectState in projectStates)
+            {
+                if (RemoteSupportedLanguages.IsSupported(projectState.Value.Language))
+                {
+                    builder.Add(projectState.Value.Language);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
     }
 }
