@@ -590,21 +590,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zmodyfikowanie elementu „{0}”, który zawiera wyrażenie switch, uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">Przenieś zawartość do przestrzeni nazw...</target>
@@ -626,8 +611,8 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Zmodyfikowanie pliku źródłowego {0} uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
+        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
+        <target state="translated">Zmodyfikowanie pliku źródłowego {0} uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -658,11 +643,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">Ściągnij składowe aż do typu bazowego...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_members_up_to_new_base_class">
-        <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -993,7 +973,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">wyrażenie</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1263,7 +1243,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">nazwa</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1363,7 +1343,7 @@ Można połączyć dwa lub więcej zakresów znaków. Na przykład aby określi�
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">nie</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1746,7 +1726,7 @@ Jeśli określono zachowanie zgodne ze standardem ECMAScript, element \w jest r�
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">tak</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2077,12 +2057,12 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">Element „{0}” nie ma wartości null w tym miejscu.</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">Element „{0}” może mieć wartość null w tym miejscu.</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

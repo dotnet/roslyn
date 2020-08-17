@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
-        <target state="new">32-bit</target>
+        <target state="translated">32 位</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness64">
         <source>64-bit</source>
-        <target state="new">64-bit</target>
+        <target state="translated">64 位</target>
         <note />
       </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
-        <target state="new">Current parameter</target>
+        <target state="translated">当前参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints (experimental)</source>
-        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <target state="translated">显示内联参数名称提示(实验)(_L)</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -220,11 +220,6 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">正在评估(队列中有 {0} 个任务)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Base_Class">
-        <source>Extract Base Class</source>
-        <target state="new">Extract Base Class</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -355,16 +350,6 @@
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
         <target state="translated">移动到命名空间</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_conflicts_with_an_existing_type_name">
-        <source>Name conflicts with an existing type name.</source>
-        <target state="new">Name conflicts with an existing type name.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_is_not_a_valid_0_identifier">
-        <source>Name is not a valid {0} identifier.</source>
-        <target state="new">Name is not a valid {0} identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -817,11 +802,6 @@
         <target state="translated">正在更新严重性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="new">Use 64-bit process for code analysis (requires restart)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">使用 lambdas 的表达式主体</target>
@@ -895,6 +875,16 @@
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">必须至少选择一个成员。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
+        <source>Interface name conflicts with an existing type name.</source>
+        <target state="translated">接口名称与现有类型名称相冲突。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
+        <source>Interface name is not a valid {0} identifier.</source>
+        <target state="translated">接口名称不是有效的 {0} 标识符。</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">
@@ -2258,12 +2248,12 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="needs-review-translation">重要说明: Visual Studio 包含反编译功能("Decompiler")，可支持从二进制代码重现源代码。访问和使用 Decompiler 即表示您同意 Visual Studio 许可条款和以下 Decompiler 条款。如果不同意这些组合条款，请勿访问和使用 Decompiler。
- 
-您同意二进制代码和源代码可能受版权法和商标法保护。在对任何二进制代码使用 Decompiler 前，首先需要:  
+        <target state="translated">重要说明: Visual Studio 包含反编译功能("Decompiler")，可支持从二进制代码重现源代码。访问和使用 Decompiler 即表示您同意 Visual Studio 许可条款和以下 Decompiler 条款。如果不同意这些组合条款，请勿访问和使用 Decompiler。
+
+您同意二进制代码和源代码可能受版权法和商标法保护。在对任何二进制代码使用 Decompiler 前，首先需要:
 (i) 确认约束您使用二进制代码的许可条款不包含禁止反编译软件的条款；或者
 (ii) 获得软件所有者关于反编译二进制代码的许可。
- 
+
 使用 Decompiler 是个人的选择。如果您使用 Decompiler 时违反了任何法律或任何禁止软件反编译的软件许可条款，Microsoft 不承担任何责任和法律责任。
 
 我同意上述所有条款:</target>

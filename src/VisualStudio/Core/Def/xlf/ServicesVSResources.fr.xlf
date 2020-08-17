@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
-        <target state="new">Current parameter</target>
+        <target state="translated">Paramètre actuel</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -220,11 +220,6 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Évaluation ({0} tâches en file d'attente)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Base_Class">
-        <source>Extract Base Class</source>
-        <target state="new">Extract Base Class</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -355,16 +350,6 @@
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
         <target state="translated">Déplacer vers un espace de noms</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_conflicts_with_an_existing_type_name">
-        <source>Name conflicts with an existing type name.</source>
-        <target state="new">Name conflicts with an existing type name.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_is_not_a_valid_0_identifier">
-        <source>Name is not a valid {0} identifier.</source>
-        <target state="new">Name is not a valid {0} identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -817,11 +802,6 @@
         <target state="translated">Mise à jour de la gravité</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="new">Use 64-bit process for code analysis (requires restart)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">Utiliser un corps d'expression pour les expressions lambda</target>
@@ -895,6 +875,16 @@
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">Vous devez sélectionner au moins un membre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
+        <source>Interface name conflicts with an existing type name.</source>
+        <target state="translated">Le nom d'interface est en conflit avec un nom de type existant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
+        <source>Interface name is not a valid {0} identifier.</source>
+        <target state="translated">Le nom de l'interface n'est pas un identificateur {0} valide.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">
@@ -2258,15 +2248,15 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="needs-review-translation">IMPORTANT : Visual Studio inclut une fonctionnalité de décompilation ("Décompileur") qui permet de reproduire du code source à partir de code binaire. En accédant au Décompileur et en l'utilisant, vous acceptez les termes du contrat de licence Visual Studio et les termes du Décompileur ci-dessous. Si vous n'êtes pas d'accord avec ces termes combinés, n'accédez pas au Décompileur et ne l'utilisez pas.
+        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
 
-Vous reconnaissez que le code binaire et le code source peuvent être protégés par des lois sur les droits d'auteur et le droit des marques. Avant d'utiliser le Décompileur sur du code binaire, vous devez d'abord :
-(i) confirmer que les termes du contrat de licence régissant votre utilisation du code binaire ne contiennent aucune disposition vous interdisant de décompiler le logiciel ; ou
-(ii) obtenir l'autorisation de décompiler le code binaire auprès du propriétaire du logiciel.
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
+(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
+(ii) obtain permission to decompile the binary code from the owner of the software.
 
-Votre utilisation du Décompileur est facultative. Microsoft n'accepte aucune responsabilité et décline toute obligation relative à votre utilisation du Décompileur si vous transgressez les lois ou les termes du contrat de licence du logiciel interdisant la décompilation du logiciel.
+Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
-Je suis d'accord avec tout ce qui précède :</target>
+I agree to all of the foregoing:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">
