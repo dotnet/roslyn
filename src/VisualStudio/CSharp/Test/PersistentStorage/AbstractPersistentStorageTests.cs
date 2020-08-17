@@ -4,14 +4,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -438,6 +442,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 Assert.Equal(s_checksum2, await storage.ReadChecksumAsync(streamName1));
             }
+        }
+
+        [Fact, WorkItem(1174219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1174219")]
+        public void CacheDirectoryShouldNotBeAtRoot()
+        {
+            var workspace = new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(typeof(TestPersistentStorageLocationService)).GetHostServices());
+            workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), new VersionStamp(), @"D:\git\PCLCrypto\PCLCrypto.sln"));
+
+            var locationService = workspace.Services.GetService<IPersistentStorageLocationService>();
+            var location = locationService.TryGetStorageLocation(workspace.CurrentSolution);
+            Assert.False(location.StartsWith("/"));
+        }
+
+        [PartNotDiscoverable]
+        [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: ServiceLayer.Host), Shared]
+        private class TestPersistentStorageLocationService : DefaultPersistentStorageLocationService
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestPersistentStorageLocationService()
+            {
+            }
+
+            public override bool IsSupported(Workspace workspace) => true;
         }
 
         private void DoSimultaneousReads(Func<Task<string>> read, string expectedValue)

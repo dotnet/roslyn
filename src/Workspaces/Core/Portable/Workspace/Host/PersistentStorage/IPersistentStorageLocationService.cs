@@ -5,10 +5,12 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -21,6 +23,13 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService)), Shared]
     internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService
     {
+        /// <summary>
+        /// Used to ensure that the path components we generate do not contain any characters that might be invalid in a
+        /// path.  For example, Base64 encoding will use <c>/</c> which is something that we definitely do not want
+        /// errantly added to a path.
+        /// </summary>
+        private static ImmutableArray<char> s_invalidPathChars = Path.GetInvalidPathChars().Concat('/').ToImmutableArray();
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultPersistentStorageLocationService()
@@ -58,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             static string StripInvalidPathChars(string val)
             {
-                var invalidPathChars = Path.GetInvalidPathChars();
-                val = new string(val.Where(c => !invalidPathChars.Contains(c)).ToArray());
+                val = new string(val.Where(c => !s_invalidPathChars.Contains(c)).ToArray());
 
                 return string.IsNullOrWhiteSpace(val) ? "None" : val;
             }
