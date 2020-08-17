@@ -1917,7 +1917,7 @@ return i switch
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp9,
             };
 
             test.ExpectedDiagnostics.Add(
@@ -1962,7 +1962,7 @@ j = i switch
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp9,
             };
 
             test.ExpectedDiagnostics.Add(

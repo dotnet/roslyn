@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static CSharpCompilation CreateFunctionPointerCompilation(string source, TargetFramework targetFramework = TargetFramework.Standard)
         {
-            return CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll, targetFramework: targetFramework);
+            return CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll, targetFramework: targetFramework);
         }
 
         [InlineData("", RefKind.None, "delegate*<System.Object>")]
@@ -1045,7 +1045,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithIL("", ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL("", ilSource, parseOptions: TestOptions.Regular9);
             var testClass = comp.GetTypeByMetadataName("Test1")!;
             var m = testClass.GetMethod("M");
 
@@ -1380,7 +1380,7 @@ static class C
         ptr.M();
     }
 }";
-            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
 
             var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped);
             verifier.VerifyIL("C.Main", expectedIL: @"
@@ -1961,7 +1961,7 @@ namespace System
         }
     }
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
 
             var mainComp = CreateCompilation("");
             var returnType = mainComp.GetSpecialType(SpecialType.System_String).GetPublicSymbol();
@@ -2087,7 +2087,7 @@ namespace System
         }
     }
 }
-", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
 
             var returnType = comp.GetSpecialType(SpecialType.System_String);
 

@@ -51,6 +51,28 @@ class C
         }
 
         [Fact]
+        public void Event_InitialState()
+        {
+            var src = @"
+using System;
+class C
+{
+    public event Action E1 = () => { };
+    public event Action E2;
+    internal C()
+    {
+        E1.Invoke();
+        E2.Invoke(); // 1
+    }
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         E2.Invoke(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E2").WithLocation(10, 9));
+        }
+
+        [Fact]
         public void NoExplicitConstructors_CSharp7_01()
         {
             var source =
@@ -494,6 +516,126 @@ class C
         }
 
         [Fact]
+        public void FieldInitializer_Simple_01()
+        {
+            var source = @"
+class C
+{
+    string field = ""hello"";
+    public C()
+    {
+        field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FieldInitializer_Simple_02()
+        {
+            var source = @"
+class C
+{
+    string Prop { get; set; } = ""hello"";
+    public C()
+    {
+        Prop.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyInitializer_AllowNullT_01()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T Prop { get; set; }
+    public C()
+    {
+        Prop = default;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyInitializer_AllowNullT_02()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T Prop { get; set; }
+    public C()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FieldInitializer_AllowNullT_01()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T field;
+    public C()
+    {
+        field = default;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,7): warning CS0414: The field 'C<T>.field' is assigned but its value is never used
+                //     T field;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C<T>.field").WithLocation(7, 7)
+                );
+        }
+
+        [Fact]
+        public void FieldInitializer_AllowNullT_02()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C<T>
+{
+    [AllowNull]
+    T field;
+    public C()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,7): warning CS0169: The field 'C<T>.field' is never used
+                //     T field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(7, 7)
+                );
+        }
+
+        [Fact]
         [WorkItem(34668, "https://github.com/dotnet/roslyn/issues/34668")]
         [WorkItem(37511, "https://github.com/dotnet/roslyn/issues/37511")]
         public void StaticFields_GenericTypes()
@@ -678,6 +820,69 @@ struct S
                 // (23,14): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(object x, object y, string z) : base()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(23, 14));
+        }
+
+        [Fact]
+        public void StructConstructorInitializer()
+        {
+            var source = @"
+struct S1
+{
+    public string Prop { get; set; }
+    public S1(string s) // 1
+    {
+        Prop.ToString(); // 2
+    }
+
+    public S1(object obj) : this()
+    {
+        Prop.ToString(); // 3
+    }
+
+    public S1(object obj1, object obj2) : this() // 4
+    {
+    }
+
+    public S1(string s1, string s2) : this(s1)
+    {
+        Prop.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller.
+                //     public S1(string s) // 1
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Prop").WithLocation(5, 12),
+                // (7,9): error CS8079: Use of possibly unassigned auto-implemented property 'Prop'
+                //         Prop.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Prop").WithArguments("Prop").WithLocation(7, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
+                // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public S1(object obj1, object obj2) : this() // 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
+        }
+
+        [Fact, WorkItem(43215, "https://github.com/dotnet/roslyn/issues/43215")]
+        public void FieldInitializer_CallWithOutParam()
+        {
+            var source = @"
+class C
+{
+    static string field1;
+    static string field2 = M(out field1);
+
+    public static string M(out string param1)
+    {
+        param1 = ""hello"";
+        return ""world"";
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -938,9 +1143,9 @@ class C<T> where T : struct
                 // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version 'preview' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '9.0' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("9.0").WithLocation(10, 5));
 
             // [NonNullTypes] missing
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -948,9 +1153,9 @@ class C<T> where T : struct
                 // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
-                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version 'preview' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
+                // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '9.0' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("preview").WithLocation(10, 5));
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithArguments("9.0").WithLocation(10, 5));
 
             // https://github.com/dotnet/roslyn/issues/29976: Test with [NonNullTypes(Warnings=false)].
         }
@@ -973,7 +1178,7 @@ class C<T>
     private T P3 { get; }
     private T? P4 { get; }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private T F1;
@@ -1007,7 +1212,7 @@ class C<T> where T : class?
     private T P3 { get; }
     private T? P4 { get; }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private T F1;
@@ -1041,7 +1246,7 @@ class C<T> where T : notnull
     private T P3 { get; }
     private T? P4 { get; }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private T F1;
@@ -1075,7 +1280,7 @@ class C<T> where T : unmanaged
     private T P3 { get; }
     private T? P4 { get; }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -1098,7 +1303,7 @@ class C<T> where T : I
     private T P3 { get; }
     private T? P4 { get; }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private T F1;
@@ -1133,7 +1338,7 @@ class C<T> where T : I?
     private T P3 { get; }
     private T? P4 { get; }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,15): warning CS8618: Non-nullable field 'F1' is uninitialized. Consider declaring the field as nullable.
                 //     private T F1;
@@ -1470,11 +1675,15 @@ class C
         L(new object());
     }
 }";
+            // Null state does not flow out of local functions https://github.com/dotnet/roslyn/issues/45770
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,5): warning CS8618: Non-nullable field 'G' is uninitialized. Consider declaring the field as nullable.
+                // (6,5): warning CS8618: Non-nullable field 'G' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5),
+                // (6,5): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     C()
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(6, 5));
         }
 
         [Fact]
@@ -1530,6 +1739,356 @@ class C
                 // (28,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(char c)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(28, 14));
+        }
+
+        [Fact]
+        [WorkItem(43523, "https://github.com/dotnet/roslyn/issues/43523")]
+        [WorkItem(44046, "https://github.com/dotnet/roslyn/issues/44046")]
+        public void IndirectInitialization_WithAssertsOrThrows()
+        {
+            var source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C1
+{
+    public string Prop { get; set; }
+    void Init() => Prop = ""hello"";
+    public C1() // 1
+    {
+        Init();
+    }
+}
+
+class C2
+{
+    public string Prop { get; set; }
+    void Init() => Prop = ""hello"";
+
+    static void MyAssert([DoesNotReturnIf(false)] bool b) { if (!b) throw null!; }
+
+    public C2()
+    {
+        Init();
+        MyAssert(Prop is object);
+    }
+}
+
+class C3
+{
+    public string Prop { get; set; }
+    void Init() => Prop = ""hello"";
+    public C3()
+    {
+        Init();
+        if (Prop is null)
+        {
+            throw new Exception();
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, DoesNotReturnIfAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public C1() // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C1").WithArguments("property", "Prop").WithLocation(9, 12));
+        }
+
+        [Fact]
+        [WorkItem(41110, "https://github.com/dotnet/roslyn/issues/41110")]
+        public void TrackMemberStateAcrossInitializers()
+        {
+            var source = @"
+class C
+{
+  static string? P1 { get; set; } = """";
+
+  static string P2 { get; set; } = P1;
+  static string f1 = P1;
+}
+
+class D
+{
+  static string? f1 = """";
+
+  static string f2 = f1;
+  static string P1 { get; set; } = f1;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44180, "https://github.com/dotnet/roslyn/issues/44180")]
+        public void MemberNotNull_PropertiesFields()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class Property
+{
+  public string P { get; set; }
+
+  public Property() { Init(); P.ToString(); }
+
+  [MemberNotNull(nameof(P))]  void Init() => P = """";
+}
+
+class Field
+{
+  public string F;
+
+  public Field() { Init(); F.ToString(); }
+
+  [MemberNotNull(nameof(F))] void Init() => F = """";
+}";
+            var comp = CreateCompilation(new[] { source, MemberNotNullAttributeDefinition }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(41296, "https://github.com/dotnet/roslyn/issues/41296")]
+        public void InitializeInTryAndInCatch()
+        {
+            var source = @"
+using System;
+public class C
+{
+    string field;
+
+    public C()
+    {
+        try
+        {
+            M2(out field);
+        }
+        catch (Exception)
+        {
+           if (field is null)
+           {
+              field  =  """";
+           }
+        }
+    }
+
+    static void M2(out string s) => throw null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44212, "https://github.com/dotnet/roslyn/issues/44212")]
+        public void InitializeUsingNullCoalescingAssignment()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    string f;
+
+    public C()
+    {
+        Prop ??= """";
+        f.ToString();
+    }
+
+    public C(byte b)
+    {
+        if (Prop == null)
+        {
+            Prop = """";
+        }
+        f.ToString();
+    }
+
+    [MemberNotNull(nameof(f))]
+    string? Prop
+    {
+        get => f = """";
+        set => f = value ?? """";
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, MemberNotNullAttributeDefinition }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BaseMembersHaveDeclaredStateInDerivedCtor()
+        {
+            var source = @"
+class Base
+{
+    public string BaseProp { get; set; } // 1
+}
+
+class Derived : Base
+{
+    string DerivedProp { get; set; }
+
+    public Derived()
+    {
+        BaseProp.ToString();
+        DerivedProp.ToString(); // 2
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,19): warning CS8618: Non-nullable property 'BaseProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string BaseProp { get; set; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "BaseProp").WithArguments("property", "BaseProp").WithLocation(4, 19),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         DerivedProp.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "DerivedProp").WithLocation(14, 9));
+        }
+
+        [Fact]
+        public void NullableEnableWarnings_InitialState()
+        {
+            var source = @"
+#nullable enable warnings
+class C
+{
+    public string Prop { get; set; }
+    public C()
+    {
+        Prop.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableEnableWarnings_NoExitWarning()
+        {
+            var source = @"
+#nullable enable warnings
+class C
+{
+    public string Prop { get; set; }
+    public C()
+    {
+        Prop = null;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NotNullIfNotNull_StaticInitializers_01()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+public class C
+{
+    static string Field1 = M(Field2); // 1
+    static string Field2 = M(Field1); // 2
+
+    [return: NotNullIfNotNull(""input"")]
+    public static string? M(string? input) => input;
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,28): warning CS8601: Possible null reference assignment.
+                //     static string Field1 = M(Field2); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M(Field2)").WithLocation(6, 28),
+                // (7,28): warning CS8601: Possible null reference assignment.
+                //     static string Field2 = M(Field1); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M(Field1)").WithLocation(7, 28)
+                );
+        }
+
+        [Fact]
+        public void NotNullIfNotNull_StaticInitializers_02()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+public class C
+{
+    static string? Field1 = ""a"";
+    static string Field2 = M(Field1);
+
+    [return: NotNullIfNotNull(""input"")]
+    public static string? M(string? input) => input;
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NotNullIfNotNull_StaticInitializers_03()
+        {
+            var source = @"
+public class C
+{
+    static string Field1 = Field2.ToString(); // 1
+    static string Field2 = ""a"";
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,28): warning CS8602: Dereference of a possibly null reference.
+                //     static string Field1 = Field2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 28));
+        }
+
+        [Fact]
+        [WorkItem(46121, "https://github.com/dotnet/roslyn/issues/46121")]
+        public void StaticInitializers_MultipleFiles_01()
+        {
+            var source1 = @"
+partial class C
+{
+    static readonly string s1;
+}";
+            var source2 = @"
+partial class C
+{
+    static C()
+    {
+        s1 = ""hello"";
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,28): warning CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static readonly string s1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 28)
+                );
+        }
+
+        [Fact]
+        [WorkItem(46121, "https://github.com/dotnet/roslyn/issues/46121")]
+        public void StaticInitializers_MultipleFiles_02()
+        {
+            var source1 = @"
+partial class C
+{
+    static readonly string Field1 = Field2.ToString(); // 1
+}";
+            var source2 = @"
+partial class C
+{
+    static readonly string Field2 = ""a"";
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,37): warning CS8602: Dereference of a possibly null reference.
+                //     static readonly string Field1 = Field2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 37));
         }
 
         [Fact]

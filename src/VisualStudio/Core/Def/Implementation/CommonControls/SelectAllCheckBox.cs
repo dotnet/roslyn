@@ -4,7 +4,7 @@
 
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.CustomControls
 {
     /// <summary>
     /// A check box used to imitate the behavior of select all check box of VS.

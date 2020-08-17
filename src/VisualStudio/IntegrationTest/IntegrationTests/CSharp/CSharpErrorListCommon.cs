@@ -39,14 +39,14 @@ class C
                 new ErrorListItem(
                     severity: "Error",
                     description: "The type or namespace name 'P' could not be found (are you missing a using directive or an assembly reference?)",
-                    project: "TestProj.csproj",
+                    project: "TestProj",
                     fileName: "Class1.cs",
                     line: 4,
                     column: 12),
                 new ErrorListItem(
                     severity: "Error",
                     description: "'Console' does not contain a definition for 'WriteLin'",
-                    project: "TestProj.csproj",
+                    project: "TestProj",
                     fileName: "Class1.cs",
                     line: 6,
                     column: 24)
@@ -78,7 +78,7 @@ class C
                 new ErrorListItem(
                     severity: "Warning",
                     description: "The variable 'unused' is assigned but its value is never used",
-                    project: "TestProj.csproj",
+                    project: "TestProj",
                     fileName: "Class1.cs",
                     line: 6,
                     column: 13)
@@ -112,7 +112,7 @@ class Program2
                 new ErrorListItem(
                     severity: "Error",
                     description: "A local variable or function named 'aa' is already defined in this scope",
-                    project: "TestProj.csproj",
+                    project: "TestProj",
                     fileName: "Class1.cs",
                     line: 7,
                     column: 13)
@@ -154,7 +154,7 @@ class Program2
                 new ErrorListItem(
                     severity: "Error",
                     description: "A local variable or function named 'aa' is already defined in this scope",
-                    project: "TestProj.csproj",
+                    project: "TestProj",
                     fileName: "Class1.cs",
                     line: 7,
                     column: 13)
