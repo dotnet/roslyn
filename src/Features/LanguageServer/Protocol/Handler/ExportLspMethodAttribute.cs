@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public string? LanguageName { get; }
 
+        /// <summary>
+        /// Whether or not the specified request needs to mutate the solution. Mutating requests will block non-mutating requests from starting.
+        /// </summary>
         public bool MutatesSolutionState { get; }
 
         public ExportLspMethodAttribute(string methodName, string? languageName = null, bool mutatesSolutionState = false) : base(typeof(IRequestHandler))
