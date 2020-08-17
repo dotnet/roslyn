@@ -83,5 +83,36 @@ end class",
                 .LanguageVersion = LanguageVersion.VisualBasic12
             }.RunAsync()
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNotExpression)>
+        <WorkItem(46706, "https://github.com/dotnet/roslyn/issues/46706")>
+        Public Async Function TestFixAll() As Task
+            Await New VerifyVB.Test With {
+                .TestCode = "
+class C
+    sub M1(o as object)
+        if not o [|is|] nothing
+        end if
+    end sub
+
+    sub M2(o1 as object, o2 as object)
+        if not o1 [|is|] o2
+        end if
+    end sub
+end class",
+                .FixedCode = "
+class C
+    sub M1(o as object)
+        if o IsNot nothing
+        end if
+    end sub
+
+    sub M2(o1 as object, o2 as object)
+         if o1 IsNot o2
+        end if
+    end sub
+end class"
+            }.RunAsync()
+        End Function
     End Class
 End Namespace
