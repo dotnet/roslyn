@@ -692,5 +692,32 @@ class C
                 operation = operation.Parent;
             }
         }
+
+        [Fact]
+        public void SemanticModelFieldInitializerRace()
+        {
+            var source = $@"
+#nullable enable
+public class C
+{{
+    // Use a big initializer to increase the odds of hitting the race
+    public static object o = null;
+    public string s = {string.Join(" + ", Enumerable.Repeat("(string)o", 1000))};
+}}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var fieldInitializer = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Last().Value;
+
+            for (int i = 0; i < 5; i++)
+            {
+                // We had a race condition where the first attempt to access a field initializer could cause an assert to be hit,
+                // and potentially more work to be done than was necessary. So we kick off a parallel task to attempt to
+                // get info on a bunch of different threads at the same time and reproduce the issue.
+                var model = comp.GetSemanticModel(tree);
+                const int nTasks = 10;
+                Enumerable.Range(0, nTasks).AsParallel()
+                    .ForAll(_ => Assert.Equal("System.String System.String.op_Addition(System.String left, System.String right)", model.GetSymbolInfo(fieldInitializer).Symbol.ToTestDisplayString(includeNonNullable: false)));
+            }
+        }
     }
 }
