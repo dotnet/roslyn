@@ -4583,7 +4583,7 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";   
         Console.WriteLine(value);
     }
 }";

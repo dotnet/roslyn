@@ -3526,7 +3526,7 @@ public class A : System.Attribute
 [A($""ITEM"")]
 class C
 {
-    string S0 = $""Faaaaaaaaaaaaaaaaaaaaaaaaall"";
+    const string S0 = $""Faaaaaaaaaaaaaaaaaaaaaaaaall"";
 
     class Namae
     {
@@ -3543,7 +3543,7 @@ class C
                     goto case $""Level 5"";
             }
         }
-        S0 = S1;
+        S1 = S0;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -3655,6 +3655,8 @@ public class A : System.Attribute
 [A($""ITEM"")]
 class C
 {
+    const string S0 = $""Post"";
+
     class Namae
     {
         public string X { get; }
@@ -3696,58 +3698,61 @@ class C
             comp.VerifyDiagnostics(
                     // (32,27): error CS0133: The expression being assigned to 'S6' must be constant
                     //         const string S6 = $"Failed to {VS}";
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(32, 27));
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(34, 27));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                     // (12,4): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // [A($"ITEM")]
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""ITEM""").WithArguments("constant interpolated strings").WithLocation(12, 4),
-                    // (23,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         const string S1 = $"Testing";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(23, 27),
-                    // (24,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         const string S2 = $"{"Level 5"} {"Number 3"}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{""Level 5""} {""Number 3""}""").WithArguments("constant interpolated strings").WithLocation(24, 27),
+                    // (15,23): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     const string S0 = $"Post";
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Post""").WithArguments("constant interpolated strings").WithLocation(15, 23),
                     // (25,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         const string S3 = $"{$"{"Spinning Top"}"}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings").WithLocation(25, 27),
+                    //         const string S1 = $"Testing";
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(25, 27),
                     // (26,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         const string S4 = $"Hybrid" + "Testing" + "123";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Hybrid""").WithArguments("constant interpolated strings").WithLocation(26, 27),
-                    // (27,50): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         const string S5 = "Hybrid" + "Testing" + $"321";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""321""").WithArguments("constant interpolated strings").WithLocation(27, 50),
+                    //         const string S2 = $"{"Level 5"} {"Number 3"}";
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{""Level 5""} {""Number 3""}""").WithArguments("constant interpolated strings").WithLocation(26, 27),
+                    // (27,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         const string S3 = $"{$"{"Spinning Top"}"}";
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{$""{""Spinning Top""}""}""").WithArguments("constant interpolated strings").WithLocation(27, 27),
                     // (28,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         const string S4 = $"Hybrid" + "Testing" + "123";
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Hybrid""").WithArguments("constant interpolated strings").WithLocation(28, 27),
+                    // (29,50): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         const string S5 = "Hybrid" + "Testing" + $"321";
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""321""").WithArguments("constant interpolated strings").WithLocation(29, 50),
+                    // (30,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         const string F1 = $"{S1}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{S1}""").WithArguments("constant interpolated strings").WithLocation(28, 27),
-                    // (29,32): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{S1}""").WithArguments("constant interpolated strings").WithLocation(30, 27),
+                    // (31,32): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         const string F2 = F1 + $" the {S2}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"" the {S2}""").WithArguments("constant interpolated strings").WithLocation(29, 32),
-                    // (32,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"" the {S2}""").WithArguments("constant interpolated strings").WithLocation(31, 32),
+                    // (34,27): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         const string S6 = $"Failed to {VS}";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Failed to {VS}""").WithArguments("constant interpolated strings").WithLocation(32, 27),
-                    // (32,27): error CS0133: The expression being assigned to 'S6' must be constant
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Failed to {VS}""").WithArguments("constant interpolated strings").WithLocation(34, 27),
+                    // (34,27): error CS0133: The expression being assigned to 'S6' must be constant
                     //         const string S6 = $"Failed to {VS}";
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(32, 27),
-                    // (35,25): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""Failed to {VS}""").WithArguments("S6").WithLocation(34, 27),
+                    // (37,25): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     void M2(string S1 = $"Testing", object O = null, Namae N = null)
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(35, 25),
-                    // (38,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Testing""").WithArguments("constant interpolated strings").WithLocation(37, 25),
+                    // (40,18): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //             case $"Level 5":
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Level 5""").WithArguments("constant interpolated strings").WithLocation(38, 18),
-                    // (42,30): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Level 5""").WithArguments("constant interpolated strings").WithLocation(40, 18),
+                    // (44,30): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         if (N is Namae { X : $"ConstantInterpolatedString"}){
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""ConstantInterpolatedString""").WithArguments("constant interpolated strings").WithLocation(42, 30),
-                    // (44,22): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //                 case $"Number 3":
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(44, 22),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""ConstantInterpolatedString""").WithArguments("constant interpolated strings").WithLocation(44, 30),
                     // (46,22): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //                 case $"Number 3":
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(46, 22),
+                    // (48,22): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //                 case $"Radio Noise":
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Radio Noise""").WithArguments("constant interpolated strings").WithLocation(46, 22),
-                    // (47,31): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Radio Noise""").WithArguments("constant interpolated strings").WithLocation(48, 22),
+                    // (49,31): error CS8652: The feature 'constant interpolated strings' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //                     goto case $"Number 3";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(47, 31));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(49, 31));
         }
     }
 
