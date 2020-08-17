@@ -43,11 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Lightup
             return TypePatternAccessor(type);
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
         private static Func<T, TResult> ThrowNotSupportedOnFallback<T, TResult>(string typeName, string methodName)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
-            return _ => throw new NotSupportedException(CSharpCompilerExtensionsResources._0_1_is_not_supported_in_this_version);
+            return _ => throw new NotSupportedException(string.Format(CSharpCompilerExtensionsResources._0_1_is_not_supported_in_this_version, typeName, methodName));
         }
 #else
         public static PatternSyntax TypePattern(TypeSyntax type) => SyntaxFactory.TypePattern(type);
