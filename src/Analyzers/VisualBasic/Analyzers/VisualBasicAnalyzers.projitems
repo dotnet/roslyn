@@ -44,7 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForAssignmentDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\VisualBasicUseInferredMemberNameDiagnosticAnalyzer.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\VisualBasicUseIsNotDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\VisualBasicUseIsNotDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
