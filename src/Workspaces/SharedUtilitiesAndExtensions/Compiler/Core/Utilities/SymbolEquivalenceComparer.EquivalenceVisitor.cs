@@ -141,12 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     SymbolKind.RangeVariable => RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y),
                     SymbolKind.TypeParameter => TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Preprocessing => PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y),
-                    SymbolKind.FunctionPointerType =>
-#if !CODE_STYLE
-                        FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
-#else
-                        false,
-#endif
+                    SymbolKind.FunctionPointerType => FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
                     _ => false,
                 };
             }
@@ -571,10 +566,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.PointedAtType, y.PointedAtType, equivalentTypesWithDifferingAssemblies);
             }
 
-#if !CODE_STYLE
             private bool FunctionPointerTypesAreEquivalent(IFunctionPointerTypeSymbol x, IFunctionPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
                 => MethodsAreEquivalent(x.Signature, y.Signature, equivalentTypesWithDifferingAssemblies);
-#endif
 
             private bool PropertiesAreEquivalent(IPropertySymbol x, IPropertySymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {

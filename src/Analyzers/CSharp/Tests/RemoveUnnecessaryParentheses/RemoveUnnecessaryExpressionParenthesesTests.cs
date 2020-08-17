@@ -2490,8 +2490,6 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
 
-#if !CODE_STYLE
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestAlwaysUnnecessaryForPrimaryPattern1()
         {
@@ -2531,7 +2529,5 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
-
-#endif
     }
 }

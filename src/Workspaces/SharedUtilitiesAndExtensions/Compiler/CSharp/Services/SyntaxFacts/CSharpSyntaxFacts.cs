@@ -18,14 +18,13 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
@@ -2055,31 +2054,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             designation = recursivePattern.Designation;
         }
 
-#if CODE_STYLE
-
-        public bool SupportsNotPattern(ParseOptions options) => false;
-        public bool IsAndPattern(SyntaxNode node) => false;
-        public bool IsBinaryPattern(SyntaxNode node) => false;
-        public bool IsNotPattern(SyntaxNode node) => false;
-        public bool IsOrPattern(SyntaxNode node) => false;
-        public bool IsParenthesizedPattern(SyntaxNode node) => false;
-        public bool IsTypePattern(SyntaxNode node) => false;
-        public bool IsUnaryPattern(SyntaxNode node) => false;
-
-        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen)
-            => throw ExceptionUtilities.Unreachable;
-
-        public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
-            => throw ExceptionUtilities.Unreachable;
-
-        public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
-            => throw ExceptionUtilities.Unreachable;
-
-        public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
-            => throw ExceptionUtilities.Unreachable;
-
-#else
-
         public bool SupportsNotPattern(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion.IsCSharp9OrAbove();
 
@@ -2130,15 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-#endif
-
         public bool IsImplicitObjectCreation(SyntaxNode node)
-        {
-#if CODE_STYLE
-            return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
-#else
-            return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
-#endif
-        }
+            => node.IsKind(SyntaxKind.ImplicitObjectCreationExpression);
     }
 }

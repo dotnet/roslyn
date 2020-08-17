@@ -70,9 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => expressionOrPattern switch
             {
                 ExpressionSyntax expression => expression.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
-#if !CODE_STYLE
                 PatternSyntax pattern => pattern.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
-#endif
                 var other => other,
             };
 

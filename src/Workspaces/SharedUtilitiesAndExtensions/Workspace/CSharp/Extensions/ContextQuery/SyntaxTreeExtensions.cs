@@ -987,7 +987,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken)
         {
-#if !CODE_STYLE
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
@@ -995,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.CommaToken:
-                    return token.Parent is FunctionPointerParameterListSyntax;
+                    return token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList);
             }
 
             return token switch
@@ -1006,9 +1005,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 { Parent: TypeSyntax { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } } => true,
                 _ => false
             };
-#else
-            return false;
-#endif
         }
 
         public static bool IsGenericTypeArgumentContext(
@@ -1434,9 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // e is 1 or $$
             if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
             {
-#if !CODE_STYLE
                 return leftToken.Parent is BinaryPatternSyntax;
-#endif
             }
 
             // e is not $$

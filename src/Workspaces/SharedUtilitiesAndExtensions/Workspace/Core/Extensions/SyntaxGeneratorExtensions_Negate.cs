@@ -9,10 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Simplification;
-
-#if !CODE_STYLE
 using Roslyn.Utilities;
-#endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -75,9 +72,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (syntaxFacts.IsLogicalNotExpression(expressionOrPattern))
                 return GetNegationOfLogicalNotExpression(expressionOrPattern, syntaxFacts);
 
-#if CODE_STYLE
-            return generator.LogicalNotExpression(expressionOrPattern);
-#else
             if (negateBinary && syntaxFacts.IsIsPatternExpression(expressionOrPattern))
                 return GetNegationOfIsPatternExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
@@ -110,9 +104,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return syntaxFacts.IsAnyPattern(expressionOrPattern)
                 ? generatorInternal.NotPattern(expressionOrPattern)
                 : generator.LogicalNotExpression(expressionOrPattern);
-
-#endif
-
         }
 
         private static SyntaxNode GetNegationOfBinaryExpression(
@@ -128,11 +119,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var binaryOperation = semanticModel.GetOperation(expressionNode, cancellationToken) as IBinaryOperation;
             if (binaryOperation == null)
             {
-#if !CODE_STYLE
                 // x is y   ->    x is not y
                 if (syntaxFacts.IsIsExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
                     return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
-#endif
+
                 // Apply the logical not operator if it is not a binary operation.
                 return generator.LogicalNotExpression(expressionNode);
             }
@@ -181,8 +171,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
             }
         }
-
-#if !CODE_STYLE
 
         private static SyntaxNode GetNegationOfBinaryPattern(
             SyntaxNode pattern,
@@ -284,8 +272,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return true;
         }
-
-#endif
 
         private static SyntaxNode NewBinaryOperation(
             IBinaryOperation binaryOperation,
@@ -427,8 +413,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return newLiteralExpression.WithTriviaFrom(expression);
         }
 
-#if !CODE_STYLE
-
         private static SyntaxNode GetNegationOfConstantPattern(
             SyntaxNode pattern,
             SyntaxGenerator generator,
@@ -449,8 +433,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return generatorInternal.NotPattern(pattern);
         }
 
-#endif
-
         private static SyntaxNode GetNegationOfLogicalNotExpression(
             SyntaxNode expression,
             ISyntaxFacts syntaxFacts)
@@ -461,8 +443,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return operand.WithPrependedLeadingTrivia(operatorToken.LeadingTrivia)
                           .WithAdditionalAnnotations(Simplifier.Annotation);
         }
-
-#if !CODE_STYLE
 
         private static SyntaxNode GetNegationOfUnaryPattern(
             SyntaxNode pattern,
@@ -482,7 +462,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // negating them here.
             return generatorInternal.NotPattern(pattern);
         }
-
-#endif
     }
 }
