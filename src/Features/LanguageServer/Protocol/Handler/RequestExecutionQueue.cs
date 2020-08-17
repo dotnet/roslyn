@@ -15,15 +15,12 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Export(typeof(RequestExecutionQueue)), Shared]
     internal partial class RequestExecutionQueue : IDisposable
     {
         private readonly AsyncQueue<QueueItem> _queue = new AsyncQueue<QueueItem>();
         private readonly ILspSolutionProvider _solutionProvider;
         private readonly CancellationTokenSource _cancelSource;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _solutionProvider = solutionProvider;

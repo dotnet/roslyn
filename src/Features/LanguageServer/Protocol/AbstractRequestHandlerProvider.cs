@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
         private readonly RequestExecutionQueue _queue;
 
-        public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, RequestExecutionQueue queue, string? languageName = null)
+        public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, ILspSolutionProvider solutionProvider, string? languageName = null)
         {
             _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == languageName));
-            _queue = queue;
+            _queue = new RequestExecutionQueue(solutionProvider);
         }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
