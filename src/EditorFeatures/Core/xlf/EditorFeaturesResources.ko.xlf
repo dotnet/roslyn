@@ -37,19 +37,14 @@
         <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="new">Error creating instance of CodeFixProvider</target>
         <note />
       </trans-unit>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -80,6 +75,11 @@
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">기본으로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Parameter_Name_Hints">
+        <source>Inline Parameter Name Hints</source>
+        <target state="new">Inline Parameter Name Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
         <source>Rename symbol's _file</source>
-        <target state="new">Rename symbol's _file</target>
+        <target state="translated">기호의 파일 이름 바꾸기(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -1207,11 +1207,6 @@ Do you want to proceed?</source>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">중괄호 완성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">다음 위치에서 모든 발생 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
