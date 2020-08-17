@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// path.  For example, Base64 encoding will use <c>/</c> which is something that we definitely do not want
         /// errantly added to a path.
         /// </summary>
-        private static ImmutableArray<char> s_invalidPathChars = Path.GetInvalidPathChars().Concat('/').ToImmutableArray();
+        private static readonly ImmutableArray<char> s_invalidPathChars = Path.GetInvalidPathChars().Concat('/').ToImmutableArray();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
