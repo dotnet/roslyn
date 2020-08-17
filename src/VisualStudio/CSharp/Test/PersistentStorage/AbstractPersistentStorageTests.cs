@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         [PartNotDiscoverable]
-        [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: ServiceLayer.Host), Shared]
+        [ExportWorkspaceService(typeof(IPersistentStorageLocationService), layer: ServiceLayer.Test), Shared]
         private class TestPersistentStorageLocationService : DefaultPersistentStorageLocationService
         {
             [ImportingConstructor]
