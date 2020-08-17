@@ -391,8 +391,6 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""6"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
-    </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
     <Project Language=""Visual Basic"">
@@ -420,14 +418,38 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""6"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
-    </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
                 LanguageVersion.CSharp8,
+                parseOptions: null,
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeAllProjectsToCSharp9()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""6"">
+        <Document>
+[|System.Console.WriteLine();|]
+        </Document>
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""6"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""7"">
+    </Project>
+    <Project Language=""C#"" LanguageVersion=""8"">
+    </Project>
+    <Project Language=""Visual Basic"">
+    </Project>
+</Workspace>",
+                LanguageVersion.CSharp9,
                 parseOptions: null,
                 index: 1);
         }
@@ -633,7 +655,7 @@ class C<T>
 {
     static void F([|T?|] t) { }
 }",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp9,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 

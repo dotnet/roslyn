@@ -27,13 +27,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-                Return New VisualBasicEditAndContinueAnalyzer(languageServices.WorkspaceServices.GetRequiredService(Of IActiveStatementSpanTrackerFactory)().GetOrCreateActiveStatementSpanTracker())
+                Dim activeStatementSpanTracker = languageServices.WorkspaceServices.GetRequiredService(Of IActiveStatementSpanTrackerFactory)().GetOrCreateActiveStatementSpanTracker()
+                Return New VisualBasicEditAndContinueAnalyzer(activeStatementSpanTracker, testFaultInjector:=Nothing)
             End Function
         End Class
 
         ' Public for testing purposes
-        Public Sub New(activeStatementSpanTracker As IActiveStatementSpanTracker)
-            MyBase.New(activeStatementSpanTracker)
+        Public Sub New(activeStatementSpanTracker As IActiveStatementSpanTracker, Optional testFaultInjector As Action(Of SyntaxNode) = Nothing)
+            MyBase.New(activeStatementSpanTracker, testFaultInjector)
         End Sub
 
 #Region "Syntax Analysis"

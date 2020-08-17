@@ -5137,7 +5137,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (9,48): error CS8820: A static anonymous function cannot contain a reference to 'x'.
                 //         Action fn = static () => Console.Write(x);
@@ -5178,7 +5178,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (11,21): error CS8820: A static anonymous function cannot contain a reference to 'x'.
                 //             int y = x;
@@ -5227,7 +5227,7 @@ class C
 
             void verify(string source)
             {
-                var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "42");
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "42");
                 verifier.VerifyDiagnostics();
 
                 var comp = verifier.Compilation;

@@ -133,6 +133,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
         }
 
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+        {
+            try
+            {
+                WaitForAllAsyncOperations(timeout, featureNames);
+            }
+            catch (Exception e)
+            {
+                Environment.FailFast("Terminating test process due to unrecoverable timeout.", e);
+            }
+        }
+
         private static void WaitForProjectSystem(TimeSpan timeout)
         {
             var operationProgressStatus = InvokeOnUIThread(_ => GetGlobalService<SVsOperationProgress, IVsOperationProgressStatusService>());
