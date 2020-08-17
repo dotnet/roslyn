@@ -1726,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKindEx.RecordDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
@@ -2135,7 +2135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsImplicitObjectCreation(SyntaxNode node)
         {
 #if CODE_STYLE
-            return ((CSharpSyntaxNode)node).Kind() == Formatting.SyntaxKindEx.ImplicitObjectCreationExpression;
+            return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
 #else
             return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
 #endif

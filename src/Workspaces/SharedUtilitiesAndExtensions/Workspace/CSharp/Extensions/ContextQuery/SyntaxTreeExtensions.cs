@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKindEx.RecordDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
+                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
                 {
                     return true;
                 }
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKindOrHasMatchingText(SyntaxKindEx.DataKeyword))
+            if (token.IsKindOrHasMatchingText(SyntaxKind.DataKeyword))
             {
                 return true;
             }
@@ -1395,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 // e is ((($$ 1 or 2)))
-                if (leftToken.Parent.IsKind(SyntaxKindEx.ParenthesizedPattern))
+                if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedPattern))
                 {
                     return true;
                 }
@@ -1432,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is 1 and $$
             // e is 1 or $$
-            if (leftToken.IsKind(SyntaxKindEx.AndKeyword) || leftToken.IsKind(SyntaxKindEx.OrKeyword))
+            if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
             {
 #if !CODE_STYLE
                 return leftToken.Parent is BinaryPatternSyntax;
@@ -1440,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // e is not $$
-            if (leftToken.IsKind(SyntaxKindEx.NotKeyword) && leftToken.Parent.IsKind(SyntaxKindEx.NotPattern))
+            if (leftToken.IsKind(SyntaxKind.NotKeyword) && leftToken.Parent.IsKind(SyntaxKind.NotPattern))
             {
                 return true;
             }
@@ -1467,9 +1467,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     // Patterns such as 'e is not $$', 'e is 1 or $$', 'e is ($$', and 'e is null or global::$$' should be invalid here
                     // as they are incomplete patterns.
-                    return !(leftToken.IsKind(SyntaxKindEx.OrKeyword) ||
-                        leftToken.IsKind(SyntaxKindEx.AndKeyword) ||
-                        leftToken.IsKind(SyntaxKindEx.NotKeyword) ||
+                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
+                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
+                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
                         leftToken.IsKind(SyntaxKind.OpenParenToken) ||
                         leftToken.IsKind(SyntaxKind.ColonColonToken));
                 }
