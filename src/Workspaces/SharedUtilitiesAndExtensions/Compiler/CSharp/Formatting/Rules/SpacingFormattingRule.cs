@@ -330,19 +330,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // Force a space between * and the calling convention
-                if (previousKind == SyntaxKind.AsteriskToken && currentParentKind == SyntaxKindEx.FunctionPointerCallingConvention)
+                if (previousKind == SyntaxKind.AsteriskToken && currentParentKind == SyntaxKind.FunctionPointerCallingConvention)
                 {
                     switch (currentKind)
                     {
                         case SyntaxKind.IdentifierToken:
-                        case SyntaxKindEx.ManagedKeyword:
-                        case SyntaxKindEx.UnmanagedKeyword:
+                        case SyntaxKind.ManagedKeyword:
+                        case SyntaxKind.UnmanagedKeyword:
                             return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     }
                 }
             }
 
-            if (currentParentKind == SyntaxKindEx.FunctionPointerParameterList && currentKind == SyntaxKind.LessThanToken)
+            if (currentParentKind == SyntaxKind.FunctionPointerParameterList && currentKind == SyntaxKind.LessThanToken)
             {
                 switch (previousKind)
                 {
@@ -350,24 +350,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     case SyntaxKind.AsteriskToken:
                     // No spacing between the calling convention and opening angle bracket of function pointer types:
                     // delegate* managed<
-                    case SyntaxKindEx.ManagedKeyword:
-                    case SyntaxKindEx.UnmanagedKeyword:
+                    case SyntaxKind.ManagedKeyword:
+                    case SyntaxKind.UnmanagedKeyword:
                     // No spacing between the calling convention specifier and the opening angle
                     // delegate* unmanaged[Cdecl]<
-                    case SyntaxKind.CloseBracketToken when previousParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList:
+                    case SyntaxKind.CloseBracketToken when previousParentKind == SyntaxKind.FunctionPointerUnmanagedCallingConventionList:
                         return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
             }
 
             // No space between unmanaged and the [
             // delegate* unmanaged[
-            if (previousParentKind == SyntaxKindEx.FunctionPointerCallingConvention && currentParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList && currentKind == SyntaxKind.OpenBracketToken)
+            if (previousParentKind == SyntaxKind.FunctionPointerCallingConvention && currentParentKind == SyntaxKind.FunctionPointerUnmanagedCallingConventionList && currentKind == SyntaxKind.OpenBracketToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // Function pointer calling convention adjustments
-            if (currentParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList && previousParentKind == SyntaxKindEx.FunctionPointerUnmanagedCallingConventionList)
+            if (currentParentKind == SyntaxKind.FunctionPointerUnmanagedCallingConventionList && previousParentKind == SyntaxKind.FunctionPointerUnmanagedCallingConventionList)
             {
                 if (currentKind == SyntaxKind.IdentifierToken)
                 {
@@ -402,14 +402,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // Respect spacing setting for after the < in function pointer parameter lists
             // delegate*<void
-            if (previousKind == SyntaxKind.LessThanToken && previousParentKind == SyntaxKindEx.FunctionPointerParameterList)
+            if (previousKind == SyntaxKind.LessThanToken && previousParentKind == SyntaxKind.FunctionPointerParameterList)
             {
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinMethodDeclarationParenthesis);
             }
 
             // Respect spacing setting for before the > in function pointer parameter lists
             // delegate*<void>
-            if (currentKind == SyntaxKind.GreaterThanToken && currentParentKind == SyntaxKindEx.FunctionPointerParameterList)
+            if (currentKind == SyntaxKind.GreaterThanToken && currentParentKind == SyntaxKind.FunctionPointerParameterList)
             {
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinMethodDeclarationParenthesis);
             }
