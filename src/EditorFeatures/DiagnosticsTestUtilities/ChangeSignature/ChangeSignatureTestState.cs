@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,11 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null)
+        public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null, OptionsCollection options = null)
         {
             var workspace = languageName == LanguageNames.CSharp
                   ? TestWorkspace.CreateCSharp(markup, composition: s_composition, parseOptions: (CSharpParseOptions)parseOptions)
                   : TestWorkspace.CreateVisualBasic(markup, composition: s_composition, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            if (options != null)
+            {
+                workspace.ApplyOptions(options);
+            }
 
             return new ChangeSignatureTestState(workspace);
         }
