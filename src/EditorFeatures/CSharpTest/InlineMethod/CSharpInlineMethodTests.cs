@@ -18,14 +18,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             public static async Task TestInRegularAndScript1Async(
                 string initialMarkUp,
                 string expectedMarkUp,
-                int index = 0)
+                bool keepInlinedMethod = true)
             {
-                var test = new TestVerifier { CodeActionIndex = index };
+                var test = new TestVerifier { CodeActionIndex = keepInlinedMethod ? 0 : 1 };
                 test.TestState.Sources.Add(initialMarkUp);
                 test.FixedState.Sources.Add(expectedMarkUp);
                 await test.RunAsync().ConfigureAwait(false);
             }
         }
+
+        [Fact]
+        public Task TestInlineMethodForExpressionStatement()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Collections.Generic;
+public class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        var h = new HashSet<int>();
+        Ca[||]llee(i, j, h);
+    }
+
+    private bool Callee(int i, int j, HashSet<int> set)
+    {
+        return i == j;
+    }
+}",
+                @"
+using System.Collections.Generic;
+public class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        var h = new HashSet<int>();
+        h.Add(i);
+    }
+
+    private bool Callee(int i, int j, HashSet<int> set)
+    {
+        return i == j;
+    }
+}");
+
+        [Fact]
+        public Task TestRemoveTheInlinedMethod()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        Ca[||]llee(i, j);
+    }
+
+    private void Callee(int i, int j)
+    {
+        System.Console.WriteLine(i + j);
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller(int i, int j)
+    {
+        System.Console.WriteLine(i + j);
+    }
+}", keepInlinedMethod: false);
 
         [Fact]
         public Task TestInlineMethodWithSingleStatement()

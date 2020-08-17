@@ -4,11 +4,13 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.ConvertIfToSwitch;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -108,21 +110,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var codeAction = new CodeAction.DocumentChangeAction(
-                string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
-                cancellationToken => InlineMethodAsync(
-                    document,
-                    calleeMethodInvocationNode,
-                    (IMethodSymbol)calleeMethodSymbol,
-                    (TMethodDeclarationSyntax)calleeMethodDeclarationNode,
-                    statementContainsCallee,
-                    (IInvocationOperation)invocationOperation,
-                    cancellationToken));
+            var codeActions = await GenerateCodeActionsAsync(
+                document,
+                calleeMethodInvocationNode,
+                (IMethodSymbol)calleeMethodSymbol,
+                (TMethodDeclarationSyntax)calleeMethodDeclarationNode,
+                statementContainsCallee,
+                (IInvocationOperation)invocationOperation,
+                cancellationToken).ConfigureAwait(false);
 
-            context.RegisterRefactoring(codeAction);
+            var nestedCodeAction = new MyNestedCodeAction(
+                string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
+                codeActions,
+                isInlinable: true);
+
+            context.RegisterRefactoring(nestedCodeAction, calleeMethodInvocationNode.Span);
         }
 
-        private async Task<Document> InlineMethodAsync(
+        private async Task<ImmutableArray<CodeAction>> GenerateCodeActionsAsync(
             Document document,
             SyntaxNode calleeMethodInvocationSyntaxNode,
             IMethodSymbol calleeMethodSymbol,
@@ -131,7 +136,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodParametersInfo = MethodParametersInfo.GetMethodParametersInfo(_syntaxFacts, invocationOperation);
             var inlineContext = await InlineMethodContext.GetInlineContextAsync(
                 this,
@@ -143,9 +147,46 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 methodParametersInfo,
                 cancellationToken).ConfigureAwait(false);
 
-            var documentEditor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var statementContainsCalleeInvocationExpression = inlineContext.StatementContainingCallee;
-            foreach (var statement in inlineContext.StatementsToInsertBeforeCallee)
+            var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
+            var codeActionKeepsCallee = new MySolutionChangeAction(
+                string.Format(FeaturesResources.Keep_0, calleeMethodName),
+                cancellationToken =>
+                    InlineMethodAsync(document,
+                        calleeMethodInvocationSyntaxNode,
+                        calleeMethodSymbol,
+                        calleeMethodDeclarationSyntaxNode,
+                        inlineContext,
+                        removeCalleeDeclarationNode: false,
+                        cancellationToken));
+
+            var codeActionRemovesCallee = new MySolutionChangeAction(
+                string.Format(FeaturesResources.Remove_0, calleeMethodName),
+                cancellationToken =>
+                    InlineMethodAsync(document,
+                        calleeMethodInvocationSyntaxNode,
+                        calleeMethodSymbol,
+                        calleeMethodDeclarationSyntaxNode,
+                        inlineContext,
+                        removeCalleeDeclarationNode: true,
+                        cancellationToken));
+
+            return ImmutableArray.Create<CodeAction>(codeActionKeepsCallee, codeActionRemovesCallee);
+        }
+
+        private async Task<Solution> InlineMethodAsync(
+            Document document,
+            SyntaxNode calleeMethodInvocationNode,
+            IMethodSymbol calleeMethodSymbol,
+            TMethodDeclarationSyntax calleeMethodDeclarationNode,
+            InlineMethodContext inlineMethodContext,
+            bool removeCalleeDeclarationNode,
+            CancellationToken cancellationToken)
+        {
+            var solution = document.Project.Solution;
+            var solutionEditor = new SolutionEditor(solution);
+            var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            var statementContainsCalleeInvocationExpression = inlineMethodContext.StatementContainingCallee;
+            foreach (var statement in inlineMethodContext.StatementsToInsertBeforeCallee)
             {
                 documentEditor.InsertBefore(
                     statementContainsCalleeInvocationExpression,
@@ -153,14 +194,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     statement.WithLeadingTrivia(statementContainsCalleeInvocationExpression.GetLeadingTrivia()));
             }
 
-            var syntaxNodeToReplace = inlineContext.SyntaxNodeToReplace;
-            var inlineSyntaxNode = inlineContext.InlineSyntaxNode;
+            var syntaxNodeToReplace = inlineMethodContext.SyntaxNodeToReplace;
+            var inlineSyntaxNode = inlineMethodContext.InlineSyntaxNode;
             documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
 
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             // If the inline content has 'await' expression, then make sure the caller is converted to 'async' method
-            if (inlineContext.ContainsAwaitExpression)
+            if (inlineMethodContext.ContainsAwaitExpression)
             {
-                var enclosingMethod = GetEnclosingMethod(calleeMethodInvocationSyntaxNode);
+                var enclosingMethod = GetEnclosingMethod(calleeMethodInvocationNode);
                 if (enclosingMethod != null
                     && semanticModel.GetDeclaredSymbol(enclosingMethod, cancellationToken) is IMethodSymbol callerMethodSymbol
                     && !callerMethodSymbol.IsAsync)
@@ -169,7 +211,17 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
             }
 
-            return documentEditor.GetChangedDocument();
+            if (removeCalleeDeclarationNode)
+            {
+                var documentId = solution.GetDocumentId(calleeMethodDeclarationNode.SyntaxTree);
+                if (documentId != null)
+                {
+                    var editor = await solutionEditor.GetDocumentEditorAsync(documentId, cancellationToken).ConfigureAwait(false);
+                    editor.RemoveNode(calleeMethodDeclarationNode);
+                }
+            }
+
+            return solutionEditor.GetChangedSolution();
         }
 
         /// <summary>
@@ -194,7 +246,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             for (var node = calleeInvocationSyntax; node != null; node = node!.Parent)
             {
-                if (node != null && ShouldConsideredAsContainingStatement(node))
+                if (ShouldConsideredAsContainingStatement(node))
                 {
                     return node;
                 }
@@ -202,5 +254,36 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             return null;
         }
+
+        #region CodeActions
+
+        private class MyDocumentChangeCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyDocumentChangeCodeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                string? equivalenceKey = null) : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
+        }
+
+        private class MySolutionChangeAction : CodeAction.SolutionChangeAction
+        {
+            public MySolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null) : base(title, createChangedSolution, equivalenceKey)
+            {
+            }
+        }
+
+        private class MyNestedCodeAction : CodeAction.CodeActionWithNestedActions
+        {
+            public MyNestedCodeAction(
+                string title,
+                ImmutableArray<CodeAction> nestedActions,
+                bool isInlinable,
+                CodeActionPriority priority = CodeActionPriority.Medium) : base(title, nestedActions, isInlinable, priority)
+            {
+            }
+        }
+        #endregion
     }
 }

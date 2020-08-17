@@ -530,6 +530,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Geçersiz grup adı: grup adları bir sözcük karakteri ile başlamalıdır</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Keep_0">
+        <source>Keep '{0}'</source>
+        <target state="new">Keep '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="new">Make class 'abstract'</target>
@@ -1793,6 +1798,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="translated">Meta verilerde bulunan ilgili metot imzaları güncelleştirilmez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_0">
+        <source>Remove '{0}'</source>
+        <target state="new">Remove '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
