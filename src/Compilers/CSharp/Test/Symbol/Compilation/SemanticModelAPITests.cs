@@ -4042,11 +4042,10 @@ class Program
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var expected = new[] { true, false };
             var actual = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
-            Assert.Equal(expected[0], model.GetConstantValue(actual[0]).HasValue);
+            Assert.True(model.GetConstantValue(actual[0]).HasValue);
             Assert.Equal("Hello, world!", model.GetConstantValue(actual[0]).Value);
-            Assert.Equal(expected[1], model.GetConstantValue(actual[1]).HasValue);
+            Assert.False(model.GetConstantValue(actual[1]).HasValue);
         }
 
         [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]

@@ -4583,7 +4583,7 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";   
+        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
         Console.WriteLine(value);
     }
 }";
@@ -4616,6 +4616,35 @@ class TestClass
     {
         Console.WriteLine(Value);
         Console.WriteLine(Value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestConstantForInterpolatedStringsInvalid()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""Text{0}""|]);
+        Console.WriteLine($""Text{0}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:value|} = $""Text{0}"";
+        Console.WriteLine(value);
+        Console.WriteLine(value);
     }
 }";
 
