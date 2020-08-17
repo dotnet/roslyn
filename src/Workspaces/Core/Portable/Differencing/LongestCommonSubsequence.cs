@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     internal abstract class LongestCommonSubsequence
     {
         // Define the pool in a non-generic base class to allow sharing among instantiations.
-        private static volatile ObjectPool<VBuffer> s_pool = CreatePool();
+        private static volatile ObjectPool<VBuffer> s_pool = new ObjectPool<VBuffer>(() => new VBuffer());
 
         /// <summary>
         /// Underlying storage for <see cref="VArray"/>s allocated on <see cref="VStack"/>.
@@ -148,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     {
                         var previousBuffer = buffer.Previous;
 
+                        // Trim large buffers from the linked list before we return the whole list back into the pool.
                         if (buffer.IsTooLargeToPool)
                         {
                             buffer.Unlink();
@@ -216,12 +217,6 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         protected static VStack CreateStack()
             => new VStack(s_pool);
-
-        private static ObjectPool<VBuffer> CreatePool()
-            => new ObjectPool<VBuffer>(() => new VBuffer());
-
-        public static void ClearBufferPool()
-            => s_pool = CreatePool();
     }
 
     /// <summary>
