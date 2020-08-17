@@ -68,9 +68,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
-        public async Task TestNotInIfWithNoBlock()
+        public async Task TestInIfWithNoBlock()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -78,6 +78,16 @@ class C
     {
         if (false)
             [|var v = 0;|]
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        if (false)
+        {
+        }
     }
 }");
         }
