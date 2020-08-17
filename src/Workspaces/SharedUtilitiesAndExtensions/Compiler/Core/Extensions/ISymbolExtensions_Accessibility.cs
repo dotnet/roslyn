@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case SymbolKind.PointerType:
                     return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck);
 
-                case SymbolKindEx.FunctionPointerType:
+                case SymbolKind.FunctionPointerType:
 #if !CODE_STYLE
                     var funcPtrSignature = ((IFunctionPointerTypeSymbol)symbol).Signature;
                     if (!IsSymbolAccessibleCore(funcPtrSignature.ReturnType, within, null, out failedThroughTypeCheck))
