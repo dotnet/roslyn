@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     [SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Private constants are used for static assertions.")]
     internal static class MethodKindEx
     {
-        public const MethodKind FunctionPointerSignature = (MethodKind)18;
+        //public const MethodKind FunctionPointerSignature = (MethodKind)18;
 
 #if !CODE_STYLE
         // This will overflow if the kinds don't match up.
-        private const uint FunctionPointerValueAssertion = -(FunctionPointerSignature - MethodKind.FunctionPointerSignature);
+        //private const uint FunctionPointerValueAssertion = -(FunctionPointerSignature - MethodKind.FunctionPointerSignature);
 #endif
     }
 }

@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var objName = generator.IdentifierName("obj");
             if (containingType.IsValueType)
             {
-                if (generator.SupportsPatterns(tree.Options))
+                if (generator.SyntaxGeneratorInternal.SupportsPatterns(tree.Options))
                 {
                     // return obj is T t && this.Equals(t);
                     var localName = containingType.GetLocalName();
 
                     expressions.Add(
                         generator.IsPatternExpression(objName,
-                            generator.DeclarationPattern(containingType, localName)));
+                            generator.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
                     expressions.Add(
                         generator.InvocationExpression(
                             generator.MemberAccessExpression(

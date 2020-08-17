@@ -5,16 +5,17 @@
 using System;
 using System.Linq;
 using System.Threading;
-#if !CODE_STYLE
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-#endif
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -113,14 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, out TypeSyntax syntax)
             {
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                 if (symbol.IsNativeIntegerType)
                 {
                     syntax = SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
                     return true;
                 }
-#endif
 
                 syntax = null;
                 return false;

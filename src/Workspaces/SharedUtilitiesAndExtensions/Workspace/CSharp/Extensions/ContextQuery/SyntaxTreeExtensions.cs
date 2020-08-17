@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKindEx.RecordDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
+                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
                 {
                     return true;
                 }
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKindOrHasMatchingText(SyntaxKindEx.DataKeyword))
+            if (token.IsKindOrHasMatchingText(SyntaxKind.DataKeyword))
             {
                 return true;
             }
@@ -987,7 +987,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken)
         {
-#if !CODE_STYLE
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
@@ -995,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.CommaToken:
-                    return token.Parent is FunctionPointerParameterListSyntax;
+                    return token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList);
             }
 
             return token switch
@@ -1006,9 +1005,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 { Parent: TypeSyntax { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } } => true,
                 _ => false
             };
-#else
-            return false;
-#endif
         }
 
         public static bool IsGenericTypeArgumentContext(
@@ -1125,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-#if !CODE_STYLE
+#if !CODE_STYLE // FunctionPointerParameterListSyntax added in 3.8
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList, out FunctionPointerParameterListSyntax funcPtrParamList))
             {
@@ -1395,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 // e is ((($$ 1 or 2)))
-                if (leftToken.Parent.IsKind(SyntaxKindEx.ParenthesizedPattern))
+                if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedPattern))
                 {
                     return true;
                 }
@@ -1432,15 +1428,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is 1 and $$
             // e is 1 or $$
-            if (leftToken.IsKind(SyntaxKindEx.AndKeyword) || leftToken.IsKind(SyntaxKindEx.OrKeyword))
+            if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
             {
-#if !CODE_STYLE
                 return leftToken.Parent is BinaryPatternSyntax;
-#endif
             }
 
             // e is not $$
-            if (leftToken.IsKind(SyntaxKindEx.NotKeyword) && leftToken.Parent.IsKind(SyntaxKindEx.NotPattern))
+            if (leftToken.IsKind(SyntaxKind.NotKeyword) && leftToken.Parent.IsKind(SyntaxKind.NotPattern))
             {
                 return true;
             }
@@ -1467,9 +1461,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     // Patterns such as 'e is not $$', 'e is 1 or $$', 'e is ($$', and 'e is null or global::$$' should be invalid here
                     // as they are incomplete patterns.
-                    return !(leftToken.IsKind(SyntaxKindEx.OrKeyword) ||
-                        leftToken.IsKind(SyntaxKindEx.AndKeyword) ||
-                        leftToken.IsKind(SyntaxKindEx.NotKeyword) ||
+                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
+                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
+                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
                         leftToken.IsKind(SyntaxKind.OpenParenToken) ||
                         leftToken.IsKind(SyntaxKind.ColonColonToken));
                 }

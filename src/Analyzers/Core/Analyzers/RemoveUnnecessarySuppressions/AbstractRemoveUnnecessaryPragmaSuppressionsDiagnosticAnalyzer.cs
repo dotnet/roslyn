@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // However, this is a special analyzer that is directly invoked by the analysis host (IDE), so we do this check here.
             ReportDiagnostic severity;
             if (
-#if !CODE_STYLE
+#if !CODE_STYLE // Uses Roslyn 3.8 API
                 compilationWithAnalyzers.Compilation.Options.SyntaxTreeOptionsProvider != null &&
                 compilationWithAnalyzers.Compilation.Options.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(tree, IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, out severity) ||
 #endif
