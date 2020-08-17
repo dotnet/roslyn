@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly Action<Solution>? _solutionUpdater;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
-        /// </summary>
-        public Document? Document { get; }
-
-        /// <summary>
         /// The solution state that the request should operate on.
         /// </summary>
         public Solution Solution { get; }
@@ -38,7 +33,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public string? ClientName { get; }
 
-        public RequestContext(Document? document, Solution solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
+        /// <summary>
+        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// </summary>
+        public Document? Document { get; }
+
+        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, Action<Solution>? solutionUpdater)
         {
             Document = document;
             Solution = solution;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public void UpdateSolution(Solution solution)
         {
             Contract.ThrowIfNull(_solutionUpdater, "Mutating solution not allowed in a non-mutating request handler");
-            _solutionUpdater?.Invoke(solution);
+            _solutionUpdater.Invoke(solution);
         }
     }
 }

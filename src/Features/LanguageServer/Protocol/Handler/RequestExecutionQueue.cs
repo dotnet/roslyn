@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 solution = MergeChanges(solution, lastMutatedSolution);
 
                 Solution? mutatedSolution = null;
-                var context = new RequestContext(document, solution, s => mutatedSolution = s, work.ClientCapabilities, work.ClientName);
+                var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
 
                 if (work.MutatesSolutionState)
                 {
