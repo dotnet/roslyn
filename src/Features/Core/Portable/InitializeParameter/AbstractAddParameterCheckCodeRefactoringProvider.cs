@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return result.ToImmutable();
         }
 
-            private bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol taskType, INamedTypeSymbol genericTaskType)
-                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "<Main>$") &&  // https://github.com/dotnet/roslyn/issues/45110 Switch to using WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
-                                                                                                                          // once src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj is able to use the latest version of the type.
-                   methodSymbol.IsStatic &&
-                   (methodSymbol.ReturnsVoid ||
-                    methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
+        private static bool IsEntryPoint(IMethodSymbol methodSymbol, INamedTypeSymbol taskType, INamedTypeSymbol genericTaskType)
+            => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "<Main>$") &&  // https://github.com/dotnet/roslyn/issues/45110 Switch to using WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
+                                                                                                                      // once src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj is able to use the latest version of the type.
+               methodSymbol.IsStatic &&
+               (methodSymbol.ReturnsVoid ||
+                methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
+                methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
+                methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
             Document document,
