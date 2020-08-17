@@ -9,6 +9,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -54,6 +57,8 @@ namespace Microsoft.CodeAnalysis
             new ObjectPool<AnalyzerOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, string>(Section.PropertiesKeyComparer));
 
         private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
+
+        private StrongBox<AnalyzerConfigOptionsResult>? _lazyConfigOptions;
 
         private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
         {
@@ -145,33 +150,26 @@ namespace Microsoft.CodeAnalysis
 
             _analyzerMatchers = allMatchers.ToImmutableAndFree();
 
-            // parse the global options upfront
-            var treeOptionsBuilder = _treeOptionsPool.Allocate();
-            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
-            var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
-
-            ParseSectionOptions(_globalConfig.GlobalSection,
-                        treeOptionsBuilder,
-                        analyzerOptionsBuilder,
-                        diagnosticBuilder,
-                        GlobalAnalyzerConfigBuilder.GlobalConfigPath,
-                        _diagnosticIdCache);
-
-            GlobalConfigOptions = new AnalyzerConfigOptionsResult(
-                treeOptionsBuilder.ToImmutable(),
-                analyzerOptionsBuilder.ToImmutable(),
-                diagnosticBuilder.ToImmutableAndFree());
-
-            treeOptionsBuilder.Clear();
-            analyzerOptionsBuilder.Clear();
-            _treeOptionsPool.Free(treeOptionsBuilder);
-            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
         }
 
         /// <summary>
         /// Gets an <see cref="AnalyzerConfigOptionsResult"/> that contain the options that apply globally
         /// </summary>
-        public AnalyzerConfigOptionsResult GlobalConfigOptions { get; private set; }
+        public AnalyzerConfigOptionsResult GlobalConfigOptions
+        {
+            get
+            {
+                if (_lazyConfigOptions is null)
+                {
+                    Interlocked.CompareExchange(
+                        ref _lazyConfigOptions,
+                        new StrongBox<AnalyzerConfigOptionsResult>(ParseGlobalConfigOptions()),
+                        null);
+                }
+
+                return _lazyConfigOptions.Value;
+            }
+        }
 
         /// <summary>
         /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies
@@ -365,6 +363,32 @@ namespace Microsoft.CodeAnalysis
 
             severity = default;
             return false;
+        }
+
+        private AnalyzerConfigOptionsResult ParseGlobalConfigOptions()
+        {
+            var treeOptionsBuilder = _treeOptionsPool.Allocate();
+            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
+            var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+
+            ParseSectionOptions(_globalConfig.GlobalSection,
+                        treeOptionsBuilder,
+                        analyzerOptionsBuilder,
+                        diagnosticBuilder,
+                        GlobalAnalyzerConfigBuilder.GlobalConfigPath,
+                        _diagnosticIdCache);
+
+            var options = new AnalyzerConfigOptionsResult(
+                treeOptionsBuilder.ToImmutable(),
+                analyzerOptionsBuilder.ToImmutable(),
+                diagnosticBuilder.ToImmutableAndFree());
+
+            treeOptionsBuilder.Clear();
+            analyzerOptionsBuilder.Clear();
+            _treeOptionsPool.Free(treeOptionsBuilder);
+            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
+
+            return options;
         }
 
         private static void ParseSectionOptions(Section section, TreeOptions.Builder treeBuilder, AnalyzerOptions.Builder analyzerBuilder, ArrayBuilder<Diagnostic> diagnosticBuilder, string analyzerConfigPath, ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)

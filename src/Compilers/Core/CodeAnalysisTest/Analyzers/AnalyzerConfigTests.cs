@@ -2087,6 +2087,20 @@ option2 = config3
               options);
         }
 
+        [Fact]
+        public void GlobalConfigOptionsAreEmptyWhenNoGlobalConfig()
+        {
+            var set = AnalyzerConfigSet.Create(ImmutableArray<AnalyzerConfig>.Empty);
+            var globalOptions = set.GlobalConfigOptions;
+
+            Assert.NotNull(globalOptions.AnalyzerOptions);
+            Assert.NotNull(globalOptions.TreeOptions);
+
+            Assert.Empty(globalOptions.AnalyzerOptions);
+            Assert.Empty(globalOptions.Diagnostics);
+            Assert.Empty(globalOptions.TreeOptions);
+        }
+
 
         #endregion
     }
