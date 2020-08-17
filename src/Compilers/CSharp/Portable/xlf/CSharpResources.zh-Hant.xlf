@@ -877,6 +877,11 @@
         <target state="new">Type '{0}' must be public to be used as a calling convention.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SyncAndAsyncEntryPoints">
+        <source>Program has more than one entry point defined.</source>
+        <target state="new">Program has more than one entry point defined.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeNotFound">
         <source>Type '{0}' is not defined.</source>
         <target state="new">Type '{0}' is not defined.</target>

@@ -1730,6 +1730,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0)
+                {
+                    // TODO: I think I should first concat both taskEntryPoints and viableEntryPoints first.
+                    viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
+                    var info = new CSDiagnosticInfo(
+                         ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                         args: Array.Empty<object>(),
+                         symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
+                         additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+
+                    diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
+                }
 
                 foreach (var (_, _, SpecificDiagnostics) in taskEntryPoints)
                 {

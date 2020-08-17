@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EntryPointTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CompileConsoleApp(string source)
+        private CSharpCompilation CompileConsoleApp(string source, CSharpParseOptions parseOptions = null)
         {
-            return CreateCompilation(source, options: TestOptions.ReleaseExe);
+            return CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: parseOptions);
         }
 
         [Fact]
@@ -105,6 +105,32 @@ public class D
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("D.Main()"),
                 // (4,22): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"));
+        }
+
+        [Fact]
+        public void ERR_MultipleEntryPoints_SyncAndAsync()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static async Task Main() { await Task.Delay(1); }
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+
+public class D
+{
+  public static string Main() { System.Console.WriteLine(3); return null; }
+}
+";
+            var compilation = CompileConsoleApp(source, parseOptions: TestOptions.Regular7_1);
+
+            compilation.VerifyDiagnostics(
+                // (12,24): warning CS0028: 'D.Main()' has the wrong signature to be an entry point
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("D.Main()"),
+                // (4,28): warning CS8892: Program has more than one entry point defined.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main"));
         }
 
         [Fact]

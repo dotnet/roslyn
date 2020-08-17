@@ -6134,6 +6134,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeMustBePublic" xml:space="preserve">
     <value>Type '{0}' must be public to be used as a calling convention.</value>
   </data>
+  <data name="WRN_SyncAndAsyncEntryPoints" xml:space="preserve">
+    <value>Program has more than one entry point defined.</value>
+  </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
   </data>
