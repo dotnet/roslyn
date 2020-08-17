@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     .AddRange(newNameNode.GetLeadingTrivia())
                     .AddRange(newNameNode.GetTrailingTrivia());
 
-                return SyntaxFactoryEx.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
             }
 
             return null;
