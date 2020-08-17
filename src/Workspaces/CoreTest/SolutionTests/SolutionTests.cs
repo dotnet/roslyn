@@ -2917,6 +2917,7 @@ public class C : A {
 
             var project = solution.GetProject(projectId);
             var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.Equal(provider, (await project.GetCompilationAsync()).Options.SyntaxTreeOptionsProvider);
             Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA1234", out var severity));
             Assert.Equal(ReportDiagnostic.Error, severity);
 
@@ -2929,6 +2930,7 @@ public class C : A {
 
             project = solution.GetProject(projectId);
             provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.Equal(provider, (await project.GetCompilationAsync()).Options.SyntaxTreeOptionsProvider);
             Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA6789", out severity));
             Assert.Equal(ReportDiagnostic.Error, severity);
 

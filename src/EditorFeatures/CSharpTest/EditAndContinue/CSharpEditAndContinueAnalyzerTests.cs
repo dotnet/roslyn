@@ -8,10 +8,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -721,6 +723,44 @@ namespace N
             Assert.True(result.IsSingle());
             Assert.Equal(1, result.Single().RudeEditErrors.Count());
             Assert.Equal(RudeEditKind.InsertFile, result.Single().RudeEditErrors.Single().Kind);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task AnalyzeDocumentAsync_InternalError(bool outOfMemory)
+        {
+            var source1 = @"class C {}";
+            var source2 = @"class C { int x; }";
+
+            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
+            var oldProject = workspace.CurrentSolution.Projects.Single();
+            var documentId = DocumentId.CreateNewId(oldProject.Id);
+            var oldSolution = workspace.CurrentSolution;
+            var newSolution = oldSolution.AddDocument(documentId, "goo.cs", SourceText.From(source2), filePath: "src.cs");
+            var newProject = newSolution.Projects.Single();
+            var newDocument = newProject.GetDocument(documentId);
+            var newSyntaxTree = await newDocument.GetSyntaxTreeAsync().ConfigureAwait(false);
+
+            workspace.TryApplyChanges(newSolution);
+
+            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
+            var spanTracker = Assert.IsType<TestActiveStatementSpanTracker>(workspace.Services.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker());
+
+            var analyzer = new CSharpEditAndContinueAnalyzer(spanTracker, node =>
+            {
+                if (node is CompilationUnitSyntax)
+                {
+                    throw outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
+                }
+            });
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldProject.GetDocument(documentId), baseActiveStatements, newDocument, CancellationToken.None);
+
+            var expectedDiagnostic = outOfMemory ?
+                $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big, "src.cs")}" :
+                $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error, "src.cs", "System.NullReferenceException: NullRef!")}";
+
+            AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
+                .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
         }
     }
 }

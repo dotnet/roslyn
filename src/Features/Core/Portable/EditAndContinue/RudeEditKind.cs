@@ -108,7 +108,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangingFromAsynchronousToSynchronous = 85,
         ChangingStateMachineShape = 86,
 
-        // Chagned from 0x103 in 16.1
-        ComplexQueryExpression = 82,
+        // Chagned from 0x103 in 16.1 and from 82 to 87 in 16.8
+        ComplexQueryExpression = 87,
+
+        MemberBodyInternalError = 88,
+        SourceFileTooBig = 89,
+        MemberBodyTooBig = 90,
     }
 }

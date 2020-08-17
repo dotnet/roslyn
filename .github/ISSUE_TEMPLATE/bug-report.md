@@ -1,3 +1,8 @@
+---
+name: Bug report
+about: Report a bug in Roslyn
+---
+
 **Version Used**: 
 
 **Steps to Reproduce**:
