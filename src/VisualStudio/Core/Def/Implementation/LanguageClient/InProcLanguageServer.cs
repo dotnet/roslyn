@@ -84,6 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
 
+            _requestHandlerProvider.InitializeRequestQueue();
+
             var serverCapabilities = await _requestHandlerProvider.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName,
                 initializeParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
 
@@ -118,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _shuttingDown = true;
             _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
+            _requestHandlerProvider.ShutdownRequestQueue();
 
             return Task.CompletedTask;
         }

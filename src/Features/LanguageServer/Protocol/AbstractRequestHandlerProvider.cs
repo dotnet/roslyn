@@ -55,5 +55,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return _queue.ExecuteAsync(mutatesSolutionState, handler, request, clientCapabilities, clientName, cancellationToken);
         }
+
+        public void InitializeRequestQueue()
+        {
+            _queue.Initialize();
+        }
+
+        public void ShutdownRequestQueue()
+        {
+            _queue.Shutdown();
+        }
     }
 }

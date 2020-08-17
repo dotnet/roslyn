@@ -335,7 +335,9 @@ namespace Roslyn.Test.Utilities
         private protected static LanguageServerProtocol GetLanguageServer(Solution solution)
         {
             var workspace = (TestWorkspace)solution.Workspace;
-            return workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+            var server = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+            server.InitializeRequestQueue();
+            return server;
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

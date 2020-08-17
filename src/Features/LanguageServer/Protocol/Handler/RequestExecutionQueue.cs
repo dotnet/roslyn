@@ -6,12 +6,14 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -41,17 +43,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </remarks>
     internal partial class RequestExecutionQueue : IDisposable
     {
-        private readonly AsyncQueue<QueueItem> _queue = new AsyncQueue<QueueItem>();
         private readonly ILspSolutionProvider _solutionProvider;
-        private readonly CancellationTokenSource _cancelSource;
+        private AsyncQueue<QueueItem>? _queue;
+        private CancellationTokenSource? _cancelSource;
 
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _solutionProvider = solutionProvider;
-            _cancelSource = new CancellationTokenSource();
+        }
 
-            // Start the queue processing
-            _ = ProcessQueueAsync();
+        public void Initialize()
+        {
+            // If the queue is already running, do nothing because we don't want to run multiple or lose any queued messages
+            if (_cancelSource == null || _cancelSource.IsCancellationRequested)
+            {
+                _queue = new AsyncQueue<QueueItem>();
+                _cancelSource = new CancellationTokenSource();
+
+                // Start the queue processing
+                _ = ProcessQueueAsync();
+            }
+        }
+
+        public void Shutdown()
+        {
+            _queue = null;
+            _cancelSource?.Cancel();
         }
 
         /// <summary>
@@ -78,6 +95,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
+
+            // If the queue is not set up, we just fauly immediately
+            if (_queue == null)
+            {
+                completion.SetException(new InvalidOperationException("Server has not been initialized, or was requested to shut down."));
+                return completion.Task;
+            }
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
             var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, textDocument,
@@ -121,6 +145,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
+            Contract.ThrowIfNull(_cancelSource, "Queue should not run without a cancellation token source to stop it");
+
             // Keep track of solution state modifications made by LSP requests
             Solution? lastMutatedSolution = null;
             var queueToken = _cancelSource.Token;
@@ -169,8 +195,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public void Dispose()
         {
-            _cancelSource.Cancel();
-            _cancelSource.Dispose();
+            _cancelSource?.Cancel();
+            _cancelSource?.Dispose();
         }
     }
 }
