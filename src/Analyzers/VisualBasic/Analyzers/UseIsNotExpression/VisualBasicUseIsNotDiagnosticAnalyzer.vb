@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
     ''' <summary>
     ''' Looks for code of the forms:
     ''' 
-    '''     if not x is ...
+    '''     If Not x Is ...
     ''' 
     ''' and converts it to:
     ''' 
-    '''     if x isnot ...
+    '''     If x IsNot ...
     '''     
     ''' </summary>
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
             Dim node = syntaxContext.Node
             Dim syntaxTree = node.SyntaxTree
 
-            ' "x is not Type y" is only available in C# 9.0 and above. Don't offer this refactoring
+            ' "x IsNot ...." is only available in VB 14.0 and above. Don't offer this refactoring
             ' in projects targeting a lesser version.
             If DirectCast(syntaxTree.Options, VisualBasicParseOptions).LanguageVersion < LanguageVersion.VisualBasic14 Then
                 Return
