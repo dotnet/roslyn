@@ -565,6 +565,18 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
+        [Theory]
+        [InlineData("_=()=>{};", "_ = () =>\r\n{\r\n};")]
+        [InlineData("_=x=>{};", "_ = x =>\r\n{\r\n};")]
+        [InlineData("Add(()=>{});", "Add(() =>\r\n{\r\n});")]
+        [InlineData("Add(delegate(){});", "Add(delegate ()\r\n{\r\n});")]
+        [InlineData("Add(()=>{{_=x=>{};}});", "Add(() =>\r\n{\r\n  {\r\n    _ = x =>\r\n    {\r\n    };\r\n  }\r\n});")]
+        [WorkItem(46656, "https://github.com/dotnet/roslyn/issues/46656")]
+        public void TestNormalizeBlockAnonymousFunctions(string actual, string expected)
+        {
+            TestNormalizeStatement(actual, expected);
+        }
+
         private void TestNormalize(CSharpSyntaxNode node, string expected)
         {
             var actual = node.NormalizeWhitespace("  ").ToFullString();
