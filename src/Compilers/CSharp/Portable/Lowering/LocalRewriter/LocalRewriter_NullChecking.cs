@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -11,14 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private BoundBlock RewriteNullChecking(BoundBlock block)
+        private BoundBlock? RewriteNullChecking(BoundBlock block)
         {
-            if (block is null)
+            if (block is null || _factory.CurrentFunction is null || EmitModule is null)
             {
                 return null;
             }
 
-            var statementList = TryConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters, block.Statements, _factory);
+            var statementList = TryConstructNullCheckedStatementList(_factory.CurrentFunction.Parameters,
+                block.Statements,
+                _factory,
+                _compilation,
+                EmitModule,
+                _diagnostics);
+
             if (statementList.IsDefault)
             {
                 return null;
@@ -28,17 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ImmutableArray<BoundStatement> TryConstructNullCheckedStatementList(ImmutableArray<ParameterSymbol> parameters,
                                                                                          ImmutableArray<BoundStatement> existingStatements,
-                                                                                         SyntheticBoundNodeFactory factory)
+                                                                                         SyntheticBoundNodeFactory factory,
+                                                                                         CSharpCompilation compilation,
+                                                                                         PEModuleBuilder module,
+                                                                                         DiagnosticBag diagnostics)
         {
-            ArrayBuilder<BoundStatement> statementList = null;
+            ArrayBuilder<BoundStatement>? statementList = null;
             foreach (ParameterSymbol param in parameters)
             {
                 if (param.IsNullChecked)
                 {
                     Debug.Assert(!param.Type.IsValueType || param.Type.IsNullableTypeOrTypeParameter());
                     statementList ??= ArrayBuilder<BoundStatement>.GetInstance();
-                    var constructedIf = ConstructIfStatementForParameter(param, factory);
-                    statementList.Add(constructedIf);
+                    if (ConstructIfStatementForParameter(param, factory, compilation, module, diagnostics) is BoundStatement constructedIf)
+                    {
+                        statementList.Add(constructedIf);
+                    }
                 }
             }
             if (statementList is null)
@@ -51,7 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private static BoundStatement ConstructIfStatementForParameter(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
+        private static BoundStatement? ConstructIfStatementForParameter(ParameterSymbol parameter,
+                                                                        SyntheticBoundNodeFactory factory,
+                                                                        CSharpCompilation compilation,
+                                                                        PEModuleBuilder module,
+                                                                        DiagnosticBag diagnostics)
         {
             BoundExpression paramIsNullCondition;
             var loweredLeft = factory.Parameter(parameter);
@@ -65,13 +83,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 paramIsNullCondition = factory.MakeNullCheck(loweredLeft.Syntax, loweredLeft, BinaryOperatorKind.Equal);
             }
 
+            if (module is null)
+            {
+                return null;
+            }
+
             var argumentName = ImmutableArray.Create<BoundExpression>(factory.StringLiteral(parameter.Name));
-            //BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), argumentName);
-            //BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
+            var privateImplClass = module.GetPrivateImplClass(loweredLeft.Syntax, diagnostics);
+            var nullCheckMethod = compilation.NullCheckManager.GetNullCheckMethod(privateImplClass);
 
-            BoundExpressionStatement callThrow = factory.ExpressionStatement(factory.Call(receiver: null, method: null, args: argumentName));
+            BoundExpressionStatement callThrow = factory.ExpressionStatement(factory.Call(receiver: null, method: nullCheckMethod, args: argumentName));
 
-            //return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
             return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, callThrow));
         }
     }

@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var visited = (BoundLocalFunctionStatement)base.VisitLocalFunctionStatement(node)!;
 
+                Debug.Assert(visited.Body is object);
                 if (!localFunction.IsIterator && RewriteNullChecking(visited.Body) is BoundBlock newBody)
                 {
                     visited = visited.Update(localFunction, newBody, null);

@@ -1232,7 +1232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Iterators handled in IteratorRewriter.cs
                             if (!methodSymbol.IsIterator)
                             {
-                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters, boundStatements, factory);
+                                var boundStatementsWithNullCheck = LocalRewriter.TryConstructNullCheckedStatementList(methodSymbol.Parameters,
+                                    boundStatements,
+                                    factory,
+                                    _compilation,
+                                    _moduleBeingBuiltOpt,
+                                    _diagnostics);
 
                                 if (!boundStatementsWithNullCheck.IsDefault)
                                 {

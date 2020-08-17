@@ -34,15 +34,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Given anonymous type descriptor provided constructs an anonymous type symbol.
         /// </summary>
-        public void GetNullCheckMethod(PrivateImplementationDetails privateImplType)
+        public MethodSymbol GetNullCheckMethod(PrivateImplementationDetails privateImplType)
         {
-            if (privateImplType.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
+            if (privateImplType.GetMethod(PrivateImplementationDetails.ParameterNullCheckFunctionName) is MethodSymbol nullCheckSymbol)
             {
-                return;
+                return nullCheckSymbol;
             }
 
-            var method = new NullCheckSymbol(Compilation, privateImplType);
-            privateImplType.TryAddSynthesizedMethod(method);
+            MethodSymbol method = new NullCheckSymbol(Compilation, privateImplType);
+            if (!privateImplType.TryAddSynthesizedMethod(method))
+            {
+                method = (MethodSymbol)privateImplType.GetMethod(PrivateImplementationDetails.ParameterNullCheckFunctionName);
+                Debug.Assert(method is object);
+            }
+
+            return method;
         }
 
         private sealed class NullCheckSymbol : SynthesizedGlobalMethodSymbol

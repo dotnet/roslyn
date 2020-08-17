@@ -174,6 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal NullCheckManager NullCheckManager { get; }
+
         internal override CommonAnonymousTypeManager CommonAnonymousTypeManager
         {
             get
@@ -412,6 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
+            NullCheckManager = new NullCheckManager(this);
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
             if (isSubmission)
