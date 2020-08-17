@@ -28,6 +28,102 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestVoidMainNoArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static void Main([||]) => Console.WriteLine(""Hello world"");
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestIntMainNoArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static int Main([||]) => 0;
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCharMainNoArguments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static char Main([||]) => '0';
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestVoidMainWithStringArrayArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static void Main([||]string[] args) => Console.WriteLine(""Hello world"");
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestIntMainWithStringArrayArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static int Main([||]string[] args) => 0;
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCharMainWithStringArrayArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static char Main([||]string[] args) => '0';
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestVoidMainWithStringArgument()
+        {
+            // TODO: This is incorrect behavior. Update the test after fixing https://github.com/dotnet/roslyn/issues/46869
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static void Main([||]string args) => Console.WriteLine(""Hello world"");
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestIntMainWithStringArgument()
+        {
+            // TODO: This is incorrect behavior. Update the test after fixing https://github.com/dotnet/roslyn/issues/46869
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static int Main([||]string args) => 0;
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestCharMainWithStringArgument()
+        {
+            // TODO: This is incorrect behavior. Update the test after fixing https://github.com/dotnet/roslyn/issues/46869
+            await TestMissingInRegularAndScriptAsync(
+@"public static class Program
+{
+    public static char Main([||]string args) => '0';
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSimpleReferenceType()
         {
             await TestInRegularAndScript1Async(
