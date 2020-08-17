@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (work.MutatesSolutionState)
                 {
                     // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                    var ranToCompletion = await work.Callback(context, cancellationToken).ConfigureAwait(false);
+                    var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                     // If the handling of the request failed, the exception will bubble back up to the caller, but we
                     // still need to react to it here by throwing away solution updates
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 else
                 {
                     // Non mutating request get given the current solution state, but are otherwise fire-and-forget
-                    _ = work.Callback(context, cancellationToken);
+                    _ = work.CallbackAsync(context, cancellationToken);
                 }
             }
         }

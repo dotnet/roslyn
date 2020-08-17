@@ -15,7 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly struct QueueItem
         {
-            public readonly Func<RequestContext, CancellationToken, Task<bool>> Callback;
+            /// <summary>
+            /// Processes the queued request, and signals back to the called whether the handler ran to completion.
+            /// </summary>
+            /// <remarks>A return value of true does not imply that the request was handled successfully, only that no exception was thrown and the task wasn't cancelled.</remarks>
+            public readonly Func<RequestContext, CancellationToken, Task<bool>> CallbackAsync;
             public readonly bool MutatesSolutionState;
             public readonly string? ClientName;
             public readonly ClientCapabilities ClientCapabilities;
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
-                Callback = callback;
+                CallbackAsync = callback;
                 CancellationToken = cancellationToken;
             }
         }
