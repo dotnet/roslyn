@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     {
         private CSharpCompilation CompileConsoleApp(string source, CSharpParseOptions parseOptions = null)
         {
-            return CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: parseOptions);
+            return CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(5), parseOptions: parseOptions);
         }
 
         [Fact]
