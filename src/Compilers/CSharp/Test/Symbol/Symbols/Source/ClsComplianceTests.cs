@@ -2744,7 +2744,7 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (5,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(5, 1),
@@ -2765,7 +2765,7 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (7,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 1),
@@ -2786,7 +2786,7 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (7,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 1),

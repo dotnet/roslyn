@@ -981,12 +981,12 @@ class C1<T>
 unsafe class Source : Il
 {{
     public override {mOverriddenSignature} M() => throw null;
-}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Standard);
+}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Standard);
 
                 originalComp.VerifyDiagnostics();
 
                 var retargetedComp = CreateCompilation("", references: new[] { originalComp.ToMetadataReference(), retargeted2Ref, consistentRef, ilRef },
-                                                       options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview,
+                                                       options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9,
                                                        targetFramework: TargetFramework.Standard);
 
                 retargetedComp.VerifyDiagnostics();

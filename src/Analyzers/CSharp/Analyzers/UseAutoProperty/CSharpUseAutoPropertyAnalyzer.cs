@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             => setAccessor?.ExpressionBody?.Expression ??
                GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 
-        protected override SyntaxNode GetNodeToFade(
+        protected override SyntaxNode GetFieldNode(
             FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
         {
             return fieldDeclaration.Declaration.Variables.Count == 1
