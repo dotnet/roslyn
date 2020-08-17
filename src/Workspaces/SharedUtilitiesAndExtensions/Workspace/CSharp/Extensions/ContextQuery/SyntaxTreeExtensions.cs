@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-#if !CODE_STYLE
+#if !CODE_STYLE // FunctionPointerParameterListSyntax added in 3.8
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList, out FunctionPointerParameterListSyntax funcPtrParamList))
             {
