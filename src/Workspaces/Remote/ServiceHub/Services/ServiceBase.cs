@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private readonly RemoteWorkspaceManager _workspaceManager;
 
+        /// <summary>
+        /// Default workspace manager used by the product. Tests may specify a custom <see cref="RemoteWorkspaceManager"/>
+        /// in order to override workspace services.
+        /// </summary>
         internal static readonly RemoteWorkspaceManager s_defaultWorkspaceManager = new RemoteWorkspaceManager();
 
         // test data are only available when running tests:

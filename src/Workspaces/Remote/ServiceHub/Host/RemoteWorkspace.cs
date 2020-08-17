@@ -26,20 +26,31 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly ISolutionCrawlerRegistrationService? _registrationService;
 
-        // guard to make sure host API doesn't run concurrently
-        private readonly object _gate = new object();
+        /// <summary>
+        /// Guards updates to <see cref="_primaryBranchSolutionWithChecksum"/> and <see cref="_lastRequestedSolutionWithChecksum"/>.
+        /// </summary>
+        private readonly SemaphoreSlim _availableSolutionsGate = new SemaphoreSlim(initialCount: 1);
 
-        private readonly SemaphoreSlim _solutionSynchronizationGate = new SemaphoreSlim(initialCount: 1);
-
-        // the last solution for the the primary branch fetched from the client
+        /// <summary>
+        /// The last solution for the the primary branch fetched from the client.
+        /// </summary>
         private volatile Tuple<Checksum, Solution>? _primaryBranchSolutionWithChecksum;
 
-        // the last solution requested by a service:
+        /// <summary>
+        /// The last solution requested by a service.
+        /// </summary>
         private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
 
-        // this is used to make sure we never move remote workspace backward.
-        // this version is the WorkspaceVersion of primary solution in client (VS) we are
-        // currently caching
+        /// <summary>
+        /// Guards setting current workspace solution.
+        /// </summary>
+        private readonly object _currentSolutionGate = new object();
+
+        /// <summary>
+        /// Used to make sure we never move remote workspace backward.
+        /// this version is the WorkspaceVersion of primary solution in client (VS) we are
+        /// currently caching.
+        /// </summary>
         private int _currentRemoteWorkspaceVersion = -1;
 
         // internal for testing purposes.
@@ -78,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            using (await _solutionSynchronizationGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 var solution = await CreateSolution_NoLockAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
                 _primaryBranchSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
@@ -160,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private Solution? GetAvailableSolution(Checksum solutionChecksum)
+        private Solution? TryGetAvailableSolution(Checksum solutionChecksum)
         {
             var currentSolution = _primaryBranchSolutionWithChecksum;
             if (currentSolution?.Item1 == solutionChecksum)
@@ -186,16 +197,16 @@ namespace Microsoft.CodeAnalysis.Remote
             int workspaceVersion,
             CancellationToken cancellationToken)
         {
-            var availableSolution = GetAvailableSolution(solutionChecksum);
+            var availableSolution = TryGetAvailableSolution(solutionChecksum);
             if (availableSolution != null)
             {
                 return availableSolution;
             }
 
             // make sure there is always only one that creates a new solution
-            using (await _solutionSynchronizationGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                availableSolution = GetAvailableSolution(solutionChecksum);
+                availableSolution = TryGetAvailableSolution(solutionChecksum);
                 if (availableSolution != null)
                 {
                     return availableSolution;
@@ -220,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         internal bool TrySetCurrentSolution(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, [NotNullWhen(true)] out Solution? solution)
         {
-            lock (_gate)
+            lock (_currentSolutionGate)
             {
                 if (workspaceVersion <= _currentRemoteWorkspaceVersion)
                 {
@@ -250,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         internal Solution UpdateSolutionIfPossible(Solution solution, int workspaceVersion)
         {
-            lock (_gate)
+            lock (_currentSolutionGate)
             {
                 if (workspaceVersion <= _currentRemoteWorkspaceVersion)
                 {
