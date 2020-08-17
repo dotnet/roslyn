@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
 
             globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
-            var allProperties = s_defaultGlobalProperties.AddRange(globalProperties);
+            var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
             _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
