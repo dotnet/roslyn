@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if !CODE_STYLE
 
         public static SyntaxNode IsPatternExpression(this SyntaxGenerator generator, SyntaxNode expression, SyntaxNode pattern)
-            => generator.IsPatternExpression(expression, isToken: default, pattern);
+            => generator.SyntaxGeneratorInternal.IsPatternExpression(expression, isToken: default, pattern);
 
 #endif
     }
