@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// The workspace is designed to be stateless. If someone asks for a solution (through solution checksum), 
-        /// it will create one and return the solution. The engine takes care of synching required data and creating a solution
-        /// correspoing to the given checksum.
+        /// it will create one and return the solution. The engine takes care of syncing required data and creating a solution
+        /// corresponding to the given checksum.
         /// 
-        /// but doing that from scratch all the time wil be expansive in terms of synching data, compilation being cached, file being parsed
+        /// but doing that from scratch all the time will be expansive in terms of syncing data, compilation being cached, file being parsed
         /// and etc. so even if the service itself is stateless, internally it has several caches to improve perf of various parts.
         /// 
         /// first, it holds onto last solution got built. this will take care of common cases where multiple services running off same solution.
