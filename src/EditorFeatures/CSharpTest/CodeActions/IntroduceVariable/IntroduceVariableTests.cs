@@ -4623,6 +4623,36 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestConstantForInterpolatedStringsNested()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""{""Level 5""} {""Number 3""}""|]);
+        Console.WriteLine($""{""Level 5""} {""Number 3""}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    private const string {|Rename:Value|} = $""{""Level 5""} {""Number 3""}"";
+
+    static void Test(string[] args)
+    {
+        Console.WriteLine(Value);
+        Console.WriteLine(Value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestConstantForInterpolatedStringsInvalid()
         {
             var code =
