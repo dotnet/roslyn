@@ -398,6 +398,7 @@ class X
                     ErrorCode.WRN_UseDefViolationThis,
                     ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.WRN_UseDefViolation,
+                    ErrorCode.WRN_SyncAndAsyncEntryPoints,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
