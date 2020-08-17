@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentHoverName)]
+    [ExportLspMethod(Methods.TextDocumentHoverName, mutatesSolutionState: false)]
     internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
     {
         [ImportingConstructor]

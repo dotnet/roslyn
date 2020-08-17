@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
+    [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName, mutatesSolutionState: false)]
     internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]

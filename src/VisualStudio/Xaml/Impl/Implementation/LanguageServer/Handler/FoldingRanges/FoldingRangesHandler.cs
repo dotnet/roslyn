@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentFoldingRangeName, StringConstants.XamlLanguageName)]
+    [ExportLspMethod(Methods.TextDocumentFoldingRangeName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
     internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]

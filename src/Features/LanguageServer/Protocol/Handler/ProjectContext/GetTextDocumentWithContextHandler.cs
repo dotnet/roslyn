@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
+    [ExportLspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
     internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         private readonly ILspSolutionProvider _solutionProvider;

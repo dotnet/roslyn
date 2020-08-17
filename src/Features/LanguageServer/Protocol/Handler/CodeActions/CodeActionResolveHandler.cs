@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// complex data, such as edits and commands, to be computed only when necessary
     /// (i.e. when hovering/previewing a code action).
     /// </summary>
-    [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName), Shared]
+    [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName, mutatesSolutionState: false), Shared]
     internal class CodeActionResolveHandler : IRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;

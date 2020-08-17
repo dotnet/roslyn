@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// Handle a completion request.
     /// </summary>
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentCompletionName, StringConstants.XamlLanguageName)]
+    [ExportLspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
     internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionItem[]>
     {
         [ImportingConstructor]

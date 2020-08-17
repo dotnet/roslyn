@@ -19,7 +19,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspMethod(LSP.Methods.TextDocumentReferencesName), Shared]
+    [ExportLspMethod(LSP.Methods.TextDocumentReferencesName, mutatesSolutionState: false), Shared]
     internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;

@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentDocumentHighlightName)]
+    [ExportLspMethod(Methods.TextDocumentDocumentHighlightName, mutatesSolutionState: false)]
     internal class DocumentHighlightsHandler : IRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
     {
         [ImportingConstructor]

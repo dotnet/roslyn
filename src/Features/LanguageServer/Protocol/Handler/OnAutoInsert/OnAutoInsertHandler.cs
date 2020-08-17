@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName)]
+    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false)]
     internal class OnAutoInsertHandler : IRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>
     {
         [ImportingConstructor]

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Handle a completion request.
     /// </summary>
     [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
+    [ExportLspMethod(LSP.Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
     {
         [ImportingConstructor]
