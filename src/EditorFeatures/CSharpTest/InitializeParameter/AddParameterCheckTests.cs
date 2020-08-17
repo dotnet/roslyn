@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestCharMainNoArguments()
         {
@@ -77,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
     public static int Main([||]string[] args) => 0;
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestCharMainWithStringArrayArgument()
@@ -110,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
     public static int Main([||]string args) => 0;
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestCharMainWithStringArgument()
