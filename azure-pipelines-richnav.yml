@@ -1,5 +1,18 @@
-trigger: none
-pr: none
+# Branches that trigger a build on commit
+trigger:
+- master
+- master-vs-deps
+- release/*
+- features/*
+- demos/*
+
+# Branches that trigger builds on PR
+pr:
+- master
+- master-vs-deps
+- release/*
+- features/*
+- demos/*
 
 schedules:
 - cron: "0 0 * * *"
