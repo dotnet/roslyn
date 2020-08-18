@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 #pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.ArrayBuilder<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
@@ -304,7 +305,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         // To implement Poolable, you need two things:
         // 1) Expose Freeing primitive. 
-        public void Free()
+        private void Free()
         {
             var pool = _pool;
             if (pool != null)
@@ -325,7 +326,7 @@ namespace Analyzer.Utilities.PooledObjects
                         this.Clear();
                     }
 
-                    pool.Free(this);
+                    pool.Free(this, CancellationToken.None);
                     return;
                 }
                 else
@@ -506,7 +507,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         public void RemoveDuplicates()
         {
-            var set = PooledHashSet<T>.GetInstance();
+            using var set = PooledHashSet<T>.GetInstance();
 
             int j = 0;
             for (int i = 0; i < Count; i++)
@@ -519,13 +520,12 @@ namespace Analyzer.Utilities.PooledObjects
             }
 
             Clip(j);
-            set.Free();
         }
 
         public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)
         {
-            var result = ArrayBuilder<S>.GetInstance(Count);
-            var set = PooledHashSet<S>.GetInstance();
+            using var result = ArrayBuilder<S>.GetInstance(Count);
+            using var set = PooledHashSet<S>.GetInstance();
 
             foreach (var item in _builder)
             {
@@ -536,8 +536,7 @@ namespace Analyzer.Utilities.PooledObjects
                 }
             }
 
-            set.Free();
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
     }
 }

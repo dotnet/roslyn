@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
@@ -23,12 +24,19 @@ namespace Analyzer.Utilities.PooledObjects
             _pool = pool;
         }
 
-        public void Dispose() => Free();
+        public void Dispose() => Free(CancellationToken.None);
 
-        public void Free()
+        public void Free(CancellationToken cancellationToken)
         {
+            // Do not free in presence of cancellation.
+            // See https://github.com/dotnet/roslyn/issues/46859 for details.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             this.Clear();
-            _pool?.Free(this);
+            _pool?.Free(this, cancellationToken);
         }
 
         // global pool
@@ -57,6 +65,23 @@ namespace Analyzer.Utilities.PooledObjects
                 s_poolInstancesByComparer.GetOrAdd(comparer, c => CreatePool(c));
             var instance = pool.Allocate();
             Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+
+        /// <summary>
+        /// Gets a pooled instance of a <see cref="PooledSortedSet{T}"/> with the given initializer and an optional comparer.
+        /// </summary>
+        /// <param name="initializer">Initializer for the set.</param>
+        /// <param name="comparer">Comparer to use, or null for the element type's default comparer.</param>
+        /// <returns>An empty <see cref="PooledSortedSet{T}"/>.</returns>
+        public static PooledSortedSet<T> GetInstance(IEnumerable<T> initializer, IComparer<T>? comparer = null)
+        {
+            var instance = GetInstance(comparer);
+            foreach (var value in initializer)
+            {
+                instance.Add(value);
+            }
+
             return instance;
         }
     }
