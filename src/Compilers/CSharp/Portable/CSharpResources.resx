@@ -6215,12 +6215,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Generator failed to initialize.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
-    <value>Exception Details: {3}</value>
-    <comment>{3} is the string representation of the exception that was thrown.</comment>
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
-    <value>Exception Details: {3}</value>
-    <comment>{3} is the string representation of the exception that was thrown.</comment>
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="IDS_FeatureRecords" xml:space="preserve">
     <value>records</value>

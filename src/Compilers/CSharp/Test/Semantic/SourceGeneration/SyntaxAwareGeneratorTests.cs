@@ -234,7 +234,7 @@ class C
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception", exception.ToString()).WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
                 );
         }
 
@@ -278,7 +278,7 @@ class C
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception", exception.ToString()).WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
                 );
         }
 
@@ -376,7 +376,7 @@ class C
             Assert.Equal(21, testReceiver.VisitedNodes.Count);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception", exception.ToString()).WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
                 );
         }
 
@@ -415,7 +415,7 @@ class C
             Assert.Null(receiver);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "Exception", "test exception", exception.ToString()).WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "Exception", "test exception").WithLocation(1, 1)
                 );
         }
 
