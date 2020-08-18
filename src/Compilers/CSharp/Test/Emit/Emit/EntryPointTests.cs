@@ -118,18 +118,11 @@ public class C
   public static async Task Main() { await Task.Delay(1); }
   public static void Main(string[] a) { System.Console.WriteLine(2); }
 }
-
-public class D
-{
-  public static string Main() { System.Console.WriteLine(3); return null; }
-}
 ";
             var compilation = CompileConsoleApp(source, parseOptions: TestOptions.Regular7_1);
 
             compilation.VerifyDiagnostics(
-                // (12,24): warning CS0028: 'D.Main()' has the wrong signature to be an entry point
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("D.Main()"),
-                // (6,28): warning CS8892: Program has more than one entry point defined.
+                // (7,28): warning CS8892: Program has more than one entry point defined.
                 Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main"));
         }
 
@@ -144,17 +137,10 @@ public class C
   public static async Task Main() { await Task.Delay(1); }
   public static void Main(string[] a) { System.Console.WriteLine(2); }
 }
-
-public class D
-{
-  public static string Main() { System.Console.WriteLine(3); return null; }
-}
 ";
             var compilation = CompileConsoleApp(source, parseOptions: TestOptions.Regular7);
 
-            compilation.VerifyDiagnostics(
-                // (12,24): warning CS0028: 'D.Main()' has the wrong signature to be an entry point
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("D.Main()"));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -168,18 +154,11 @@ public class C
   public static async Task Main() { await Task.Delay(1); }
   public static void Main(string[] a) { System.Console.WriteLine(2); }
 }
-
-public class D
-{
-  public static string Main() { System.Console.WriteLine(3); return null; }
-}
 ";
             var compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
-                // (12,24): warning CS0028: 'D.Main()' has the wrong signature to be an entry point
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("D.Main()"),
-                // (6,28): warning CS8892: Program has more than one entry point defined.
+                // (7,28): warning CS8892: Program has more than one entry point defined.
                 Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main"));
         }
 
@@ -204,6 +183,30 @@ public class D
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"));
+        }
+
+        [Fact]
+        public void ERR_MultipleEntryPointsCSharpLatest_TwoAsyncAndOneSync()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static async Task Main() { await Task.Delay(1); }
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+
+public class D
+{
+  public static async Task Main() { await Task.Delay(1); }
+}
+";
+            var compilation = CompileConsoleApp(source);
+
+            compilation.VerifyDiagnostics(
+                // (6,28): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"));
         }
 
