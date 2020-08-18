@@ -1216,19 +1216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (anyToRemove)
                 {
                     var explicitInterfaceImplementationsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
+                    MethodSymbol uniqueClassOverride = null;
                     foreach (var method in explicitlyOverriddenMethods)
                     {
                         if (method.ContainingType.IsInterface)
                         {
                             explicitInterfaceImplementationsBuilder.Add(method);
                         }
-                    }
 
-                    explicitInterfaceImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree();
-
-                    MethodSymbol uniqueClassOverride = null;
-                    foreach (MethodSymbol method in explicitlyOverriddenMethods)
-                    {
                         if (method.ContainingType.IsClassType())
                         {
                             if (uniqueClassOverride is { })
@@ -1241,6 +1236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             uniqueClassOverride = method;
                         }
                     }
+
+                    explicitInterfaceImplementations = explicitInterfaceImplementationsBuilder.ToImmutableAndFree();
 
                     if (uniqueClassOverride is { })
                     {
