@@ -1618,40 +1618,78 @@ struct S
         }
 
         [Fact]
-        public void Interface()
+        public void Interface_01()
         {
             var source =
 @"#nullable enable
-interface I
+public interface I
 {
-    object F1; // 1, 2
-    public static object F2; // 3, 4
-    public static object F3 { get; set; } // 5
-    public static event System.Action E1; // 6, 7
+    public object F1; // 1
+    public static object F2; // 2
+    public static object F3 { get; set; } // 3
+    public static event System.Action E1; // 4, 5
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp30);
             comp.VerifyDiagnostics(
-                // (4,12): error CS0525: Interfaces cannot contain instance fields
-                //     object F1; // 1, 2
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 12),
-                // (4,12): warning CS0649: Field 'I.F1' is never assigned to, and will always have its default value null
-                //     object F1; // 1, 2
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("I.F1", "null").WithLocation(4, 12),
+                // (4,19): error CS0525: Interfaces cannot contain instance fields
+                //     public object F1; // 1
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 19),
                 // (5,26): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-                //     public static object F2; // 3, 4
+                //     public static object F2; // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(5, 26),
-                // (5,26): warning CS0649: Field 'I.F2' is never assigned to, and will always have its default value null
-                //     public static object F2; // 3, 4
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("I.F2", "null").WithLocation(5, 26),
                 // (6,26): warning CS8618: Non-nullable property 'F3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
-                //     public static object F3 { get; set; } // 5
+                //     public static object F3 { get; set; } // 3
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F3").WithArguments("property", "F3").WithLocation(6, 26),
                 // (7,39): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
-                //     public static event System.Action E1; // 6, 7
+                //     public static event System.Action E1; // 4, 5
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(7, 39),
                 // (7,39): warning CS0067: The event 'I.E1' is never used
-                //     public static event System.Action E1; // 6, 7
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I.E1").WithLocation(7, 39));
+                //     public static event System.Action E1; // 4, 5
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I.E1").WithLocation(7, 39)
+                );
+        }
+
+        [Fact]
+        public void Interface_02()
+        {
+            var source =
+@"#nullable enable
+public interface I
+{
+    public static object F1;
+    public static object F2 { get; set; }
+    public static event System.Action E1; // 1
+
+    public static object F3 = new object();
+    public static object F4 { get; set; } = new object();
+    public static event System.Action E2 = () => {};
+
+    public static object F5;
+    public static object F6 { get; set; }
+    public static event System.Action E3;
+
+    static I() // 2, 3, 4
+    {
+        F5 = new object();
+        F6 = new object();
+        E3 = () => {};
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp30);
+            comp.VerifyDiagnostics(
+                // (6,39): warning CS0067: The event 'I.E1' is never used
+                //     public static event System.Action E1; // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I.E1").WithLocation(6, 39),
+                // (16,12): warning CS8618: Non-nullable property 'F2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     static I() // 2, 3, 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "I").WithArguments("property", "F2").WithLocation(16, 12),
+                // (16,12): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                //     static I() // 2, 3, 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "I").WithArguments("event", "E1").WithLocation(16, 12),
+                // (16,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     static I() // 2, 3, 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "I").WithArguments("field", "F1").WithLocation(16, 12)
+                );
         }
 
         [Fact]
