@@ -19,9 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal abstract class AbstractRequestHandlerProvider
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
+        private readonly RequestExecutionQueue _queue;
 
-        public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string? languageName = null)
-            => _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == languageName));
+        public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, RequestExecutionQueue queue, string? languageName = null)
+        {
+            _requestHandlers = CreateMethodToHandlerMap(requestHandlers.Where(rh => rh.Metadata.LanguageName == languageName));
+            _queue = queue;
+        }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
@@ -40,14 +44,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(request);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
 
-            var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
+            var handlerEntry = _requestHandlers[methodName];
+            Contract.ThrowIfNull(handlerEntry, string.Format("Request handler entry not found for method {0}", methodName));
+
+            var mutatesSolutionState = handlerEntry.Metadata.MutatesSolutionState;
+
+            var handler = (IRequestHandler<RequestType, ResponseType>?)handlerEntry.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            var context = CreateContext(clientCapabilities, clientName);
-            return handler.HandleRequestAsync(request, context, cancellationToken);
+            return _queue.ExecuteAsync(mutatesSolutionState, handler, request, clientCapabilities, clientName, cancellationToken);
         }
-
-        private static RequestContext CreateContext(LSP.ClientCapabilities clientCapabilities, string? clientName)
-            => new RequestContext(clientCapabilities, clientName);
     }
 }
