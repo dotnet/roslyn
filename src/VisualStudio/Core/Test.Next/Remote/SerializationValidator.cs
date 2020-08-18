@@ -55,20 +55,20 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 => throw ExceptionUtilities.Unreachable;
         }
 
-        public RemotableDataService RemotableDataService { get; }
+        public IRemotableDataService RemotableDataService { get; }
         public ISerializerService Serializer { get; }
         public HostWorkspaceServices Services { get; }
 
         public SerializationValidator(HostWorkspaceServices services)
         {
-            RemotableDataService = (RemotableDataService)services.GetRequiredService<IRemotableDataService>();
+            RemotableDataService = services.GetRequiredService<IRemotableDataService>();
             Serializer = services.GetRequiredService<ISerializerService>();
             Services = services;
         }
 
         public async Task<T> GetValueAsync<T>(Checksum checksum)
         {
-            var data = (await RemotableDataService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var data = (await RemotableDataService.AssetStorages.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         public async Task<Solution> GetSolutionAsync(PinnedRemotableDataScope scope)
         {
-            var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionInfo.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(Services.HostServices);
             return workspace.AddSolution(solutionInfo);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Func<T, WellKnownSynchronizationKind, ISerializerService, RemotableData> assetGetter)
         {
             // re-create asset from object
-            var syncObject = (await RemotableDataService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var syncObject = (await RemotableDataService.AssetStorages.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             var recoveredValue = await GetValueAsync<T>(checksum).ConfigureAwait(false);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, Serializer);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task VerifyChecksumInServiceAsync(Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = (await RemotableDataService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var otherObject = (await RemotableDataService.AssetStorages.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }

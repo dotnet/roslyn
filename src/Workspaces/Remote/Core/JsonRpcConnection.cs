@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (solution != null)
             {
-                using var scope = await _remotableDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var scope = await _remotableDataService.AssetStorages.CreateScopeAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
 
                 argumentsBuilder.Add(scope.SolutionInfo);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (solution != null)
             {
-                using var scope = await _remotableDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var scope = await _remotableDataService.AssetStorages.CreateScopeAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
 
                 argumentsBuilder.Add(scope.SolutionInfo);

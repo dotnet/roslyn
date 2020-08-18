@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class AssetStorages
     {
+        private static int s_scopeId = 1;
+
         /// <summary>
         /// map from solution checksum scope to its associated asset storage
         /// </summary>
@@ -30,8 +32,21 @@ namespace Microsoft.CodeAnalysis.Remote
             _storages = new ConcurrentDictionary<int, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
-        public static Storage CreateStorage(SolutionState solutionState)
-            => new Storage(solutionState);
+        internal async Task<PinnedRemotableDataScope> CreateScopeAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var storage = new Storage(solution.State);
+            var solutionChecksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+
+            var solutionInfo = new PinnedSolutionInfo(
+                Interlocked.Increment(ref s_scopeId),
+                storage.SolutionState.BranchId == storage.SolutionState.Workspace.PrimaryBranchId,
+                storage.SolutionState.WorkspaceVersion,
+                solutionChecksum);
+
+            RegisterSnapshot(solutionInfo.ScopeId, storage);
+
+            return new PinnedRemotableDataScope(this, solutionInfo);
+        }
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
@@ -93,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return result;
         }
 
-        public void RegisterSnapshot(int scopeId, AssetStorages.Storage storage)
+        private void RegisterSnapshot(int scopeId, AssetStorages.Storage storage)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
             if (!_storages.TryAdd(scopeId, storage))

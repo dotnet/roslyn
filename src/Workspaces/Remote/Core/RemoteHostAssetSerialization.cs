@@ -31,14 +31,15 @@ namespace Microsoft.CodeAnalysis.Remote
             if (checksums.Length == 1)
             {
                 var checksum = checksums[0];
-                var remotableData = (await remotableDataService.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
+
+                var remotableData = (await remotableDataService.AssetStorages.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
                 writer.WriteInt32(1);
 
                 await WriteRemotableData(writer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
-            var remotableDataMap = await remotableDataService.GetRemotableDataAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
+            var remotableDataMap = await remotableDataService.AssetStorages.GetRemotableDataAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             writer.WriteInt32(remotableDataMap.Count);
 
             foreach (var (checksum, remotableData) in remotableDataMap)

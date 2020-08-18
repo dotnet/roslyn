@@ -18,59 +18,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class PinnedRemotableDataScope : IDisposable
     {
-        private static int s_scopeId = 1;
-
         private readonly AssetStorages _storages;
-        private readonly AssetStorages.Storage _storage;
         private bool _disposed;
 
         public readonly PinnedSolutionInfo SolutionInfo;
 
-        private PinnedRemotableDataScope(
+        public PinnedRemotableDataScope(
             AssetStorages storages,
-            AssetStorages.Storage storage,
             PinnedSolutionInfo solutionInfo)
         {
             _storages = storages;
-            _storage = storage;
             SolutionInfo = solutionInfo;
-        }
-
-        public Workspace Workspace => _storage.SolutionState.Workspace;
-        public Checksum SolutionChecksum => SolutionInfo.SolutionChecksum;
-
-        public static PinnedRemotableDataScope Create(
-            AssetStorages storages,
-            AssetStorages.Storage storage,
-            Checksum solutionChecksum)
-        {
-            Contract.ThrowIfNull(solutionChecksum);
-
-            var solutionInfo = new PinnedSolutionInfo(
-                Interlocked.Increment(ref s_scopeId),
-                storage.SolutionState.BranchId == storage.SolutionState.Workspace.PrimaryBranchId,
-                storage.SolutionState.WorkspaceVersion,
-                solutionChecksum);
-
-            storages.RegisterSnapshot(solutionInfo.ScopeId, storage);
-
-            return new PinnedRemotableDataScope(storages, storage, solutionInfo);
-        }
-
-        public async ValueTask<RemotableData?> GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
-            {
-                return await _storages.GetRemotableDataAsync(SolutionInfo.ScopeId, checksum, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
-            {
-                return await _storages.GetRemotableDataAsync(SolutionInfo.ScopeId, checksums, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         public void Dispose()
