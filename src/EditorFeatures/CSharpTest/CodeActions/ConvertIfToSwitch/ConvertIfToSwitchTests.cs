@@ -691,6 +691,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             case string s when s.Length > 5 && s.Length < 10:
                 M(o: 0);
+
                 break;
             case int i:
                 M(o: 0);
@@ -832,7 +833,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 {
                     break;
                 }
-
                 break;
             case 2:
                 break;
