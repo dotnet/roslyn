@@ -2593,5 +2593,60 @@ enum ET1
 
             await test.RunAsync();
         }
+
+        [WorkItem(46863, "https://github.com/dotnet/roslyn/issues/46863")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task CommentsAtTheEndOfBlocksShouldBePlacedBeforeBreakStatements()
+        {
+            var source = @"
+class C
+{
+    void M(int p)
+    {
+        [||]if (p == 1)
+        {
+            DoA();
+            // Comment about why A doesn't need something here
+        }
+        else if (p == 2)
+        {
+            DoB();
+            // Comment about why B doesn't need something here
+        }
+    }
+
+    void DoA() { }
+    void DoB() { }
+}";
+
+            var fixedSource = @"
+class C
+{
+    void M(int p)
+    {
+        switch (p)
+        {
+            case 1:
+                DoA();
+                // Comment about why A doesn't need something here
+                break;
+            case 2:
+                DoB();
+                // Comment about why B doesn't need something here
+                break;
+        }
+    }
+
+    void DoA() { }
+    void DoB() { }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
     }
 }
