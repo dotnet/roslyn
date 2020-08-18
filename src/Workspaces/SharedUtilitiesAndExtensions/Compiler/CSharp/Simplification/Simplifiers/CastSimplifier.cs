@@ -677,17 +677,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             // We might have a nullable conversion on top of an integer constant. But only dig out
             // one level.
-
-#if !CODE_STYLE
-
             if (operation is IConversionOperation conversion &&
                 conversion.Conversion.IsImplicit &&
                 conversion.Conversion.IsNullable)
             {
                 operation = conversion.Operand;
             }
-
-#endif
 
             var constantValue = operation.ConstantValue;
             if (!constantValue.HasValue || constantValue.Value == null)

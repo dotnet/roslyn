@@ -222,6 +222,11 @@
         <target state="translated">Evaluando ({0} tareas en cola)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Base_Class">
+        <source>Extract Base Class</source>
+        <target state="new">Extract Base Class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Finalizar</target>
@@ -350,6 +355,16 @@
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
         <target state="translated">Mover a espacio de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_conflicts_with_an_existing_type_name">
+        <source>Name conflicts with an existing type name.</source>
+        <target state="new">Name conflicts with an existing type name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_is_not_a_valid_0_identifier">
+        <source>Name is not a valid {0} identifier.</source>
+        <target state="new">Name is not a valid {0} identifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -802,6 +817,11 @@
         <target state="translated">Actualizando la gravedad</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
+        <source>Use 64-bit process for code analysis (requires restart)</source>
+        <target state="new">Use 64-bit process for code analysis (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">Usar cuerpo de expresión para lambdas</target>
@@ -875,16 +895,6 @@
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">Debe seleccionar al menos un miembro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="translated">El nombre de la interfaz entra en conflicto con un nombre de tipo existente.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="translated">El nombre de la interfaz no es un identificador {0} válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">

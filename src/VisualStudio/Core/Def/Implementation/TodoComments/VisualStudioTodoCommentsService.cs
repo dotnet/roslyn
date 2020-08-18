@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -101,7 +102,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
+            {
+                ComputeTodoCommentsInCurrentProcess(cancellationToken);
                 return;
+            }
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
@@ -118,6 +122,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
+        {
+            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            var analyzerProvider = new InProcTodoCommentsIncrementalAnalyzerProvider(this);
+
+            registrationService.AddAnalyzerProvider(
+                analyzerProvider,
+                new IncrementalAnalyzerProviderMetadata(
+                    nameof(InProcTodoCommentsIncrementalAnalyzerProvider),
+                    highPriorityForActiveFile: false,
+                    workspaceKinds: WorkspaceKind.Host));
         }
 
         private Task ProcessTodoCommentInfosAsync(
