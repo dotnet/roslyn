@@ -70,7 +70,7 @@ System.Console.Error.WriteLine(""error-\u7890!"");
         [Fact]
         public async Task StackOverflow()
         {
-            // Windows Server 2008 (OS v6.0), Vista (OS v6.0) and XP (OS v5.1) ignores SetErrorMode and shows crash dialog, which would hang the test:
+            // Windows Server 2008 (OS v6.0), Vista (OS v6.0) and XP (OS v5.1) ignores SetErrorMode and shows crash dialog, which would block the test:
             if (Environment.OSVersion.Version < new Version(6, 1, 0, 0))
             {
                 return;
