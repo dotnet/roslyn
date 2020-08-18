@@ -645,6 +645,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
+        {
+            base.ApplyProjectChanges(projectChanges);
+
+            var changedRazorDocuments = projectChanges.GetChangedDocuments().Where(id => IsRazorGeneratedDocument(id));
+            if (changedRazorDocuments.Any())
+            {
+                foreach(var changedDocumentId in changedRazorDocuments)
+                {
+
+                    var oldDoc = projectChanges.OldProject.GetDocument(changedDocumentId)!;
+                    var newDoc = projectChanges.NewProject.GetDocument(changedDocumentId)!;
+
+
+
+                    var mappingService = newDoc.Services.GetService<ISpanMappingService>();
+                    if (mappingService != null)
+                    {
+                        var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
+                        TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+                    }
+
+                    
+                }
+                
+            }
+
+            bool IsRazorGeneratedDocument(DocumentId documentId)
+            {
+                return this.CurrentSolution.GetDocument(documentId)?.Services?.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
+            }
+
+            ImmutableArray<MappedSpanResult>? TryGetMappedSpans(CodeAnalysis.Document newDocument, CodeAnalysis.Document oldDocument)
+            {
+                ImmutableArray<MappedSpanResult>? mappedSpanResult = null;
+                _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var textChanges = await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(true);
+                    if (textChanges != null)
+                    {
+                        mappedSpanResult = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+                    }
+                });
+
+                return mappedSpanResult;
+            }
+        }
+
         protected override void ApplyProjectReferenceAdded(
             ProjectId projectId, ProjectReference projectReference)
         {

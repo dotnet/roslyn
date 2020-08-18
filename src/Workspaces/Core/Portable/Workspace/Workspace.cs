@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis
             var newDoc = projectChanges.NewProject.GetDocument(documentId)!;
 
             // update text if it's changed (unless it's unchangeable and we were asked to exclude them)
-            if (newDoc.HasTextChanged(oldDoc, IgnoreUnchangeableDocumentsWhenApplyingChanges))
+            if (newDoc.HasTextChanged(oldDoc, IgnoreUnchangeableDocumentsWhenApplyingChanges) || oldDoc.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
             {
                 // What we'd like to do here is figure out what actual text changes occurred and pass them on to the host.
                 // However, since it is likely that the change was done by replacing the syntax tree, getting the actual text changes is non trivial.
