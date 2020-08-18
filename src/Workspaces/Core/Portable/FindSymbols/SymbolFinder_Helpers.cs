@@ -214,27 +214,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static INamedTypeSymbol GetOridinalUnderlyingType(INamedTypeSymbol type)
             => (type.NativeIntegerUnderlyingType ?? type).OriginalDefinition;
-
-        internal static bool TryGetCompilation(
-            ISymbol symbol,
-            Solution solution,
-            [NotNullWhen(true)] out Compilation? definingCompilation)
-        {
-            var definitionProject = solution.GetProject(symbol.ContainingAssembly);
-            if (definitionProject == null)
-            {
-                definingCompilation = null;
-                return false;
-            }
-
-            // compilation from definition project must already exist.
-            if (!definitionProject.TryGetCompilation(out definingCompilation))
-            {
-                Debug.Assert(false, "How can compilation not exist?");
-                return false;
-            }
-
-            return true;
-        }
     }
 }
