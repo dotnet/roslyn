@@ -180,31 +180,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             candidate = GetOridinalUnderlyingType(candidate);
             forwardedTo = GetOridinalUnderlyingType(forwardedTo);
 
-            var type2OriginatingProject = solution.GetOriginatingProject(forwardedTo);
-            if (type2OriginatingProject == null)
+            var forwardedToOriginatingProject = solution.GetOriginatingProject(forwardedTo);
+            if (forwardedToOriginatingProject == null)
                 return false;
 
-            var type2Compilation = type2OriginatingProject.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            if (type2Compilation == null)
+            var forwardedToCompilation = forwardedToOriginatingProject.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            if (forwardedToCompilation == null)
                 return false;
 
             // Cache the compilation so that if we need it while checking another set of forwarded types, we don't
             // expensively throw it away and recreate it.
-            compilationSet.Add(type2Compilation);
+            compilationSet.Add(forwardedToCompilation);
 
-            var type1FullMetadataName = candidate.ContainingNamespace != null
+            var candidateFullMetadataName = candidate.ContainingNamespace != null
                 ? $"{candidate.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat)}.{candidate.MetadataName}"
                 : candidate.MetadataName;
 
             // Now, find the corresponding reference to type1's assembly in type2's compilation and see if that assembly
             // contains a forward that matches type2.  If so, type1 was forwarded to type2.
-            var type1AssemblyName = candidate.ContainingAssembly.Name;
-            foreach (var assembly in type2Compilation.GetReferencedAssemblySymbols())
+            var candidateAssemblyName = candidate.ContainingAssembly.Name;
+            foreach (var assembly in forwardedToCompilation.GetReferencedAssemblySymbols())
             {
-                if (assembly.Name == type1AssemblyName)
+                if (assembly.Name == candidateAssemblyName)
                 {
-                    var forwardedType = assembly.ResolveForwardedType(type1FullMetadataName);
-                    if (Equals(forwardedType, forwardedTo))
+                    var resolvedType = assembly.ResolveForwardedType(candidateFullMetadataName);
+                    if (Equals(resolvedType, forwardedTo))
                         return true;
                 }
             }
