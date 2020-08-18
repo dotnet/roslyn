@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Threading;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private readonly HostWorkspaceServices _services;
         private readonly IRemotableDataService _remotableDataService;
+        private readonly ISerializerService _serializer;
         private readonly RemoteEndPoint _endPoint;
         private readonly HubClient _hubClient;
         private readonly HostGroup _hostGroup;
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _endPoint.StartListening();
 
             _remotableDataService = services.GetRequiredService<IRemotableDataService>();
+            _serializer = services.GetRequiredService<ISerializerService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
@@ -194,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     await RemoteEndPoint.WriteDataToNamedPipeAsync(
                         pipeName,
                         (scopeId, checksums),
-                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, _remotableDataService, data.scopeId, data.checksums, cancellationToken),
+                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, _remotableDataService, _serializer, data.scopeId, data.checksums, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
             }

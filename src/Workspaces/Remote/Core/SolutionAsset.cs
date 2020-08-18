@@ -17,18 +17,16 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed class SolutionAsset : RemotableData
     {
         private readonly object _value;
-        private readonly ISerializerService _serializer;
 
-        public SolutionAsset(Checksum checksum, object value, ISerializerService serializer)
+        public SolutionAsset(Checksum checksum, object value)
             : base(checksum, value.GetWellKnownSynchronizationKind())
         {
             _value = value;
-            _serializer = serializer;
         }
 
-        public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        public override Task WriteObjectToAsync(ObjectWriter writer, ISerializerService serializer, CancellationToken cancellationToken)
         {
-            _serializer.Serialize(_value, writer, cancellationToken);
+            serializer.Serialize(_value, writer, cancellationToken);
             return Task.CompletedTask;
         }
     }

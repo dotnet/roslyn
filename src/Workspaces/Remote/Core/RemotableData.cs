@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// this hide how each data is serialized to bits
         /// </summary>
-        public abstract Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken);
+        public abstract Task WriteObjectToAsync(ObjectWriter writer, ISerializerService serializer, CancellationToken cancellationToken);
 
         /// <summary>
         /// null asset indicating things that doesn't actually exist
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // properly.
             }
 
-            public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+            public override Task WriteObjectToAsync(ObjectWriter writer, ISerializerService serializer, CancellationToken cancellationToken)
             {
                 // it write out nothing to stream. for null kind and checksum, checksum/transportation framework knows
                 // there is no data in stream and skip reading any data from the stream.

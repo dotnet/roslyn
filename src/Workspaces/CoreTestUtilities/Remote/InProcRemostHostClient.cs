@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Serialization;
 using Nerdbank;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 pipeName,
                 (scopeId, checksums),
                 (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(
-                    writer, _services.GetRequiredService<IRemotableDataService>(), data.scopeId, data.checksums, cancellationToken),
+                    writer, _services.GetRequiredService<IRemotableDataService>(), _services.GetRequiredService<ISerializerService>(), data.scopeId, data.checksums, cancellationToken),
                 cancellationToken);
 
         /// <summary>

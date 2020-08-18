@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var (resultingChecksum, value) = resultPool.Object.First();
                 Contract.ThrowIfFalse(checksum == resultingChecksum);
 
-                return new SolutionAsset(checksum, value, solutionState.Workspace.Services.GetRequiredService<ISerializerService>());
+                return new SolutionAsset(checksum, value);
             }
 
             return null;
@@ -139,10 +139,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             await FindAssetsAsync(solutionState, remainingChecksumsToFind, resultPool.Object, cancellationToken).ConfigureAwait(false);
 
-            var serializerService = solutionState.Workspace.Services.GetRequiredService<ISerializerService>();
             foreach (var (checksum, value) in resultPool.Object)
             {
-                result[checksum] = new SolutionAsset(checksum, value, serializerService);
+                result[checksum] = new SolutionAsset(checksum, value);
             }
         }
 

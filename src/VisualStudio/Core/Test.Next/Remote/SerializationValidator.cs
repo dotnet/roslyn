@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             public IEnumerator<T> GetEnumerator() => Children.Select(t => t).GetEnumerator();
 
-            public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+            public override Task WriteObjectToAsync(ObjectWriter writer, ISerializerService serializer, CancellationToken cancellationToken)
                 => throw ExceptionUtilities.Unreachable;
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                await data.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                await data.WriteObjectToAsync(writer, Serializer, CancellationToken.None).ConfigureAwait(false);
             }
 
             stream.Position = 0;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
                 solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
 
             foreach (var projectChecksum in solutionObject.Projects)
             {
@@ -120,15 +120,15 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<ProjectInfo.ProjectAttributes>(
                 projectObject.Info, WellKnownSynchronizationKind.ProjectAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<CompilationOptions>(
                 projectObject.CompilationOptions, WellKnownSynchronizationKind.CompilationOptions,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
 
             await VerifyAssetSerializationAsync<ParseOptions>(
                 projectObject.ParseOptions, WellKnownSynchronizationKind.ParseOptions,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
 
             foreach (var checksum in projectObject.Documents)
             {
@@ -140,21 +140,21 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             {
                 await VerifyAssetSerializationAsync<ProjectReference>(
                     checksum, WellKnownSynchronizationKind.ProjectReference,
-                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
             foreach (var checksum in projectObject.MetadataReferences)
             {
                 await VerifyAssetSerializationAsync<MetadataReference>(
                     checksum, WellKnownSynchronizationKind.MetadataReference,
-                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
             foreach (var checksum in projectObject.AnalyzerReferences)
             {
                 await VerifyAssetSerializationAsync<AnalyzerReference>(
                     checksum, WellKnownSynchronizationKind.AnalyzerReference,
-                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
             foreach (var checksum in projectObject.AdditionalDocuments)
@@ -174,11 +174,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<DocumentInfo.DocumentAttributes>(
                 documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
                 documentObject.Text, WellKnownSynchronizationKind.SourceText,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
         }
 
         internal async Task<T> VerifyAssetSerializationAsync<T>(

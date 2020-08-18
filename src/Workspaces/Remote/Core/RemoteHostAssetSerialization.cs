@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
-        public static async Task WriteDataAsync(ObjectWriter writer, IRemotableDataService remotableDataService, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        public static async Task WriteDataAsync(ObjectWriter writer, IRemotableDataService remotableDataService, ISerializerService serializer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             writer.WriteInt32(scopeId);
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var remotableData = (await remotableDataService.AssetStorages.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
                 writer.WriteInt32(1);
 
-                await WriteRemotableData(writer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
+                await WriteRemotableData(writer, serializer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var (checksum, remotableData) in remotableDataMap)
             {
-                await WriteRemotableData(writer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
+                await WriteRemotableData(writer, serializer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
             }
 
-            static async Task WriteRemotableData(ObjectWriter writer, Checksum checksum, RemotableData remotableData, CancellationToken cancellationToken)
+            static async Task WriteRemotableData(ObjectWriter writer, ISerializerService serializer, Checksum checksum, RemotableData remotableData, CancellationToken cancellationToken)
             {
                 checksum.WriteTo(writer);
                 writer.WriteInt32((int)remotableData.Kind);
 
-                await remotableData.WriteObjectToAsync(writer, cancellationToken).ConfigureAwait(false);
+                await remotableData.WriteObjectToAsync(writer, serializer, cancellationToken).ConfigureAwait(false);
             }
         }
 
