@@ -177,8 +177,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // Only need to operate on original definitions.  i.e. List<T> is the type that is forwarded,
             // not List<string>.
-            type1 = type1.OriginalDefinition;
-            type2 = type2.OriginalDefinition;
+            type1 = (type1.NativeIntegerUnderlyingType ?? type1).OriginalDefinition;
+            type2 = (type2.NativeIntegerUnderlyingType ?? type2).OriginalDefinition;
 
             var type2OriginatingProject = solution.GetOriginatingProject(type2);
             if (type2OriginatingProject == null)
