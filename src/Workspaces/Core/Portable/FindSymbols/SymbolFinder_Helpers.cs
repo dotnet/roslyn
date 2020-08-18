@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // expensively throw it away and recreate it.
             compilationSet.Add(forwardedToCompilation);
 
-            var candidateFullMetadataName = candidate.ContainingNamespace != null
-                ? $"{candidate.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat)}.{candidate.MetadataName}"
-                : candidate.MetadataName;
+            var candidateFullMetadataName = candidate.ContainingNamespace?.IsGlobalNamespace != false
+                ? candidate.MetadataName
+                : $"{candidate.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat)}.{candidate.MetadataName}";
 
             // Now, find the corresponding reference to type1's assembly in type2's compilation and see if that assembly
             // contains a forward that matches type2.  If so, type1 was forwarded to type2.
