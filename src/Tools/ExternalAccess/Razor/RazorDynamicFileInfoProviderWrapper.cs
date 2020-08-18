@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             var result = await _innerDynamicFileInfoProvider.Value.GetDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
             var serviceProvider = new RazorDocumentServiceProviderWrapper(result.DocumentServiceProvider);
-            var dynamicFileInfo = new DynamicFileInfo(result.FilePath, result.SourceCodeKind, result.TextLoader, serviceProvider);
+            var razorDocumentPropertiesService = result.DocumentServiceProvider.GetService<IRazorDocumentPropertiesService>();
+            var dynamicFileInfo = new DynamicFileInfo(result.FilePath, result.SourceCodeKind, result.TextLoader, razorDocumentPropertiesService.DesignTimeOnly, serviceProvider);
 
             return dynamicFileInfo;
         }
