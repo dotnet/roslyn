@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public readonly TextDocumentIdentifier? TextDocument;
             public readonly CancellationToken CancellationToken;
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task<bool>> callback, CancellationToken cancellationToken)
+            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task<bool>> callbackAsync, CancellationToken cancellationToken)
             {
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
                 TextDocument = textDocument;
-                CallbackAsync = callback;
+                CallbackAsync = callbackAsync;
                 CancellationToken = cancellationToken;
             }
         }
