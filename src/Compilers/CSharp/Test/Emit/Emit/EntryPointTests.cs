@@ -206,8 +206,8 @@ public class D
             var compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
-                // (6,28): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
-                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"));
+                // (7,28): warning CS8892: Program has more than one entry point defined.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main"));
         }
 
         [Fact]
