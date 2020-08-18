@@ -522,9 +522,9 @@ class CustomAttribute : System.Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Formatting_PreserveIndentBraces_Editorconfig()
         {
-            var markup =
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" FilePath=""z:\\Assembly1.csproj"">
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath=""z:\\file.cs"">
 public class C
     {
@@ -533,17 +533,16 @@ public class C
         }
     }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
-[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 csharp_indent_braces = true
         </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
-            var expectedUpdatedCode =
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" FilePath=""z:\\Assembly1.csproj"">
+            var expectedUpdatedCode = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath=""z:\\file.cs"">
 public class C
     {
@@ -552,14 +551,14 @@ public class C
         }
     }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
-[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 csharp_indent_braces = true
-        </AnalyzerConfigDocument>
+</AnalyzerConfigDocument>
     </Project>
 </Workspace>";
+
             await TestChangeSignatureViaCommandAsync(
-                LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+                            LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
     }
 }
