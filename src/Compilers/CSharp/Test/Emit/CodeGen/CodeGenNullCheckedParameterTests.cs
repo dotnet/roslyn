@@ -17,22 +17,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 using System;
 public class C
 {
-    public static void Main() { }
-    public void M(string input!!) { }
+    public static void Main() { C.M(null); }
+    public static void M(string input!!) { }
 }";
 
             // Release
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview, expectedOutput: "");
             compilation.VerifyIL("C.M", @"
 {
-    // Code size       15 (0xf)
+    // Code size       14 (0xe)
     .maxstack  1
     ~IL_0000:  ldarg.1
-    IL_0001:  brtrue.s   IL_000e
+    IL_0001:  brtrue.s   IL_000d
     IL_0003:  ldstr      ""input""
-    IL_0008:  newobj     ""System.ArgumentNullException..ctor(string)""
-    IL_000d:  throw
-    -IL_000e:  ret
+    IL_0008:  call       ""RunNullCheck""
+    -IL_000d:  ret
 }", sequencePoints: "C.M");
             // Debug
             compilation = CompileAndVerify(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);

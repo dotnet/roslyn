@@ -1192,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             NamedTypeSymbol container = methodSymbol.ContainingType;
 
             // Method of anonymous type being translated
-            if (container.IsAnonymousType)
+            if (container?.IsAnonymousType == true)
             {
                 Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
