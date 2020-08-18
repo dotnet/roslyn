@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.ConvertIfToSwitch;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -47,7 +46,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// LocalDeclarationSyntaxNode here is considered as the containing statement of Callee()
         /// </summary>
         protected abstract bool ShouldConsideredAsContainingStatement(SyntaxNode syntaxNode);
-        protected abstract TExpression Parenthesize(TExpression node);
+        protected abstract TExpression Parenthesize(TExpression expressionNode);
+
+        /// <summary>
+        /// Check if <param name="expressionNode"/> could be used as an Expression in ExpressionStatement
+        /// </summary>
+        protected abstract bool IsValidExpressionUnderStatementExpression(TExpression expressionNode);
 
         protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, ISemanticFactsService semanticFactsService)
         {

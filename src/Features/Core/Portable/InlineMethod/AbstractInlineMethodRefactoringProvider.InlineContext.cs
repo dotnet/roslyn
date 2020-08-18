@@ -240,11 +240,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .DescendantNodesAndSelf()
                     .Any(node => node != null && syntaxFacts.IsAwaitExpression(node));
 
-                if (syntaxFacts.IsExpressionStatement(statementContainsCallee)
+                if (syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
                     && !calleeMethodSymbol.ReturnsVoid
-                    && !syntaxFacts.IsArgument(calleeInvocationNode.Parent))
+                    && !inlineMethodRefactoringProvider.IsValidExpressionUnderStatementExpression(inlineNode))
                 {
-                    // If the callee is invoked like
+                    // If the callee is invoked as ExpressionStatement, but the inlined expression in the callee can't be
+                    // placed under ExpressionStatement
+                    // Example:
                     // void Caller()
                     // {
                     //     Callee();

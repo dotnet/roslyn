@@ -28,36 +28,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
         }
 
         [Fact]
-        public Task TestInlineMethodForExpressionStatement()
+        public Task TestInlineInvocationExpressionForExpressionStatement()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
 using System.Collections.Generic;
 public class TestClass
 {
-    private void Caller(int i, int j)
+    private void Caller(int i)
     {
         var h = new HashSet<int>();
-        Ca[||]llee(i, j, h);
+        Ca[||]llee(i, h);
     }
 
-    private bool Callee(int i, int j, HashSet<int> set)
+    private bool Callee(int i, HashSet<int> set)
     {
-        return i == j;
+        return set.Add(i);
     }
 }",
                 @"
 using System.Collections.Generic;
 public class TestClass
 {
-    private void Caller(int i, int j)
+    private void Caller(int i)
     {
         var h = new HashSet<int>();
         h.Add(i);
     }
 
-    private bool Callee(int i, int j, HashSet<int> set)
+    private bool Callee(int i, HashSet<int> set)
     {
-        return i == j;
+        return set.Add(i);
     }
 }");
 
@@ -1349,8 +1349,6 @@ static class Program
     }
 }");
 
-        #region parenthesisTest
-
         [Fact]
         public Task TestInlineExpressionAsLeftValueInLeftAssociativeExpression()
             => TestVerifier.TestInRegularAndScript1Async(
@@ -1889,15 +1887,139 @@ public class TestClass
     private int Callee(int x) => x = 1;
 }");
 
-        [Fact]
-        public Task TestConditionalAccessExpression()
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public Task TestPreExpression(string op)
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
 {
     public void Caller()
     {
-        var x = Cal[||]lee()?.Length;
+        int i = 1;
+        Cal[||]lee(i);
+    }
+
+    private int Callee(int i)
+    {
+        return (op)i;
+    }
+}".Replace("(op)", op),
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        int i = 1;
+        (op)i;
+    }
+
+    private int Callee(int i)
+    {
+        return (op)i;
+    }
+}".Replace("(op)", op));
+
+        [Fact]
+        public Task TestAwaitExpression()
+            => TestVerifier.TestInRegularAndScript1Async(@"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public async void Caller()
+    {
+        Cal[||]lee();
+    }
+    private async Task Callee()
+    {
+        await Task.Delay(100);
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public async void Caller()
+    {
+        await Task.Delay(100);
+    }
+    private async Task Callee()
+    {
+        await Task.Delay(100);
+    }
+}");
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public Task TestPostExpression(string op)
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        int i = 1;
+        Cal[||]lee(i);
+    }
+
+    private int Callee(int i)
+    {
+        return i(op);
+    }
+}".Replace("(op)", op),
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        int i = 1;
+        i(op);
+    }
+
+    private int Callee(int i)
+    {
+        return i(op);
+    }
+}".Replace("(op)", op));
+
+        [Fact]
+        public Task TestObjectCreationExpression()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        Call[||]ee();
+    }
+    private object Callee()
+    {
+        return new object();
+    }
+}",
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        new object();
+    }
+    private object Callee()
+    {
+        return new object();
+    }
+}");
+        [Fact]
+        public Task TestConditionalInvocationExpression2()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        Cal[||]lee()?.ToCharArray();
     }
 
     private string Callee() => ""Hello"" + ""World"";
@@ -1907,10 +2029,34 @@ public class TestClass
 {
     public void Caller()
     {
-        var x = (""Hello"" + ""World"")?.Length;
+        (""Hello"" + ""World"")?.ToCharArray();
     }
 
     private string Callee() => ""Hello"" + ""World"";
+}");
+
+        [Fact]
+        public Task TestConditionalInvocationExpression1()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        Cal[||]lee();
+    }
+
+    private char[] Callee() => (""Hello"" + ""World"")?.ToCharArray();
+}",
+                @"
+public class TestClass
+{
+    public void Caller()
+    {
+        (""Hello"" + ""World"")?.ToCharArray();
+    }
+
+    private char[] Callee() => (""Hello"" + ""World"")?.ToCharArray();
 }");
 
         [Theory]
@@ -1922,15 +2068,16 @@ public class TestClass
         [InlineData("&")]
         [InlineData("|")]
         [InlineData("^")]
+        [InlineData("")]
         [InlineData(">>")]
         [InlineData("<<")]
         public Task TestAssignmentExpression(string op)
             => TestVerifier.TestInRegularAndScript1Async(@"
 public class TestClass
 {
-    private int Calller(int x)
+    private void Calller(int x)
     {
-        return 10 - Ca[||]llee(x);
+        Ca[||]llee(x);
     }
 
     private int Callee(int x) => x (op)= 1;
@@ -1938,14 +2085,12 @@ public class TestClass
                 @"
 public class TestClass
 {
-    private int Calller(int x)
+    private void Calller(int x)
     {
-        return 10 - (x (op)= 1);
+        x (op)= 1;
     }
 
     private int Callee(int x) => x (op)= 1;
 }".Replace("(op)", op));
-
-        #endregion
     }
 }

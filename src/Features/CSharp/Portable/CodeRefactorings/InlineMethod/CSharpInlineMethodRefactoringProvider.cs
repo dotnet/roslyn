@@ -145,5 +145,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override ExpressionSyntax Parenthesize(ExpressionSyntax expressionSyntax)
             => expressionSyntax.Parenthesize();
+
+        protected override bool IsValidExpressionUnderStatementExpression(ExpressionSyntax expressionNode)
+        {
+            // C# Expression Statements defined in the language reference
+            // expression_statement
+            //     : statement_expression ';'
+            //     ;
+            //
+            // statement_expression
+            //     : invocation_expression
+            //     | null_conditional_invocation_expression
+            //     | object_creation_expression
+            //     | assignment
+            //     | post_increment_expression
+            //     | post_decrement_expression
+            //     | pre_increment_expression
+            //     | pre_decrement_expression
+            //     | await_expression
+            //     ;
+            var isNullConditionalInvocationExpression =
+                expressionNode is ConditionalAccessExpressionSyntax conditionalAccessExpressionSyntax
+                && conditionalAccessExpressionSyntax.WhenNotNull.IsKind(SyntaxKind.InvocationExpression);
+
+            return expressionNode.IsKind(SyntaxKind.InvocationExpression)
+                   || isNullConditionalInvocationExpression
+                   || expressionNode.IsKind(SyntaxKind.ObjectCreationExpression)
+                   || expressionNode is AssignmentExpressionSyntax
+                   || expressionNode.IsKind(SyntaxKind.PreIncrementExpression)
+                   || expressionNode.IsKind(SyntaxKind.PreDecrementExpression)
+                   || expressionNode.IsKind(SyntaxKind.PostIncrementExpression)
+                   || expressionNode.IsKind(SyntaxKind.PostDecrementExpression)
+                   || expressionNode.IsKind(SyntaxKind.AwaitExpression);
+        }
     }
 }
