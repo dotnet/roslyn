@@ -569,12 +569,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void AddSourceFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
             => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
+        /// <summary>
+        /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer)
+        /// </summary>
+        /// <param name="textContainer">The text container that contains this file.</param>
+        /// <param name="fullPath">The file path of the document.</param>
+        /// <param name="sourceCodeKind">The kind of the source code.</param>
+        /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
+        /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
+        /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
         public DocumentId AddSourceTextContainer(
             SourceTextContainer textContainer,
             string fullPath,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             ImmutableArray<string> folders = default,
-            bool designTimeOnly = default,
+            bool designTimeOnly = false,
             IDocumentServiceProvider? documentServiceProvider = null)
         {
             return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
