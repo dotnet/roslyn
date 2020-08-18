@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
         }
 
-        public async Task<Solution> GetSolutionAsync(PinnedRemotableDataScope scope)
+        public async Task<Solution> GetSolutionAsync(AssetStorages.Scope scope)
         {
             var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionInfo.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 

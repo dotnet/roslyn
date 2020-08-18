@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -23,30 +24,34 @@ namespace Microsoft.CodeAnalysis.Remote
         private static int s_scopeId = 1;
 
         /// <summary>
-        /// map from solution checksum scope to its associated asset storage
+        /// Map from solution checksum scope to its associated <see cref="SolutionState"/>.
         /// </summary>
-        private readonly ConcurrentDictionary<int, Storage> _storages;
+        private readonly ConcurrentDictionary<int, SolutionState> _solutionStates;
 
         public AssetStorages()
         {
-            _storages = new ConcurrentDictionary<int, Storage>(concurrencyLevel: 2, capacity: 10);
+            _solutionStates = new ConcurrentDictionary<int, SolutionState>(concurrencyLevel: 2, capacity: 10);
         }
 
-        internal async Task<PinnedRemotableDataScope> CreateScopeAsync(Solution solution, CancellationToken cancellationToken)
+        internal async Task<Scope> CreateScopeAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var storage = new Storage(solution.State);
-            var solutionChecksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var solutionState = solution.State;
+            var solutionChecksum = await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
+            var id = Interlocked.Increment(ref s_scopeId);
             var solutionInfo = new PinnedSolutionInfo(
-                Interlocked.Increment(ref s_scopeId),
-                storage.SolutionState.BranchId == storage.SolutionState.Workspace.PrimaryBranchId,
-                storage.SolutionState.WorkspaceVersion,
+                id,
+                solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
+                solutionState.WorkspaceVersion,
                 solutionChecksum);
 
-            RegisterSnapshot(solutionInfo.ScopeId, storage);
+            Contract.ThrowIfFalse(_solutionStates.TryAdd(id, solutionState));
 
-            return new PinnedRemotableDataScope(this, solutionInfo);
+            return new Scope(this, solutionInfo);
         }
+
+        private void RemoveScope(int scopeId)
+            => Contract.ThrowIfFalse(_solutionStates.TryRemove(scopeId, out _));
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
@@ -56,9 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return RemotableData.Null;
             }
 
-            // search snapshots we have
-            var storage = _storages[scopeId];
-            var remotableData = await storage.TryGetRemotableDataAsync(checksum, cancellationToken).ConfigureAwait(false);
+            var remotableData = await FindAssetAsync(_solutionStates[scopeId], checksum, cancellationToken).ConfigureAwait(false);
             if (remotableData != null)
             {
                 return remotableData;
@@ -87,10 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 result[Checksum.Null] = RemotableData.Null;
             }
 
-            // search checksum trees we have
-            var storage = _storages[scopeId];
-
-            await storage.AppendRemotableDataAsync(searchingChecksumsLeft.Object, result, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(_solutionStates[scopeId], searchingChecksumsLeft.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
                 // no checksum left to find
@@ -108,29 +108,55 @@ namespace Microsoft.CodeAnalysis.Remote
             return result;
         }
 
-        private void RegisterSnapshot(int scopeId, AssetStorages.Storage storage)
+        /// <summary>
+        /// Find an asset of the specified <paramref name="checksum"/> within <paramref name="solutionState"/>.
+        /// </summary>
+        private static async ValueTask<RemotableData?> FindAssetAsync(SolutionState solutionState, Checksum checksum, CancellationToken cancellationToken)
         {
-            // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
-            if (!_storages.TryAdd(scopeId, storage))
+            using var checksumPool = Creator.CreateChecksumSet(SpecializedCollections.SingletonEnumerable(checksum));
+            using var resultPool = Creator.CreateResultSet();
+
+            await FindAssetsAsync(solutionState, checksumPool.Object, resultPool.Object, cancellationToken).ConfigureAwait(false);
+
+            if (resultPool.Object.Count == 1)
             {
-                // this should make failure more explicit
-                FailFast.OnFatalException(new Exception("who is adding same snapshot?"));
+                var (resultingChecksum, value) = resultPool.Object.First();
+                Contract.ThrowIfFalse(checksum == resultingChecksum);
+
+                return new SolutionAsset(checksum, value, solutionState.Workspace.Services.GetRequiredService<ISerializerService>());
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Find an assets of the specified <paramref name="remainingChecksumsToFind"/> within <paramref name="solutionState"/>.
+        /// Once an asset of given checksum is found the corresponding asset is placed to <paramref name="result"/> and the checksum is removed from <paramref name="remainingChecksumsToFind"/>.
+        /// </summary>
+        private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, RemotableData> result, CancellationToken cancellationToken)
+        {
+            using var resultPool = Creator.CreateResultSet();
+
+            await FindAssetsAsync(solutionState, remainingChecksumsToFind, resultPool.Object, cancellationToken).ConfigureAwait(false);
+
+            var serializerService = solutionState.Workspace.Services.GetRequiredService<ISerializerService>();
+            foreach (var (checksum, value) in resultPool.Object)
+            {
+                result[checksum] = new SolutionAsset(checksum, value, serializerService);
             }
         }
 
-        public void UnregisterSnapshot(int scopeId)
+        private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
-            // calling it multiple times for same snapshot is not allowed.
-            if (!_storages.TryRemove(scopeId, out _))
-            {
-                // this should make failure more explicit
-                FailFast.OnFatalException(new Exception("who is removing same snapshot?"));
-            }
+            // only solution with checksum can be in asset storage
+            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
+
+            await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<RemotableData?> TestOnly_GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            foreach (var (scopeId, _) in _storages)
+            foreach (var (scopeId, _) in _solutionStates)
             {
                 var data = await GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false);
                 if (data != null)
