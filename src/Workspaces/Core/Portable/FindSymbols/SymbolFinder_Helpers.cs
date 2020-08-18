@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Check if type1 was forwarded to type2 in type2's compilation, or if type2 was forwarded to type1 in
                 // type1's compilation.  We check both direction as this API is called from higher level comparison APIs
                 // that are unordered.
-                if (!VerifyForwardedType(solution, type1, type2, compilationSet, cancellationToken) &&
-                    !VerifyForwardedType(solution, type2, type1, compilationSet, cancellationToken))
+                if (!VerifyForwardedType(solution, candidate: type1, forwardedTo: type2, compilationSet, cancellationToken) &&
+                    !VerifyForwardedType(solution, candidate: type2, forwardedTo: type1, compilationSet, cancellationToken))
                 {
                     return false;
                 }
