@@ -4,11 +4,11 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer</RootNamespace>
-    <TargetFrameworks>netcoreapp3.1;net472;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
 
     <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
-    <AssetTargetFallback  Condition="'$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'netstandard2.0'">net472;$(AssetTargetFallback)</AssetTargetFallback>
+    <AssetTargetFallback Condition="'$(TargetFramework)' == 'netcoreapp3.1'">net472;$(AssetTargetFallback)</AssetTargetFallback>
 
     <IsPackable>true</IsPackable>
     <PackageDescription>
