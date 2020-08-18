@@ -1730,10 +1730,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0)
+                else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count == 1 && viableEntryPoints.Count == 1)
                 {
                     // TODO: I think I should first concat both taskEntryPoints and viableEntryPoints first.
-                    viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
                     var info = new CSDiagnosticInfo(
                          ErrorCode.WRN_SyncAndAsyncEntryPoints,
                          args: Array.Empty<object>(),
