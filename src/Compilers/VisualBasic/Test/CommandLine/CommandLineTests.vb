@@ -2091,6 +2091,7 @@ End Module").Path
             InlineData("15.3", True, LanguageVersion.VisualBasic15_3),
             InlineData("15.5", True, LanguageVersion.VisualBasic15_5),
             InlineData("16", True, LanguageVersion.VisualBasic16),
+            InlineData("16.0", True, LanguageVersion.VisualBasic16),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
