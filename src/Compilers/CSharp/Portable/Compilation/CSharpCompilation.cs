@@ -1732,12 +1732,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count == 1 && viableEntryPoints.Count == 1)
                 {
-                    // TODO: I think I should first concat both taskEntryPoints and viableEntryPoints first.
                     var info = new CSDiagnosticInfo(
                          ErrorCode.WRN_SyncAndAsyncEntryPoints,
                          args: Array.Empty<object>(),
-                         symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
-                         additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+                         symbols: ImmutableArray<Symbol>.Create(viableEntryPoints.First(), taskEntryPoints.First()),
+                         additionalLocations: ImmutableArray<Location>.Create(viableEntryPoints.First().Locations.First(), taskEntryPoints.First().Locations.First());
 
                     diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
                 }
