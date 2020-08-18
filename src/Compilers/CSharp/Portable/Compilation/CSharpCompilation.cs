@@ -1730,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count == 1 && viableEntryPoints.Count == 1)
+                else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0 && viableEntryPoints.Count == 1)
                 {
                     var info = new CSDiagnosticInfo(
                          ErrorCode.WRN_SyncAndAsyncEntryPoints,
