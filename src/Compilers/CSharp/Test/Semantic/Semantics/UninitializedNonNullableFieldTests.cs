@@ -1638,6 +1638,9 @@ interface I
                 // (5,26): error CS8701: Target runtime doesn't support default interface implementation.
                 //     public static object F2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 26),
+                // (5,26): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static object F2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(5, 26),
                 // (5,26): warning CS0649: Field 'I.F2' is never assigned to, and will always have its default value null
                 //     public static object F2;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("I.F2", "null").WithLocation(5, 26));
