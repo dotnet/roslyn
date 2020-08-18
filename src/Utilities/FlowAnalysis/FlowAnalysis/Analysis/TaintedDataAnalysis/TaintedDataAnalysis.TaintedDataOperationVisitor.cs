@@ -329,8 +329,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         foreach ((string ifTaintedParameter, string thenTaintedTarget) in taintedParameterPairs)
                         {
                             IOperation thenTaintedTargetOperation = visitedInstance != null && thenTaintedTarget == TaintedTargetValue.This
-                                                                        ? visitedInstance
-                                                                        : visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
+    ? visitedInstance
+    : visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
                             if (thenTaintedTargetOperation != null)
                             {
                                 SetTaintedForEntity(
