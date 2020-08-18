@@ -12,9 +12,11 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using NuGet.SolutionRestoreManager;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -113,11 +115,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
                 if (status == null)
-                {
                     return false;
-                }
 
-                return !status.IsInProgress;
+                if (status.IsInProgress)
+                    return false;
+
+                var componentModel =
+                    await _serviceProvider.GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: false)
+                                          .WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                var solutionRestoreStatusProvider = componentModel.GetService<IVsSolutionRestoreStatusProvider>();
+                return await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<IVsOperationProgressStageStatusForSolutionLoad> GetProgressStageStatusAsync(CancellationToken cancellationToken)

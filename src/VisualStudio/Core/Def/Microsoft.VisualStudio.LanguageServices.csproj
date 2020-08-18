@@ -169,6 +169,7 @@
     <PackageReference Include="VSLangProj140" Version="$(VSLangProj140Version)" />
     <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
+    <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
 
