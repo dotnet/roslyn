@@ -108,7 +108,7 @@ class C
     end sub
 
     sub M2(o1 as object, o2 as object)
-         if o1 IsNot o2
+        if o1 IsNot o2
         end if
     end sub
 end class"
