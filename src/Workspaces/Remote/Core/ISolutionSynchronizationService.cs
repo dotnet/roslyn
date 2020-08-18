@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal interface IRemotableDataService : IWorkspaceService
+    internal interface ISolutionAssetStorageProvider : IWorkspaceService
     {
         SolutionAssetStorage AssetStorage { get; }
     }

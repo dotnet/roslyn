@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 pipeName,
                 (scopeId, checksums),
                 (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(
-                    writer, _services.GetRequiredService<IRemotableDataService>().AssetStorage, _services.GetRequiredService<ISerializerService>(), data.scopeId, data.checksums, cancellationToken),
+                    writer, _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage, _services.GetRequiredService<ISerializerService>(), data.scopeId, data.checksums, cancellationToken),
                 cancellationToken);
 
         /// <summary>

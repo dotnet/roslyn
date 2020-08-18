@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
             _endPoint.StartListening();
 
-            _assetStorage = services.GetRequiredService<IRemotableDataService>().AssetStorage;
+            _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
         }
 

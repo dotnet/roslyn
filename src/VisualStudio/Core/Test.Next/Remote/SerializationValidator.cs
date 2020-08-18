@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         public SerializationValidator(HostWorkspaceServices services)
         {
-            AssetStorage = services.GetRequiredService<IRemotableDataService>().AssetStorage;
+            AssetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             Serializer = services.GetRequiredService<ISerializerService>();
             Services = services;
         }
