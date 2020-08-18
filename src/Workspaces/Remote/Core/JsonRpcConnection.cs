@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly HostWorkspaceServices _services;
         private readonly RemoteEndPoint _serviceEndPoint;
-        private readonly IRemotableDataService _remotableDataService;
+        private readonly SolutionAssetStorage _solutionAssetStorage;
 
         // Non-null if the connection is pooled.
         private IPooledConnectionReclamation? _poolReclamation;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Stream serviceStream,
             IPooledConnectionReclamation? poolReclamation)
         {
-            _remotableDataService = services.GetRequiredService<IRemotableDataService>();
+            _solutionAssetStorage = services.GetRequiredService<IRemotableDataService>().AssetStorage;
             _services = services;
 
             _serviceEndPoint = new RemoteEndPoint(serviceStream, logger, callbackTarget);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (solution != null)
             {
-                using var scope = await _remotableDataService.AssetStorages.CreateScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
 
                 argumentsBuilder.Add(scope.SolutionInfo);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (solution != null)
             {
-                using var scope = await _remotableDataService.AssetStorages.CreateScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var scope = await _solutionAssetStorage.StoreAssetsAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
 
                 argumentsBuilder.Add(scope.SolutionInfo);

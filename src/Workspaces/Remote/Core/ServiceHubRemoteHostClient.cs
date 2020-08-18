@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private const int ConnectionPoolCapacity = 15;
 
         private readonly HostWorkspaceServices _services;
-        private readonly IRemotableDataService _remotableDataService;
+        private readonly SolutionAssetStorage _assetStorage;
         private readonly ISerializerService _serializer;
         private readonly RemoteEndPoint _endPoint;
         private readonly HubClient _hubClient;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
             _endPoint.StartListening();
 
-            _remotableDataService = services.GetRequiredService<IRemotableDataService>();
+            _assetStorage = services.GetRequiredService<IRemotableDataService>().AssetStorage;
             _serializer = services.GetRequiredService<ISerializerService>();
         }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     await RemoteEndPoint.WriteDataToNamedPipeAsync(
                         pipeName,
                         (scopeId, checksums),
-                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, _remotableDataService, _serializer, data.scopeId, data.checksums, cancellationToken),
+                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, _assetStorage, _serializer, data.scopeId, data.checksums, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
             }

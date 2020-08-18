@@ -5,26 +5,25 @@
 #nullable enable
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class AssetStorages
+    internal partial class SolutionAssetStorage
     {
         internal readonly struct Scope : IDisposable
         {
-            private readonly AssetStorages _storages;
+            private readonly SolutionAssetStorage _storages;
             public readonly PinnedSolutionInfo SolutionInfo;
 
-            public Scope(AssetStorages storages, PinnedSolutionInfo solutionInfo)
+            public Scope(SolutionAssetStorage storages, PinnedSolutionInfo solutionInfo)
             {
                 _storages = storages;
                 SolutionInfo = solutionInfo;
             }
 
             public void Dispose()
-            {
-                _storages.RemoveScope(SolutionInfo.ScopeId);
-            }
+                => Contract.ThrowIfFalse(_storages._solutionStates.TryRemove(SolutionInfo.ScopeId, out _));
         }
     }
 }

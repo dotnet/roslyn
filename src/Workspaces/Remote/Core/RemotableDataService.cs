@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         [ExportWorkspaceServiceFactory(typeof(IRemotableDataService)), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
-            private readonly AssetStorages _assetStorages = new AssetStorages();
+            private readonly SolutionAssetStorage _assetStorages = new SolutionAssetStorage();
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemotableDataService(_assetStorages);
         }
 
-        public AssetStorages AssetStorages { get; private set; }
+        public SolutionAssetStorage AssetStorage { get; private set; }
 
-        private RemotableDataService(AssetStorages storages)
+        private RemotableDataService(SolutionAssetStorage storages)
         {
-            AssetStorages = storages;
+            AssetStorage = storages;
         }
     }
 }

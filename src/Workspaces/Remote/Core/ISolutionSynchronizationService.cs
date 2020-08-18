@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal interface IRemotableDataService : IWorkspaceService
     {
-        AssetStorages AssetStorages { get; }
+        SolutionAssetStorage AssetStorage { get; }
     }
 }

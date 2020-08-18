@@ -5,29 +5,51 @@
 #nullable enable
 
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Asset that is part of solution
+    /// Represents a part of solution snapshot along with its checksum.
     /// </summary>
-    internal sealed class SolutionAsset : RemotableData
+    internal sealed class SolutionAsset
     {
-        private readonly object _value;
+        public static readonly SolutionAsset Null = new SolutionAsset(value: null, Checksum.Null, WellKnownSynchronizationKind.Null);
 
-        public SolutionAsset(Checksum checksum, object value)
-            : base(checksum, value.GetWellKnownSynchronizationKind())
+        /// <summary>
+        /// Indicates what kind of object it.
+        /// 
+        /// Used in tranportation framework and deserialization service
+        /// to hand shake how to send over data and deserialize serialized data.
+        /// </summary>
+        public readonly WellKnownSynchronizationKind Kind;
+
+        /// <summary>
+        /// Checksum of <see cref="Value"/>.
+        /// </summary>
+        public readonly Checksum Checksum;
+
+        public readonly object? Value;
+
+        public SolutionAsset(object? value, Checksum checksum, WellKnownSynchronizationKind kind)
         {
-            _value = value;
+            Checksum = checksum;
+            Kind = kind;
+            Value = value;
         }
 
-        public override Task WriteObjectToAsync(ObjectWriter writer, ISerializerService serializer, CancellationToken cancellationToken)
+        public SolutionAsset(Checksum checksum, object value)
+            : this(value, checksum, value.GetWellKnownSynchronizationKind())
         {
-            serializer.Serialize(_value, writer, cancellationToken);
-            return Task.CompletedTask;
+        }
+
+        public void WriteObjectTo(ObjectWriter writer, ISerializerService serializer, CancellationToken cancellationToken)
+        {
+            if (Value is not null)
+            {
+                serializer.Serialize(Value, writer, cancellationToken);
+            }
         }
     }
 }

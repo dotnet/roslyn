@@ -17,23 +17,26 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// This is collection of asset storage
+    /// Stores solution snapshots available to remote services.
     /// </summary>
-    internal partial class AssetStorages
+    internal partial class SolutionAssetStorage
     {
         private static int s_scopeId = 1;
 
         /// <summary>
-        /// Map from solution checksum scope to its associated <see cref="SolutionState"/>.
+        /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
         /// </summary>
         private readonly ConcurrentDictionary<int, SolutionState> _solutionStates;
 
-        public AssetStorages()
+        public SolutionAssetStorage()
         {
             _solutionStates = new ConcurrentDictionary<int, SolutionState>(concurrencyLevel: 2, capacity: 10);
         }
 
-        internal async Task<Scope> CreateScopeAsync(Solution solution, CancellationToken cancellationToken)
+        /// <summary>
+        /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
+        /// </summary>
+        internal async ValueTask<Scope> StoreAssetsAsync(Solution solution, CancellationToken cancellationToken)
         {
             var solutionState = solution.State;
             var solutionChecksum = await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
@@ -50,15 +53,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return new Scope(this, solutionInfo);
         }
 
-        private void RemoveScope(int scopeId)
-            => Contract.ThrowIfFalse(_solutionStates.TryRemove(scopeId, out _));
-
-        public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
+        /// <summary>
+        /// Retrieve asset of a specified <paramref name="checksum"/> available within <paramref name="scopeId"/> scope from the storage.
+        /// </summary>
+        public async ValueTask<SolutionAsset?> GetAssetAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
             if (checksum == Checksum.Null)
             {
                 // check nil case
-                return RemotableData.Null;
+                return SolutionAsset.Null;
             }
 
             var remotableData = await FindAssetAsync(_solutionStates[scopeId], checksum, cancellationToken).ConfigureAwait(false);
@@ -77,24 +80,26 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        /// <summary>
+        /// Retrieve assets of specified <paramref name="checksums"/> available within <paramref name="scopeId"/> scope from the storage.
+        /// </summary>
+        public async ValueTask<IReadOnlyDictionary<Checksum, SolutionAsset>> GetAssetsAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
-            using var searchingChecksumsLeft = Creator.CreateChecksumSet(checksums);
+            using var checksumsToFind = Creator.CreateChecksumSet(checksums);
 
-            var numberOfChecksumsToSearch = searchingChecksumsLeft.Object.Count;
-            var result = new Dictionary<Checksum, RemotableData>(numberOfChecksumsToSearch);
+            var numberOfChecksumsToSearch = checksumsToFind.Object.Count;
+            var result = new Dictionary<Checksum, SolutionAsset>(numberOfChecksumsToSearch);
 
-            // check nil case
-            if (searchingChecksumsLeft.Object.Remove(Checksum.Null))
+            if (checksumsToFind.Object.Remove(Checksum.Null))
             {
-                result[Checksum.Null] = RemotableData.Null;
+                result[Checksum.Null] = SolutionAsset.Null;
             }
 
-            await FindAssetsAsync(_solutionStates[scopeId], searchingChecksumsLeft.Object, result, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(_solutionStates[scopeId], checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
                 // no checksum left to find
-                Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
+                Debug.Assert(checksumsToFind.Object.Count == 0);
                 return result;
             }
 
@@ -111,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Find an asset of the specified <paramref name="checksum"/> within <paramref name="solutionState"/>.
         /// </summary>
-        private static async ValueTask<RemotableData?> FindAssetAsync(SolutionState solutionState, Checksum checksum, CancellationToken cancellationToken)
+        private static async ValueTask<SolutionAsset?> FindAssetAsync(SolutionState solutionState, Checksum checksum, CancellationToken cancellationToken)
         {
             using var checksumPool = Creator.CreateChecksumSet(SpecializedCollections.SingletonEnumerable(checksum));
             using var resultPool = Creator.CreateResultSet();
@@ -133,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Find an assets of the specified <paramref name="remainingChecksumsToFind"/> within <paramref name="solutionState"/>.
         /// Once an asset of given checksum is found the corresponding asset is placed to <paramref name="result"/> and the checksum is removed from <paramref name="remainingChecksumsToFind"/>.
         /// </summary>
-        private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, RemotableData> result, CancellationToken cancellationToken)
+        private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, SolutionAsset> result, CancellationToken cancellationToken)
         {
             using var resultPool = Creator.CreateResultSet();
 
@@ -153,18 +158,31 @@ namespace Microsoft.CodeAnalysis.Remote
             await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask<RemotableData?> TestOnly_GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
         {
-            foreach (var (scopeId, _) in _solutionStates)
+            private readonly SolutionAssetStorage _solutionAssetStorage;
+
+            internal TestAccessor(SolutionAssetStorage solutionAssetStorage)
             {
-                var data = await GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false);
-                if (data != null)
-                {
-                    return data;
-                }
+                _solutionAssetStorage = solutionAssetStorage;
             }
 
-            return null;
+            public async ValueTask<SolutionAsset?> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+            {
+                foreach (var (scopeId, _) in _solutionAssetStorage._solutionStates)
+                {
+                    var data = await _solutionAssetStorage.GetAssetAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false);
+                    if (data != null)
+                    {
+                        return data;
+                    }
+                }
+
+                return null;
+            }
         }
     }
 }
