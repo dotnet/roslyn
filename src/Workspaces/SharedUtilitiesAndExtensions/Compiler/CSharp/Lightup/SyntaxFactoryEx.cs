@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if false // Not currently used, but preserved so the pattern is easy to adopt when needed
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #if CODE_STYLE
@@ -10,11 +11,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 #endif
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Shared.Lightup
 {
     internal static class SyntaxFactoryEx
     {
+#if false // Not currently used, but preserved so the pattern is easy to adopt when needed
 #if CODE_STYLE
         private static readonly Func<TypeSyntax, PatternSyntax> TypePatternAccessor;
 
@@ -43,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Lightup
             return TypePatternAccessor(type);
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
         private static Func<T, TResult> ThrowNotSupportedOnFallback<T, TResult>(string typeName, string methodName)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
-            return _ => throw new NotSupportedException(CSharpCompilerExtensionsResources._0_1_is_not_supported_in_this_version);
+            return _ => throw new NotSupportedException(string.Format(CSharpCompilerExtensionsResources._0_1_is_not_supported_in_this_version, typeName, methodName));
         }
 #else
         public static PatternSyntax TypePattern(TypeSyntax type) => SyntaxFactory.TypePattern(type);
 #endif
+#endif
     }
 }
+

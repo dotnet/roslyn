@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SymbolKind.Parameter:
                 case SymbolKind.Property:
                 case SymbolKind.RangeVariable:
-                case SymbolKindEx.FunctionPointerType:
+                case SymbolKind.FunctionPointerType:
                     return true;
             }
 
