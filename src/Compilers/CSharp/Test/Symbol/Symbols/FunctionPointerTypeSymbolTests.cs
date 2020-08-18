@@ -1555,7 +1555,8 @@ unsafe class C
             var ptr = comp.CreateFunctionPointerTypeSymbol(returnType: @string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty, callingConvention: SignatureCallingConvention.VarArgs);
 
             Assert.Equal(SignatureCallingConvention.VarArgs, ptr.Signature.CallingConvention);
-            AssertEx.Equal("error CS8806: The calling convention of 'delegate* unmanaged[]<string>' is not supported by the language.", ptr.EnsureCSharpSymbolOrNull(nameof(ptr)).GetUseSiteDiagnostic().ToString());
+            var expectedMessage = "error CS8806: " + string.Format(CSharpResources.ERR_UnsupportedCallingConvention, "delegate* unmanaged[]<string>");
+            AssertEx.Equal(expectedMessage, ptr.EnsureCSharpSymbolOrNull(nameof(ptr)).GetUseSiteDiagnostic().ToString());
         }
 
         [Fact]
