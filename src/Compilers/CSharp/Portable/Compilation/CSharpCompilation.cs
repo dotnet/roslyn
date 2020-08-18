@@ -1735,8 +1735,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var info = new CSDiagnosticInfo(
                          ErrorCode.WRN_SyncAndAsyncEntryPoints,
                          args: Array.Empty<object>(),
-                         symbols: ImmutableArray<Symbol>.Create(viableEntryPoints.First(), taskEntryPoints.First()),
-                         additionalLocations: ImmutableArray<Location>.Create(viableEntryPoints.First().Locations.First(), taskEntryPoints.First().Locations.First()));
+                         symbols: ImmutableArray.Create(viableEntryPoints.First(), taskEntryPoints.First()),
+                         additionalLocations: ImmutableArray.Create(viableEntryPoints.First().Locations.First(), taskEntryPoints.First().Candidate.Locations.First()));
 
                     diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
                 }
