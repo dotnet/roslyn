@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // If we support patterns then we can do "return obj is MyType myType && ..."
                 expressions.Add(
-                    factory.IsPatternExpression(objNameExpression,
+                    factory.SyntaxGeneratorInternal.IsPatternExpression(objNameExpression,
                         factory.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
             }
             else if (containingType.IsValueType)
