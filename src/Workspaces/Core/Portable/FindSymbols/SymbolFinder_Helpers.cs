@@ -128,7 +128,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return OriginalSymbolsMatch(solution, namespace1, namespace2, cancellationToken);
         }
 
-        // Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
+        /// <summary>
+        /// Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
+        /// </summary>
         private static bool VerifyForwardedTypes(
             Solution solution,
             Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
