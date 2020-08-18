@@ -46,47 +46,47 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         (methodName, arguments) =>
                             methodName == "Append",
                         new (string, string)[]{
-                            ("value", ".This"),
+                            ("value", TaintedTargetValue.This),
                         }
                     ),
                     (
                         (methodName, arguments) =>
                             methodName == "AppendFormat",
                         new (string, string)[]{
-                            ("format", ".This"),
-                            ("arg0", ".This"),
-                            ("arg1", ".This"),
-                            ("arg2", ".This"),
-                            ("args", ".This"),
+                            ("format", TaintedTargetValue.This),
+                            ("arg0", TaintedTargetValue.This),
+                            ("arg1", TaintedTargetValue.This),
+                            ("arg2", TaintedTargetValue.This),
+                            ("args", TaintedTargetValue.This),
                         }
                     ),
                     (
                         (methodName, arguments) =>
                             methodName == "AppendLine",
                         new (string, string)[]{
-                            ("value", ".This"),
+                            ("value", TaintedTargetValue.This),
                         }
                     ),
                     (
                         (methodName, arguments) =>
                             methodName == "CopyTo",
                         new (string, string)[]{
-                            (".This", "destination"),
+                            (TaintedTargetValue.This, "destination"),
                         }
                     ),
                     (
                         (methodName, arguments) =>
                             methodName == "Insert",
                         new (string, string)[]{
-                            ("value", ".This"),
+                            ("value", TaintedTargetValue.This),
                         }
                     ),
                     (
                         (methodName, arguments) =>
                             methodName == "Replace",
                         new (string, string)[]{
-                            ("newValue", ".This"),
-                            ("newChar", ".This"),
+                            ("newValue", TaintedTargetValue.This),
+                            ("newChar", TaintedTargetValue.This),
                         }
                     ),
                 });
