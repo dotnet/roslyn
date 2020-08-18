@@ -165,22 +165,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Returns <see langword="true"/> if <paramref name="type1"/> was forwarded to <paramref name="type2"/> in
-        /// <paramref name="type2"/>'s <see cref="Compilation"/>.
+        /// Returns <see langword="true"/> if <paramref name="candidate"/> was forwarded to <paramref name="forwardedTo"/> in
+        /// <paramref name="forwardedTo"/>'s <see cref="Compilation"/>.
         /// </summary>
         private static bool VerifyForwardedType(
             Solution solution,
-            INamedTypeSymbol type1,
-            INamedTypeSymbol type2,
+            INamedTypeSymbol candidate,
+            INamedTypeSymbol forwardedTo,
             HashSet<Compilation> compilationSet,
             CancellationToken cancellationToken)
         {
             // Only need to operate on original definitions.  i.e. List<T> is the type that is forwarded,
             // not List<string>.
-            type1 = (type1.NativeIntegerUnderlyingType ?? type1).OriginalDefinition;
-            type2 = (type2.NativeIntegerUnderlyingType ?? type2).OriginalDefinition;
+            candidate = GetOridinalUnderlyingType(candidate);
+            forwardedTo = GetOridinalUnderlyingType(forwardedTo);
 
-            var type2OriginatingProject = solution.GetOriginatingProject(type2);
+            var type2OriginatingProject = solution.GetOriginatingProject(forwardedTo);
             if (type2OriginatingProject == null)
                 return false;
 
@@ -192,25 +192,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // expensively throw it away and recreate it.
             compilationSet.Add(type2Compilation);
 
-            var type1FullMetadataName = type1.ContainingNamespace != null
-                ? $"{type1.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat)}.{type1.MetadataName}"
-                : type1.MetadataName;
+            var type1FullMetadataName = candidate.ContainingNamespace != null
+                ? $"{candidate.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat)}.{candidate.MetadataName}"
+                : candidate.MetadataName;
 
             // Now, find the corresponding reference to type1's assembly in type2's compilation and see if that assembly
             // contains a forward that matches type2.  If so, type1 was forwarded to type2.
-            var type1AssemblyName = type1.ContainingAssembly.Name;
+            var type1AssemblyName = candidate.ContainingAssembly.Name;
             foreach (var assembly in type2Compilation.GetReferencedAssemblySymbols())
             {
                 if (assembly.Name == type1AssemblyName)
                 {
                     var forwardedType = assembly.ResolveForwardedType(type1FullMetadataName);
-                    if (Equals(forwardedType, type2))
+                    if (Equals(forwardedType, forwardedTo))
                         return true;
                 }
             }
 
             return false;
         }
+
+        private static INamedTypeSymbol GetOridinalUnderlyingType(INamedTypeSymbol type)
+            => (type.NativeIntegerUnderlyingType ?? type).OriginalDefinition;
 
         internal static bool TryGetCompilation(
             ISymbol symbol,
