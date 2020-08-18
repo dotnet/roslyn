@@ -126,14 +126,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await validator.VerifySnapshotInServiceAsync(validator.ToProjectObjects(solutionObject.Projects)[0], 0, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
-
-
-        //public async ValueTask<RemotableData?> GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
-        //{
-        //   //     return await _assetStorages.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false);
-        //    return await _storages.GetRemotableDataAsync(SolutionInfo.ScopeId, checksum, cancellationToken).ConfigureAwait(false);
-        //}
-
         [Fact]
         public async Task CreateSolutionSnapshotId_Project_Serialization()
         {
