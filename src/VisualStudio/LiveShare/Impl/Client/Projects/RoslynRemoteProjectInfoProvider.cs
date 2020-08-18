@@ -73,20 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     .Where(f => !this._secondaryBufferFileExtensions.Any(ext => f.LocalPath.EndsWith(ext)))
                     .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
                 var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
-                string language;
-                switch (project.Language)
-                {
-                    case LanguageNames.CSharp:
-                        language = StringConstants.CSharpLspLanguageName;
-                        break;
-                    case LanguageNames.VisualBasic:
-                        language = StringConstants.VBLspLanguageName;
-                        break;
-                    default:
-                        language = project.Language;
-                        break;
-                }
-                var projectInfo = CreateProjectInfo(project.Name, language, files.Select(f => f.LocalPath).ToImmutableArray());
+                var projectInfo = CreateProjectInfo(project.Name, project.Language, files.Select(f => f.LocalPath).ToImmutableArray());
                 projectInfos.Add(projectInfo);
             }
 
