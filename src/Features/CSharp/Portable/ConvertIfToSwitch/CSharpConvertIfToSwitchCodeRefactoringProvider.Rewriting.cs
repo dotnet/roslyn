@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
                 openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
                 sections: List(sectionList.Cast<SwitchSectionSyntax>()),
-                closeBraceToken: block?.CloseBraceToken.WithLeadingTrivia(SyntaxTriviaList.Empty) ?? Token(SyntaxKind.CloseBraceToken));
+                closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? Token(SyntaxKind.CloseBraceToken));
         }
 
         private static WhenClauseSyntax? AsWhenClause(AnalyzedSwitchLabel label)
