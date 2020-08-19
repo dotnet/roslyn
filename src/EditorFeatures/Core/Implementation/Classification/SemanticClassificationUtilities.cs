@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _persistClassificationsWorkQueue = new AsyncBatchingWorkQueue<Document>(
                 TimeSpan.FromSeconds(1),
                 PersistClassifiedSpansAsync,
-                equalityComparer: DocumentIdEqualityComparer.Instance,
+                equalityComparer: DocumentByIdEqualityComparer.Instance,
                 asyncListener,
                 _threadingContext.DisposalToken);
         }
@@ -410,7 +410,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 Logger.Log(FunctionId.SemanticClassifier_ExceptionInCacheRead);
                 return false;
             }
-
         }
     }
 }

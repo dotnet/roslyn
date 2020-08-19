@@ -8,9 +8,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal partial class SemanticClassifier
     {
-        private class DocumentIdEqualityComparer : IEqualityComparer<Document>
+        /// <summary>
+        /// <see cref="IEqualityComparer{T}"/> for <see cref="Document"/>s that considers two <see cref="Document"/>s
+        /// equal if they have the same <see cref="TextDocument.Id"/>.  Used so we can keep track of a list of <see
+        /// cref="Document"/>s to compute classified spans for, only paying attention to the last version of the <see
+        /// cref="Document"/> we encounter.
+        /// </summary>
+        private class DocumentByIdEqualityComparer : IEqualityComparer<Document>
         {
-            public static readonly IEqualityComparer<Document> Instance = new DocumentIdEqualityComparer();
+            public static readonly IEqualityComparer<Document> Instance = new DocumentByIdEqualityComparer();
 
             public bool Equals(Document x, Document y)
                 => x?.Id == y?.Id;
