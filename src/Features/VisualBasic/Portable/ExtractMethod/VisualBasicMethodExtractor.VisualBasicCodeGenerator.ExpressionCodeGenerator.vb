@@ -145,31 +145,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' however complexification of names is prepended, so the last annotation should be the original one.
                     sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode()
 
-                    ' we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
-                    ' a member access now instead of the identifier. So more syntax fiddling is needed.
-                    If sourceNode.Parent.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                        Dim explicitMemberAccess = DirectCast(sourceNode.Parent, MemberAccessExpressionSyntax)
-                        If explicitMemberAccess.Name Is sourceNode Then
-                            Dim replacementMemberAccess = explicitMemberAccess.CopyAnnotationsTo(
-                                SyntaxFactory.MemberAccessExpression(
-                                    sourceNode.Parent.Kind(),
-                                    explicitMemberAccess.Expression,
-                                    SyntaxFactory.Token(SyntaxKind.DotToken),
-                                    DirectCast(invocation.Expression, SimpleNameSyntax)))
-
-                            Dim newInvocation = SyntaxFactory.InvocationExpression(
-                                replacementMemberAccess,
-                                invocation.ArgumentList).WithTrailingTrivia(sourceNode.GetTrailingTrivia())
-
-                            If invocationWithAwaitOpt IsNot Nothing Then
-                                invocationWithAwaitOpt = invocationWithAwaitOpt.ReplaceNode(invocation, newInvocation)
-                            End If
-
-                            invocation = newInvocation
-                            sourceNode = sourceNode.Parent
-                        End If
-                    End If
-
                     Dim callSignature = If(DirectCast(invocationWithAwaitOpt, ExpressionSyntax), invocation)
                     callSignature = callSignature.WithAdditionalAnnotations(CallSiteAnnotation)
                     Return newEnclosingStatement.ReplaceNode(sourceNode, callSignature)

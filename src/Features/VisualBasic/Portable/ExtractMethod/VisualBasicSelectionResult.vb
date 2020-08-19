@@ -120,7 +120,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             If SelectionInExpression Then
                 Dim last = GetLastTokenInSelection()
 
-                Return first.GetCommonRoot(last).GetAncestorOrThis(Of ExpressionSyntax)()
+                Dim expression = first.GetCommonRoot(last).GetAncestorOrThis(Of ExpressionSyntax)()
+                Return If(expression.IsRightSideOfDotOrBang(),
+                          expression.Parent,
+                          expression)
             End If
 
             ' it contains statements

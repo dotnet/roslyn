@@ -220,28 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // however complexification of names is prepended, so the last annotation should be the original one.
                     sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode();
 
-                    // we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
-                    // a member access now instead of the identifier. So more syntax fiddling is needed.
-                    if (sourceNode.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax explicitMemberAccess) &&
-                        sourceNode == explicitMemberAccess.Name)
-                    {
-                        var replacementMemberAccess = explicitMemberAccess.CopyAnnotationsTo(
-                            SyntaxFactory.MemberAccessExpression(
-                                sourceNode.Parent.Kind(),
-                                explicitMemberAccess.Expression,
-                                (SimpleNameSyntax)invocation.Expression));
-                        var newInvocation = SyntaxFactory.InvocationExpression(
-                            replacementMemberAccess,
-                            invocation.ArgumentList);
-
-                        if (invocationWithAwaitOpt != null)
-                            invocationWithAwaitOpt = invocationWithAwaitOpt.ReplaceNode(invocation, newInvocation);
-
-                        invocation = newInvocation;
-
-                        sourceNode = sourceNode.Parent;
-                    }
-
                     var callSignature = (ExpressionSyntax)invocationWithAwaitOpt ?? invocation;
                     callSignature = callSignature.WithAdditionalAnnotations(CallSiteAnnotation);
                     return newEnclosingStatement.ReplaceNode(sourceNode, callSignature);

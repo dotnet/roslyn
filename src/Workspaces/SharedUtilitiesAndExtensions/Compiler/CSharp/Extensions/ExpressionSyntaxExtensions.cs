@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsRightSideOfDotOrColonColon(this ExpressionSyntax name)
             => IsRightSideOfDot(name) || IsRightSideOfColonColon(name);
 
-        public static bool IsRightSideOfDotOrArrowOrColonColon(this ExpressionSyntax name)
+        public static bool IsRightSideOfDotOrArrowOrColonColon([NotNullWhen(true)] this ExpressionSyntax name)
             => IsRightSideOfDotOrArrow(name) || IsRightSideOfColonColon(name);
 
         public static bool IsRightOfCloseParen(this ExpressionSyntax expression)

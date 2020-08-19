@@ -43,7 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var firstToken = GetFirstTokenInSelection();
                 var lastToken = GetLastTokenInSelection();
-                return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                var scope = firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                return scope.IsRightSideOfDotOrArrowOrColonColon()
+                    ? scope.Parent
+                    : scope;
             }
 
             public override ITypeSymbol? GetContainingScopeType()
