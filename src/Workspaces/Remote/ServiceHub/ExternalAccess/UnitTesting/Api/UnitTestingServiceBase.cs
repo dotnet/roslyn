@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
         {
-            var workspace = SolutionService.PrimaryWorkspace;
+            var workspace = GetWorkspace();
             var solutionCrawlerRegistrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             if (solutionCrawlerRegistrationService == null)
             {

@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
                 using (arguments.IsHighPriority ? UserOperationBooster.Boost() : default)
                 {
-                    var solutionService = CreateSolutionService(solutionInfo);
-                    var solution = await solutionService.GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                     var documentId = arguments.DocumentId;
                     var projectId = arguments.ProjectId;
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var service = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+                    var service = GetWorkspace().Services.GetService<IPerformanceTrackerService>();
                     if (service == null)
                     {
                         return;

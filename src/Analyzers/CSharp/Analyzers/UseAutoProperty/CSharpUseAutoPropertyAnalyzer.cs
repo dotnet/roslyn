@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
             else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKindEx.RecordDeclaration, out typeDeclaration))
+                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration))
             {
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);

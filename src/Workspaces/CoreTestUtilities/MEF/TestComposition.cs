@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public bool IsRemote
-            => Assemblies.Contains(typeof(Remote.RoslynServices).Assembly);
+            => Assemblies.Contains(typeof(Remote.ServiceBase).Assembly);
 
         private ComposableCatalog GetCatalog()
             => ExportProviderCache.CreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);

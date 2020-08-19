@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     _cancellationSource.Cancel();
                 }
 
-                // Connecting the named pipe client would hang if the process exits before the connection is established,
+                // Connecting the named pipe client would block if the process exits before the connection is established,
                 // as the client waits for the server to become available. We signal the cancellation token to abort.
                 newProcess.Exited += ProcessExitedBeforeEstablishingConnection;
 
