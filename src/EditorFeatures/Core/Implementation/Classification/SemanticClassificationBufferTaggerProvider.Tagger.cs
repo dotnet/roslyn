@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
-                _classifier = new SemanticClassifier(owner.ThreadingContext);
+                _classifier = new SemanticClassifier(owner.ThreadingContext, asyncListener);
 
                 const TaggerDelay Delay = TaggerDelay.Short;
                 _eventSource = TaggerEventSources.Compose(

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -59,7 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToFullyLoadedStateTask =
             new ConditionalWeakTable<Workspace, Task>();
 
-        public SemanticClassifier(IThreadingContext threadingContext)
+        public SemanticClassifier(
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener)
         {
             _threadingContext = threadingContext;
 
@@ -74,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _persistClassificationsWorkQueue = new AsyncBatchingWorkQueue<Document>(
                 TimeSpan.FromSeconds(1),
                 PersistClassifiedSpansAsync,
-                DocumentIdEqualityComparer.Instance,
-                asyncListener: null,
+                equalityComparer: DocumentIdEqualityComparer.Instance,
+                asyncListener,
                 _threadingContext.DisposalToken);
         }
 

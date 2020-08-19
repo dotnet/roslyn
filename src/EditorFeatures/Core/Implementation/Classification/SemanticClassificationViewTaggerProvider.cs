@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
             _typeMap = typeMap;
-            _classifier = new SemanticClassifier(threadingContext);
+            _classifier = new SemanticClassifier(threadingContext, AsyncListener);
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
