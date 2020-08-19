@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private const int s_classificationFormat = 1;
 
         private readonly IThreadingContext _threadingContext;
+
+        /// <summary>
+        /// Queue that we put the list of documents we want to compute full classifications for to cache to disk.
+        /// </summary>
         private readonly AsyncBatchingWorkQueue<Document> _persistClassificationsWorkQueue;
 
         /// <summary>
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// status of the <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync"/> task to know when we have
         /// actually transitioned to a loaded state.
         /// </summary>
-        private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToFullyLoadedState =
+        private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToFullyLoadedStateTask =
             new ConditionalWeakTable<Workspace, Task>();
 
         public SemanticClassifier(IThreadingContext threadingContext)
@@ -211,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            var waitForLoadedTask = s_workspaceToLoadedState.GetValue(
+            var fullyLoadedStateTask = s_workspaceToFullyLoadedStateTask.GetValue(
                 workspace, w =>
                 {
                     var workspaceLoadedService = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
@@ -220,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
             // New code will not be semantically classified, but will eventually when the project fully loads.
-            var isFullyLoaded = waitForLoadedTask.IsCompleted;
+            var isFullyLoaded = fullyLoadedStateTask.IsCompleted;
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
 
