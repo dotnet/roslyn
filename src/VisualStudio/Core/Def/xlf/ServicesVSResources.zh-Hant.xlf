@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
-        <target state="new">Current parameter</target>
+        <target state="translated">目前的參數</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -2258,15 +2258,15 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="needs-review-translation">注意事項: Visual Studio 包含能從二進位程式碼重新產生來源碼的反編譯功能 (「解編程式」)。存取及使用此解編程式，即表示貴用戶同意 Visual Studio 授權條款及下方的解編程式條款。若貴用戶不同意這些合併條款，請勿存取或使用解編程式。
- 
-貴用戶了解二進位程式碼及來源程式碼可能為著作權及商標法所保護。在針對任何二進位程式碼使用解編程式前，貴用戶首先需要:
-(i) 確認管理貴用戶使用二進位程式碼的授權條款不包含禁止貴用戶反編譯軟體的佈建; 或
-(ii) 從軟體擁有者取得反編譯二進位程式碼的權限。
- 
-貴用戶可自行選擇是否要使用解編程式。Microsoft 聲明不為貴用戶在使用編譯程式時觸犯的法律，或任何禁止反編譯軟體的軟體授權條約承擔任何責任。
+        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
 
-我同意以上條款:</target>
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
+(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
+(ii) obtain permission to decompile the binary code from the owner of the software.
+
+Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+
+I agree to all of the foregoing:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">

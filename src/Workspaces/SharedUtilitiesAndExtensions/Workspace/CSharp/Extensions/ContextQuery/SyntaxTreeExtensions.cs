@@ -994,15 +994,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.CommaToken:
-                    return token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList);
+                    return token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList);
             }
 
             return token switch
             {
                 // ref modifiers
-                { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } => true,
+                { Parent: { RawKind: (int)SyntaxKind.FunctionPointerParameter } } => true,
                 // Regular type specifiers
-                { Parent: TypeSyntax { Parent: { RawKind: (int)SyntaxKindEx.FunctionPointerParameter } } } => true,
+                { Parent: TypeSyntax { Parent: { RawKind: (int)SyntaxKind.FunctionPointerParameter } } } => true,
                 _ => false
             };
         }
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList))
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
             {
                 parameterIndex = 0;
                 return true;
@@ -1121,16 +1121,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-#if !CODE_STYLE // FunctionPointerParameterListSyntax added in 3.8
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsKind(SyntaxKindEx.FunctionPointerParameterList, out FunctionPointerParameterListSyntax funcPtrParamList))
+                token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList, out FunctionPointerParameterListSyntax funcPtrParamList))
             {
                 var commaIndex = funcPtrParamList.Parameters.GetWithSeparators().IndexOf(token);
 
                 parameterIndex = commaIndex / 2 + 1;
                 return true;
             }
-#endif
 
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -111,6 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.TypeParameterList(
                     SyntaxFactory.SeparatedList(
                         typeParameterNames.Select(n => SyntaxFactory.TypeParameter(n))));
+
+        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
+            => refKind switch
+            {
+                RefKind.None => new SyntaxTokenList(),
+                RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
+                RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
+                // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
+                // ref kind syntax when generating for the return parameter vs other parameters.
+                // The return parameter must use ref readonly, like regular methods.
+                RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
+                RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
+                _ => throw ExceptionUtilities.UnexpectedValue(refKind),
+            };
 
         #region Patterns
 
