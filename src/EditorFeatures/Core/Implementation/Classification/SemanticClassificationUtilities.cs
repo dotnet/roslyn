@@ -238,9 +238,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // future.  This way we can store the full accurate set of classifications for it to help speed things up in
             // VS on next launch.
             //
-            // Only bother to do this for real documents that are being classified, not documents from forked
-            // workspaces.
-            if (isFullyLoaded && document.IsFromPrimaryBranch())
+            // Only bother to do this for real documents that are being classified, not documents for things like
+            // ephemeral preview workspaces.
+            if (isFullyLoaded && document.Project.Solution.Workspace.Kind == WorkspaceKind.Host)
                 _persistClassificationsWorkQueue.AddWork(document);
         }
 
