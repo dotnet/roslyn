@@ -8,6 +8,6 @@
     NOTE: Keep this file in sync with 'Microsoft.CodeAnalysis.VisualBasic.CodeStyle.props'
   -->
   <PropertyGroup>
-    <EnableCodeStyleAnalyzers>false</EnableCodeStyleAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
   </PropertyGroup>
 </Project>
