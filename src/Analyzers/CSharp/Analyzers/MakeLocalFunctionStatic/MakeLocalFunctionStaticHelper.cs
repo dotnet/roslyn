@@ -17,11 +17,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         public static bool IsStaticLocalFunctionSupported(SyntaxTree tree)
             => tree.Options is CSharpParseOptions csharpOption && csharpOption.LanguageVersion >= LanguageVersion.CSharp8;
 
-        public static bool TryGetCaputuredSymbols(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
         private static bool TryGetCaputuredSymbols(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
         {
             var dataFlow = semanticModel.AnalyzeDataFlow(localFunction);
             if (dataFlow is null)
+            {
+                captures = default;
+                return false;
+            }
+
+            // If other local functions area called the it can't be made static
+            // unless they themselves are static, or the local function is recursive
+            if (dataFlow.UsedLocalFunctions.Any(lf => !lf.IsStatic && lf.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() != localFunction))
             {
                 captures = default;
                 return false;
