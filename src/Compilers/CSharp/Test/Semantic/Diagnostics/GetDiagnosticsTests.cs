@@ -611,5 +611,58 @@ class C3
 
             await Task.WhenAll(tasks);
         }
+
+        [Theory, WorkItem(46874, "https://github.com/dotnet/roslyn/pull/46874")]
+        [InlineData(2)]
+        [InlineData(50)]
+        public async Task TestConcurrentGetAnalyzerDiagnostics_SymbolStartAnalyzer(int partialDeclarationCount)
+        {
+            var sources = new string[partialDeclarationCount + 1];
+
+            for (var i = 0; i < partialDeclarationCount; i++)
+            {
+                sources[i] = $@"
+partial class C
+{{
+    void M{i}()
+    {{
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }}
+}}
+";
+            }
+
+            sources[partialDeclarationCount] = @"
+class C3
+{
+    void M2()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var compilation = CreateCompilation(sources);
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(true));
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.VariableDeclaration));
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: false));
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree, true);
+            var tasks = new Task[10];
+            for (var i = 0; i < 10; i++)
+            {
+                tasks[i] = Task.Run(() => compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, null, CancellationToken.None));
+            }
+
+            await Task.WhenAll(tasks);
+        }
     }
 }

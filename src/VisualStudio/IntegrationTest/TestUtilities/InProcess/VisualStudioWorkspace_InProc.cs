@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
@@ -141,7 +142,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
             catch (Exception e)
             {
-                Environment.FailFast("Terminating test process due to unrecoverable timeout.", e);
+                var listenerProvider = GetComponentModel().DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
+                foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
+                {
+                    messageBuilder.AppendLine().Append($"  {token}");
+                }
+
+                Environment.FailFast("Terminating test process due to unrecoverable timeout.", new TimeoutException(messageBuilder.ToString(), e));
             }
         }
 
