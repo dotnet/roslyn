@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -34,10 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As IEnumerable(Of StatementSyntax)
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
                     Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(VBSelectionResult))
 
-                    Return SpecializedCollections.SingletonEnumerable(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
+                    Return ImmutableArray.Create(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
                 End Function
 
                 Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
             protected abstract TStatement CreateReturnStatement(string identifierName = null);
 
-            protected abstract IEnumerable<TStatement> GetInitialStatementsForMethodDefinitions();
+            protected abstract ImmutableArray<TStatement> GetInitialStatementsForMethodDefinitions();
             #endregion
 
             public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
@@ -111,7 +111,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         cancellationToken);
                 }
 
-                var newDocument = callSiteDocument.Document.WithSyntaxRoot(newCallSiteRoot.ReplaceNode(destination, newContainer));
+                var newSyntaxRoot = newCallSiteRoot.ReplaceNode(destination, newContainer);
+                var newDocument = callSiteDocument.Document.WithSyntaxRoot(newSyntaxRoot);
                 newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
 
                 var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
@@ -165,17 +166,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
             {
-                var variables = new List<VariableInfo>(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(out var variables);
+                variables.AddRange(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
                 if (variables.Count <= 0)
-                {
                     return null;
-                }
 
                 VariableInfo.SortVariables(SemanticDocument.SemanticModel.Compilation, variables);
                 return variables[0];
             }
 
-            protected IEnumerable<TStatement> AddReturnIfUnreachable(IEnumerable<TStatement> statements)
+            protected ImmutableArray<TStatement> AddReturnIfUnreachable(ImmutableArray<TStatement> statements)
             {
                 if (AnalyzerResult.EndOfSelectionReachable)
                 {
@@ -197,8 +197,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return statements.Concat(CreateReturnStatement());
             }
 
-            protected async Task<IEnumerable<TStatement>> AddInvocationAtCallSiteAsync(
-                IEnumerable<TStatement> statements, CancellationToken cancellationToken)
+            protected async Task<ImmutableArray<TStatement>> AddInvocationAtCallSiteAsync(
+                ImmutableArray<TStatement> statements, CancellationToken cancellationToken)
             {
                 if (AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CallSiteAnnotation, cancellationToken).ConfigureAwait(false));
             }
 
-            protected IEnumerable<TStatement> AddAssignmentStatementToCallSite(
-                IEnumerable<TStatement> statements,
+            protected ImmutableArray<TStatement> AddAssignmentStatementToCallSite(
+                ImmutableArray<TStatement> statements,
                 CancellationToken cancellationToken)
             {
                 if (!AnalyzerResult.HasVariableToUseAsReturnValue)
@@ -239,42 +239,31 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
             }
 
-            protected IEnumerable<TStatement> CreateDeclarationStatements(
-                IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
+            protected ImmutableArray<TStatement> CreateDeclarationStatements(
+                ImmutableArray<VariableInfo> variables, CancellationToken cancellationToken)
             {
-                var list = new List<TStatement>();
-
-                foreach (var variable in variables)
-                {
-                    var declaration = CreateDeclarationStatement(
-                        variable, initialValue: null, cancellationToken: cancellationToken);
-                    list.Add(declaration);
-                }
-
-                return list;
+                return variables.SelectAsArray(v => CreateDeclarationStatement(v, initialValue: null, cancellationToken));
             }
 
-            protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
+            protected ImmutableArray<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
                 CancellationToken cancellationToken)
             {
-                var list = new List<TStatement>();
+                using var _ = ArrayBuilder<TStatement>.GetInstance(out var list);
 
                 foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
                 {
                     if (variable.UseAsReturnValue)
-                    {
                         continue;
-                    }
 
                     var declaration = CreateDeclarationStatement(
                         variable, initialValue: null, cancellationToken: cancellationToken);
                     list.Add(declaration);
                 }
 
-                return list;
+                return list.ToImmutable();
             }
 
-            protected IEnumerable<TStatement> AppendReturnStatementIfNeeded(IEnumerable<TStatement> statements)
+            protected ImmutableArray<TStatement> AppendReturnStatementIfNeeded(ImmutableArray<TStatement> statements)
             {
                 if (!AnalyzerResult.HasVariableToUseAsReturnValue)
                 {

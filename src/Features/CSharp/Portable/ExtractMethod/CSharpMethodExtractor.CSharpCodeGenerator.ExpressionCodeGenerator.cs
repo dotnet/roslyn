@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return methodName;
                 }
 
-                protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
+                protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
                     Contract.ThrowIfFalse(IsExtractMethodOnExpression(CSharpSelectionResult));
 
@@ -113,13 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (AnalyzerResult.HasReturnType)
                     {
-                        return SpecializedCollections.SingletonEnumerable<StatementSyntax>(
+                        return ImmutableArray.Create<StatementSyntax>(
                             SyntaxFactory.ReturnStatement(
                                 WrapInCheckedExpressionIfNeeded(expression)));
                     }
                     else
                     {
-                        return SpecializedCollections.SingletonEnumerable<StatementSyntax>(
+                        return ImmutableArray.Create<StatementSyntax>(
                             SyntaxFactory.ExpressionStatement(
                                 WrapInCheckedExpressionIfNeeded(expression)));
                     }

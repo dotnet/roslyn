@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
-                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As IEnumerable(Of StatementSyntax)
+                Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
                     Dim firstStatementUnderContainer = Me.VBSelectionResult.GetFirstStatementUnderContainer()
                     Dim lastStatementUnderContainer = Me.VBSelectionResult.GetLastStatementUnderContainer()
 
@@ -55,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                 Skip(firstStatementIndex).
                                 Take(lastStatementIndex - firstStatementIndex + 1)
 
-                    Return nodes
+                    Return nodes.ToImmutableArray()
                 End Function
 
                 Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode

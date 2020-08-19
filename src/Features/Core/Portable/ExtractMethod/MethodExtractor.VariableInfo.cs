@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
-            public static void SortVariables(Compilation compilation, List<VariableInfo> list)
+            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> list)
             {
                 var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
                 list.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
