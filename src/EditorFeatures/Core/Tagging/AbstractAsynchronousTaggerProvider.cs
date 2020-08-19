@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             //
             // Taggers that need to be called accurately should override this method to produce
             // results quickly if possible.
-            ProduceTagsAsync(context, spanToTag, caretPosition).Wait(context.CancellationToken);
+            this.ThreadingContext.JoinableTaskFactory.Run(() => ProduceTagsAsync(context, spanToTag, caretPosition));
         }
 
         internal TestAccessor GetTestAccessor()
