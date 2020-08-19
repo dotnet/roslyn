@@ -18,17 +18,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class SolutionAssetCacheTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void TestCreation()
-        {
-            var storage = new SolutionAssetCache();
-            var source = new SimpleAssetSource(new Dictionary<Checksum, object>());
-            storage.Initialize(source);
-
-            var stored = storage.GetAssetSource();
-            Assert.Equal(source, stored);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestGetAssets()
         {
             var storage = new SolutionAssetCache();

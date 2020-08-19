@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -33,11 +34,32 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
 
+        // TODO: remove
+        private IAssetSource? _solutionAssetSource;
+
         public RemoteWorkspaceManager(SolutionAssetCache assetCache)
         {
             _lazyPrimaryWorkspace = new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace);
             SolutionAssetCache = assetCache;
         }
+
+        // TODO: remove
+        internal IAssetSource GetAssetSource()
+        {
+            Contract.ThrowIfNull(_solutionAssetSource, "Storage not initialized");
+            return _solutionAssetSource;
+        }
+
+        // TODO: remove
+        internal void InitializeAssetSource(IAssetSource assetSource)
+        {
+            Contract.ThrowIfFalse(_solutionAssetSource == null);
+            _solutionAssetSource = assetSource;
+        }
+
+        [Obsolete("To be removed: https://github.com/dotnet/roslyn/issues/43477")]
+        public IAssetSource? TryGetAssetSource()
+            => _solutionAssetSource;
 
         private static RemoteWorkspace CreatePrimaryWorkspace()
             => new RemoteWorkspace(MefHostServices.Create(RemoteHostAssemblies), WorkspaceKind.RemoteWorkspace);

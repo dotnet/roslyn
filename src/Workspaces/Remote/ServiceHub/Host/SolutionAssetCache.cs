@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private DateTime _lastGCRun;
         private DateTime _lastActivityTime;
 
-        private IAssetSource? _assetSource;
-
         // constructor for testing
         public SolutionAssetCache()
         {
@@ -66,22 +64,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
-
-        public void Initialize(IAssetSource assetSource)
-        {
-            Contract.ThrowIfFalse(_assetSource == null);
-            _assetSource = assetSource;
-        }
-
-        public IAssetSource GetAssetSource()
-        {
-            Contract.ThrowIfNull(_assetSource, "Storage not initialized");
-            return _assetSource;
-        }
-
-        [Obsolete("To be removed: https://github.com/dotnet/roslyn/issues/43477")]
-        public IAssetSource? TryGetAssetSource()
-            => _assetSource;
 
         public bool TryAddAsset(Checksum checksum, object value)
         {

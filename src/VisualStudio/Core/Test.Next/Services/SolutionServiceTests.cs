@@ -493,9 +493,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new SolutionAssetCache();
-            storage.Initialize(new SimpleAssetSource(map));
+            var assetSource = new SimpleAssetSource(map);
 
-            return new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());
+            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
         }
 
         private class TestAnalyzerProvider : IIncrementalAnalyzerProvider

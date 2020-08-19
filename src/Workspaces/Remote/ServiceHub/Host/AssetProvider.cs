@@ -24,11 +24,13 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
         private readonly SolutionAssetCache _assetCache;
+        private readonly IAssetSource _assetSource;
 
-        public AssetProvider(int scopeId, SolutionAssetCache assetCache, ISerializerService serializerService)
+        public AssetProvider(int scopeId, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
         {
             _scopeId = scopeId;
             _assetCache = assetCache;
+            _assetSource = assetSource;
             _serializerService = serializerService;
         }
 
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return ImmutableArray<(Checksum, object)>.Empty;
             }
 
-            return await _assetCache.GetAssetSource().GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await _assetSource.GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

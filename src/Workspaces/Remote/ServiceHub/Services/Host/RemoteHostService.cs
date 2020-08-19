@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RunService(() =>
             {
                 // initialize global asset storage
-                WorkspaceManager.SolutionAssetCache.Initialize(this);
+                WorkspaceManager.InitializeAssetSource(this);
 
                 if (uiCultureLCID != 0)
                 {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache);
+                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
                     await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
