@@ -44,7 +44,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 transferMethods: new (MethodMatcher, (string, string)[])[]{
                     (
                         (methodName, arguments) =>
-                            methodName == "Append",
+                            methodName == "Append" &&
+                            !arguments.IsEmpty &&
+                            (arguments[0].Parameter.Type.SpecialType == SpecialType.System_String ||
+                             arguments[0].Parameter.Type.SpecialType == SpecialType.System_Char ||
+                             (arguments[0].Parameter.Type is IArrayTypeSymbol arrayType &&
+                              arrayType.Rank == 1 &&
+                              arrayType.ElementType.SpecialType == SpecialType.System_Char) ||
+                             (arguments[0].Parameter.Type is IPointerTypeSymbol pointerType &&
+                              pointerType.PointedAtType.SpecialType == SpecialType.System_Char)),
                         new (string, string)[]{
                             ("value", TaintedTargetValue.This),
                         }
@@ -76,7 +84,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ),
                     (
                         (methodName, arguments) =>
-                            methodName == "Insert",
+                            methodName == "Insert" &&
+                            arguments.Length > 1 &&
+                            (arguments[1].Parameter.Type.SpecialType == SpecialType.System_String ||
+                             arguments[1].Parameter.Type.SpecialType == SpecialType.System_Char ||
+                             (arguments[1].Parameter.Type is IArrayTypeSymbol arrayType &&
+                              arrayType.Rank == 1 &&
+                              arrayType.ElementType.SpecialType == SpecialType.System_Char)),
                         new (string, string)[]{
                             ("value", TaintedTargetValue.This),
                         }
