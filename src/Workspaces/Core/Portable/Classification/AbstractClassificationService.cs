@@ -4,26 +4,19 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal abstract partial class AbstractClassificationService : IClassificationService
+    internal abstract class AbstractClassificationService : IClassificationService
     {
         public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
         public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
@@ -64,21 +57,16 @@ namespace Microsoft.CodeAnalysis.Classification
 
         /// <returns><see langword="true"/> if the remote call was made successfully and we should
         /// use the results of it. Otherwise, fall back to processing locally</returns>
-        private static async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(
-            Document document,
-            TextSpan textSpan,
-            List<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+        private static async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var project = document.Project;
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return false;
 
             var classifiedSpans = await client.RunRemoteAsync<SerializableClassifiedSpans>(
                 WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteSemanticClassificationService.GetSemanticClassificationsAsync),
-                project.Solution,
+                document.Project.Solution,
                 new object[] { document.Id, textSpan },
                 callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
@@ -87,11 +75,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return true;
         }
 
-        public static async Task AddSemanticClassificationsInCurrentProcessAsync(
-            Document document,
-            TextSpan textSpan,
-            ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+        public static async Task AddSemanticClassificationsInCurrentProcessAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
