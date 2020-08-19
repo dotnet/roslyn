@@ -213,6 +213,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
+                    // Process unique items in the order they were added to the work queue.
                     result.AddRange(_nextBatchMap.OrderBy((kvp1, kvp2) => kvp1.Value - kvp2.Value).Select(kvp => kvp.Key));
                     _nextBatchMap.Clear();
                 }
