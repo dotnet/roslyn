@@ -2,19 +2,19 @@
 
 <#
 .SYNOPSIS
-Installs the .NET SDK specified in the global.json file at the root of this repository,
-along with supporting .NET Core runtimes used for testing.
+    Installs the .NET SDK specified in the global.json file at the root of this repository,
+    along with supporting .NET Core runtimes used for testing.
 .DESCRIPTION
-This MAY not require elevation, as the SDK and runtimes are installed locally to this repo location,
-unless `-InstallLocality machine` is specified.
+    This MAY not require elevation, as the SDK and runtimes are installed locally to this repo location,
+    unless `-InstallLocality machine` is specified.
 .PARAMETER InstallLocality
-A value indicating whether dependencies should be installed locally to the repo or at a per-user location.
-Per-user allows sharing the installed dependencies across repositories and allows use of a shared expanded package cache.
-Visual Studio will only notice and use these SDKs/runtimes if VS is launched from the environment that runs this script.
-Per-repo allows for high isolation, allowing for a more precise recreation of the environment within an Azure Pipelines build.
-When using 'repo', environment variables are set to cause the locally installed dotnet SDK to be used.
-Per-repo can lead to file locking issues when dotnet.exe is left running as a build server and can be mitigated by running `dotnet build-server shutdown`.
-Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
+    A value indicating whether dependencies should be installed locally to the repo or at a per-user location.
+    Per-user allows sharing the installed dependencies across repositories and allows use of a shared expanded package cache.
+    Visual Studio will only notice and use these SDKs/runtimes if VS is launched from the environment that runs this script.
+    Per-repo allows for high isolation, allowing for a more precise recreation of the environment within an Azure Pipelines build.
+    When using 'repo', environment variables are set to cause the locally installed dotnet SDK to be used.
+    Per-repo can lead to file locking issues when dotnet.exe is left running as a build server and can be mitigated by running `dotnet build-server shutdown`.
+    Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
 #>
 [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='Medium')]
 Param (

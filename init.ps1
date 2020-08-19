@@ -2,28 +2,31 @@
 
 <#
 .SYNOPSIS
-Installs dependencies required to build and test the projects in this repository.
+    Installs dependencies required to build and test the projects in this repository.
 .DESCRIPTION
-This MAY not require elevation, as the SDK and runtimes are installed to a per-user location,
-unless the `-InstallLocality` switch is specified directing to a per-repo or per-machine location.
-See detailed help on that switch for more information.
+    This MAY not require elevation, as the SDK and runtimes are installed to a per-user location,
+    unless the `-InstallLocality` switch is specified directing to a per-repo or per-machine location.
+    See detailed help on that switch for more information.
+
+    The CmdEnvScriptPath environment variable may be optionally set to a path to a cmd shell script to be created (or appended to if it already exists) that will set the environment variables in cmd.exe that are set within the PowerShell environment.
+    This is used by init.cmd in order to reapply any new environment variables to the parent cmd.exe process that were set in the powershell child process.
 .PARAMETER InstallLocality
-A value indicating whether dependencies should be installed locally to the repo or at a per-user location.
-Per-user allows sharing the installed dependencies across repositories and allows use of a shared expanded package cache.
-Visual Studio will only notice and use these SDKs/runtimes if VS is launched from the environment that runs this script.
-Per-repo allows for high isolation, allowing for a more precise recreation of the environment within an Azure Pipelines build.
-When using 'repo', environment variables are set to cause the locally installed dotnet SDK to be used.
-Per-repo can lead to file locking issues when dotnet.exe is left running as a build server and can be mitigated by running `dotnet build-server shutdown`.
-Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
+    A value indicating whether dependencies should be installed locally to the repo or at a per-user location.
+    Per-user allows sharing the installed dependencies across repositories and allows use of a shared expanded package cache.
+    Visual Studio will only notice and use these SDKs/runtimes if VS is launched from the environment that runs this script.
+    Per-repo allows for high isolation, allowing for a more precise recreation of the environment within an Azure Pipelines build.
+    When using 'repo', environment variables are set to cause the locally installed dotnet SDK to be used.
+    Per-repo can lead to file locking issues when dotnet.exe is left running as a build server and can be mitigated by running `dotnet build-server shutdown`.
+    Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
 .PARAMETER NoPrerequisites
-Skips the installation of prerequisite software (e.g. SDKs, tools).
+    Skips the installation of prerequisite software (e.g. SDKs, tools).
 .PARAMETER UpgradePrerequisites
-Takes time to install prerequisites even if they are already present in case they need to be upgraded.
-No effect if -NoPrerequisites is specified.
+    Takes time to install prerequisites even if they are already present in case they need to be upgraded.
+    No effect if -NoPrerequisites is specified.
 .PARAMETER NoRestore
-Skips the package restore step.
+    Skips the package restore step.
 .PARAMETER AccessToken
-An optional access token for authenticating to Azure Artifacts authenticated feeds.
+    An optional access token for authenticating to Azure Artifacts authenticated feeds.
 #>
 [CmdletBinding(SupportsShouldProcess=$true)]
 Param (
