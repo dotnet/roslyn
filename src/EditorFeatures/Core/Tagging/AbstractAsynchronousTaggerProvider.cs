@@ -239,6 +239,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             //
             // Taggers that need to be called accurately should override this method to produce
             // results quickly if possible.
+            //
+            // We use JTF.Run here as our tag sources use JTF to quickly switch to the UI thread to report their initial
+            // set of tags.  We need JTF.Run here to ensure we don't deadlock if we're waiting on them while they're
+            // doing that notification.
             this.ThreadingContext.JoinableTaskFactory.Run(() => ProduceTagsAsync(context, spanToTag, caretPosition));
         }
 
