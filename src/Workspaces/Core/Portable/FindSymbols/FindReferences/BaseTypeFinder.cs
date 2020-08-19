@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Add to results overridden members only. Do not add hidden members.
-                    if (SymbolFinder.IsOverride(solution, symbol, member))
+                    if (SymbolFinder.IsOverride(solution, symbol, member, cancellationToken))
                     {
                         results.Add(member);
 

@@ -215,8 +215,9 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
+            var exception = new Exception("Test Exception");
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => throw new Exception("Test Exception")),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => throw exception),
                 onExecute: (e) => { Assert.True(false); }
                 );
 
@@ -233,7 +234,7 @@ class C
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
                 );
         }
 
@@ -258,8 +259,9 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
+            var exception = new Exception("Test Exception");
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw new Exception("Test Exception"); })),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw exception; })),
                 onExecute: (e) => { e.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)); }
                 );
 
@@ -276,7 +278,7 @@ class C
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
                 );
         }
 
@@ -343,8 +345,9 @@ class C
 
             Assert.Single(compilation.SyntaxTrees);
 
+            var exception = new Exception("Test Exception");
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw new Exception("Test Exception"); })),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) throw exception; })),
                 onExecute: (e) => { }
                 );
 
@@ -373,7 +376,7 @@ class C
             Assert.Equal(21, testReceiver.VisitedNodes.Count);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
                 );
         }
 
@@ -399,8 +402,9 @@ class C
             Assert.Single(compilation.SyntaxTrees);
 
             TestSyntaxReceiver? receiver = null;
+            var exception = new Exception("test exception");
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => { i.RegisterForSyntaxNotifications(() => receiver = new TestSyntaxReceiver()); throw new Exception("test exception"); },
+                onInit: (i) => { i.RegisterForSyntaxNotifications(() => receiver = new TestSyntaxReceiver()); throw exception; },
                 onExecute: (e) => { Assert.True(false); }
                 );
 
@@ -411,7 +415,7 @@ class C
             Assert.Null(receiver);
 
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "Exception", "test exception").WithLocation(1, 1)
                 );
         }
 
