@@ -114,6 +114,11 @@
         <target state="translated">Pro Generator kann nur ein einzelner {0} registriert werden.</target>
         <note>{0}: type name</note>
       </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">Der Analyzer "{0}" enthält einen NULL-Deskriptor in "SupportedDiagnostics".</target>

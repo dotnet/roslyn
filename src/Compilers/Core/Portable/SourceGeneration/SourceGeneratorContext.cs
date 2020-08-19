@@ -62,6 +62,13 @@ namespace Microsoft.CodeAnalysis
         public CancellationToken CancellationToken { get; }
 
         /// <summary>
+        /// Adds source code in the form of a <see cref="string"/> to the compilation.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="source">The source code to be add to the compilation</param>
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, System.Text.Encoding.UTF8));
+
+        /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>

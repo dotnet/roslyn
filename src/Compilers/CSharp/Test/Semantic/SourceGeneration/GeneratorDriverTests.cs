@@ -902,6 +902,28 @@ class C
                );
             Assert.Same(oldDriver, driver);
         }
+
+        [Fact]
+        public void Adding_A_Source_Text_Without_Encoding_Fails_Generation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => { sgc.AddSource("a", SourceText.From("")); });
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out _, out var outputDiagnostics);
+
+            Assert.Single(outputDiagnostics);
+            outputDiagnostics.Verify(
+                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                );
+        }
     }
 }
 
