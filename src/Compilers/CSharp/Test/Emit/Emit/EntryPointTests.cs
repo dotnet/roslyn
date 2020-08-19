@@ -206,8 +206,10 @@ public class D
             var compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
-                // (7,28): warning CS8892: Program has more than one entry point defined.
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main"));
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28),
+                // (12,28): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main(string[])").WithLocation(12, 28));
         }
 
         [Fact]
