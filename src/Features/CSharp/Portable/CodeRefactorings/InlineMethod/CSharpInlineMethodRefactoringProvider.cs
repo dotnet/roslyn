@@ -13,34 +13,14 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, MethodDeclarationSyntax, IdentifierNameSyntax>
+        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, MethodDeclarationSyntax, IdentifierNameSyntax, StatementSyntax>
     {
-        /// <summary>
-        /// All the syntax kind considered as the statement contains the invocation callee.
-        /// </summary>
-        private static readonly ImmutableHashSet<SyntaxKind> s_syntaxKindsConsideredAsStatementInvokesCallee =
-            ImmutableHashSet.Create(
-                SyntaxKind.DoStatement,
-                SyntaxKind.ExpressionStatement,
-                SyntaxKind.ForStatement,
-                SyntaxKind.IfStatement,
-                SyntaxKind.LocalDeclarationStatement,
-                SyntaxKind.LockStatement,
-                SyntaxKind.ReturnStatement,
-                SyntaxKind.SwitchStatement,
-                SyntaxKind.ThrowStatement,
-                SyntaxKind.WhileStatement,
-                SyntaxKind.TryStatement,
-                SyntaxKind.UsingStatement,
-                SyntaxKind.YieldReturnStatement);
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpInlineMethodRefactoringProvider() : base(CSharpSyntaxFacts.Instance, CSharpSemanticFactsService.Instance)
@@ -48,35 +28,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         }
 
         private static bool CanStatementBeInlined(StatementSyntax statementSyntax)
-        {
-            if (statementSyntax.IsKind(SyntaxKind.ExpressionStatement))
+            => statementSyntax switch
             {
-                return true;
-            }
-
-            if (statementSyntax is ReturnStatementSyntax returnStatementSyntax)
-            {
+                ExpressionStatementSyntax _ => true,
                 // In this case don't provide inline.
                 // void Caller() { Callee(); }
                 // void Callee() { return; }
-                return returnStatementSyntax.Expression != null;
-            }
+                ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression != null,
+                _ => false
+            };
 
-            return false;
-        }
-
-        private static bool TryGetSingleStatementOrExpressionMethod(MethodDeclarationSyntax methodDeclarationSyntax, out ExpressionSyntax expressionSyntax)
+        protected override ExpressionSyntax? GetInlineExpression(MethodDeclarationSyntax methodDeclarationSyntax)
         {
             var blockSyntaxNode = methodDeclarationSyntax.Body;
-            expressionSyntax = null;
             if (blockSyntaxNode != null)
             {
                 // 1. If it is an ordinary method with block
                 var blockStatements = blockSyntaxNode.Statements;
                 if (blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]))
                 {
-                    expressionSyntax = GetExpressionFromStatementSyntaxNode(blockStatements[0]);
-                    return true;
+                    StatementSyntax statementSyntax = blockStatements[0];
+                    return statementSyntax switch
+                    {
+                        // Check has been done before to make sure the argument is ReturnStatementSyntax or ExpressionStatementSyntax
+                        // and their expression is not null
+                        ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression!,
+                        ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax.Expression,
+                        _ => null
+                    };
                 }
             }
             else
@@ -85,39 +64,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 var arrowExpressionNode = methodDeclarationSyntax.ExpressionBody;
                 if (arrowExpressionNode != null)
                 {
-                    expressionSyntax = arrowExpressionNode.Expression;
-                    return true;
+                    return arrowExpressionNode.Expression;
                 }
             }
 
-            return false;
+            return null;
         }
 
-        private static ExpressionSyntax GetExpressionFromStatementSyntaxNode(StatementSyntax statementSyntax)
-            => statementSyntax switch
-            {
-                // Check has been done before to make sure the argument is ReturnStatementSyntax or ExpressionStatementSyntax
-                // and their expression is not null
-                ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression!,
-                ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax.Expression,
-                _ => throw ExceptionUtilities.Unreachable
-            };
-
-        protected override bool IsSingleStatementOrExpressionMethod(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
-            => TryGetSingleStatementOrExpressionMethod(calleeMethodDeclarationSyntaxNode, out _);
-
-        protected override ExpressionSyntax GetInlineStatement(MethodDeclarationSyntax calleeMethodDeclarationSyntaxNode)
-        {
-            if (TryGetSingleStatementOrExpressionMethod(calleeMethodDeclarationSyntaxNode, out var expressionSyntax))
-            {
-                return expressionSyntax;
-            }
-
-            // Check has been done before to make sure it will not hit here.
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        protected override SyntaxNode? GetEnclosingMethod(SyntaxNode syntaxNode)
+        protected override SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode)
         {
             for (var node = syntaxNode; node != null; node = node.Parent)
             {
@@ -133,15 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         }
 
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)
-            => symbol.GenerateTypeSyntax(allowVar: false);
+            => symbol.GenerateTypeSyntax();
 
         // TODO: Use the SyntaxGenerator array initialization when this
         // https://github.com/dotnet/roslyn/issues/46651 is resolved.
         protected override SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments)
             => SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(arguments));
-
-        protected override bool ShouldConsideredAsContainingStatement(SyntaxNode syntaxNode)
-            => s_syntaxKindsConsideredAsStatementInvokesCallee.Contains(syntaxNode.Kind());
 
         protected override ExpressionSyntax Parenthesize(ExpressionSyntax expressionSyntax)
             => expressionSyntax.Parenthesize();

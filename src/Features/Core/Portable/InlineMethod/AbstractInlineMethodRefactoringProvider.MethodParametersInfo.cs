@@ -6,18 +6,16 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationNode, TExpression, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierName>
-        where TInvocationNode : SyntaxNode
-        where TExpression : SyntaxNode
-        where TArgumentSyntax : SyntaxNode
-        where TMethodDeclarationSyntax : SyntaxNode
-        where TIdentifierName : SyntaxNode
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierNameSyntax, TStatementSyntax>
     {
         /// <summary>
         /// Information about the callee method parameters to compute <see cref="InlineMethodContext"/>.
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private class MethodParametersInfo
         {
             /// <summary>
-            /// Parameters map to identifier argument. The identifier from Caller will be used to replace
+            /// Parameters map to identifier argument's name. The identifier from Caller will be used to replace
             /// the mapping callee's parameter.
             /// Example:
             /// Before:
@@ -47,10 +45,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             ///     DoSomething(a, b, c);
             /// }
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, TIdentifierName identifierSyntaxNode)> ParametersWithIdentifierArgument { get; }
+            public ImmutableDictionary<IParameterSymbol, string> ParametersWithIdentifierArgument { get; }
 
             /// <summary>
-            /// Parameters map to variable declaration argument.
+            /// Parameters map to variable declaration argument's name.
             /// This is only used for C# to support the 'out' variable declaration. For VB it should always be empty.
             /// Before:
             /// void Caller()
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// }
             /// void Callee(out int i) => i = 100;
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode variableDeclarationNode)> ParametersWithVariableDeclarationArgument { get; }
+            public ImmutableArray<(IParameterSymbol parameterSymbol, string)> ParametersWithVariableDeclarationArgument { get; }
 
             /// <summary>
             /// Operations that represent Parameter has argument but the argument is not identifier or literal.
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             ///     DoSomething(a, b);
             /// }
             /// </summary>
-            public ImmutableArray<IArgumentOperation> OperationsNeedGenerateDeclarations { get; }
+            public ImmutableArray<IArgumentOperation> OperationsToGenerateFreshVariablesFor { get; }
 
             /// <summary>
             /// Parameters has no argument input and have default value. They will be replaced by their default value.
@@ -105,30 +103,28 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// <summary>
             /// Parameters map to literal expression argument. They will be replaced by the literal value.
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, TExpression literalExpressionSyntaxNode)> ParametersWithLiteralArgument { get; }
+            public ImmutableDictionary<IParameterSymbol, TExpressionSyntax> ParametersWithLiteralArgument { get; }
 
-            private MethodParametersInfo(
-                ImmutableArray<(IParameterSymbol parameterSymbol, TIdentifierName identifierSyntaxNode)> parametersWithIdentifierArgument,
-                ImmutableArray<(IParameterSymbol parameterSymbol, SyntaxNode variableDeclarationNode)> parametersWithVariableDeclarationArgument,
-                ImmutableArray<IArgumentOperation> operationsNeedGenerateDeclarations,
-                ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
-                ImmutableArray<(IParameterSymbol parameterSymbol, TExpression literalExpressionSyntaxNode)> parametersWithLiteralArgument)
+            private MethodParametersInfo(ImmutableDictionary<IParameterSymbol, string> parametersWithIdentifierArgument, ImmutableArray<(IParameterSymbol parameterSymbol, string)> parametersWithVariableDeclarationArgument, ImmutableArray<IArgumentOperation> operationsToGenerateFreshVariablesFor, ImmutableArray<IParameterSymbol> parametersWithDefaultValue, ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersWithLiteralArgument)
             {
                 ParametersWithIdentifierArgument = parametersWithIdentifierArgument;
                 ParametersWithVariableDeclarationArgument = parametersWithVariableDeclarationArgument;
-                OperationsNeedGenerateDeclarations = operationsNeedGenerateDeclarations;
+                OperationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor;
                 ParametersWithDefaultValue = parametersWithDefaultValue;
                 ParametersWithLiteralArgument = parametersWithLiteralArgument;
             }
 
-            public static MethodParametersInfo GetMethodParametersInfo(
+            public static async Task<MethodParametersInfo> GetMethodParametersInfoAsync(
                 ISyntaxFacts syntaxFacts,
-                IInvocationOperation invocationOperation)
+                Document document,
+                IInvocationOperation invocationOperation,
+                CancellationToken cancellationToken)
             {
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var allArgumentOperations = invocationOperation.Arguments
                     .Where(operation => operation.Children.IsSingle())
                     .SelectAsArray(operation => (argumentOperation: operation,
-                        argumentExpressionOperation: operation.Children.First()));
+                        argumentExpressionOperation: operation.Children.Single()));
 
                 // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
                 // For params array, it should be included here if it is accept an array identifier as argument.
@@ -254,22 +250,53 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .RemoveRange(operationsWithDefaultValue)
                     .SelectAsArray(argumentAndArgumentOperation => argumentAndArgumentOperation.argumentOperation);
 
+                var parameterToIdentifierArgumentMap = operationsWithIdentifierArgument
+                    .Select(operation => (operation.argumentOperation.Parameter, semanticModel.GetSymbolInfo(operation.argumentExpressionOperation.Syntax).GetAnySymbol()?.Name))
+                    .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
+                    .ToImmutableDictionary(
+                        keySelector: parameterAndArgumentName => parameterAndArgumentName.Parameter,
+                        elementSelector: parameterAndArgumentName => parameterAndArgumentName.Name!);
+
+                var parameterToLiteralArgumentMap = operationsWithLiteralArgument
+                    .ToImmutableDictionary(
+                        keySelector: argumentAndArgumentOperation => argumentAndArgumentOperation.argumentOperation.Parameter,
+                        elementSelector: argumentAndArgumentOperation => (TExpressionSyntax)argumentAndArgumentOperation.argumentExpressionOperation.Syntax);
+
+                // Use array instead of dictionary because using dictionary will make the parameter becomes unordered.
+                // Example:
+                // Before:
+                // void Caller()
+                // {
+                //     Callee(out var x, out var y);
+                // }
+                // void Callee(out int i, out int j) => DoSomething(out i, out j);
+                //
+                // After:
+                // void Caller()
+                // {
+                //     int y;
+                //     int x;
+                //     DoSomething(out x, out y);
+                // }
+                // void Callee(out int i, out int j) => DoSomething(out i, out j);
+                // 'y' might becomes the first declaration if using dictionary instead of array.
+                var parametersWithVariableDeclarationArgument = operationsWithVariableDeclarationArgument
+                    .Select(argumentAndArgumentOperation => (
+                        argumentAndArgumentOperation.argumentOperation.Parameter,
+                        semanticModel.GetSymbolInfo(argumentAndArgumentOperation.argumentExpressionOperation.Syntax, cancellationToken).GetAnySymbol()?.Name))
+                    .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
+                    .ToImmutableArray();
+
+                var parametersWithDefaultValue = operationsWithDefaultValue.SelectAsArray(
+                    argumentAndArgumentOperation =>
+                        argumentAndArgumentOperation.argumentOperation.Parameter);
+
                 return new MethodParametersInfo(
-                    operationsWithIdentifierArgument
-                        .SelectAsArray(argumentAndArgumentOperation => (
-                            argumentAndArgumentOperation.argumentOperation.Parameter,
-                            (TIdentifierName)argumentAndArgumentOperation.argumentExpressionOperation.Syntax)),
-                    operationsWithVariableDeclarationArgument
-                        .SelectAsArray(argumentAndArgumentOperation => (
-                            argumentAndArgumentOperation.argumentOperation.Parameter,
-                            argumentAndArgumentOperation.argumentExpressionOperation.Syntax)),
+                    parameterToIdentifierArgumentMap,
+                    parametersWithVariableDeclarationArgument!,
                     operationsToGenerateFreshVariablesFor,
-                    operationsWithDefaultValue.SelectAsArray(argumentAndArgumentOperation =>
-                        argumentAndArgumentOperation.argumentOperation.Parameter),
-                    operationsWithLiteralArgument
-                        .SelectAsArray(argumentAndArgumentOperation => (
-                            argumentAndArgumentOperation.argumentOperation.Parameter,
-                            (TExpression)argumentAndArgumentOperation.argumentExpressionOperation.Syntax)));
+                    parametersWithDefaultValue,
+                    parameterToLiteralArgumentMap);
             }
         }
     }
