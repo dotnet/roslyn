@@ -1741,7 +1741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var (_, Candidate, _) in taskEntryPoints)
                     {
                         // Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.
-                        diagnostic.Add(new CSDiagnostic(info, Candidate.Locations.First(), Candidate, viableEntryPoints.First()));
+                        diagnostics.Add(new CSDiagnostic(info, Candidate.Locations.First(), Candidate, viableEntryPoints.First()));
                     }
                 }
 
