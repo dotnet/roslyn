@@ -44,45 +44,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
     [UseExportProvider]
     public class RemoteEditAndContinueServiceTests
     {
-        private static readonly Lazy<IExportProviderFactory> s_remoteHostExportProviderFactory = new Lazy<IExportProviderFactory>(
-            CreateRemoteHostExportProviderFactory,
-            LazyThreadSafetyMode.ExecutionAndPublication);
-
-        private static IExportProviderFactory CreateRemoteHostExportProviderFactory()
-        {
-            var configuration = CompositionConfiguration.Create(
-                ExportProviderCache.GetOrCreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).
-                    WithCompositionService().WithParts(
-                        typeof(TestActiveStatementSpanTrackerFactory),
-                        typeof(MockEncServiceFactory)));
-
-            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-            return runtimeComposition.CreateExportProviderFactory();
-        }
-
-        private static MefHostServices CreateRemoteHostServices()
-            => new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.Value.CreateExportProvider());
-
-        private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
-        {
-            private readonly VisualStudioMefHostServices _vsHostServices;
-
-            public ExportProviderMefHostServices(ExportProvider exportProvider)
-                : base(new ContainerConfiguration().CreateContainer())
-            {
-                _vsHostServices = VisualStudioMefHostServices.Create(exportProvider);
-            }
-
-            protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-                => _vsHostServices.CreateWorkspaceServices(workspace);
-
-            IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
-                => _vsHostServices.GetExports<TExtension, TMetadata>();
-
-            IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-                => _vsHostServices.GetExports<TExtension>();
-        }
-
         [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Test), Shared]
         internal sealed class MockEncServiceFactory : IWorkspaceServiceFactory
         {
@@ -118,12 +79,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
         [Fact]
         public async Task Proxy()
         {
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                    typeof(RemotableDataServiceFactory),
-                    typeof(InProcRemoteHostClientProvider.Factory)));
-
-            RoslynServices.TestAccessor.HookHostServices(() => CreateRemoteHostServices());
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
             using var workspace = new TestWorkspace(exportProvider: exportProviderFactory.CreateExportProvider());
 
@@ -139,7 +95,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockEncService = (MockEditAndContinueWorkspaceService)SolutionService.PrimaryWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            var clientProvider = (InProcRemoteHostClientProvider)workspace.Services.GetService<IRemoteHostClientProvider>();
+            clientProvider.AdditionalRemoteParts = new[] { typeof(MockEncServiceFactory) };
+
+            var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+            var mockEncService = (MockEditAndContinueWorkspaceService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
             var mockDiagnosticService = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
             mockDiagnosticService.Setup(s => s.Reanalyze(It.IsAny<Workspace>(), It.IsAny<IEnumerable<ProjectId>>(), It.IsAny<IEnumerable<DocumentId>>(), It.IsAny<bool>()));

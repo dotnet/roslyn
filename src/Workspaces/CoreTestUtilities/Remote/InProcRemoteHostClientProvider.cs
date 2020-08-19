@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private readonly HostWorkspaceServices _services;
         private readonly AsyncLazy<RemoteHostClient> _lazyClient;
 
-        public SolutionAssetCache? RemoteAssetStorage { get; }
-        public Type[]? AdditionalRemoteParts { get; }
+        public SolutionAssetCache? RemoteAssetStorage { get; set; }
+        public Type[]? AdditionalRemoteParts { get; set; }
 
         public InProcRemoteHostClientProvider(HostWorkspaceServices services)
         {

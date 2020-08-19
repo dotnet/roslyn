@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             StartService();
         }
 
-        private static IEditAndContinueWorkspaceService GetService()
-            => SolutionService.PrimaryWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueWorkspaceService GetService()
+            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
         /// <summary>
         /// Remote API.
