@@ -145,7 +145,7 @@ namespace Roslyn.Utilities
                 return;
             }
 
-            // We're deduping items.  Only add the item if it's the first time we've seen it.
+            // We're deduping items.  When we hit a duplicate, the last item to add 'wins'.
             foreach (var item in items)
             {
                 if (_itemToIndex.TryGetValue(item, out var index))
