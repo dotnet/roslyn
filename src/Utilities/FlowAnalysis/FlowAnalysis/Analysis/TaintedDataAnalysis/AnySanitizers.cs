@@ -2,32 +2,28 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.PooledObjects;
-using Analyzer.Utilities.PooledObjects.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    internal static class LdapSanitizers
+    internal static class AnySanitizers
     {
         /// <summary>
-        /// <see cref="SanitizerInfo"/>s for LDAP injection sanitizers.
+        /// <see cref="SanitizerInfo"/>s for any tainted data sanitizers.
         /// </summary>
         public static ImmutableHashSet<SanitizerInfo> SanitizerInfos { get; }
 
-        static LdapSanitizers()
+        static AnySanitizers()
         {
             var builder = PooledHashSet<SanitizerInfo>.GetInstance();
 
             builder.AddSanitizerInfo(
-                WellKnownTypeNames.MicrosoftSecurityApplicationEncoder,
+                WellKnownTypeNames.SystemTextStringBuilder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "LdapDistinguishedNameEncode",
-                    "LdapEncode",
-                    "LdapFilterEncode",
+                sanitizingMethods: default(string[]),
+                sanitizingInstanceMethods: new[] {
+                    "Clear",
                 });
-
-            builder.AddRange(AnySanitizers.SanitizerInfos);
 
             SanitizerInfos = builder.ToImmutableAndFree();
         }

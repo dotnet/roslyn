@@ -16,15 +16,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             var builder = PooledHashSet<SanitizerInfo>.GetInstance();
 
-            builder.AddSanitizerInfo(
-                WellKnownTypeNames.SystemTextStringBuilder,
-                isInterface: false,
-                isConstructorSanitizing: false,
-                sanitizingMethods: default(string[]),
-                sanitizingInstanceMethods: new[] {
-                    "Clear",
-                });
-
             string[] parseMethods = new string[] { "Parse", "TryParse" };
 
             builder.AddSanitizerInfo(

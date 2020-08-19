@@ -131,6 +131,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 });
 
             builder.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos);
+            builder.AddRange(AnySanitizers.SanitizerInfos);
 
             SanitizerInfos = builder.ToImmutableAndFree();
         }

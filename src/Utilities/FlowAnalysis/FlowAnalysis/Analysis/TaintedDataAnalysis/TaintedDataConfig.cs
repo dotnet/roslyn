@@ -220,7 +220,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 case SinkKind.Sql:
                 case SinkKind.XPath:
-                    return PrimitiveTypeConverterSanitizers.SanitizerInfos;
+                    return AnySanitizers.SanitizerInfos.Union(PrimitiveTypeConverterSanitizers.SanitizerInfos);
 
                 case SinkKind.Xss:
                     return XssSanitizers.SanitizerInfos;
@@ -229,7 +229,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return LdapSanitizers.SanitizerInfos;
 
                 case SinkKind.Xml:
-                    return PrimitiveTypeConverterSanitizers.SanitizerInfos.Union(XmlSanitizers.SanitizerInfos);
+                    return XmlSanitizers.SanitizerInfos;
 
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
@@ -240,7 +240,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Xaml:
                 case SinkKind.HardcodedEncryptionKey:
                 case SinkKind.HardcodedCertificate:
-                    return ImmutableHashSet<SanitizerInfo>.Empty;
+                    return AnySanitizers.SanitizerInfos;
 
                 case SinkKind.ZipSlip:
                     return ZipSlipSanitizers.SanitizerInfos;

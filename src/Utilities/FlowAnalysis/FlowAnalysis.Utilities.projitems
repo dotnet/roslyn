@@ -125,6 +125,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\LdapSanitizers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\LdapSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\PrimitiveTypeConverterSanitizers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\AnySanitizers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\RedirectSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SanitizerInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SinkInfo.cs" />
