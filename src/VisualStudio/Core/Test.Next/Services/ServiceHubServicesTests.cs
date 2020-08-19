@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestRemoteHostCreation()
         {
             var remoteLogger = new TraceSource("inprocRemoteClient");
-            var testData = new RemoteHostTestData(new AssetStorage(), new RemoteWorkspaceManager(), isInProc: true);
+            var testData = new RemoteHostTestData(new RemoteWorkspaceManager(new SolutionAssetCache()), isInProc: true);
             var streams = FullDuplexStream.CreateStreams();
             using var _ = new RemoteHostService(streams.Item1, new InProcRemoteHostClient.ServiceProvider(remoteLogger, testData));
         }
@@ -111,7 +111,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var newState = await newDocument.State.GetStateChecksumsAsync(CancellationToken.None);
 
             // check that text already exist in remote side
-            Assert.True(client.TestData.AssetStorage.TryGetAsset<SourceText>(newState.Text, out var remoteText));
+            Assert.True(client.TestData.WorkspaceManager.SolutionAssetCache.TryGetAsset<SourceText>(newState.Text, out var remoteText));
             Assert.Equal(newText.ToString(), remoteText.ToString());
         }
 
@@ -194,7 +194,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var sessionId = 0;
-            var storage = new AssetStorage();
+            var storage = new SolutionAssetCache();
             storage.Initialize(new SimpleAssetSource(map));
 
             return new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());
@@ -433,7 +433,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
-            var storage = client.TestData.AssetStorage;
+            var storage = client.TestData.WorkspaceManager.SolutionAssetCache;
 
             TestUtils.VerifyAssetStorage(map, storage);
         }

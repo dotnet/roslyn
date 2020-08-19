@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Remote
             _registrationService?.Unregister(this);
         }
 
-        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
+        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.ScopeId, assetStorage, serializerService);
+            return new AssetProvider(solutionInfo.ScopeId, assetCache, serializerService);
         }
 
         public async Task UpdatePrimaryBranchSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)

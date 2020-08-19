@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// in order to override workspace services.
         /// </summary>
         internal static readonly RemoteWorkspaceManager Default = new RemoteWorkspaceManager(
-            new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5)));
+            new SolutionAssetCache(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5)));
 
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
         private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
-        internal readonly AssetStorage AssetStorage;
+        internal readonly SolutionAssetCache SolutionAssetCache;
 
-        public RemoteWorkspaceManager(AssetStorage assetStorage)
+        public RemoteWorkspaceManager(SolutionAssetCache assetCache)
         {
             _lazyPrimaryWorkspace = new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace);
-            AssetStorage = assetStorage;
+            SolutionAssetCache = assetCache;
         }
 
         private static RemoteWorkspace CreatePrimaryWorkspace()

@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
-            var storage = new AssetStorage();
+            var storage = new SolutionAssetCache();
             storage.Initialize(new SimpleAssetSource(new Dictionary<Checksum, object>() { { checksum, data } }));
 
             var provider = new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());
@@ -64,7 +64,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var sessionId = 0;
-            var storage = new AssetStorage();
+            var storage = new SolutionAssetCache();
             storage.Initialize(new SimpleAssetSource(map));
 
             var service = new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());
@@ -92,7 +92,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var sessionId = 0;
-            var storage = new AssetStorage();
+            var storage = new SolutionAssetCache();
             storage.Initialize(new SimpleAssetSource(map));
 
             var service = new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());
@@ -117,7 +117,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var sessionId = 0;
-            var storage = new AssetStorage();
+            var storage = new SolutionAssetCache();
             storage.Initialize(new SimpleAssetSource(map));
 
             var service = new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());

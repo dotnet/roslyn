@@ -492,7 +492,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var sessionId = 0;
-            var storage = new AssetStorage();
+            var storage = new SolutionAssetCache();
             storage.Initialize(new SimpleAssetSource(map));
 
             return new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>());

@@ -14,12 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    /// <summary>
-    /// This service provide a way to get roslyn objects from checksum
-    /// 
-    /// TODO: change this service to workspace service
-    /// </summary>
-    internal sealed class AssetStorage
+    internal sealed class SolutionAssetCache
     {
         /// <summary>
         /// Time interval we check storage for cleanup
@@ -50,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private IAssetSource? _assetSource;
 
         // constructor for testing
-        public AssetStorage()
+        public SolutionAssetCache()
         {
         }
 
@@ -60,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <param name="cleanupInterval">time interval to clean up</param>
         /// <param name="purgeAfter">time unused data can sit in the cache</param>
         /// <param name="gcAfter">time we wait before it call GC since last activity</param>
-        public AssetStorage(TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
+        public SolutionAssetCache(TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
         {
             _cleanupIntervalTimeSpan = cleanupInterval;
             _purgeAfterTimeSpan = purgeAfter;

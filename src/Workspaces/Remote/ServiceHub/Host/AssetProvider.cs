@@ -23,18 +23,18 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
-        private readonly AssetStorage _assetStorage;
+        private readonly SolutionAssetCache _assetCache;
 
-        public AssetProvider(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
+        public AssetProvider(int scopeId, SolutionAssetCache assetCache, ISerializerService serializerService)
         {
             _scopeId = scopeId;
-            _assetStorage = assetStorage;
+            _assetCache = assetCache;
             _serializerService = serializerService;
         }
 
         public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            if (_assetStorage.TryGetAsset(checksum, out T asset))
+            if (_assetCache.TryGetAsset(checksum, out T asset))
             {
                 return asset;
             }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // TODO: what happen if service doesn't come back. timeout?
                 var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                _assetStorage.TryAddAsset(checksum, value);
+                _assetCache.TryAddAsset(checksum, value);
                 return (T)value;
             }
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // even if it got expired after this for whatever reason, functionality wise everything will still work, 
             // just perf will be impacted since we will fetch it from data source (VS)
-            return _assetStorage.TryGetAsset<object>(checksum, out _);
+            return _assetCache.TryGetAsset<object>(checksum, out _);
         }
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 foreach (var (checksum, value) in assets)
                 {
-                    _assetStorage.TryAddAsset(checksum, value);
+                    _assetCache.TryAddAsset(checksum, value);
                 }
             }
         }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return ImmutableArray<(Checksum, object)>.Empty;
             }
 
-            return await _assetStorage.GetAssetSource().GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            return await _assetCache.GetAssetSource().GetAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
         }
     }
 }

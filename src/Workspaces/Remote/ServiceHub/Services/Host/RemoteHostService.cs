@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RunService(() =>
             {
                 // initialize global asset storage
-                WorkspaceManager.AssetStorage.Initialize(this);
+                WorkspaceManager.SolutionAssetCache.Initialize(this);
 
                 if (uiCultureLCID != 0)
                 {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.AssetStorage);
+                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache);
                     await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
@@ -312,14 +312,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     //
                     // also, once the changes are picked up and put into Workspace, normal Workspace 
                     // caching logic will take care of the text
-                    WorkspaceManager.AssetStorage.TryAddAsset(newChecksum, newText);
+                    WorkspaceManager.SolutionAssetCache.TryAddAsset(newChecksum, newText);
                 }
 
                 async Task<SourceText?> TryGetSourceTextAsync()
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
-                    if (WorkspaceManager.AssetStorage.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
+                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
                     {
                         return sourceText;
                     }

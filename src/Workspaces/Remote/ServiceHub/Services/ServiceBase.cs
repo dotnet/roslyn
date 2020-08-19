@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.AssetStorage);
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache);
             return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
         {
-            WorkspaceManager.AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
         {
-            WorkspaceManager.AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
         {
-            WorkspaceManager.AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void RunService(Action call, CancellationToken cancellationToken)
         {
-            WorkspaceManager.AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
