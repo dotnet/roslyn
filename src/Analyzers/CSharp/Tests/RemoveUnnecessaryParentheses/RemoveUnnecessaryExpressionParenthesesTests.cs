@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -2488,6 +2488,79 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         string s2 = f ? """" : default;
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithConstantExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(1)..];
+    }
+}",
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[1..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithMemberAccessExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(s.Length)..];
+    }
+}",
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[s.Length..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithElementAccessExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(string s, int[] indices)
+    {
+        _ = s[$$(indices[0])..];
+    }
+}",
+@"class C
+{
+    void M(string s, int[] indices)
+    {
+        _ = s[indices[0]..];
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestRangeWithBinaryExpression()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string s)
+    {
+        _ = s[$$(s.Length - 5)..];
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
