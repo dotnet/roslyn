@@ -146,7 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 documentId = this.Project.AddSourceTextContainer(
                     SubjectBuffer.AsTextContainer(), filePath,
                     sourceCodeKind: SourceCodeKind.Regular, folders: default,
-                    designTimeOnly: true,
                     documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
             }
             else
