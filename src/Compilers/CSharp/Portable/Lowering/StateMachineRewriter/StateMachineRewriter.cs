@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly BoundStatement body;
         protected readonly MethodSymbol method;
+        protected readonly TypeCompilationState compilationState;
         protected readonly DiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineType;
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.body = body;
             this.method = method;
+            this.compilationState = compilationState;
             this.stateMachineType = stateMachineType;
             this.slotAllocatorOpt = slotAllocatorOpt;
             this.synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
@@ -318,9 +320,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builtBody = bodyBuilder.ToImmutableAndFree();
 
-            //ImmutableArray<BoundStatement> newBody = LocalRewriter.TryConstructNullCheckedStatementList(method.Parameters, builtBody, F);
-            // return newBody.IsDefault ? F.Block(builtBody) : F.Block(ImmutableArray.Create(stateMachineVariable), newBody);
-            return F.Block(builtBody);
+            var newBody = LocalRewriter.TryConstructNullCheckedStatementList(method.Parameters,
+                                    builtBody,
+                                    F,
+                                    compilationState.Compilation,
+                                    compilationState.ModuleBuilderOpt,
+                                    diagnostics);
+            return newBody.IsDefault ? F.Block(builtBody) : F.Block(ImmutableArray.Create(stateMachineVariable), newBody);
         }
 
         protected SynthesizedImplementationMethod OpenMethodImplementation(

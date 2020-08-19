@@ -64,9 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this,
                     TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_String)), 0, RefKind.None, "s")));
             }
-            public override MethodKind MethodKind => MethodKind.StaticConstructor;
-
-            internal override bool HasSpecialName => true;
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {

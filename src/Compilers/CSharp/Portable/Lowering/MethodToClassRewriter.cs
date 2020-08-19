@@ -528,6 +528,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            if (method.ContainingType is null)
+            {
+                return method;
+            }
+
             if (method.ContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
