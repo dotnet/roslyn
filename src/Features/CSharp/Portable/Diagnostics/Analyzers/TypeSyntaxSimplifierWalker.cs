@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans;
         private readonly CancellationToken _cancellationToken;
 
-        private List<Diagnostic>? _diagnostics;
+        private ImmutableArray<Diagnostic>.Builder? _diagnostics;
 
         /// <summary>
         /// Set of type and namespace names that have an alias associated with them.  i.e. if the
@@ -61,12 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public bool HasDiagnostics => _diagnostics?.Count > 0;
 
-        public List<Diagnostic> Diagnostics
+        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics?.ToImmutable() ?? ImmutableArray<Diagnostic>.Empty;
+
+        public ImmutableArray<Diagnostic>.Builder DiagnosticsBuilder
         {
             get
             {
                 if (_diagnostics is null)
-                    Interlocked.CompareExchange(ref _diagnostics, new List<Diagnostic>(), null);
+                    Interlocked.CompareExchange(ref _diagnostics, ImmutableArray.CreateBuilder<Diagnostic>(), null);
 
                 return _diagnostics;
             }
@@ -284,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _optionSet, _cancellationToken))
                 return false;
 
-            Diagnostics.Add(diagnostic);
+            DiagnosticsBuilder.Add(diagnostic);
             return true;
         }
     }
