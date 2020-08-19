@@ -251,7 +251,7 @@ public class C
             var compilation = CompileConsoleApp(source, mainTypeName: "C");
             compilation.VerifyDiagnostics(
                 // (8,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(8, 28)); 
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(8, 28));
         }
 
         [Fact]
