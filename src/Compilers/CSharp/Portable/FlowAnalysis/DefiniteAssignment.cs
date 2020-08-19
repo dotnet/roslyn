@@ -545,6 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
         protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
         protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
+        protected IEnumerable<Symbol> GetUsedLocalFunctions() => _usedLocalFunctions.ToArray();
 
         #region Tracking reads/writes of variables for warnings
 
