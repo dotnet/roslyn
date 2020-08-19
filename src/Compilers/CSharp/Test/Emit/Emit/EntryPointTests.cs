@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EntryPointTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CompileConsoleApp(string source, CSharpParseOptions parseOptions = null)
+        private CSharpCompilation CompileConsoleApp(string source, CSharpParseOptions parseOptions = null, string mainTypeName = null)
         {
-            return CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(5), parseOptions: parseOptions);
+            return CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(5).WithMainTypeName(mainTypeName), parseOptions: parseOptions);
         }
 
         [Fact]
@@ -187,7 +187,7 @@ public class D
         }
 
         [Fact]
-        public void ERR_MultipleEntryPointsCSharpLatest_TwoAsyncAndOneSync()
+        public void WRN_SyncAndAsyncEntryPointsCSharpLatest_TwoAsyncAndOneSync()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -210,6 +210,48 @@ public class D
                 Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28),
                 // (12,28): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
                 Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main(string[])").WithLocation(12, 28));
+        }
+
+        [Fact]
+        public void MultipleEntryPointsWithTypeDefined_NoDiagnostic()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+}
+
+public class D
+{
+  public static async Task Main() { await Task.Delay(1); }
+}
+";
+            var compilation = CompileConsoleApp(source, mainTypeName: "D");
+            compilation.VerifyDiagnostics();
+
+            var compilation2 = CompileConsoleApp(source, mainTypeName: "C");
+            compilation2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WRN_SyncAndAsyncEntryPoints_WithTypeDefined()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+  public static void Main(string[] a) { System.Console.WriteLine(2); }
+
+  public static async Task Main() { await Task.Delay(1); }
+}
+";
+            var compilation = CompileConsoleApp(source, mainTypeName: "C");
+            compilation.VerifyDiagnostics(
+                // (8,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(8, 28)); 
         }
 
         [Fact]
