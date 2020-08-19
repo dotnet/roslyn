@@ -398,7 +398,6 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
         [WorkItem(46858, "https://github.com/dotnet/roslyn/issues/46858")]
         public async Task TestMissingIfAnotherLocalFunctionCalled()

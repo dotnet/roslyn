@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = usedLocalFunctions  = Enumerable.Empty<Symbol>();
+                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = usedLocalFunctions = Enumerable.Empty<Symbol>();
             }
 
             ImmutableInterlocked.InterlockedInitialize(ref _readInside, Normalize(readInside));
