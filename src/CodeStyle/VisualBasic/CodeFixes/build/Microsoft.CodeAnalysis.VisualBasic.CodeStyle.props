@@ -8,6 +8,6 @@
     NOTE: Keep this file in sync with 'Microsoft.CodeAnalysis.CSharp.CodeStyle.props'
   -->
   <PropertyGroup>
-    <EnableStyleAnalyzers>false</EnableStyleAnalyzers>
+    <EnableCodeStyleAnalyzers>false</EnableCodeStyleAnalyzers>
   </PropertyGroup>
 </Project>
