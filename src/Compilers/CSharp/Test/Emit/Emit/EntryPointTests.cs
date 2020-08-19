@@ -108,7 +108,7 @@ public class D
         }
 
         [Fact]
-        public void ERR_MultipleEntryPointsCSharp71_SyncAndAsync()
+        public void WRN_SyncAndAsyncEntryPoints_CSharp71()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -122,12 +122,12 @@ public class C
             var compilation = CompileConsoleApp(source, parseOptions: TestOptions.Regular7_1);
 
             compilation.VerifyDiagnostics(
-                // (7,28): warning CS8892: Program has more than one entry point defined.
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main"));
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28));
         }
 
         [Fact]
-        public void ERR_MultipleEntryPointsCSharp70_SyncAndAsync()
+        public void SyncAndAsyncEntryPointsBeforeAsyncMainFeature_NoDiagnostics()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -144,7 +144,7 @@ public class C
         }
 
         [Fact]
-        public void ERR_MultipleEntryPointsCSharpLatest_SyncAndAsync()
+        public void WRN_SyncAndAsyncEntryPointsCSharpLatest_SyncAndAsync()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -158,8 +158,8 @@ public class C
             var compilation = CompileConsoleApp(source);
 
             compilation.VerifyDiagnostics(
-                // (7,28): warning CS8892: Program has more than one entry point defined.
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main"));
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28));
         }
 
         [Fact]
