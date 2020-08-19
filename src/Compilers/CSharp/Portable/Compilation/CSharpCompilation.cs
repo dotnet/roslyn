@@ -1732,16 +1732,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0 && viableEntryPoints.Count == 1)
                 {
-                    var info = new CSDiagnosticInfo(
-                         ErrorCode.WRN_SyncAndAsyncEntryPoints,
-                         args: Array.Empty<object>(),
-                         symbols: ImmutableArray.Create<Symbol>(viableEntryPoints.First(), taskEntryPoints.First().Candidate),
-                         additionalLocations: ImmutableArray.Create(viableEntryPoints.First().Locations.First(), taskEntryPoints.First().Candidate.Locations.First()));
+                    var taskCandidates = taskEntryPoints.Select(s => (Symbol)s.Candidate).ToImmutableArray();
+                    var taskLocations = taskCandidates.Select(s => s.Locations.First()).ToImmutableArray();
 
                     foreach (var (_, Candidate, _) in taskEntryPoints)
                     {
                         // Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.
-                        diagnostics.Add(new CSDiagnostic(info, Candidate.Locations.First(), Candidate, viableEntryPoints.First()));
+                        var info = new CSDiagnosticInfo(
+                             ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                             args: new object[] { Candidate, viableEntryPoints.First() },
+                             symbols: taskCandidates,
+                             additionalLocations: taskLocations);
+                        diagnostics.Add(new CSDiagnostic(info, Candidate.Locations.First()));
                     }
                 }
 
