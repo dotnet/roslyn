@@ -1084,11 +1084,11 @@ class C
     }
 }";
 
-            var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() });
+            var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (6,33): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,33): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop[1]").WithArguments("type pattern").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Prop[1]").WithArguments("type pattern", "9.0").WithLocation(6, 33),
                 // (6,33): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop[1] }'
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop[1]").WithArguments("Prop[1]").WithLocation(6, 33),

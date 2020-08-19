@@ -44,19 +44,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : this(registrationService,
-                   listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
-        {
-        }
-
-        // protected for testing purposes.
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        protected DiagnosticAnalyzerService(
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
-            Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
+            Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;

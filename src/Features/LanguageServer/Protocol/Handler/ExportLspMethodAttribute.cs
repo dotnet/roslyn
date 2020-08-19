@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 
@@ -15,9 +17,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         public string MethodName { get; }
 
-        public string LanguageName { get; }
+        public string? LanguageName { get; }
 
-        public ExportLspMethodAttribute(string methodName, string languageName = null) : base(typeof(IRequestHandler))
+        /// <summary>
+        /// Whether or not handling this method results in changes to the current solution state.
+        /// Mutating requests will block all subsequent requests from starting until after they have
+        /// completed and mutations have been applied. See <see cref="RequestExecutionQueue"/>.
+        /// </summary>
+        public bool MutatesSolutionState { get; }
+
+        public ExportLspMethodAttribute(string methodName, string? languageName = null, bool mutatesSolutionState = false) : base(typeof(IRequestHandler))
         {
             if (string.IsNullOrEmpty(methodName))
             {
@@ -26,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             MethodName = methodName;
             LanguageName = languageName;
+            MutatesSolutionState = mutatesSolutionState;
         }
     }
 }

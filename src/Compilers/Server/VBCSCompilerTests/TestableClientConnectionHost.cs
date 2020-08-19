@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     internal sealed class TestableClientConnectionHost : IClientConnectionHost
     {
         private readonly object _guard = new object();
+        private TaskCompletionSource<IClientConnection>? _finalTaskCompletionSource;
         private Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
 
         public bool IsListening { get; set; }
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void BeginListening()
         {
             IsListening = true;
+            _finalTaskCompletionSource = new TaskCompletionSource<IClientConnection>();
         }
 
         public void EndListening()
@@ -37,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             lock (_guard)
             {
                 _waitingTasks.Clear();
+                _finalTaskCompletionSource?.SetCanceled();
+                _finalTaskCompletionSource = null;
             }
         }
 
@@ -47,7 +51,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 if (_waitingTasks.Count == 0)
                 {
-                    throw new InvalidOperationException();
+                    if (_finalTaskCompletionSource is null)
+                    {
+                        _finalTaskCompletionSource = new TaskCompletionSource<IClientConnection>();
+                    }
+
+                    return _finalTaskCompletionSource.Task;
                 }
 
                 func = _waitingTasks.Dequeue();
@@ -60,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             lock (_guard)
             {
+                if (_finalTaskCompletionSource is object)
+                {
+                    throw new InvalidOperationException("All Adds must be called before they are exhausted");
+                }
+
                 _waitingTasks.Enqueue(func);
             }
         }

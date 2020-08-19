@@ -31,9 +31,11 @@ function Add-TargetFramework($name, $packagePath, $list)
       $logicalName = "$($name).$($dll)";
     }
 
+    $link = "Resources\ReferenceAssemblies\$name\$dll"
     $script:targetsContent += @"
         <EmbeddedResource Include="$packagePath\$dllPath">
           <LogicalName>$logicalName</LogicalName>
+          <Link>$link</Link>
         </EmbeddedResource>
 
 "@

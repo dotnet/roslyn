@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,8 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
-        private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features.AddParts(
-            typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
+        private static readonly TestComposition s_compositionWithoutOptions = FeaturesTestCompositions.Features
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(
+                typeof(MockDiagnosticUpdateSourceRegistrationService),
+                typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
         private static readonly TestComposition s_composition = s_compositionWithoutOptions.AddParts(
             typeof(TestMoveToNamespaceOptionsService));

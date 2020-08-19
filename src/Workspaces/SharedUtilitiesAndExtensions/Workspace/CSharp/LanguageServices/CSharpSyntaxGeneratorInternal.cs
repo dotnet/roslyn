@@ -108,5 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.InterpolationFormatClause(
                     SyntaxFactory.Token(SyntaxKind.ColonToken),
                     SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
+
+        internal override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
+            => SyntaxFactory.TypeParameterList(
+                    SyntaxFactory.SeparatedList(
+                        typeParameterNames.Select(n => SyntaxFactory.TypeParameter(n))));
     }
 }

@@ -26,7 +26,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
         public void Execute(SourceGeneratorContext context)
         {
-            context.AdditionalSources.Add(this._hintName, SourceText.From(_content, Encoding.UTF8));
+            context.AddSource(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
 
         public void Initialize(InitializationContext context)
@@ -59,7 +59,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _onExecute(context);
             if (!string.IsNullOrWhiteSpace(_source))
             {
-                context.AdditionalSources.Add("source.cs", SourceText.From(_source, Encoding.UTF8));
+                context.AddSource("source.cs", SourceText.From(_source, Encoding.UTF8));
             }
         }
         public void Initialize(InitializationContext context) => _onInit(context);
@@ -80,7 +80,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         {
             foreach (var file in context.AdditionalFiles)
             {
-                AddSourceForAdditionalFile(context.AdditionalSources, file);
+                context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
             }
         }
 
@@ -93,13 +93,11 @@ namespace Roslyn.Test.Utilities.TestGenerators
         {
             if (edit is AdditionalFileAddedEdit add && CanApplyChanges)
             {
-                AddSourceForAdditionalFile(context.AdditionalSources, add.AddedText);
+                context.AdditionalSources.Add(GetGeneratedFileName(add.AddedText.Path), SourceText.From("", Encoding.UTF8));
                 return true;
             }
             return false;
         }
-
-        private void AddSourceForAdditionalFile(AdditionalSourcesCollection sources, AdditionalText file) => sources.Add(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
         private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path.Replace('\\', Path.DirectorySeparatorChar))}.generated";
     }
