@@ -648,47 +648,75 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             base.ApplyProjectChanges(projectChanges);
 
-            var changedRazorDocuments = projectChanges.GetChangedDocuments().Where(id => IsRazorGeneratedDocument(id));
-            if (changedRazorDocuments.Any())
+            var changedMappedDocuments = projectChanges.GetChangedDocuments().Where(id => IsMappedDocument(id));
+            if (changedMappedDocuments.Any())
             {
-                foreach(var changedDocumentId in changedRazorDocuments)
+                ApplyChangesForMappedDocuments(projectChanges, changedMappedDocuments);
+            }
+
+            bool IsMappedDocument(DocumentId documentId)
+            {
+                return this.CurrentSolution.GetDocument(documentId)?.Services?.GetService<ISpanMappingService>() != null;
+            }
+        }
+
+        private void ApplyChangesForMappedDocuments(ProjectChanges projectChanges, IEnumerable<DocumentId> changedMappedDocuments)
+        {
+            // Map all the original text changes to new text changes in the mapped files.
+            var _ = ArrayBuilder<(string fileName, TextChange textChange)>.GetInstance(out var mappedChangesBuilder);
+            foreach (var changedDocumentId in changedMappedDocuments)
+            {
+                var oldDoc = projectChanges.OldProject.GetDocument(changedDocumentId)!;
+                var newDoc = projectChanges.NewProject.GetDocument(changedDocumentId)!;
+
+                GetMappedTextChanges(newDoc, oldDoc, mappedChangesBuilder);
+            }
+
+            var mappedChanges = mappedChangesBuilder.ToImmutable();
+            if (mappedChanges.Any())
+            {
+                // Group the mapped text changes by file, then apply all mapped text changes to each file.
+                foreach (var changesForFile in mappedChanges.GroupBy(change => change.fileName))
                 {
-
-                    var oldDoc = projectChanges.OldProject.GetDocument(changedDocumentId)!;
-                    var newDoc = projectChanges.NewProject.GetDocument(changedDocumentId)!;
-
-
-
-                    var mappingService = newDoc.Services.GetService<ISpanMappingService>();
-                    if (mappingService != null)
-                    {
-                        var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
-                        TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
-                    }
-
-                    
+                    using var invisibleEditor = new InvisibleEditor(ServiceProvider.GlobalProvider, changesForFile.Key, GetHierarchy(projectChanges.ProjectId), needsSave: true, needsUndoDisabled: false);
+                    TextEditApplication.UpdateText(changesForFile.Select(change => change.textChange), invisibleEditor.TextBuffer, EditOptions.None);
                 }
-                
             }
 
-            bool IsRazorGeneratedDocument(DocumentId documentId)
+            void GetMappedTextChanges(CodeAnalysis.Document newDocument, CodeAnalysis.Document oldDocument, ArrayBuilder<(string, TextChange)> builder)
             {
-                return this.CurrentSolution.GetDocument(documentId)?.Services?.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
-            }
-
-            ImmutableArray<MappedSpanResult>? TryGetMappedSpans(CodeAnalysis.Document newDocument, CodeAnalysis.Document oldDocument)
-            {
-                ImmutableArray<MappedSpanResult>? mappedSpanResult = null;
-                _threadingContext.JoinableTaskFactory.Run(async () =>
+                var mappingService = newDocument.Services.GetService<ISpanMappingService>();
+                (var mappedSpanResults, var textChanges) = _threadingContext.JoinableTaskFactory.Run<(ImmutableArray<MappedSpanResult>, ImmutableArray<TextChange>)>(async () =>
                 {
-                    var textChanges = await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(true);
-                    if (textChanges != null)
-                    {
-                        mappedSpanResult = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
-                    }
+                    var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, CancellationToken.None).ConfigureAwait(false)).ToImmutableArray();
+                    var mappedSpanResults = await mappingService.MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+
+                    return (mappedSpanResults, textChanges);
                 });
 
-                return mappedSpanResult;
+                Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
+
+                for (var i = 0; i < mappedSpanResults.Length; i++)
+                {
+                    if (ShouldIncludeMappedChange(mappedSpanResults[i], newDocument))
+                    {
+                        builder.Add((mappedSpanResults[i].FilePath, new TextChange(mappedSpanResults[i].Span, textChanges[i].NewText)));
+                    }
+                }
+            }
+
+            static bool ShouldIncludeMappedChange(MappedSpanResult result, CodeAnalysis.Document newDocument)
+            {
+                if (result.IsDefault)
+                {
+                    // There is no appropriate mapping for the span, do not make a change.
+                    return false;
+                }
+
+                var documentIdsForFilePath = newDocument.Project.Solution.GetDocumentIdsWithFilePath(result.FilePath);
+                // Only attempt to apply text changes from mapped files that are not present in the workspace.
+                // Changes to documents in the workspace should have already been applied in the normal project changes workflow.
+                return documentIdsForFilePath.IsEmpty;
             }
         }
 
