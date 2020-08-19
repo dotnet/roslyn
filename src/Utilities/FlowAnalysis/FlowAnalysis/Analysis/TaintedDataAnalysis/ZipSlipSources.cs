@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.PooledObjects;
+using Analyzer.Utilities.PooledObjects.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -26,6 +27,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "FullName",
                 },
                 taintedMethods: null);
+
+            sourceInfosBuilder.AddRange(StringTranferSources.SourceInfos);
 
             SourceInfos = sourceInfosBuilder.ToImmutableAndFree();
         }

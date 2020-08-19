@@ -206,7 +206,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return HardcodedBytesSources.SourceInfos;
 
                 case SinkKind.HardcodedCertificate:
-                    return HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos);
+                    return HardcodedCertificateSources.SourceInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
