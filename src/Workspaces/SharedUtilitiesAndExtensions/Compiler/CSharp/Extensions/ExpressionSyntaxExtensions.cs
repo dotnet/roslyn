@@ -700,6 +700,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     return OperatorPrecedence.Unary;
 
+                case SyntaxKind.RangeExpression:
+                    // From C# spec, https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#systemrange
+                    // Range: ..
+
+                    return OperatorPrecedence.Range;
+
                 case SyntaxKind.MultiplyExpression:
                 case SyntaxKind.DivideExpression:
                 case SyntaxKind.ModuloExpression:
