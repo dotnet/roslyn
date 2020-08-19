@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -42,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         private readonly IThreadingContext _threadingContext;
         private readonly AsyncBatchingWorkQueue<Document> _persistClassificationsWorkQueue;
+
+        private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToLoadedState =
+            new ConditionalWeakTable<Workspace, Task>();
 
         public SemanticClassifier(IThreadingContext threadingContext)
         {
@@ -199,12 +203,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            var workspaceLoadedService = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-            var isFullyLoaded = await workspaceLoadedService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            var waitForLoadedTask = s_workspaceToLoadedState.GetValue(
+                workspace, w =>
+                {
+                    var workspaceLoadedService = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                    return workspaceLoadedService.WaitUntilFullyLoadedAsync(CancellationToken.None);
+                });
 
             // if we're not fully loaded try to read from the cache instead so that classifications appear up to
             // date.  New code will not be semantically classified, but will eventually when the project fully
             // loads.
+            var isFullyLoaded = waitForLoadedTask.IsCompleted;
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
 
