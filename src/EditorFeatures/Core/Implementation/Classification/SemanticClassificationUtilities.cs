@@ -227,7 +227,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             await classificationService.AddSemanticClassificationsAsync(
                 document, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
-            // Add this document to the work queue to persist its classifications to storage in the future.
+            // Once fully loaded, add this document to the work queue to persist its classifications to storage in the
+            // future.  This way we can store the full accurate set of classifications for it to help speed things up in
+            // VS on next launch.
             if (isFullyLoaded)
                 _persistClassificationsWorkQueue.AddWork(document);
         }
@@ -298,6 +300,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         private static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
         {
+            // We only checksum off of the contents of the file.  During load, we can't really compute any other
+            // information since we don't necessarily know about other files, metadata, or dependencies.  So during
+            // load, we allow for the previous semantic classifications to be used as long as the file contents match.
             var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var textChecksum = checksums.Text;
             return textChecksum;
@@ -328,16 +333,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (checksum == persistedChecksum)
                 return;
 
-            // Compute the classifications for the full document span.
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
             try
             {
-                var classificationService = document.GetLanguageService<IClassificationService>();
+                // Compute the classifications for the full document span.
                 await AddSemanticClassificationsAsync(
-                    classificationService, document, new TextSpan(0, text.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
+                    document.GetLanguageService<IClassificationService>(), document,
+                    new TextSpan(0, text.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
 
                 using var stream = SerializableBytes.CreateWritableStream();
                 using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
