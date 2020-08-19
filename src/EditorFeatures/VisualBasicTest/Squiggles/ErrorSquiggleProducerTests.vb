@@ -87,7 +87,8 @@ End Class")
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46786"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WorkItem(46786, "https://github.com/dotnet/roslyn/issues/46786")>
         Public Async Function CustomizableTagsForUnnecessaryCode() As Task
 
             Dim content = "

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
 
         private ITaggerProvider? _taggerProvider;
 
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             AnalyzerService = (DiagnosticAnalyzerService?)_registrationService.GetTestAccessor().AnalyzerProviders.SelectMany(pair => pair.Value).SingleOrDefault(lazyProvider => lazyProvider.Metadata.Name == WellKnownSolutionCrawlerAnalyzers.Diagnostic && lazyProvider.Metadata.HighPriorityForActiveFile)?.Value;
             DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
+            _incrementalAnalyzers = AnalyzerService != null ? ImmutableArray.Create(AnalyzerService.CreateIncrementalAnalyzer(_workspace)) : ImmutableArray<IIncrementalAnalyzer>.Empty;
 
             if (updateSource is object)
             {
@@ -100,7 +103,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task WaitForTags()
         {
             await _listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-            await _listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+
+            // Wait for incremental analyzer until completion.
+            // Ideally, we would we able to "await _listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();"
+            // but that seems to not complete analyzers in presence of cancellation.
+            // See https://github.com/dotnet/roslyn/issues/46786 for intermittent test failures in presence of cancellation.
+            if (!_incrementalAnalyzers.IsEmpty)
+                _registrationService.GetTestAccessor().WaitUntilCompletion(_workspace, _incrementalAnalyzers);
+
             await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
             await _listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync();
