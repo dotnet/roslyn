@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             TextSpan span,
-            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>

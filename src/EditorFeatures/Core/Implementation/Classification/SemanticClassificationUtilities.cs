@@ -316,15 +316,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-            var classificationService = document.GetLanguageService<IClassificationService>();
-
-            await AddSemanticClassificationsAsync(
-                classificationService, document, new TextSpan(0, text.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
-
-            ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
 
             try
             {
+                var classificationService = document.GetLanguageService<IClassificationService>();
+                await AddSemanticClassificationsAsync(
+                    classificationService, document, new TextSpan(0, text.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
+
                 using var stream = SerializableBytes.CreateWritableStream();
                 using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
                 {
@@ -337,6 +335,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
                 // Storage APIs can throw arbitrary exceptions.
+            }
+            finally
+            {
+                ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
             }
         }
 
