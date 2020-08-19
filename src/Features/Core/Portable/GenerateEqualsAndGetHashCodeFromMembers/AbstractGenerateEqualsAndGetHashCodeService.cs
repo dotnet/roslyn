@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     var localName = containingType.GetLocalName();
 
                     expressions.Add(
-                        generator.IsPatternExpression(objName,
+                        generator.SyntaxGeneratorInternal.IsPatternExpression(objName,
                             generator.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
                     expressions.Add(
                         generator.InvocationExpression(
