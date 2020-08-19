@@ -397,7 +397,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         tempResult.Add(new ClassifiedSpan(classification, classifiedSpan));
                 }
 
-                // succeeded reading in the classified spans.  copy over from our temp array to the final result.
+                // succeeded reading in the classified spans.  copy over from our temp array to the final result. do
+                // this last so we only mutate the result once we've successfully deserialized the entire blob.
                 result.AddRange(tempResult);
                 return true;
             }
