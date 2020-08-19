@@ -61,8 +61,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return VBSelectionResult.GetFirstStatement()
                 End Function
 
-                Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(callSiteAnnotation As SyntaxAnnotation, cancellationToken As CancellationToken) As Task(Of StatementSyntax)
-                    Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(callSiteAnnotation))
+                Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                    Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
                 End Function
             End Class
         End Class

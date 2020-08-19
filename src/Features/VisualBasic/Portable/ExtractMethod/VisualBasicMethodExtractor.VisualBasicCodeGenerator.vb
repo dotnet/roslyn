@@ -16,7 +16,12 @@ Imports System.Collections.Immutable
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Partial Private MustInherit Class VisualBasicCodeGenerator
-            Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax)
+            Inherits CodeGenerator(Of
+                StatementSyntax,
+                ExpressionSyntax,
+                InvocationExpressionSyntax,
+                AwaitExpressionSyntax,
+                StatementSyntax)
 
             Private ReadOnly _methodName As SyntaxToken
 
@@ -319,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return statements(index + 1).IsKind(SyntaxKind.ReturnStatement, SyntaxKind.ExitSubStatement)
             End Function
 
-            Protected Overrides Function CreateCallSignature() As ExpressionSyntax
+            Protected Overrides Function CreateCallSignatureParts() As (invocation As InvocationExpressionSyntax, awaitExpressionOpt As AwaitExpressionSyntax)
                 Dim methodName As ExpressionSyntax = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation)
 
                 Dim arguments = New List(Of ArgumentSyntax)()
@@ -363,10 +368,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                         SyntaxFactory.Token(SyntaxKind.FalseKeyword))))))
                         End If
                     End If
-                    Return SyntaxFactory.AwaitExpression(invocation)
+                    Return (invocation, SyntaxFactory.AwaitExpression(invocation))
                 End If
 
-                Return invocation
+                Return (invocation, awaitExpressionOpt:=Nothing)
             End Function
 
             Private Shared Function GetIdentifierName(name As String) As ExpressionSyntax

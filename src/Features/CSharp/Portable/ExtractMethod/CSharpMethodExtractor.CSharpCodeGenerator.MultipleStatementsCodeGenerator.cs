@@ -115,11 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                     => CSharpSelectionResult.GetLastStatementUnderContainer();
 
-                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
-                    SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)
+                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
                 {
                     var statement = GetStatementContainingInvocationToExtractedMethodWorker();
-                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(callSiteAnnotation));
+                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
                 }
             }
         }

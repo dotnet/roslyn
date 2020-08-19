@@ -114,13 +114,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return GetFirstStatementOrInitializerSelectedAtCallSite()
                 End Function
 
-                Protected Overrides Async Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(callSiteAnnotation As SyntaxAnnotation, cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                Protected Overrides Async Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
                     Dim enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite()
-                    Dim callSignature = CreateCallSignature().WithAdditionalAnnotations(callSiteAnnotation)
-                    Dim invocation = If(TypeOf callSignature Is AwaitExpressionSyntax,
-                                        DirectCast(callSignature, AwaitExpressionSyntax).Expression, callSignature)
+                    Dim callSignatureParts = CreateCallSignatureParts()
+                    Dim invocation = callSignatureParts.invocation
+                    Dim invocationWithAwaitOpt = callSignatureParts.awaitExpressionOpt
 
-                    Dim sourceNode = DirectCast(VBSelectionResult.GetContainingScope(), SyntaxNode)
+                    Dim sourceNode = VBSelectionResult.GetContainingScope()
                     Contract.ThrowIfTrue(
                         sourceNode.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                         DirectCast(sourceNode.Parent, MemberAccessExpressionSyntax).Name Is sourceNode,
@@ -143,33 +143,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     ' because of the complexification we cannot guarantee that there is only one annotation.
                     ' however complexification of names is prepended, so the last annotation should be the original one.
-                    sourceNode = DirectCast(updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode(), SyntaxNode)
+                    sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode()
 
                     ' we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
                     ' a member access now instead of the identifier. So more syntax fiddling is needed.
-                    If sourceNode.Parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso
-                        DirectCast(sourceNode, ExpressionSyntax).IsRightSideOfDot() Then
-
+                    If sourceNode.Parent.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                         Dim explicitMemberAccess = DirectCast(sourceNode.Parent, MemberAccessExpressionSyntax)
-                        Dim replacementMemberAccess = SyntaxFactory.MemberAccessExpression(
-                                sourceNode.Parent.Kind(),
-                                explicitMemberAccess.Expression,
-                                SyntaxFactory.Token(SyntaxKind.DotToken),
-                                DirectCast(DirectCast(invocation, InvocationExpressionSyntax).Expression, SimpleNameSyntax))
-                        replacementMemberAccess = explicitMemberAccess.CopyAnnotationsTo(replacementMemberAccess)
+                        If explicitMemberAccess.Name Is sourceNode Then
+                            Dim replacementMemberAccess = explicitMemberAccess.CopyAnnotationsTo(
+                                SyntaxFactory.MemberAccessExpression(
+                                    sourceNode.Parent.Kind(),
+                                    explicitMemberAccess.Expression,
+                                    SyntaxFactory.Token(SyntaxKind.DotToken),
+                                    DirectCast(invocation.Expression, SimpleNameSyntax)))
 
-                        Dim newInvocation = SyntaxFactory.InvocationExpression(
-                            replacementMemberAccess,
-                            DirectCast(invocation, InvocationExpressionSyntax).ArgumentList) _
-                                .WithTrailingTrivia(sourceNode.GetTrailingTrivia())
+                            Dim newInvocation = SyntaxFactory.InvocationExpression(
+                                replacementMemberAccess,
+                                invocation.ArgumentList).WithTrailingTrivia(sourceNode.GetTrailingTrivia())
 
-                        Dim newCallSignature = If(callSignature IsNot invocation,
-                                                  callSignature.ReplaceNode(invocation, newInvocation), invocation.CopyAnnotationsTo(newInvocation))
+                            If invocationWithAwaitOpt IsNot Nothing Then
+                                invocationWithAwaitOpt = invocationWithAwaitOpt.ReplaceNode(invocation, newInvocation)
+                            End If
 
-                        sourceNode = sourceNode.Parent
-                        callSignature = newCallSignature
+                            invocation = newInvocation
+                            sourceNode = sourceNode.Parent
+                        End If
                     End If
 
+                    Dim callSignature = If(DirectCast(invocationWithAwaitOpt, ExpressionSyntax), invocation)
+                    callSignature = callSignature.WithAdditionalAnnotations(CallSiteAnnotation)
                     Return newEnclosingStatement.ReplaceNode(sourceNode, callSignature)
                 End Function
             End Class

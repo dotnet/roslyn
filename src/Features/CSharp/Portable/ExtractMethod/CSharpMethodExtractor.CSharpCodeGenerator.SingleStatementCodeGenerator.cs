@@ -71,11 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return CSharpSelectionResult.GetFirstStatement();
                 }
 
-                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
-                    SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)
+                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
                 {
                     var statement = GetStatementContainingInvocationToExtractedMethodWorker();
-                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(callSiteAnnotation));
+                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
                 }
             }
         }

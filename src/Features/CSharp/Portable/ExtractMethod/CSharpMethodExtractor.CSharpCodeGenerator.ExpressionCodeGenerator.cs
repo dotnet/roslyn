@@ -189,12 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                     => GetFirstStatementOrInitializerSelectedAtCallSite();
 
-                protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
-                    SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)
+                protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
                 {
                     var enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite();
-                    var callSignature = CreateCallSignature().WithAdditionalAnnotations(callSiteAnnotation);
-                    var invocation = callSignature.IsKind(SyntaxKind.AwaitExpression, out AwaitExpressionSyntax awaitExpr) ? awaitExpr.Expression : callSignature;
+
+                    var (invocation, invocationWithAwaitOpt) = CreateCallSignatureParts();
 
                     var sourceNode = CSharpSelectionResult.GetContainingScope();
                     Contract.ThrowIfTrue(
@@ -223,26 +222,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
                     // a member access now instead of the identifier. So more syntax fiddling is needed.
-                    if (sourceNode.Parent.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
-                        ((ExpressionSyntax)sourceNode).IsRightSideOfDot())
+                    if (sourceNode.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax explicitMemberAccess) &&
+                        sourceNode == explicitMemberAccess.Name)
                     {
-                        var explicitMemberAccess = (MemberAccessExpressionSyntax)sourceNode.Parent;
                         var replacementMemberAccess = explicitMemberAccess.CopyAnnotationsTo(
                             SyntaxFactory.MemberAccessExpression(
                                 sourceNode.Parent.Kind(),
                                 explicitMemberAccess.Expression,
-                                (SimpleNameSyntax)((InvocationExpressionSyntax)invocation).Expression));
+                                (SimpleNameSyntax)invocation.Expression));
                         var newInvocation = SyntaxFactory.InvocationExpression(
                             replacementMemberAccess,
-                            ((InvocationExpressionSyntax)invocation).ArgumentList);
+                            invocation.ArgumentList);
 
-                        var newCallSignature = callSignature != invocation ?
-                            callSignature.ReplaceNode(invocation, newInvocation) : invocation.CopyAnnotationsTo(newInvocation);
+                        if (invocationWithAwaitOpt != null)
+                            invocationWithAwaitOpt = invocationWithAwaitOpt.ReplaceNode(invocation, newInvocation);
+
+                        invocation = newInvocation;
 
                         sourceNode = sourceNode.Parent;
-                        callSignature = newCallSignature;
                     }
 
+                    var callSignature = (ExpressionSyntax)invocationWithAwaitOpt ?? invocation;
+                    callSignature = callSignature.WithAdditionalAnnotations(CallSiteAnnotation);
                     return newEnclosingStatement.ReplaceNode(sourceNode, callSignature);
                 }
             }

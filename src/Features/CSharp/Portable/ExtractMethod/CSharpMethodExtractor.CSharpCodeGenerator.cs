@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor
     {
-        private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode>
+        private abstract partial class CSharpCodeGenerator : CodeGenerator<
+            StatementSyntax,
+            ExpressionSyntax,
+            InvocationExpressionSyntax,
+            AwaitExpressionSyntax,
+            SyntaxNode>
         {
             private readonly SyntaxToken _methodName;
 
@@ -154,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     IsExpressionBodiedMember(selectedNode) ||
                     IsExpressionBodiedAccessor(selectedNode))
                 {
-                    var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CallSiteAnnotation, cancellationToken).ConfigureAwait(false);
+                    var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false);
                     return ImmutableArray.Create(statement);
                 }
 
@@ -574,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     : SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(identifierName));
             }
 
-            protected override ExpressionSyntax CreateCallSignature()
+            protected override (InvocationExpressionSyntax invocation, AwaitExpressionSyntax awaitExpressionOpt) CreateCallSignatureParts()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
 
@@ -593,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var shouldPutAsyncModifier = CSharpSelectionResult.ShouldPutAsyncModifier();
                 if (!shouldPutAsyncModifier)
                 {
-                    return invocation;
+                    return (invocation, awaitExpressionOpt: null);
                 }
 
                 if (CSharpSelectionResult.ShouldCallConfigureAwaitFalse())
@@ -614,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                return SyntaxFactory.AwaitExpression(invocation);
+                return (invocation, SyntaxFactory.AwaitExpression(invocation));
             }
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
