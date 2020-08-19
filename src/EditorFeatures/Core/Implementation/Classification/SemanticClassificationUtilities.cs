@@ -237,7 +237,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // Once fully loaded, add this document to the work queue to persist its classifications to storage in the
             // future.  This way we can store the full accurate set of classifications for it to help speed things up in
             // VS on next launch.
-            if (isFullyLoaded)
+            //
+            // Only bother to do this for real documents that are being classified, not documents from forked
+            // workspaces.
+            if (isFullyLoaded && document.IsFromPrimaryBranch())
                 _persistClassificationsWorkQueue.AddWork(document);
         }
 
