@@ -27,10 +27,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
-                    var classificationService = (AbstractClassificationService)document.GetLanguageService<IClassificationService>();
                     using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-                    await classificationService.AddSemanticClassificationsInCurrentProcessAsync(
-                        document, span, temp, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                    await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
+                        document, span, temp, cancellationToken).ConfigureAwait(false);
 
                     return SerializableClassifiedSpans.Dehydrate(temp);
                 }
