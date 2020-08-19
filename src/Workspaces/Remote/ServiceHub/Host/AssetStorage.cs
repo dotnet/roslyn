@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class AssetStorage
     {
-        // TODO: think of a way to use roslyn option service in OOP
-        public static readonly AssetStorage Default =
-            new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5));
-
         /// <summary>
         /// Time interval we check storage for cleanup
         /// </summary>

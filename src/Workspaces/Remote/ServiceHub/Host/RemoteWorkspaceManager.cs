@@ -18,16 +18,25 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteWorkspaceManager
     {
+        /// <summary>
+        /// Default workspace manager used by the product. Tests may specify a custom <see cref="RemoteWorkspaceManager"/>
+        /// in order to override workspace services.
+        /// </summary>
+        internal static readonly RemoteWorkspaceManager Default = new RemoteWorkspaceManager(
+            new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5)));
+
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
                 .Add(typeof(ServiceBase).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
         private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
+        internal readonly AssetStorage AssetStorage;
 
-        public RemoteWorkspaceManager()
+        public RemoteWorkspaceManager(AssetStorage assetStorage)
         {
             _lazyPrimaryWorkspace = new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace);
+            AssetStorage = assetStorage;
         }
 
         private static RemoteWorkspace CreatePrimaryWorkspace()
