@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
+        private readonly SemanticClassifier _classifier;
 
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
             _typeMap = typeMap;
+            _classifier = new SemanticClassifier(threadingContext);
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
@@ -100,11 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // this service), then bail out immediately.
             var classificationService = document?.GetLanguageService<IClassificationService>();
             if (classificationService == null)
-            {
                 return Task.CompletedTask;
-            }
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
+            return _classifier.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }
 }
