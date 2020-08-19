@@ -20,16 +20,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal abstract partial class MethodExtractor
     {
-        protected abstract partial class CodeGenerator<
-            TStatement,
-            TExpression,
-            TInvocationExpression,
-            TAwaitExpression,
-            TNodeUnderContainer>
+        protected abstract partial class CodeGenerator<TStatement, TExpression, TNodeUnderContainer>
             where TStatement : SyntaxNode
             where TExpression : SyntaxNode
-            where TInvocationExpression : TExpression
-            where TAwaitExpression : TExpression
             where TNodeUnderContainer : SyntaxNode
         {
             protected readonly SyntaxAnnotation MethodNameAnnotation;
@@ -77,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract TNodeUnderContainer GetLastStatementOrInitializerSelectedAtCallSite();
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken);
 
-            protected abstract (TInvocationExpression invocation, TAwaitExpression awaitExpressionOpt) CreateCallSignatureParts();
+            protected abstract TExpression CreateCallSignature();
             protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
             protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
             protected abstract TStatement CreateReturnStatement(string identifierName = null);
@@ -217,12 +210,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // add invocation expression
                 return statements.Concat(
                     (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
-            }
-
-            protected TExpression CreateCallSignature()
-            {
-                var (invocation, awaitExpressionOpt) = CreateCallSignatureParts();
-                return (TExpression)awaitExpressionOpt ?? invocation;
             }
 
             protected ImmutableArray<TStatement> AddAssignmentStatementToCallSite(

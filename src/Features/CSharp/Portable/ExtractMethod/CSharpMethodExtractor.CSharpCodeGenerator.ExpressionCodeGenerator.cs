@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     var enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite();
 
-                    var (invocation, invocationWithAwaitOpt) = CreateCallSignatureParts();
+                    var callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation);
 
                     var sourceNode = CSharpSelectionResult.GetContainingScope();
                     Contract.ThrowIfTrue(
@@ -220,8 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // however complexification of names is prepended, so the last annotation should be the original one.
                     sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode();
 
-                    var callSignature = (ExpressionSyntax)invocationWithAwaitOpt ?? invocation;
-                    callSignature = callSignature.WithAdditionalAnnotations(CallSiteAnnotation);
                     return newEnclosingStatement.ReplaceNode(sourceNode, callSignature);
                 }
             }

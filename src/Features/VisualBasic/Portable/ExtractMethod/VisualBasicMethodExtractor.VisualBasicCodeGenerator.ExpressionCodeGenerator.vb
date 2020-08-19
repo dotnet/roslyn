@@ -116,9 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Protected Overrides Async Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
                     Dim enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite()
-                    Dim callSignatureParts = CreateCallSignatureParts()
-                    Dim invocation = callSignatureParts.invocation
-                    Dim invocationWithAwaitOpt = callSignatureParts.awaitExpressionOpt
+                    Dim callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation)
 
                     Dim sourceNode = VBSelectionResult.GetContainingScope()
                     Contract.ThrowIfTrue(
@@ -145,8 +143,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' however complexification of names is prepended, so the last annotation should be the original one.
                     sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode()
 
-                    Dim callSignature = If(DirectCast(invocationWithAwaitOpt, ExpressionSyntax), invocation)
-                    callSignature = callSignature.WithAdditionalAnnotations(CallSiteAnnotation)
                     Return newEnclosingStatement.ReplaceNode(sourceNode, callSignature)
                 End Function
             End Class

@@ -30,12 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor
     {
-        private abstract partial class CSharpCodeGenerator : CodeGenerator<
-            StatementSyntax,
-            ExpressionSyntax,
-            InvocationExpressionSyntax,
-            AwaitExpressionSyntax,
-            SyntaxNode>
+        private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode>
         {
             private readonly SyntaxToken _methodName;
 
@@ -579,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     : SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(identifierName));
             }
 
-            protected override (InvocationExpressionSyntax invocation, AwaitExpressionSyntax awaitExpressionOpt) CreateCallSignatureParts()
+            protected override ExpressionSyntax CreateCallSignature()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
 
@@ -598,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var shouldPutAsyncModifier = CSharpSelectionResult.ShouldPutAsyncModifier();
                 if (!shouldPutAsyncModifier)
                 {
-                    return (invocation, awaitExpressionOpt: null);
+                    return invocation;
                 }
 
                 if (CSharpSelectionResult.ShouldCallConfigureAwaitFalse())
@@ -619,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                 }
 
-                return (invocation, SyntaxFactory.AwaitExpression(invocation));
+                return SyntaxFactory.AwaitExpression(invocation);
             }
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
