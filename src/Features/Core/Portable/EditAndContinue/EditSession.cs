@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var documentId in changes.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
             {
                 var document = project.GetDocument(documentId)!;
-                if (document.State.Attributes.DesignTimeOnly)
+                if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
                 {
                     continue;
                 }
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var documentId in changes.GetAddedDocuments())
             {
                 var document = project.GetDocument(documentId)!;
-                if (document.State.Attributes.DesignTimeOnly)
+                if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
                 {
                     continue;
                 }
