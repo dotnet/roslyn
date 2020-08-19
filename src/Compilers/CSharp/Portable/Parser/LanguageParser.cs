@@ -12219,7 +12219,6 @@ tryAgain:
                 {
                     var paramList = this.ParseLambdaParameterList();
                     var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                    arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.ParenthesizedLambdaExpression(
@@ -12256,6 +12255,7 @@ tryAgain:
                         exclamationExclamation = null;
                     }
 
+                    arrow = (arrow is null) ? null : CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
                     exclamationExclamation = (exclamationExclamation is null) ? null : CheckFeatureAvailability(exclamationExclamation, MessageID.IDS_ParameterNullChecking);
 
                     var parameter = _syntaxFactory.Parameter(

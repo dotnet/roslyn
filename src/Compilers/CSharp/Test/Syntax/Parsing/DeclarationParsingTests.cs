@@ -7441,7 +7441,10 @@ class C<T> where T : struct? {}
         public void TestNullCheckedArgWithSyntaxCorrection3()
         {
             UsingStatement(@"void M(string name!
-                    != null) { }", options: TestOptions.RegularPreview);
+                    != null) { }", options: TestOptions.RegularPreview,
+                    // (2,21): error CS1525: Invalid expression term '!'
+                    //                     != null) { }
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(2, 21));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7459,7 +7462,7 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.ExclamationExclamationToken);
+                        M(SyntaxKind.ExclamationExclamationToken);
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
