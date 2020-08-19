@@ -258,6 +258,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (storage == null)
                 return false;
 
+            // Try to read the existing cached data from the persistence service.  However, only bother reading it if it
+            // was stored against the same checksum that we're now checking against.
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
             using var stream = await storage.ReadStreamAsync(document, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
             using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
