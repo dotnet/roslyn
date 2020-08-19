@@ -47,8 +47,8 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Lock we will use to ensure the remainder of these fields can be accessed in a threadsafe manner.  When work
-        /// is added we'll place the data into <see cref="_nextBatchArray"/> or <see cref="_nextBatchMap"/> We'll then
-        /// kick of a task to process this in the future if we don't already have an existing task in flight for that.
+        /// is added we'll place the data into <see cref="_nextBatchArray"/>. We'll then kick of a task to process this
+        /// in the future if we don't already have an existing task in flight for that.
         /// </summary>
         private readonly object _gate = new object();
 
@@ -138,9 +138,9 @@ namespace Roslyn.Utilities
 
         private void AddItemsToBatch(IEnumerable<TItem> items)
         {
-            // no equality comparer.  We want to process all items.
             if (_itemToIndex == null)
             {
+                // no equality comparer.  We want to process all items.
                 _nextBatchArray.AddRange(items);
                 return;
             }
@@ -150,13 +150,17 @@ namespace Roslyn.Utilities
             {
                 if (_itemToIndex.TryGetValue(item, out var index))
                 {
+                    // had an existing item this matched against.  Replace it with the new item.
                     _nextBatchArray[index] = item;
                 }
                 else
                 {
-                    _itemToIndex.Add(item, _nextBatchArray.Count);
+                    // didn't have a matching item.  add to the array and mark that position in the array as it's index.
+                    index = _nextBatchArray.Count;
                     _nextBatchArray.Add(item);
                 }
+
+                _itemToIndex[item] = index;
             }
         }
 
