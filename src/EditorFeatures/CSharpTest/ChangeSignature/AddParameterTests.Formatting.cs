@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.CSharp.OutputVisitor;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 using Roslyn.Test.Utilities;
@@ -541,24 +538,16 @@ csharp_indent_braces = true
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
             var expectedUpdatedCode = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
 public class C
     {
     public void M(int a)
         {
         }
     }
-        </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
-csharp_indent_braces = true
-</AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
+        ";
 
             await TestChangeSignatureViaCommandAsync(
-                            LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+                            LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, xmlMarkup: true);
         }
     }
 }

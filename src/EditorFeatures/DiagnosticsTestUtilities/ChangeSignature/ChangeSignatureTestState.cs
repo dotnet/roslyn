@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null, OptionsCollection options = null)
+        public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null, OptionsCollection options = null, bool xmlMarkup = false)
         {
-            var workspace = languageName == LanguageNames.CSharp
+            var workspace = xmlMarkup ? TestWorkspace.Create(markup, composition: s_composition) :
+                languageName == LanguageNames.CSharp
                   ? TestWorkspace.CreateCSharp(markup, composition: s_composition, parseOptions: (CSharpParseOptions)parseOptions)
                   : TestWorkspace.CreateVisualBasic(markup, composition: s_composition, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
