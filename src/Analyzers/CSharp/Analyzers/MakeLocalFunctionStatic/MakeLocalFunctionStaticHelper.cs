@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             => tree.Options is CSharpParseOptions csharpOption && csharpOption.LanguageVersion >= LanguageVersion.CSharp8;
 
         public static bool TryGetCaputuredSymbols(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
+        private static bool TryGetCaputuredSymbols(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
         {
             var dataFlow = semanticModel.AnalyzeDataFlow(localFunction);
             if (dataFlow is null)
@@ -30,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             return dataFlow.Succeeded;
         }
 
-        public static bool TryGetCaputuredSymbolsAndCheckApplicability(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
+        public static bool CanMakeLocalFunctionStaticBecauseNoCaptures(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel)
+            => TryGetCaputuredSymbols(localFunction, semanticModel, out var captures) && captures.IsEmpty;
+
+        public static bool CanMakeLocalFunctionStaticByRefactoringCaptures(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
             => TryGetCaputuredSymbols(localFunction, semanticModel, out captures) && CanMakeLocalFunctionStatic(captures);
 
         private static bool CanMakeLocalFunctionStatic(ImmutableArray<ISymbol> captures)
