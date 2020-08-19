@@ -216,7 +216,7 @@ namespace Roslyn.Utilities
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
                 _nextBatchArray.Clear();
-                _itemToIndex.Clear();
+                _itemToIndex?.Clear();
                 _taskInFlight = false;
 
                 return result.ToImmutableAndFree();
