@@ -1738,7 +1738,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                          symbols: ImmutableArray.Create<Symbol>(viableEntryPoints.First(), taskEntryPoints.First().Candidate),
                          additionalLocations: ImmutableArray.Create(viableEntryPoints.First().Locations.First(), taskEntryPoints.First().Candidate.Locations.First()));
 
-                    diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
+                    foreach (var (_, Candidate, _) in taskEntryPoints)
+                    {
+                        // Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.
+                        diagnostic.Add(new CSDiagnostic(info, Candidate.Locations.First(), Candidate, viableEntryPoints.First()));
+                    }
                 }
 
                 foreach (var (_, _, SpecificDiagnostics) in taskEntryPoints)
