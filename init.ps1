@@ -74,7 +74,7 @@ try {
         }
     }
 
-    & "$PSScriptRoot\azure-pipelines\Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
+    & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
 }
 catch {
     Write-Error $error[0]
