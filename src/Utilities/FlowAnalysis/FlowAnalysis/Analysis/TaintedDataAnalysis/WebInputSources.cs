@@ -41,6 +41,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintedProperties: null,
                 taintedMethodsNeedsPointsToAnalysis: null,
                 taintedMethodsNeedsValueContentAnalysis: null,
+                transferProperties: new[] { "this[]" },
                 transferMethods: new (MethodMatcher, (string, string)[])[]{
                     (
                         (methodName, arguments) =>

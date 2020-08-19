@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -205,6 +206,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             return taintedParameterPairs != null;
+        }
+
+        private const string IndexerName = "this[]";
+
+        /// <summary>
+        /// Determines if the property taints the instance.
+        /// </summary>
+        public static bool IsSourceTransferProperty(
+            this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
+            IPropertyReferenceOperation propertyReferenceOperation)
+        {
+            if (!(propertyReferenceOperation.Instance.Type is INamedTypeSymbol namedType))
+                return false;
+
+            string name = propertyReferenceOperation.Member.Name;
+            if (propertyReferenceOperation.Member.Language != LanguageNames.CSharp && propertyReferenceOperation.Member.IsIndexer())
+                name = IndexerName; // In VB.NET for example the indexer name is `Item`. However let's keep the SourceInfo configuration language agnostic.
+
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(namedType))
+            {
+                if (sourceInfo.TransferProperties.Contains(name))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

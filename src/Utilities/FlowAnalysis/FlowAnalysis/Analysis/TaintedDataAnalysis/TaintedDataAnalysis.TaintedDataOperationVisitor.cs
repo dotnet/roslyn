@@ -329,8 +329,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         foreach ((string ifTaintedParameter, string thenTaintedTarget) in taintedParameterPairs)
                         {
                             IOperation thenTaintedTargetOperation = visitedInstance != null && thenTaintedTarget == TaintedTargetValue.This
-    ? visitedInstance
-    : visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
+                                ? visitedInstance
+                                : visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
                             if (thenTaintedTargetOperation != null)
                             {
                                 SetTaintedForEntity(
@@ -564,14 +564,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 TaintedDataAbstractValue assignmentValueAbstractValue = this.GetCachedAbstractValue(assignmentOperation.Value);
                 if (assignmentOperation.Target != null
                     && assignmentValueAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted
-                    && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && this.IsPropertyASink(propertyReferenceOperation, out HashSet<SinkKind>? sinkKinds))
+                    && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation)
                 {
-                    this.TrackTaintedDataEnteringSink(
-                        propertyReferenceOperation.Member,
-                        propertyReferenceOperation.Syntax.GetLocation(),
-                        sinkKinds,
-                        assignmentValueAbstractValue.SourceOrigins);
+                    if (this.IsPropertyASink(propertyReferenceOperation, out HashSet<SinkKind>? sinkKinds))
+                    {
+                        this.TrackTaintedDataEnteringSink(
+                            propertyReferenceOperation.Member,
+                            propertyReferenceOperation.Syntax.GetLocation(),
+                            sinkKinds,
+                            assignmentValueAbstractValue.SourceOrigins);
+                    }
+
+                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourceTransferProperty(propertyReferenceOperation))
+                    {
+                        SetTaintedForEntity(propertyReferenceOperation.Instance, assignmentValueAbstractValue);
+                    }
                 }
             }
 
