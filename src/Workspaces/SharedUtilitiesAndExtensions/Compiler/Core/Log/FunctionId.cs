@@ -494,6 +494,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
         DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
 
-        AbstractClassificationService_ExceptionInCacheRead = 440,
+        SemanticClassifier_ExceptionInCacheRead = 440,
     }
 }

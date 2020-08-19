@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             catch
             {
                 // We're reading and interpreting arbitrary data from disk.  This may be invalid for any reason.
-                Logger.Log(FunctionId.AbstractClassificationService_ExceptionInCacheRead);
+                Logger.Log(FunctionId.SemanticClassifier_ExceptionInCacheRead);
                 return false;
             }
         }
