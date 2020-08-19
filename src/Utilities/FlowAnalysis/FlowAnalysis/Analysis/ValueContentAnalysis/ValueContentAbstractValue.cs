@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 }
             }
 
-
             return new ValueContentAbstractValue(literalValues, nonLiteralState);
         }
 

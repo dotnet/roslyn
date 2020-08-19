@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -29,16 +30,16 @@ namespace Analyzer.Utilities.Extensions
         /// </remarks>
         /// <example>
         /// <para>
-        /// If <paramref name="parentType"/> is the class <code>Stack&gt;T></code>, then this
-        /// method will return <code>true</code> when called on <code>Stack&gt;int></code>
-        /// or any type derived it, because <code>Stack&gt;int></code> is constructed from
-        /// <code>Stack&gt;T></code>.
+        /// If <paramref name="parentType"/> is the class <see cref="Stack{T}"/>, then this
+        /// method will return <see langword="true"/> when called on <c>Stack&gt;int></c>
+        /// or any type derived it, because <c>Stack&gt;int></c> is constructed from
+        /// <see cref="Stack{T}"/>.
         /// </para>
         /// <para>
-        /// Similarly, if <paramref name="parentType"/> is the interface <code>IList&gt;T></code>, 
-        /// then this method will return <code>true</code> for <code>List&gt;int></code>
-        /// or any other class that extends <code>IList&gt;></code> or an class that implements it,
-        /// because <code>IList&gt;int></code> is constructed from <code>IList&gt;T></code>.
+        /// Similarly, if <paramref name="parentType"/> is the interface <see cref="IList{T}"/>,
+        /// then this method will return <see langword="true"/> for <c>List&gt;int></c>
+        /// or any other class that extends <see cref="IList{T}"/> or an class that implements it,
+        /// because <c>IList&gt;int></c> is constructed from <see cref="IList{T}"/>.
         /// </para>
         /// </example>
         public static bool DerivesFromOrImplementsAnyConstructionOf(this INamedTypeSymbol type, INamedTypeSymbol parentType)
@@ -89,26 +90,6 @@ namespace Analyzer.Utilities.Extensions
                    symbol.ImplementsOperator(WellKnownMemberNames.InequalityOperatorName);
         }
 
-        /// <summary>
-        /// Returns a value indicating whether the specified type implements the comparison
-        /// operators.
-        /// </summary>
-        /// <param name="symbol">
-        /// A symbols specifying the type to examine.
-        /// </param>
-        /// <returns>
-        /// true if the type specified by <paramref name="symbol"/> implements the comparison
-        /// operators (which includes the equality and inequality operators), otherwise false.
-        /// </returns>
-        public static bool ImplementsComparisonOperators(this INamedTypeSymbol symbol)
-        {
-            return symbol.ImplementsEqualityOperators() &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.LessThanOperatorName) &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.LessThanOrEqualOperatorName) &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.GreaterThanOperatorName) &&
-                   symbol.ImplementsOperator(WellKnownMemberNames.GreaterThanOrEqualOperatorName);
-        }
-
         public static bool OverridesEquals(this INamedTypeSymbol symbol)
         {
             // Does the symbol override Object.Equals?
@@ -135,8 +116,8 @@ namespace Analyzer.Utilities.Extensions
         /// The symbol being examined.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="symbol"/> is a static holder type;
-        /// otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="symbol"/> is a static holder type;
+        /// otherwise <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// A symbol is a static holder type if it is a class with at least one
@@ -158,8 +139,10 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            // Sealed objects are presumed to be non-static holder types
-            if (symbol.IsSealed)
+            // Sealed objects are presumed to be non-static holder types for C#.
+            // In VB.NET the type cannot be static and guidelines favor having a sealed (NotInheritable) type
+            //  to act as static holder type.
+            if (symbol.IsSealed && symbol.Language == LanguageNames.CSharp)
             {
                 return false;
             }
@@ -184,7 +167,6 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
 
-
             return hasQualifyingMembers;
         }
 
@@ -196,8 +178,8 @@ namespace Analyzer.Utilities.Extensions
         /// The member being examined.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="member"/> qualifies as a member of
-        /// a static holder class; otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="member"/> qualifies as a member of
+        /// a static holder class; otherwise <see langword="false"/>.
         /// </returns>
         private static bool IsQualifyingMember(ISymbol member)
         {
@@ -244,8 +226,8 @@ namespace Analyzer.Utilities.Extensions
         /// The member being examined.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the presence of <paramref name="member"/> disqualifies the
-        /// current type as a static holder class; otherwise <c>false</c>.
+        /// <see langword="true"/> if the presence of <paramref name="member"/> disqualifies the
+        /// current type as a static holder class; otherwise <see langword="false"/>.
         /// </returns>
         private static bool IsDisqualifyingMember(ISymbol member)
         {
@@ -278,6 +260,14 @@ namespace Analyzer.Utilities.Extensions
             // Any instance member other than a default constructor disqualifies a class
             // from being considered a static holder class.
             return !member.IsStatic && !member.IsDefaultConstructor();
+        }
+
+        public static bool IsXUnitTestAttribute(this INamedTypeSymbol attributeClass, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        {
+            if (knownTestAttributes.TryGetValue(attributeClass, out var isTest))
+                return isTest;
+
+            return knownTestAttributes.GetOrAdd(attributeClass, attributeClass.DerivesFrom(xunitFactAttribute));
         }
     }
 }

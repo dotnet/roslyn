@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -26,14 +26,16 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal static async Task<FieldMetricData> ComputeAsync(IFieldSymbol field, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+            internal static async Task<FieldMetricData> ComputeAsync(IFieldSymbol field, CodeMetricsAnalysisContext context)
             {
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = field.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, field, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, field, context).ConfigureAwait(false);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, field, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
-                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, field.Type);
+                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, field, coupledTypesBuilder, context).ConfigureAwait(false);
+                MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, field.Type);
                 int? depthOfInheritance = null;
                 int maintainabilityIndex = CalculateMaintainabilityIndex(computationalComplexityMetrics, cyclomaticComplexity);
                 MetricsHelper.RemoveContainingTypes(field, coupledTypesBuilder);

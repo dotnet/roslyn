@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
-        <target state="translated">Это место вызова направляет в функцию вызов с параметром "params". Это приводит к выделению массива.</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="needs-review-translation">Это место вызова направляет в функцию вызов с параметром "params". Это приводит к выделению массива.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
@@ -103,8 +103,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
-        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="translated">Преобразование типа значения в ссылочный тип приводит к упаковке-преобразованию в месте вызова (здесь) и распаковке в месте вызываемого объекта. Рекомендуется по возможности использовать универсальные шаблоны</target>
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="needs-review-translation">Преобразование типа значения в ссылочный тип приводит к упаковке-преобразованию в месте вызова (здесь) и распаковке в месте вызываемого объекта. Рекомендуется по возможности использовать универсальные шаблоны</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
@@ -113,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
-        <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="translated">Тип значения ({0}) подвергается упаковке-преобразованию в ссылочный тип для объединения строк.</target>
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="needs-review-translation">Тип значения ({0}) подвергается упаковке-преобразованию в ссылочный тип для объединения строк.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">

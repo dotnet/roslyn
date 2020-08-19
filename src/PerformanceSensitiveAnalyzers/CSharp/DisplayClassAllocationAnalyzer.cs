@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizableLambaOrAnonymousMethodInGenericMethodRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.LambaOrAnonymousMethodInGenericMethodRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableLambaOrAnonymousMethodInGenericMethodRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.LambaOrAnonymousMethodInGenericMethodRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-
         internal static DiagnosticDescriptor ClosureDriverRule = new DiagnosticDescriptor(
             ClosureDriverRuleId,
             s_localizableClosureDriverRuleTitle,
