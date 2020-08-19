@@ -59,29 +59,23 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Used if <see cref="_equalityComparer"/> is present to ensure only unique items are processed. The value in
-        /// the dictionary is the index of the item so we can process them in the order we heard about them.
+        /// the dictionary is the index of the item in <see cref="_nextBatchArray"/> so we can overwrite it with a new
+        /// value if it appears.
         /// </summary>
-        private readonly Dictionary<TItem, int>? _nextBatchMap;
+        private readonly Dictionary<TItem, int>? _itemToIndex;
 
         /// <summary>
-        /// Task kicked off to do the next batch of processing of <see cref="_nextBatchArray"/> or <see
-        /// cref="_nextBatchMap"/>. These tasks form a chain so that the next task only processes when the previous one
-        /// completes.
+        /// Task kicked off to do the next batch of processing of <see cref="_nextBatchArray"/>. These tasks form a
+        /// chain so that the next task only processes when the previous one completes.
         /// </summary>
         private Task _updateTask = Task.CompletedTask;
 
         /// <summary>
         /// Whether or not there is an existing task in flight that will process the current batch of <see
-        /// cref="_nextBatchArray"/> or <see cref="_nextBatchMap"/>.  If there is an existing in flight task, we don't
-        /// need to kick off a new one if we receive more work before it runs.
+        /// cref="_nextBatchArray"/>.  If there is an existing in flight task, we don't need to kick off a new one if we
+        /// receive more work before it runs.
         /// </summary>
         private bool _taskInFlight = false;
-
-        /// <summary>
-        /// The next index to hand out when items are added to the queue.  This is used if we are deduping so that we
-        /// use a map, but still know what order to process items in.
-        /// </summary>
-        private int _nextIndex;
 
         #endregion
 
@@ -111,7 +105,7 @@ namespace Roslyn.Utilities
             _asyncListener = asyncListener;
             _cancellationToken = cancellationToken;
 
-            _nextBatchMap = new Dictionary<TItem, int>(equalityComparer);
+            _itemToIndex = equalityComparer == null ? null : new Dictionary<TItem, int>(equalityComparer);
         }
 
         public void AddWork(TItem item)
@@ -145,7 +139,7 @@ namespace Roslyn.Utilities
         private void AddItemsToBatch(IEnumerable<TItem> items)
         {
             // no equality comparer.  We want to process all items.
-            if (_nextBatchMap == null)
+            if (_itemToIndex == null)
             {
                 _nextBatchArray.AddRange(items);
                 return;
@@ -154,8 +148,15 @@ namespace Roslyn.Utilities
             // We're deduping items.  Only add the item if it's the first time we've seen it.
             foreach (var item in items)
             {
-                _nextBatchMap.Remove(item);
-                _nextBatchMap.Add(item, _nextIndex++);
+                if (_itemToIndex.TryGetValue(item, out var index))
+                {
+                    _nextBatchArray[index] = item;
+                }
+                else
+                {
+                    _itemToIndex.Add(item, _nextBatchArray.Count);
+                    _nextBatchArray.Add(item);
+                }
             }
         }
 
@@ -206,20 +207,12 @@ namespace Roslyn.Utilities
             {
                 var result = ArrayBuilder<TItem>.GetInstance();
 
-                if (_nextBatchMap == null)
-                {
-                    result.AddRange(_nextBatchArray);
-                    _nextBatchArray.Clear();
-                }
-                else
-                {
-                    // Process unique items in the order they were added to the work queue.
-                    result.AddRange(_nextBatchMap.OrderBy((kvp1, kvp2) => kvp1.Value - kvp2.Value).Select(kvp => kvp.Key));
-                    _nextBatchMap.Clear();
-                }
+                result.AddRange(_nextBatchArray);
 
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
+                _nextBatchArray.Clear();
+                _itemToIndex.Clear();
                 _taskInFlight = false;
 
                 return result.ToImmutableAndFree();
