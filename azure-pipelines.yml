@@ -71,30 +71,30 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
-- job: macOS_Test
-  pool:
-    vmImage: 'macOS-10.14'
-  timeoutInMinutes: 90
-
-  steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
-      displayName: Build and Test
-
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/Debug/*.xml'
-        mergeTestResults: true
-        testRunTitle: 'macOS CoreClr'
-      condition: always()
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
-        ArtifactName: 'macOS CoreClr'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
+#- job: macOS_Test
+#  pool:
+#    vmImage: 'macOS-10.14'
+#  timeoutInMinutes: 90
+#
+#  steps:
+#    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
+#      displayName: Build and Test
+#
+#    - task: PublishTestResults@2
+#      displayName: Publish xUnit Test Results
+#      inputs:
+#        testRunner: XUnit
+#        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/Debug/*.xml'
+#        mergeTestResults: true
+#        testRunTitle: 'macOS CoreClr'
+#      condition: always()
+#
+#    - task: PublishBuildArtifacts@1
+#      displayName: Publish Logs
+#      inputs:
+#        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
+#        ArtifactName: 'macOS CoreClr'
+#        publishLocation: Container
+#      continueOnError: true
+#      condition: not(succeeded())
 
