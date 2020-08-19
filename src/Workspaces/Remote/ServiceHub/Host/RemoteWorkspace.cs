@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Workspace created by the remote host that mirrors the corresponding client workspace.
     /// </summary>
-    internal sealed class RemoteWorkspace : Workspace
+    internal sealed partial class RemoteWorkspace : Workspace
     {
         private readonly ISolutionCrawlerRegistrationService? _registrationService;
 
