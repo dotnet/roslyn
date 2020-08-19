@@ -551,6 +551,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
                 else if (initialTags)
                 {
+                    // If this is the initial set of tags, we fast-track a notification about whatever initial tags we
+                    // computed.  This way the UI is updated quickly for that initial set, and we don't have to wait a
+                    // potentially very long time as the foreground-thread-queue makes it way to our notification.
                     this.ThreadingContext.JoinableTaskFactory.Run(async () =>
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -559,8 +562,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
                 else
                 {
-                    // Otherwise report back on the foreground asap to update the state and let our 
-                    // clients know about the change.
+                    // Otherwise report back on the foreground to update the state and let our clients know about the
+                    // change.  This will go to the end of the foreground processing queue.  This will normally process
+                    // quickly once VS is loaded, but it may take some time initially when VS is loading and the UI
+                    // thread is highly occupied.  This helps ensure that we don't oversaturate the UI during a very
+                    // contended period of time.
                     RegisterNotification(() => UpdateStateAndReportChanges(
                         newTagTrees, bufferToChanges, newState, initialTags),
                         delay: 0,
