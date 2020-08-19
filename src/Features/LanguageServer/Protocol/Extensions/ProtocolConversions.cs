@@ -87,9 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
             => new LSP.TextDocumentIdentifier() { Uri = document.GetURI() };
 
-        internal static LSP.TextDocumentIdentifier? TextDocumentItemToTextDocumentIdentifier(LSP.TextDocumentItem textDocument)
-            => new LSP.TextDocumentIdentifier() { Uri = textDocument.Uri };
-
         public static LinePosition PositionToLinePosition(LSP.Position position)
             => new LinePosition(position.Line, position.Character);
 

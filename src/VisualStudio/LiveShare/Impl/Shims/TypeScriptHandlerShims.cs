@@ -310,4 +310,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             return base.HandleRequestAsync(request, context, cancellationToken);
         }
     }
+
+    /// <summary>
+    /// Helper methods only used by the above, that can be deleted along with the above
+    /// </summary>
+    internal static class Extensions
+    {
+        public static LSP.RequestContext CreateRequestContext(this ILspSolutionProvider provider, TextDocumentIdentifier textDocument, ClientCapabilities clientCapabilities, string? clientName = null)
+        {
+            var (document, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
+
+            return new LSP.RequestContext(document, solution, null, clientCapabilities, clientName);
+        }
+    }
 }

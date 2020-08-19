@@ -65,13 +65,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return (null, solution);
         }
 
-        public static RequestContext CreateRequestContext(this ILspSolutionProvider provider, TextDocumentIdentifier textDocument, ClientCapabilities clientCapabilities, string? clientName = null)
-        {
-            var (document, solution) = GetDocumentAndSolution(provider, textDocument, clientName);
-
-            return new RequestContext(document, solution, null, clientCapabilities, clientName);
-        }
-
         public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
         {
             return GetDocuments<Document>(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
