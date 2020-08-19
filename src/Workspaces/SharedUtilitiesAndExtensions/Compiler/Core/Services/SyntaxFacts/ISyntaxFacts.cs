@@ -185,8 +185,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
 #nullable enable
-        bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
 #nullable restore
+
+        /// <summary>
+        /// Call on the `.y` part of a `x?.y` to get the entire `x?.y` conditional access expression.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        SyntaxNode GetParentConditionalAccessExpression(SyntaxNode node);
+
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);

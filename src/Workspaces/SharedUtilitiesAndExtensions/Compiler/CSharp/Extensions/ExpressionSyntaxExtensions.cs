@@ -34,9 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
 
-        public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
-            => (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) && memberAccess.Name == expression) ||
-               IsMemberBindingExpressionName(expression);
+        public static bool IsSimpleMemberAccessExpressionName(this ExpressionSyntax expression)
+            => expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) && memberAccess.Name == expression;
 
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
         {
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsMemberBindingExpressionName();
         }
 
-        private static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
+        public static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax memberBinding) &&
                memberBinding.Name == expression;
 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.AliasQualifiedName, out AliasQualifiedNameSyntax aliasName) && aliasName.Name == expression;
 
         public static bool IsRightSideOfDot(this ExpressionSyntax name)
-            => IsMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
+            => IsSimpleMemberAccessExpressionName(name) || IsMemberBindingExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
 
         public static bool IsRightSideOfDotOrArrow(this ExpressionSyntax name)
             => IsAnyMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name);

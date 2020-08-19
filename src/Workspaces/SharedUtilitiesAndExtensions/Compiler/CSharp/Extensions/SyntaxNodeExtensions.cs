@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => default,
             };
 
-        public static ConditionalAccessExpressionSyntax? GetParentConditionalAccessExpression(this SyntaxNode node)
+        public static ConditionalAccessExpressionSyntax? GetParentConditionalAccessExpression(this SyntaxNode? node)
         {
             var current = node;
             while (current?.Parent != null)

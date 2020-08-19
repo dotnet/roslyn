@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
 
                     Dim curr = expression
                     While True
-                        curr = curr.GetCorrespondingConditionalAccessExpression()
+                        curr = curr.GetParentConditionalAccessExpression()
                         If curr Is Nothing Then
                             Exit While
                         End If

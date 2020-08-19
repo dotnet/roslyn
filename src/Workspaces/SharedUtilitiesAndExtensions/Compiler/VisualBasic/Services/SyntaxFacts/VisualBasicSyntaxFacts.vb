@@ -169,9 +169,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return vbNode IsNot Nothing AndAlso vbNode.IsRightSideOfQualifiedName()
         End Function
 
-        Public Function IsNameOfMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfMemberAccessExpression
-            Dim vbNode = TryCast(node, SimpleNameSyntax)
-            Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
+        Public Function IsNameOfSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfSimpleMemberAccessExpression
+            Dim vbNode = TryCast(node, ExpressionSyntax)
+            Return vbNode IsNot Nothing AndAlso vbNode.IsSimpleMemberAccessExpressionName()
+        End Function
+
+        Public Function IsNameOfAnyMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfAnyMemberAccessExpression
+            Dim memberAccess = TryCast(node?.Parent, MemberAccessExpressionSyntax)
+            Return memberAccess IsNot Nothing AndAlso memberAccess.Name Is node
+        End Function
+
+        Public Function GetParentConditionalAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetParentConditionalAccessExpression
+            Return TryCast(node, ExpressionSyntax).GetParentConditionalAccessExpression()
         End Function
 
         Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFacts.GetPartsOfConditionalAccessExpression
@@ -1879,7 +1888,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsMemberBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberBindingExpression
-            ' Does not exist in VB.
+            ' Does not exist in VB.  VB represents a member binding as a MemberAccessExpression with null target.
+            Return False
+        End Function
+
+        Public Function IsNameOfMemberBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfMemberBindingExpression
+            ' Does not exist in VB.  VB represents a member binding as a MemberAccessExpression with null target.
             Return False
         End Function
 

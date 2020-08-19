@@ -1004,7 +1004,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <param name="node"></param>
         ''' <returns></returns>
         <Extension>
-        Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+        Friend Function GetParentConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
             Dim access As SyntaxNode = node
             Dim parent As SyntaxNode = access.Parent
 
