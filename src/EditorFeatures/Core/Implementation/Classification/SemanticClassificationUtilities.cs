@@ -264,45 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (reader == null)
                 return false;
 
-            try
-            {
-                // if the format doesn't match, we def can't read this.
-                if (reader.ReadInt32() != s_classificationFormat)
-                    return false;
-
-                // For space efficiency, the unique classification types are emitted in one array up front, and then the
-                // specific classification type is referred to by index when emitting the individual spans.
-                var classificationTypesCount = reader.ReadInt32();
-                using var _1 = ArrayBuilder<string>.GetInstance(classificationTypesCount, out var classificationTypes);
-
-                for (var i = 0; i < classificationTypesCount; i++)
-                    classificationTypes.Add(reader.ReadString());
-
-                var classifiedSpanCount = reader.ReadInt32();
-                using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpanCount, out var tempResult);
-
-                for (var i = 0; i < classifiedSpanCount; i++)
-                {
-                    var typeIndex = reader.ReadInt32();
-                    var start = reader.ReadInt32();
-                    var length = reader.ReadInt32();
-
-                    var classification = classificationTypes[typeIndex];
-                    var classifiedSpan = new TextSpan(start, length);
-                    if (textSpan.IntersectsWith(classifiedSpan))
-                        tempResult.Add(new ClassifiedSpan(classification, classifiedSpan));
-                }
-
-                // succeeded reading in the classified spans.  copy over from our temp array to the final result.
-                result.AddRange(tempResult);
-                return true;
-            }
-            catch
-            {
-                // We're reading and interpreting arbitrary data from disk.  This may be invalid for any reason.
-                Logger.Log(FunctionId.SemanticClassifier_ExceptionInCacheRead);
-                return false;
-            }
+            return TryRead(textSpan, result, reader);
         }
 
         private static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
@@ -402,6 +364,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 writer.WriteInt32(classifiedSpan.TextSpan.Start);
                 writer.WriteInt32(classifiedSpan.TextSpan.Length);
             }
+        }
+
+        private static bool TryRead(TextSpan textSpan, List<ClassifiedSpan> result, ObjectReader reader)
+        {
+            try
+            {
+                // if the format doesn't match, we def can't read this.
+                if (reader.ReadInt32() != s_classificationFormat)
+                    return false;
+
+                // For space efficiency, the unique classification types are emitted in one array up front, and then the
+                // specific classification type is referred to by index when emitting the individual spans.
+                var classificationTypesCount = reader.ReadInt32();
+                using var _1 = ArrayBuilder<string>.GetInstance(classificationTypesCount, out var classificationTypes);
+
+                for (var i = 0; i < classificationTypesCount; i++)
+                    classificationTypes.Add(reader.ReadString());
+
+                var classifiedSpanCount = reader.ReadInt32();
+                using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpanCount, out var tempResult);
+
+                for (var i = 0; i < classifiedSpanCount; i++)
+                {
+                    var typeIndex = reader.ReadInt32();
+                    var start = reader.ReadInt32();
+                    var length = reader.ReadInt32();
+
+                    var classification = classificationTypes[typeIndex];
+                    var classifiedSpan = new TextSpan(start, length);
+                    if (textSpan.IntersectsWith(classifiedSpan))
+                        tempResult.Add(new ClassifiedSpan(classification, classifiedSpan));
+                }
+
+                // succeeded reading in the classified spans.  copy over from our temp array to the final result.
+                result.AddRange(tempResult);
+                return true;
+            }
+            catch
+            {
+                // We're reading and interpreting arbitrary data from disk.  This may be invalid for any reason.
+                Logger.Log(FunctionId.SemanticClassifier_ExceptionInCacheRead);
+                return false;
+            }
+
         }
     }
 }
