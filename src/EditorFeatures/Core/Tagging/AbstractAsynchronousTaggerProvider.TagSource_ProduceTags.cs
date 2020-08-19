@@ -59,16 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             {
-                //var result = Interlocked.CompareExchange(ref _seenEventSourceChanged, value: 1, comparand: 0);
-                //if (result == 0)
-                //{
-                //    // this is the first time we're hearing about changes from our event-source.
-                //    // Don't have any delay here.  We want to just compute the tags and display
-                //    // them as soon as we possibly can.
-                //    ComputeInitialTags();
-                //}
-                //else
-                //{
                 // First, cancel any previous requests (either still queued, or started).  We no longer
                 // want to continue it if new changes have come in.
                 _workQueue.CancelCurrentWork();
@@ -76,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     () => RecomputeTagsForeground(initialTags: false),
                     (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
                     GetCancellationToken(initialTags: false));
-                //}
             }
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
