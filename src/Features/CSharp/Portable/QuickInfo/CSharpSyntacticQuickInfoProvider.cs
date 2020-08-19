@@ -23,13 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
     internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
     {
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpSyntacticQuickInfoProvider(IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public CSharpSyntacticQuickInfoProvider()
         {
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -37,29 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var pragmaWarningDiagnosticId = token.Parent switch
-            {
-                PragmaWarningDirectiveTriviaSyntax pragmaWarning => pragmaWarning.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax,
-                IdentifierNameSyntax identifier when identifier.Parent is PragmaWarningDirectiveTriviaSyntax => identifier,
-                _ => null,
-            };
-            if (pragmaWarningDiagnosticId != null)
-            {
-                var diagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(document.Project.Solution.Workspace, document.Project.Id, document.Id,
-                    includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                var findDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
-                if (findDiagnostic != null)
-                {
-                    return QuickInfoItem.Create(pragmaWarningDiagnosticId.Span, sections: new[]
-                        {
-                            QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
-                            {
-                                new TaggedText(TextTags.Text, findDiagnostic.Message)
-                            }.ToImmutableArray())
-                        }.ToImmutableArray(), relatedSpans: new[] { findDiagnostic.GetTextSpan() }.ToImmutableArray());
-                }
-            }
             if (token.Kind() != SyntaxKind.CloseBraceToken)
             {
                 return null;
