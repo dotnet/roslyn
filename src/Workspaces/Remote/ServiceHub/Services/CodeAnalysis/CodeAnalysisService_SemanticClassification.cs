@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -14,10 +13,8 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteSemanticClassificationService
     {
         public Task<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo,
-            DocumentId documentId,
-            TextSpan span,
-            CancellationToken cancellationToken)
+            PinnedSolutionInfo solutionInfo, DocumentId documentId,
+            TextSpan span, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
