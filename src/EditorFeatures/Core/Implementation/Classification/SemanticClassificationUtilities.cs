@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             _threadingContext = threadingContext;
 
-            // Every second process the documents we were asked to classify and store their latest classifications to
+            // Every second, process the documents we were asked to classify and store their latest classifications to
             // disk. That way we can classify those quickly the next time VS loads (but hasn't fully loaded projects).
             //
             // We dedupe the queue based on docId so that we only persist the last version of a document we were asked
