@@ -25,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     Dim methodName = "NewMethod"
-                    Dim containingScope = CType(VBSelectionResult.GetContainingScope(), SyntaxNode)
+                    Dim containingScope = VBSelectionResult.GetContainingScope()
 
                     methodName = GetMethodNameBasedOnExpression(methodName, containingScope)
 
-                    Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
+                    Dim semanticModel = SemanticDocument.SemanticModel
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
                     Return SyntaxFactory.Identifier(
                         nameGenerator.CreateUniqueMethodName(containingScope, methodName))

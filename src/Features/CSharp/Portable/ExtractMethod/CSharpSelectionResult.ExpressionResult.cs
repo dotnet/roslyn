@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -44,9 +45,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var firstToken = GetFirstTokenInSelection();
                 var lastToken = GetLastTokenInSelection();
                 var scope = firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
-                return scope.IsRightSideOfDotOrArrowOrColonColon()
-                    ? scope.Parent
-                    : scope;
+                if (scope == null)
+                    return null;
+
+                // If the selection ends up mapping to the name on the right in `x.y` or `x?.y`, then grab
+                // the full expr `x.y` or `x?.y` as the part to extract.
+
+                if (scope.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == scope)
+                    scope = (ExpressionSyntax)scope.Parent;
+
+                if (scope.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.Name == scope)
+                    scope = (ExpressionSyntax)scope.Parent;
+
+                if (scope is MemberBindingExpressionSyntax || scope is ElementBindingExpressionSyntax)
+                    scope = scope.GetParentConditionalAccessExpression();
+
+                return scope;
             }
 
             public override ITypeSymbol? GetContainingScopeType()

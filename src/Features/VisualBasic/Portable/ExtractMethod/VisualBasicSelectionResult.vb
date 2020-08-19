@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -94,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End If
 
-            Dim node = CType(Me.GetContainingScope(), SyntaxNode)
+            Dim node = Me.GetContainingScope()
             If TypeOf node Is MethodBlockBaseSyntax Then
                 Dim methodBlock = DirectCast(node, MethodBlockBaseSyntax)
                 If methodBlock.BlockStatement IsNot Nothing Then
@@ -120,18 +121,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             If SelectionInExpression Then
                 Dim last = GetLastTokenInSelection()
 
-                Dim expression = first.GetCommonRoot(last).GetAncestorOrThis(Of ExpressionSyntax)()
-                Return If(expression.IsRightSideOfDotOrBang(),
-                          expression.Parent,
-                          expression)
-            End If
+                Dim scope = first.GetCommonRoot(last).GetAncestorOrThis(Of ExpressionSyntax)()
+                Contract.ThrowIfNull(scope, "Should always find an expression given that SelectionInExpression was true")
 
-            ' it contains statements
-            Return first.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) TypeOf n Is MethodBlockBaseSyntax OrElse TypeOf n Is LambdaExpressionSyntax)
+                ' If the selection ends up mapping to the name on the right in `x.y` Or `x?.y`, then grab
+                ' the full expr `x.y` Or `x?.y` as the part to extract.
+                Dim memberAccess = TryCast(scope.Parent, MemberAccessExpressionSyntax)
+                If memberAccess?.Name Is scope Then
+                    If memberAccess.Expression Is Nothing Then
+                        ' .y      or
+                        ' x?.y
+                        scope = If(memberAccess.GetParentConditionalAccessExpression(), DirectCast(memberAccess, ExpressionSyntax))
+                    End If
+                End If
+
+                Dim invocation = TryCast(scope, InvocationExpressionSyntax)
+                If invocation IsNot Nothing AndAlso invocation.Expression Is Nothing Then
+                    ' x?(y)
+                    scope = invocation.GetParentConditionalAccessExpression()
+                End If
+
+                Return scope
+            Else
+                ' it contains statements
+                Return first.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) TypeOf n Is MethodBlockBaseSyntax OrElse TypeOf n Is LambdaExpressionSyntax)
+            End If
         End Function
 
         Public Overrides Function GetContainingScopeType() As ITypeSymbol
-            Dim node = CType(Me.GetContainingScope(), SyntaxNode)
+            Dim node = Me.GetContainingScope()
             Dim semanticModel = Me.SemanticDocument.SemanticModel
 
             ' special case for collection initializer and explicit cast
@@ -289,11 +307,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             ' Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement))
             ' Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit))
             ' Return last.Parent.Parent
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Public Function IsUnderModuleBlock() As Boolean
-            Dim currentScope = CType(GetContainingScope(), SyntaxNode)
+            Dim currentScope = GetContainingScope()
             Dim types = currentScope.GetAncestors(Of TypeBlockSyntax)()
 
             Return types.Any(Function(t) t.BlockStatement.Kind = SyntaxKind.ModuleStatement)
