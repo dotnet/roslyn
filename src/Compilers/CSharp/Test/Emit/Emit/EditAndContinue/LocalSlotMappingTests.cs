@@ -4516,9 +4516,9 @@ class C
     }
 }
 ";
-            var source0 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
-            var source1 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
-            var source2 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source0 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            var source1 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            var source2 = MarkedSource(sourceText, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
 
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true));
 

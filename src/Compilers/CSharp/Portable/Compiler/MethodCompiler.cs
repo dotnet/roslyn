@@ -1084,32 +1084,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
                 {
-                    Lazy<SemanticModel> lazySemanticModel = null;
-
-                    if (body != null)
+                    // If compilation has a caching semantic model provider, then cache the already-computed bound tree
+                    // onto the semantic model and store it on the event.
+                    SyntaxTreeSemanticModel semanticModelWithCachedBoundNodes = null;
+                    if (body != null &&
+                        forSemanticModel.Syntax is { } semanticModelSyntax &&
+                        _compilation.SemanticModelProvider is CachingSemanticModelProvider cachingSemanticModelProvider)
                     {
-                        lazySemanticModel = new Lazy<SemanticModel>(() =>
-                        {
-                            var syntax = body.Syntax;
-                            var semanticModel = (SyntaxTreeSemanticModel)_compilation.GetSemanticModel(syntax.SyntaxTree);
-
-                            if (forSemanticModel.Syntax is { } semanticModelSyntax)
-                            {
-                                semanticModel.GetOrAddModel(semanticModelSyntax,
-                                                            (rootSyntax) =>
-                                                            {
-                                                                Debug.Assert(rootSyntax == forSemanticModel.Syntax);
-                                                                return MethodBodySemanticModel.Create(semanticModel,
-                                                                                                      methodSymbol,
-                                                                                                      forSemanticModel);
-                                                            });
-                            }
-
-                            return semanticModel;
-                        });
+                        var syntax = body.Syntax;
+                        semanticModelWithCachedBoundNodes = (SyntaxTreeSemanticModel)cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, _compilation);
+                        semanticModelWithCachedBoundNodes.GetOrAddModel(semanticModelSyntax,
+                                                    (rootSyntax) =>
+                                                    {
+                                                        Debug.Assert(rootSyntax == forSemanticModel.Syntax);
+                                                        return MethodBodySemanticModel.Create(semanticModelWithCachedBoundNodes,
+                                                                                              methodSymbol,
+                                                                                              forSemanticModel);
+                                                    });
                     }
 
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), lazySemanticModel));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
                 }
 
                 // Don't lower if we're not emitting or if there were errors.
