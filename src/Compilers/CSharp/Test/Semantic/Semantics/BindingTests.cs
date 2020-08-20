@@ -2163,7 +2163,7 @@ class C<T> : System.Attribute { }";
                 // (3,20): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),
-                // (3,20): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                // (3,20): error CS0751: A partial method must be declared within a partial type
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
                 // (3,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
@@ -2821,7 +2821,7 @@ public static class LazyToStringExtension
             .Select(x => x.GetValue(obj))
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(sourceText, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40(sourceText, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (12,42): error CS1002: ; expected
                 //             .Select(x => x.GetValue(obj))
@@ -2972,7 +2972,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -3052,7 +3052,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -3210,7 +3210,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'

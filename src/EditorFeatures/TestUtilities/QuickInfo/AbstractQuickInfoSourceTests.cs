@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
     public abstract class AbstractQuickInfoSourceTests
     {
         [System.Diagnostics.DebuggerStepThrough]
-        protected string ExpectedContent(params string[] expectedContent)
+        protected static string ExpectedContent(params string[] expectedContent)
             => expectedContent.Join("\r\n");
 
-        protected string FormatCodeWithDocComments(params string[] code)
+        protected static string FormatCodeWithDocComments(params string[] code)
         {
             var formattedCode = code.Join("\r\n");
             return string.Concat(System.Environment.NewLine, formattedCode);
@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         protected abstract Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
-            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null);

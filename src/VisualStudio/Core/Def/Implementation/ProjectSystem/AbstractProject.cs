@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
@@ -27,18 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         internal const string ProjectGuidPropertyName = "ProjectGuid";
 
-        internal static object RuleSetErrorId = new object();
-
         private string _displayName;
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
-
-        private readonly DiagnosticDescriptor _errorReadingRulesetRule = new DiagnosticDescriptor(
-            id: IDEDiagnosticIds.ErrorReadingRulesetId,
-            title: ServicesVSResources.ErrorReadingRuleset,
-            messageFormat: ServicesVSResources.Error_reading_ruleset_file_0_1,
-            category: FeaturesResources.Roslyn_HostError,
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
 
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
@@ -48,10 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVsHierarchy hierarchy,
             string language,
             Guid projectGuid,
-            IServiceProvider serviceProviderNotUsed, // not used, but left for compat with TypeScript
+#pragma warning disable IDE0060 // Remove unused parameter - not used, but left for compat with TypeScript
+            IServiceProvider serviceProviderNotUsed,
+#pragma warning restore IDE0060 // Remove unused parameter
             VisualStudioWorkspaceImpl workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+#pragma warning disable IDE0060 // Remove unused parameter - not used, but left for compat
             ICommandLineParserService commandLineParserServiceOpt = null)
+#pragma warning restore IDE0060 // Remove unused parameter
             : base(projectTracker.ThreadingContext)
         {
             Hierarchy = hierarchy;

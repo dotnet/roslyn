@@ -273,5 +273,44 @@ class C
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref int x = ref $$"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M<T>() where T : $$
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint_InOverride()
+        {
+            await VerifyKeywordAsync(
+@"class C : Base
+{
+    public override void M<T>() where T : $$
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint_InExplicitInterfaceImplementation()
+        {
+            await VerifyKeywordAsync(
+@"class C : I
+{
+    public void I.M<T>() where T : $$
+    {
+    }
+}");
+        }
     }
 }

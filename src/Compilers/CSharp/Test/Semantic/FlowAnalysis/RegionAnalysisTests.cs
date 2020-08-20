@@ -5,7 +5,9 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -5119,6 +5121,130 @@ class c1
             Assert.Equal(1, flowAnalysis.VariablesDeclared.Count());
         }
 
+        [Fact]
+        public void StaticLambda_01()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Action fn = static () => Console.Write(x);
+        fn();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,48): error CS8820: A static anonymous function cannot contain a reference to 'x'.
+                //         Action fn = static () => Console.Write(x);
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(9, 48)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var node = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(node);
+
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(flowAnalysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void StaticLambda_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        Action fn = static () =>
+        {
+            int y = x;
+            x = 43;
+            Console.Write(y);
+        };
+        fn();
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS8820: A static anonymous function cannot contain a reference to 'x'.
+                //             int y = x;
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(11, 21),
+                // (12,13): error CS8820: A static anonymous function cannot contain a reference to 'x'.
+                //             x = 43;
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(12, 13)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var node = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(node);
+
+            Assert.Equal("x, y", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+            Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void StaticLambda_03()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    public static int x = 42;
+    static void Main()
+    {
+        Action fn = static () =>
+        {
+            int y = x;
+            x = 43;
+            Console.Write(y);
+        };
+        fn();
+    }
+}
+";
+            verify(source);
+            verify(source.Replace("static (", "("));
+
+            void verify(string source)
+            {
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "42");
+                verifier.VerifyDiagnostics();
+
+                var comp = verifier.Compilation;
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+
+                var root = tree.GetRoot();
+                var node = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+                var flowAnalysis = model.AnalyzeDataFlow(node);
+
+                Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+                Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+                Assert.Equal("y", GetSymbolNamesJoined(flowAnalysis.VariablesDeclared));
+            }
+        }
+
         #endregion
 
         #region "query expressions"
@@ -7478,6 +7604,49 @@ class A
                 Assert.Equal("j", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
                 Assert.Equal("p, i, k", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
             }
+        }
+
+        [Fact]
+        public void TestAddressOfUnassignedStructLocal_02()
+        {
+            // This test demonstrates that "data flow analysis" pays attention to private fields
+            // of structs imported from metadata.
+            var libSource = @"
+public struct Struct
+{
+    private string Field;
+}";
+
+            var libraryReference = CreateCompilation(libSource).EmitToImageReference();
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class Program
+{
+    static void Main()
+    {
+        Struct x; // considered not definitely assigned because it has a field
+
+        Struct * px = /*<bind>*/&x/*</bind>*/; // address taken of an unassigned variable
+    }
+}
+", libraryReference);
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
         #endregion

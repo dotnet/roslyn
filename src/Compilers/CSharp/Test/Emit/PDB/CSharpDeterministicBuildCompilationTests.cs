@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 syntaxTrees,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
                 options: compilationOptions,
-                // TFM needs to specified so the references are always the same, and not 
-                // dependent on the testrun environment 
+                // TFM needs to specified so the references are always the same, and not
+                // dependent on the testrun environment
                 targetFramework: TargetFramework.NetCoreApp30);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
@@ -215,7 +215,7 @@ public struct StructWithValue
             // Provide non default options for to test that they are being serialized
             // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
             // everything should be non-default if possible. Diagnostic settings are ignored
-            // because they won't be serialized. 
+            // because they won't be serialized.
 
             // Use constructor that requires all arguments. If new arguments are added, it's possible they need to be
             // included in the pdb serialization and added to tests here
@@ -243,6 +243,7 @@ public struct StructWithValue
                 debugPlusMode: false,
                 xmlReferenceResolver: null,
                 sourceReferenceResolver: null,
+                syntaxTreeOptionsProvider: null,
                 metadataReferenceResolver: null,
                 assemblyIdentityComparer: null,
                 strongNameProvider: null,
@@ -271,6 +272,7 @@ public struct StructWithValue
                 kind: SourceCodeKind.Regular);
 
             yield return parseOptions;
+            yield return parseOptions.WithLanguageVersion(LanguageVersion.CSharp9);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Latest);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Preview);
         }

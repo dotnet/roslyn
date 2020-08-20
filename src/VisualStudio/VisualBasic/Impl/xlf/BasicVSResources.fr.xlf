@@ -32,6 +32,11 @@
         <target state="translated">Jamais</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_IsNot_expression">
+        <source>Prefer 'IsNot' expression</source>
+        <target state="new">Prefer 'IsNot' expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Préférer 'Is Nothing' pour les vérifications d'égalité de référence</target>
@@ -89,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="needs-review-translation">_Générer des commentaires de documentation XML pour '''</target>
+        <target state="translated">_Générer des commentaires de documentation XML pour '''</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Highlighting">

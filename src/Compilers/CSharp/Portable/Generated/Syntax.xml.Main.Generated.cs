@@ -55,6 +55,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a FunctionPointerParameterListSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerCallingConventionSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionListSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
@@ -671,6 +687,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
@@ -742,6 +762,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ParameterSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerParameterSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
         [return: MaybeNull]
@@ -947,6 +971,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a FunctionPointerTypeSyntax node.</summary>
         public virtual void VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerParameterListSyntax node.</summary>
+        public virtual void VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerCallingConventionSyntax node.</summary>
+        public virtual void VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionListSyntax node.</summary>
+        public virtual void VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntax node.</summary>
+        public virtual void VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
         public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
@@ -1410,6 +1446,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a TypeConstraintSyntax node.</summary>
         public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
+        public virtual void VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
         public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
@@ -1463,6 +1502,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a ParameterSyntax node.</summary>
         public virtual void VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerParameterSyntax node.</summary>
+        public virtual void VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
         public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
@@ -1624,7 +1666,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.AsteriskToken));
 
         public override SyntaxNode? VisitFunctionPointerType(FunctionPointerTypeSyntax node)
-            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), VisitToken(node.CallingConvention), VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
+            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), (FunctionPointerCallingConventionSyntax?)Visit(node.CallingConvention), (FunctionPointerParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"));
+
+        public override SyntaxNode? VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node)
+            => node.Update(VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
+
+        public override SyntaxNode? VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node)
+            => node.Update(VisitToken(node.ManagedOrUnmanagedKeyword), (FunctionPointerUnmanagedCallingConventionListSyntax?)Visit(node.UnmanagedCallingConventionList));
+
+        public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node)
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.CallingConventions), VisitToken(node.CloseBracketToken));
+
+        public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node)
+            => node.Update(VisitToken(node.Name));
 
         public override SyntaxNode? VisitNullableType(NullableTypeSyntax node)
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.QuestionToken));
@@ -1738,16 +1792,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
         public override SyntaxNode? VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), VisitToken(node.DelegateKeyword), (ParameterListSyntax?)Visit(node.ParameterList), (BlockSyntax?)Visit(node.Block) ?? throw new ArgumentNullException("block"), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), VisitToken(node.DelegateKeyword), (ParameterListSyntax?)Visit(node.ParameterList), (BlockSyntax?)Visit(node.Block) ?? throw new ArgumentNullException("block"), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), (ParameterSyntax?)Visit(node.Parameter) ?? throw new ArgumentNullException("parameter"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), (ParameterSyntax?)Visit(node.Parameter) ?? throw new ArgumentNullException("parameter"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitRefExpression(RefExpressionSyntax node)
             => node.Update(VisitToken(node.RefKeyword), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
         public override SyntaxNode? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Expressions), VisitToken(node.CloseBraceToken));
@@ -2088,6 +2142,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitTypeConstraint(TypeConstraintSyntax node)
             => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
+        public override SyntaxNode? VisitDefaultConstraint(DefaultConstraintSyntax node)
+            => node.Update(VisitToken(node.DefaultKeyword));
+
         public override SyntaxNode? VisitFieldDeclaration(FieldDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax?)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.SemicolonToken));
 
@@ -2141,6 +2198,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitParameter(ParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.Default));
+
+        public override SyntaxNode? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
         public override SyntaxNode? VisitIncompleteMember(IncompleteMemberSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type));
@@ -2406,22 +2466,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.PointerType(elementType, SyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken callingConvention, SyntaxToken lessThanToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
-            if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)callingConvention.Node, (Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+            if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
+            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterListSyntax)parameterList.Green).CreateRed();
         }
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken callingConvention, SeparatedSyntaxList<ParameterSyntax> parameters)
-            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+        public static FunctionPointerTypeSyntax FunctionPointerType(FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, parameterList);
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SeparatedSyntaxList<ParameterSyntax> parameters = default)
-            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default, SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+        public static FunctionPointerTypeSyntax FunctionPointerType()
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default, SyntaxFactory.FunctionPointerParameterList());
+
+        /// <summary>Creates a new FunctionPointerParameterListSyntax instance.</summary>
+        public static FunctionPointerParameterListSyntax FunctionPointerParameterList(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+            if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            return (FunctionPointerParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerParameterListSyntax instance.</summary>
+        public static FunctionPointerParameterListSyntax FunctionPointerParameterList(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters = default)
+            => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+        /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
+        {
+            switch (managedOrUnmanagedKeyword.Kind())
+            {
+                case SyntaxKind.ManagedKeyword:
+                case SyntaxKind.UnmanagedKeyword: break;
+                default: throw new ArgumentException(nameof(managedOrUnmanagedKeyword));
+            }
+            return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedOrUnmanagedKeyword.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)unmanagedCallingConventionList.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedOrUnmanagedKeyword)
+            => SyntaxFactory.FunctionPointerCallingConvention(managedOrUnmanagedKeyword, default);
+
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionListSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionListSyntax FunctionPointerUnmanagedCallingConventionList(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            return (FunctionPointerUnmanagedCallingConventionListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConventionList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, callingConventions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionListSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionListSyntax FunctionPointerUnmanagedCallingConventionList(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions = default)
+            => SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), callingConventions, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)
+        {
+            if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
+            return (FunctionPointerUnmanagedCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConvention((Syntax.InternalSyntax.SyntaxToken)name.Node!).CreateRed();
+        }
 
         /// <summary>Creates a new NullableTypeSyntax instance.</summary>
         public static NullableTypeSyntax NullableType(TypeSyntax elementType, SyntaxToken questionToken)
@@ -3171,40 +3277,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.CastExpression(SyntaxFactory.Token(SyntaxKind.OpenParenToken), type, SyntaxFactory.Token(SyntaxKind.CloseParenToken), expression);
 
         /// <summary>Creates a new AnonymousMethodExpressionSyntax instance.</summary>
-        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxTokenList modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
-            switch (asyncKeyword.Kind())
-            {
-                case SyntaxKind.AsyncKeyword:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(asyncKeyword));
-            }
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
-            return (AnonymousMethodExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression((Syntax.InternalSyntax.SyntaxToken?)asyncKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (AnonymousMethodExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxTokenList modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            switch (asyncKeyword.Kind())
-            {
-                case SyntaxKind.AsyncKeyword:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(asyncKeyword));
-            }
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression((Syntax.InternalSyntax.SyntaxToken?)asyncKeyword.Node, (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, BlockSyntax? block, ExpressionSyntax? expressionBody)
-            => SyntaxFactory.SimpleLambdaExpression(default, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxTokenList modifiers, ParameterSyntax parameter, BlockSyntax? block, ExpressionSyntax? expressionBody)
+            => SyntaxFactory.SimpleLambdaExpression(modifiers, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
 
         /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
         public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter)
-            => SyntaxFactory.SimpleLambdaExpression(default, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
+            => SyntaxFactory.SimpleLambdaExpression(default(SyntaxTokenList), parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
 
         /// <summary>Creates a new RefExpressionSyntax instance.</summary>
         public static RefExpressionSyntax RefExpression(SyntaxToken refKeyword, ExpressionSyntax expression)
@@ -3219,26 +3313,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.RefExpression(SyntaxFactory.Token(SyntaxKind.RefKeyword), expression);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            switch (asyncKeyword.Kind())
-            {
-                case SyntaxKind.AsyncKeyword:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(asyncKeyword));
-            }
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression((Syntax.InternalSyntax.SyntaxToken?)asyncKeyword.Node, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
-            => SyntaxFactory.ParenthesizedLambdaExpression(default, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxTokenList modifiers, ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
+            => SyntaxFactory.ParenthesizedLambdaExpression(modifiers, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
         public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression()
-            => SyntaxFactory.ParenthesizedLambdaExpression(default, SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
+            => SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxTokenList), SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
 
         /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -5149,6 +5237,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (TypeConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeConstraint((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
+        /// <summary>Creates a new DefaultConstraintSyntax instance.</summary>
+        public static DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
+        {
+            if (defaultKeyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+            return (DefaultConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultConstraint((Syntax.InternalSyntax.SyntaxToken)defaultKeyword.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new DefaultConstraintSyntax instance.</summary>
+        public static DefaultConstraintSyntax DefaultConstraint()
+            => SyntaxFactory.DefaultConstraint(SyntaxFactory.Token(SyntaxKind.DefaultKeyword));
+
         /// <summary>Creates a new FieldDeclarationSyntax instance.</summary>
         public static FieldDeclarationSyntax FieldDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
@@ -5576,6 +5675,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new ParameterSyntax instance.</summary>
         public static ParameterSyntax Parameter(SyntaxToken identifier)
             => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default);
+
+        /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
+        public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            return (FunctionPointerParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
+        public static FunctionPointerParameterSyntax FunctionPointerParameter(TypeSyntax type)
+            => SyntaxFactory.FunctionPointerParameter(default, default(SyntaxTokenList), type);
 
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
         public static IncompleteMemberSyntax IncompleteMember(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)

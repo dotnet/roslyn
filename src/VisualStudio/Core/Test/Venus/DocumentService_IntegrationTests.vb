@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -35,6 +36,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
     <UseExportProvider>
     Public Class DocumentService_IntegrationTests
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
             Dim input =
@@ -55,12 +60,11 @@ class {|Definition:C1|}
     </Project>
 </Workspace>
 
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
-                .WithParts(GetType(MockServiceProvider))) _
-                .CreateExportProvider()
+            ' TODO: Use VisualStudioTestComposition or move the feature down to EditorFeatures and avoid dependency on IServiceProvider.
+            ' https://github.com/dotnet/roslyn/issues/46279
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(MockServiceProvider))
 
-            Using workspace = TestWorkspace.Create(input, exportProvider:=exportProvider, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
                 Dim context = presenter.StartSearch("test", supportsReferences:=True)
@@ -210,7 +214,7 @@ class { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, documentServiceProvider:=TestDocumentServiceProvider.Instance)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -221,7 +225,8 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
                 ' confirm diagnostic support is off for the document
                 Assert.False(document.SupportsDiagnostics())

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private partial class IncrementalAnalyzerProcessor
             {
@@ -237,13 +237,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private async Task ProcessDocumentAnalyzersAsync(
-                    Document document, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    TextDocument textDocument, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process all analyzers for each categories in this order - syntax, body, document
                     var reasons = workItem.InvocationReasons;
                     if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                     {
-                        await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, textDocument, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
+                    }
+
+                    if (!(textDocument is Document document))
+                    {
+                        // Semantic analysis is not supported for non-source documents.
+                        return;
                     }
 
                     if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SemanticChanged))
@@ -254,6 +260,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         // if we don't need to re-analyze whole body, see whether we need to at least re-analyze one method.
                         await RunBodyAnalyzersAsync(analyzers, workItem, document, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    return;
+
+                    static async Task AnalyzeSyntaxAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                    {
+                        if (textDocument is Document document)
+                        {
+                            await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
+                        }
+                        else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                        {
+                            await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
 
@@ -387,18 +407,33 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return false;
                 }
 
-                internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                internal TestAccessor GetTestAccessor()
                 {
-                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
-
-                    var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
-                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
+                    return new TestAccessor(this);
                 }
 
-                internal void WaitUntilCompletion_ForTestingPurposesOnly()
+                internal readonly struct TestAccessor
                 {
-                    _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
-                    _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+                    private readonly IncrementalAnalyzerProcessor _incrementalAnalyzerProcessor;
+
+                    internal TestAccessor(IncrementalAnalyzerProcessor incrementalAnalyzerProcessor)
+                    {
+                        _incrementalAnalyzerProcessor = incrementalAnalyzerProcessor;
+                    }
+
+                    internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    {
+                        _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
+
+                        var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
+                        _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
+                    }
+
+                    internal void WaitUntilCompletion()
+                    {
+                        _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
+                        _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion();
+                    }
                 }
 
                 private class NullDisposable : IDisposable

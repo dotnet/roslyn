@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveFormsAndWpf : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

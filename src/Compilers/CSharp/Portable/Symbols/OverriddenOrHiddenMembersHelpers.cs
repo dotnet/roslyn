@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // the small benefit of getting identical answers from "imported" symbols, regardless of whether they
             // are imported as source or metadata symbols.
             //
-            // ACASEY: As of 2013/01/24, we are not aware of any cases where the source and metadata behaviors
-            // disagree *in code that can be emitted*.  (If there are any, they are likely to involved ambiguous
-            // overrides, which typically arise through combinations of ref/out and generics.)  In incorrect code,
+            // We believe that source and metadata behaviors agree for correct code, modulo accomodations for
+            // runtime bugs (such as https://github.com/dotnet/roslyn/issues/45453) on older platforms.
+            // In incorrect code,
             // the source behavior is somewhat more generous (e.g. accepting a method with the wrong return type),
             // but we do not guarantee that incorrect source will be treated in the same way as incorrect metadata.
             bool memberIsFromSomeCompilation = member.Dangerous_IsFromSomeCompilation;
@@ -129,8 +129,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return MakeInterfaceOverriddenOrHiddenMembers(member, memberIsFromSomeCompilation);
             }
 
+            ArrayBuilder<Symbol> hiddenBuilder;
+            ImmutableArray<Symbol> overriddenMembers;
+            FindOverriddenOrHiddenMembers(member, containingType, memberIsFromSomeCompilation, out hiddenBuilder, out overriddenMembers);
+
+            ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
+            return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers);
+        }
+
+        private static void FindOverriddenOrHiddenMembers(Symbol member, NamedTypeSymbol containingType, bool memberIsFromSomeCompilation,
+            out ArrayBuilder<Symbol> hiddenBuilder,
+            out ImmutableArray<Symbol> overriddenMembers)
+        {
             Symbol bestMatch = null;
-            ArrayBuilder<Symbol> hiddenBuilder = null;
+            hiddenBuilder = null;
+
+            // A specific override exact match candidate, if one is known. This supports covariant returns, for which signature
+            // matching is not sufficient. This member is treated as being as good as an exact match.
+            Symbol knownOverriddenMember = member switch
+            {
+                MethodSymbol method => KnownOverriddenClassMethod(method),
+                PEPropertySymbol { GetMethod: PEMethodSymbol { ExplicitlyOverriddenClassMethod: { AssociatedSymbol: PropertySymbol overriddenProperty } } } => overriddenProperty,
+                RetargetingPropertySymbol { GetMethod: RetargetingMethodSymbol { ExplicitlyOverriddenClassMethod: { AssociatedSymbol: PropertySymbol overriddenProperty } } } => overriddenProperty,
+                _ => null
+            };
 
             for (NamedTypeSymbol currType = containingType.BaseTypeNoUseSiteDiagnostics;
                 (object)currType != null && (object)bestMatch == null && hiddenBuilder == null;
@@ -141,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     member,
                     memberIsFromSomeCompilation,
                     containingType,
+                    knownOverriddenMember,
                     currType,
                     out bestMatch,
                     out unused,
@@ -149,13 +172,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Based on bestMatch, find other methods that will be overridden, hidden, or runtime overridden
             // (in bestMatch.ContainingType).
-            ImmutableArray<Symbol> overriddenMembers;
-            ImmutableArray<Symbol> runtimeOverriddenMembers;
-            FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, bestMatch, out overriddenMembers, out runtimeOverriddenMembers, ref hiddenBuilder);
-
-            ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
-            return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
+            FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, bestMatch, out overriddenMembers, ref hiddenBuilder);
         }
+
+        public static Symbol FindFirstHiddenMemberIfAny(Symbol member, bool memberIsFromSomeCompilation)
+        {
+            ArrayBuilder<Symbol> hiddenBuilder;
+            FindOverriddenOrHiddenMembers(member, member.ContainingType, memberIsFromSomeCompilation, out hiddenBuilder,
+                overriddenMembers: out _);
+
+            Symbol result = hiddenBuilder?.FirstOrDefault();
+            hiddenBuilder?.Free();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Compute a candidate overridden method when a method knows what method it is intended to
+        /// override. This makes a particular difference when covariant returns are used, in which
+        /// case the signature matching rules would not compute the correct overridden method.
+        /// </summary>
+        private static MethodSymbol KnownOverriddenClassMethod(MethodSymbol method) =>
+            method switch
+            {
+                PEMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
+                RetargetingMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
+                _ => null
+            };
 
         /// <summary>
         /// In the CLI, accessors are just regular methods and their overriding/hiding rules are the same as for
@@ -236,18 +279,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // There's a detailed comment in MakeOverriddenOrHiddenMembersWorker(Symbol) concerning why this predicate is appropriate.
             bool accessorIsFromSomeCompilation = accessor.Dangerous_IsFromSomeCompilation;
             ImmutableArray<Symbol> overriddenAccessors = ImmutableArray<Symbol>.Empty;
-            ImmutableArray<Symbol> runtimeOverriddenAccessors = ImmutableArray<Symbol>.Empty;
             if ((object)overriddenAccessor != null && IsOverriddenSymbolAccessible(overriddenAccessor, accessor.ContainingType) &&
-                    (accessorIsFromSomeCompilation
-                        ? MemberSignatureComparer.CSharpAccessorOverrideComparer.Equals(accessor, overriddenAccessor) //NB: custom comparer
-                        : MemberSignatureComparer.RuntimeSignatureComparer.Equals(accessor, overriddenAccessor)))
+                isAccessorOverride(accessor, overriddenAccessor))
             {
                 FindRelatedMembers(
-                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor.Kind, overriddenAccessor, out overriddenAccessors, out runtimeOverriddenAccessors, ref hiddenBuilder);
+                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor.Kind, overriddenAccessor, out overriddenAccessors, ref hiddenBuilder);
             }
 
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
-            return OverriddenOrHiddenMembersResult.Create(overriddenAccessors, hiddenMembers, runtimeOverriddenAccessors);
+            return OverriddenOrHiddenMembersResult.Create(overriddenAccessors, hiddenMembers);
+
+            bool isAccessorOverride(MethodSymbol accessor, MethodSymbol overriddenAccessor)
+            {
+                if (accessorIsFromSomeCompilation)
+                {
+                    return MemberSignatureComparer.CSharpAccessorOverrideComparer.Equals(accessor, overriddenAccessor); //NB: custom comparer
+                }
+
+                if (overriddenAccessor.Equals(KnownOverriddenClassMethod(accessor), TypeCompareKind.AllIgnoreOptions))
+                {
+                    return true;
+                }
+
+                return MemberSignatureComparer.RuntimeSignatureComparer.Equals(accessor, overriddenAccessor);
+            }
         }
 
         /// <summary>
@@ -314,18 +369,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // There's a detailed comment in MakeOverriddenOrHiddenMembersWorker(Symbol) concerning why this predicate is appropriate.
             bool accessorIsFromSomeCompilation = accessor.Dangerous_IsFromSomeCompilation;
             ImmutableArray<Symbol> overriddenAccessors = ImmutableArray<Symbol>.Empty;
-            ImmutableArray<Symbol> runtimeOverriddenAccessors = ImmutableArray<Symbol>.Empty;
             if ((object)overriddenAccessor != null && IsOverriddenSymbolAccessible(overriddenAccessor, accessor.ContainingType) &&
                     (accessorIsFromSomeCompilation
                         ? MemberSignatureComparer.CSharpAccessorOverrideComparer.Equals(accessor, overriddenAccessor) //NB: custom comparer
                         : MemberSignatureComparer.RuntimeSignatureComparer.Equals(accessor, overriddenAccessor)))
             {
                 FindRelatedMembers(
-                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor.Kind, overriddenAccessor, out overriddenAccessors, out runtimeOverriddenAccessors, ref hiddenBuilder);
+                    accessor.IsOverride, accessorIsFromSomeCompilation, accessor.Kind, overriddenAccessor, out overriddenAccessors, ref hiddenBuilder);
             }
 
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
-            return OverriddenOrHiddenMembersResult.Create(overriddenAccessors, hiddenMembers, runtimeOverriddenAccessors);
+            return OverriddenOrHiddenMembersResult.Create(overriddenAccessors, hiddenMembers);
         }
 
         /// <summary>
@@ -377,6 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     member,
                     memberIsFromSomeCompilation,
                     containingType,
+                    knownOverriddenMember: null,
                     currType,
                     out currTypeBestMatch,
                     out currTypeHasSameKindNonMatch,
@@ -433,16 +488,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Based on bestMatch, find other methods that will be overridden, hidden, or runtime overridden
             // (in bestMatch.ContainingType).
             ImmutableArray<Symbol> overriddenMembers = ImmutableArray<Symbol>.Empty;
-            ImmutableArray<Symbol> runtimeOverriddenMembers = ImmutableArray<Symbol>.Empty;
 
             if (hiddenBuilder != null)
             {
                 ArrayBuilder<Symbol> hiddenAndRelatedBuilder = null;
                 foreach (Symbol hidden in hiddenBuilder)
                 {
-                    FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, hidden, out overriddenMembers, out runtimeOverriddenMembers, ref hiddenAndRelatedBuilder);
+                    FindRelatedMembers(member.IsOverride, memberIsFromSomeCompilation, member.Kind, hidden, out overriddenMembers, ref hiddenAndRelatedBuilder);
                     Debug.Assert(overriddenMembers.Length == 0);
-                    Debug.Assert(runtimeOverriddenMembers.Length == 0);
                 }
                 hiddenBuilder.Free();
                 hiddenBuilder = hiddenAndRelatedBuilder;
@@ -451,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(overriddenMembers.IsEmpty);
 
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
-            return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
+            return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers);
         }
 
         /// <summary>
@@ -460,6 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="member">Member that is hiding or overriding.</param>
         /// <param name="memberIsFromSomeCompilation">True if member is from the current compilation.</param>
         /// <param name="memberContainingType">The type that contains member (member.ContainingType).</param>
+        /// <param name="knownOverriddenMember">The known overridden member (e.g. in the presence of a metadata methodimpl).</param>
         /// <param name="currType">The type to search.</param>
         /// <param name="currTypeBestMatch">
         /// A member with the same signature if currTypeHasExactMatch is true,
@@ -477,6 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol member,
             bool memberIsFromSomeCompilation,
             NamedTypeSymbol memberContainingType,
+            Symbol knownOverriddenMember,
             NamedTypeSymbol currType,
             out Symbol currTypeBestMatch,
             out bool currTypeHasSameKindNonMatch,
@@ -540,27 +595,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         default:
-                            if (exactMatchComparer.Equals(member, otherMember))
+                            if (otherMember.Equals(knownOverriddenMember, TypeCompareKind.AllIgnoreOptions))
                             {
                                 currTypeHasExactMatch = true;
                                 currTypeBestMatch = otherMember;
                             }
-                            else if (fallbackComparer.Equals(member, otherMember))
+
+                            // We do not perform signature matching in the presence of a methodimpl
+                            else if (knownOverriddenMember == null)
                             {
-                                // If this method is from source, we'll also consider methods that match
-                                // without regard to custom modifiers.  If there's more than one, we'll
-                                // choose the one with the fewest custom modifiers.
-                                int methodCustomModifierCount = CustomModifierCount(otherMember);
-                                if (methodCustomModifierCount < minCustomModifierCount)
+                                if (exactMatchComparer.Equals(member, otherMember))
                                 {
-                                    Debug.Assert(memberIsFromSomeCompilation || minCustomModifierCount == int.MaxValue, "Metadata members require exact custom modifier matches.");
-                                    minCustomModifierCount = methodCustomModifierCount;
+                                    currTypeHasExactMatch = true;
                                     currTypeBestMatch = otherMember;
                                 }
-                            }
-                            else
-                            {
-                                currTypeHasSameKindNonMatch = true;
+                                else if (fallbackComparer.Equals(member, otherMember))
+                                {
+                                    // If this method is from source, we'll also consider methods that match
+                                    // without regard to custom modifiers.  If there's more than one, we'll
+                                    // choose the one with the fewest custom modifiers.
+                                    int methodCustomModifierCount = CustomModifierCount(otherMember);
+                                    if (methodCustomModifierCount < minCustomModifierCount)
+                                    {
+                                        Debug.Assert(memberIsFromSomeCompilation || minCustomModifierCount == int.MaxValue, "Metadata members require exact custom modifier matches.");
+                                        minCustomModifierCount = methodCustomModifierCount;
+                                        currTypeBestMatch = otherMember;
+                                    }
+                                }
+                                else
+                                {
+                                    currTypeHasSameKindNonMatch = true;
+                                }
                             }
 
                             break;
@@ -640,11 +705,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SymbolKind overridingMemberKind,
             Symbol representativeMember,
             out ImmutableArray<Symbol> overriddenMembers,
-            out ImmutableArray<Symbol> runtimeOverriddenMembers,
             ref ArrayBuilder<Symbol> hiddenBuilder)
         {
             overriddenMembers = ImmutableArray<Symbol>.Empty;
-            runtimeOverriddenMembers = ImmutableArray<Symbol>.Empty;
 
             if ((object)representativeMember != null)
             {
@@ -656,20 +719,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (needToSearchForRelated)
                     {
                         ArrayBuilder<Symbol> overriddenBuilder = ArrayBuilder<Symbol>.GetInstance();
-                        ArrayBuilder<Symbol> runtimeOverriddenBuilder = ArrayBuilder<Symbol>.GetInstance();
 
                         overriddenBuilder.Add(representativeMember);
-                        runtimeOverriddenBuilder.Add(representativeMember);
 
-                        FindOtherOverriddenMethodsInContainingType(representativeMember, overridingMemberIsFromSomeCompilation, overriddenBuilder, runtimeOverriddenBuilder);
+                        FindOtherOverriddenMethodsInContainingType(representativeMember, overridingMemberIsFromSomeCompilation, overriddenBuilder);
 
                         overriddenMembers = overriddenBuilder.ToImmutableAndFree();
-                        runtimeOverriddenMembers = runtimeOverriddenBuilder.ToImmutableAndFree();
                     }
                     else
                     {
                         overriddenMembers = ImmutableArray.Create<Symbol>(representativeMember);
-                        runtimeOverriddenMembers = overriddenMembers;
                     }
                 }
                 else
@@ -725,24 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the declaring type is constructed, it's possible that two (or more) members have the same signature
         /// (including custom modifiers).  Return a list of such members so that we can report the ambiguity.
         /// </param>
-        /// <param name="runtimeOverriddenBuilder">
-        /// If the declaring type is constructed, it's possible that two (or more) members have the same signature
-        /// (including custom modifiers) in metadata (no ref/out distinction).  Return a list of such members so
-        /// that we can report the ambiguity.
-        /// 
-        /// Even in a non-generic type, it's possible for two indexers to have the same signature.  For example,
-        /// this would be the case if the default member of a type is "get_Item" and indexers "A" and "B", 
-        /// with the same signature, both have an indexer called "get_Item".
-        /// 
-        /// From: SymbolPreparer.cpp
-        /// DevDiv Bugs 115384: Both out and ref parameters are implemented as references. In addition, out parameters are 
-        /// decorated with OutAttribute. In CLR when a signature is looked up in virtual dispatch, CLR does not distinguish
-        /// between these to parameter types. The choice is the last method in the vtable. Therefore we check and warn if 
-        /// there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no 
-        /// way of communicating to CLR which method is the overridden one. We only run into this problem when the 
-        /// parameters are generic.
-        /// </param>
-        private static void FindOtherOverriddenMethodsInContainingType(Symbol representativeMember, bool overridingMemberIsFromSomeCompilation, ArrayBuilder<Symbol> overriddenBuilder, ArrayBuilder<Symbol> runtimeOverriddenBuilder)
+        private static void FindOtherOverriddenMethodsInContainingType(Symbol representativeMember, bool overridingMemberIsFromSomeCompilation, ArrayBuilder<Symbol> overriddenBuilder)
         {
             Debug.Assert((object)representativeMember != null);
             Debug.Assert(representativeMember.Kind == SymbolKind.Property || !representativeMember.ContainingType.IsDefinition);
@@ -777,17 +819,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 overriddenBuilder.Add(otherMember);
                             }
-                        }
-
-                        // NOTE: We're actually being more precise than Dev10 - we consider the fact that the runtime will also distinguish
-                        // on the basis of return type.  For example, consider the following signatures:
-                        //      int Goo(ref int x)
-                        //      long Goo(out int x)
-                        // Dev10 will warn that these methods are runtime ambiguous, even though they aren't really (because they are
-                        // distinguished by their return types).
-                        if (MemberSignatureComparer.RuntimeSignatureComparer.Equals(otherMember, representativeMember))
-                        {
-                            runtimeOverriddenBuilder.Add(otherMember);
                         }
                     }
                 }
@@ -891,42 +922,101 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // CONSIDER: we could cache this on MethodSymbol
-        internal static bool RequiresExplicitOverride(this MethodSymbol method)
+        /// <summary>
+        /// Determine if this method requires a methodimpl table entry to inform the runtime of the override relationship.
+        /// </summary>
+        /// <param name="warnAmbiguous">True if we should produce an ambiguity warning per https://github.com/dotnet/roslyn/issues/45453 .</param>
+        internal static bool RequiresExplicitOverride(this MethodSymbol method, out bool warnAmbiguous)
         {
-            if (method.IsOverride)
+            warnAmbiguous = false;
+            if (!method.IsOverride)
+                return false;
+
+            MethodSymbol csharpOverriddenMethod = method.OverriddenMethod;
+            if (csharpOverriddenMethod is null)
+                return false;
+
+            MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(out bool wasAmbiguous);
+            if (csharpOverriddenMethod == runtimeOverriddenMethod && !wasAmbiguous)
+                return false;
+
+            // See https://github.com/dotnet/roslyn/issues/45453. No need to warn when the runtime
+            // supports covariant returns because any methodimpl we produce to identify the specific
+            // overridden method is unambiguously understood by the runtime.
+            if (method.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses)
+                return true;
+
+            // If the method was declared as a covariant return, there will be a compile-time error since the runtime
+            // does not support covariant returns. In this case we do not warn about runtime ambiguity and pretend that
+            // we can use a methodimpl (even though it is of a form not supported by the runtime and would result in a
+            // loader error) so that the symbol APIs produce the most useful result.
+            if (!method.ReturnType.Equals(csharpOverriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                return true;
+
+            // Due to https://github.com/dotnet/runtime/issues/38119 the methodimpl would
+            // appear to the runtime to be ambiguous in some cases.
+            bool methodimplWouldBeAmbiguous = csharpOverriddenMethod.MethodHasRuntimeCollision();
+            if (!methodimplWouldBeAmbiguous)
+                return true;
+
+            Debug.Assert(runtimeOverriddenMethod is { });
+
+            // We produce the warning when a methodimpl would be required but would be ambiguous to the runtime.
+            // However, if there was a duplicate definition for the runtime signature of the overridden
+            // method where it was originally declared, that would have been an error.  In that case we suppress
+            // the warning as a cascaded diagnostic.
+            bool originalOverriddenMethodWasAmbiguious =
+                csharpOverriddenMethod.IsDefinition || csharpOverriddenMethod.OriginalDefinition.MethodHasRuntimeCollision();
+            warnAmbiguous = !originalOverriddenMethodWasAmbiguious;
+
+            bool overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod =
+                csharpOverriddenMethod.ContainingType.Equals(runtimeOverriddenMethod.ContainingType, TypeCompareKind.CLRSignatureCompareOptions);
+
+            // If the overridden method is on a different (e.g. base) type compared to the runtime overridden
+            // method, then the runtime overridden method could not possibly resolve correctly to the overridden method.
+            // In this case we might as well produce a methodimpl. At least it has a chance of being correctly resolved
+            // by the runtime, where the runtime resolution without the methodimpl would definitely be wrong.
+            if (!overridenMethodContainedInSameTypeAsRuntimeOverriddenMethod)
+                return true;
+
+            // This is the historical test, preserved since the days of the native compiler in case it turns out to affect compatibility.
+            // However, this test cannot be true in a program free of errors.
+            return csharpOverriddenMethod != runtimeOverriddenMethod && method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
+        }
+
+        internal static bool MethodHasRuntimeCollision(this MethodSymbol method)
+        {
+            foreach (Symbol otherMethod in method.ContainingType.GetMembers(method.Name))
             {
-                MethodSymbol csharpOverriddenMethod = method.OverriddenMethod;
-                if ((object)csharpOverriddenMethod == null)
+                if (otherMethod != method && MemberSignatureComparer.RuntimeSignatureComparer.Equals(otherMethod, method))
                 {
-                    return false;
+                    return true;
                 }
-                // We can ignore newslot, since we checked IsOverride.
-                // We can ignore interface implementation changes since the method is already metadata virtual (since override).
-                // TODO: do we want to add more sophisticated handling for the case where there are multiple runtime-overridden methods?
-                MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
-                return csharpOverriddenMethod != runtimeOverriddenMethod &&
-                    method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
             }
 
             return false;
         }
 
         /// <summary>
-        /// Given a method, find a method that it overrides from the perspective of the CLI.
+        /// Given a method, find the first method that it overrides from the perspective of the CLI.
         /// Key differences from C#: non-virtual methods are ignored, the RuntimeSignatureComparer
-        /// is used (i.e. consider return types, ignore ref/out distinction).
+        /// is used (i.e. consider return types, ignore ref/out distinction).  Sets <paramref name="wasAmbiguous"/>
+        /// to true if more than one method is overridden by CLI rules.
         /// </summary>
         /// <remarks>
         /// WARN: Must not check method.MethodKind - PEMethodSymbol.ComputeMethodKind uses this method.
-        /// NOTE: Does not check whether the given method will be marked "newslot" in metadata (which
-        /// would indicate that it does not override anything).
-        /// WARN: If the method may override a source method and declaration diagnostics have yet to
-        /// be computed, then it is important to pass ignoreInterfaceImplementationChanges: true
-        /// (see MethodSymbol.IsMetadataVirtual for details).
+        /// NOTE: Does not check whether the given method will be marked "newslot" in metadata (as
+        /// "newslot" is used for covariant method overrides).
         /// </remarks>
-        internal static MethodSymbol GetFirstRuntimeOverriddenMethodIgnoringNewSlot(this MethodSymbol method, bool ignoreInterfaceImplementationChanges)
+        internal static MethodSymbol GetFirstRuntimeOverriddenMethodIgnoringNewSlot(this MethodSymbol method, out bool wasAmbiguous)
         {
+            // WARN: If the method may override a source method and declaration diagnostics have yet to
+            // be computed, then it is important for us to pass ignoreInterfaceImplementationChanges: true
+            // (see MethodSymbol.IsMetadataVirtual for details).
+            // Since we are only concerned with overrides (of class methods), interface implementations can be ignored.
+            const bool ignoreInterfaceImplementationChanges = true;
+
+            wasAmbiguous = false;
             if (!method.IsMetadataVirtual(ignoreInterfaceImplementationChanges))
             {
                 return null;
@@ -936,6 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (NamedTypeSymbol currType = containingType.BaseTypeNoUseSiteDiagnostics; !ReferenceEquals(currType, null); currType = currType.BaseTypeNoUseSiteDiagnostics)
             {
+                MethodSymbol candidate = null;
                 foreach (Symbol otherMember in currType.GetMembers(method.Name))
                 {
                     if (otherMember.Kind == SymbolKind.Method &&
@@ -947,9 +1038,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // NOTE: The runtime doesn't consider non-virtual methods during override resolution.
                         if (overridden.IsMetadataVirtual(ignoreInterfaceImplementationChanges))
                         {
-                            return overridden;
+                            if (candidate is { })
+                            {
+                                // found more than one possible override in this type
+                                wasAmbiguous = true;
+                                return candidate;
+                            }
+
+                            candidate = overridden;
                         }
                     }
+                }
+
+                if (candidate is { })
+                {
+                    return candidate;
                 }
             }
 

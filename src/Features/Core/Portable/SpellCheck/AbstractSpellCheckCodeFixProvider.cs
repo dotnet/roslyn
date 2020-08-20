@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
-            var change = await service.GetChangeAsync(document, item, completionListSpan, commitCharacter: null, cancellationToken).ConfigureAwait(false);
+            var change = await service.GetChangeAsync(document, item, completionListSpan, commitCharacter: null, disallowAddingImports: false, cancellationToken).ConfigureAwait(false);
             var text = change.TextChange.NewText;
             var nonCharIndex = text.IndexOfAny(s_punctuation);
             return nonCharIndex > 0

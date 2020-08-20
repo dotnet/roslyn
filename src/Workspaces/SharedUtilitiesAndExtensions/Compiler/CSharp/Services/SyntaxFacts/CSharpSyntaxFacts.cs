@@ -18,13 +18,13 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
@@ -101,6 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsPreprocessorKeyword(SyntaxToken token)
             => SyntaxFacts.IsPreprocessorKeyword(token.Kind());
+
+        public bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => syntaxTree.IsPreProcessorDirectiveContext(
+                position, syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
 
         public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -889,10 +893,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
+        public List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode root)
+        {
+            var list = new List<SyntaxNode>();
+            AppendMembers(root, list, topLevel: true, methodLevel: true);
+            return list;
+        }
+
         public List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root)
         {
             var list = new List<SyntaxNode>();
-            AppendMethodLevelMembers(root, list);
+            AppendMembers(root, list, topLevel: false, methodLevel: true);
             return list;
         }
 
@@ -911,17 +922,24 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
             => ((CompilationUnitSyntax)compilationUnit).Members;
 
-        private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
+        private void AppendMembers(SyntaxNode node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
         {
+            Debug.Assert(topLevel || methodLevel);
+
             foreach (var member in node.GetMembers())
             {
                 if (IsTopLevelNodeWithMembers(member))
                 {
-                    AppendMethodLevelMembers(member, list);
+                    if (topLevel)
+                    {
+                        list.Add(member);
+                    }
+
+                    AppendMembers(member, list, topLevel, methodLevel);
                     continue;
                 }
 
-                if (IsMethodLevelMember(member))
+                if (methodLevel && IsMethodLevelMember(member))
                 {
                     list.Add(member);
                 }
@@ -977,71 +995,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         private static TextSpan GetBlockBodySpan(BlockSyntax body)
             => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
-
-        public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
-        {
-            Debug.Assert(root.SyntaxTree == node.SyntaxTree);
-
-            var currentId = 0;
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
-
-            Contract.ThrowIfFalse(currentId >= 0);
-            CheckMemberId(root, node, currentId);
-            return currentId;
-        }
-
-        public SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId)
-        {
-            var currentId = 0;
-            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out var currentNode))
-            {
-                return null;
-            }
-
-            Contract.ThrowIfNull(currentNode);
-            CheckMemberId(root, currentNode, memberId);
-            return currentNode;
-        }
-
-        private bool TryGetMethodLevelMember(
-            SyntaxNode node, Func<SyntaxNode, int, bool> predicate, ref int currentId, out SyntaxNode currentNode)
-        {
-            foreach (var member in node.GetMembers())
-            {
-                if (IsTopLevelNodeWithMembers(member))
-                {
-                    if (TryGetMethodLevelMember(member, predicate, ref currentId, out currentNode))
-                    {
-                        return true;
-                    }
-
-                    continue;
-                }
-
-                if (IsMethodLevelMember(member))
-                {
-                    if (predicate(member, currentId))
-                    {
-                        currentNode = member;
-                        return true;
-                    }
-
-                    currentId++;
-                }
-            }
-
-            currentNode = null;
-            return false;
-        }
-
-        [Conditional("DEBUG")]
-        private void CheckMemberId(SyntaxNode root, SyntaxNode node, int memberId)
-        {
-            var list = GetMethodLevelMembers(root);
-            var index = list.IndexOf(node);
-
-            Contract.ThrowIfFalse(index == memberId);
-        }
 
 #nullable enable
 
@@ -1599,6 +1552,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return IsOnHeader(root, position, node, node.CloseParenToken);
         }
 
+        public bool IsOnWhileStatementHeader(SyntaxNode root, int position, out SyntaxNode whileStatement)
+        {
+            var node = TryGetAncestorForLocation<WhileStatementSyntax>(root, position);
+            whileStatement = node;
+            if (whileStatement == null)
+            {
+                return false;
+            }
+
+            return IsOnHeader(root, position, node, node.CloseParenToken);
+        }
+
         public bool IsOnForeachHeader(SyntaxNode root, int position, out SyntaxNode foreachStatement)
         {
             var node = TryGetAncestorForLocation<ForEachStatementSyntax>(root, position);
@@ -1760,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKindEx.RecordDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
@@ -2089,31 +2054,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             designation = recursivePattern.Designation;
         }
 
-#if CODE_STYLE
-
-        public bool SupportsNotPattern(ParseOptions options) => false;
-        public bool IsAndPattern(SyntaxNode node) => false;
-        public bool IsBinaryPattern(SyntaxNode node) => false;
-        public bool IsNotPattern(SyntaxNode node) => false;
-        public bool IsOrPattern(SyntaxNode node) => false;
-        public bool IsParenthesizedPattern(SyntaxNode node) => false;
-        public bool IsTypePattern(SyntaxNode node) => false;
-        public bool IsUnaryPattern(SyntaxNode node) => false;
-
-        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen)
-            => throw ExceptionUtilities.Unreachable;
-
-        public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
-            => throw ExceptionUtilities.Unreachable;
-
-        public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
-            => throw ExceptionUtilities.Unreachable;
-
-        public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
-            => throw ExceptionUtilities.Unreachable;
-
-#else
-
         public bool SupportsNotPattern(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion.IsCSharp9OrAbove();
 
@@ -2164,15 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-#endif
-
         public bool IsImplicitObjectCreation(SyntaxNode node)
-        {
-#if CODE_STYLE
-            return ((CSharpSyntaxNode)node).Kind() == Formatting.SyntaxKindEx.ImplicitObjectCreationExpression;
-#else
-            return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
-#endif
-        }
+            => node.IsKind(SyntaxKind.ImplicitObjectCreationExpression);
     }
 }

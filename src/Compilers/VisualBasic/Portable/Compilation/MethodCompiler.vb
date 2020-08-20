@@ -459,14 +459,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _cancellationToken.ThrowIfCancellationRequested()
 
             If Me._compilation.Options.ConcurrentBuild Then
-                Dim worker As Task = CompileNamespaceAsTask(symbol)
+                Dim worker As Task = CompileNamespaceAsync(symbol)
                 _compilerTasks.Push(worker)
             Else
                 CompileNamespace(symbol)
             End If
         End Sub
 
-        Private Function CompileNamespaceAsTask(symbol As NamespaceSymbol) As Task
+        Private Function CompileNamespaceAsync(symbol As NamespaceSymbol) As Task
             Return Task.Run(
                 UICultureUtilities.WithCurrentUICulture(
                     Sub()
@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _cancellationToken.ThrowIfCancellationRequested()
             If PassesFilter(_filterOpt, symbol) Then
                 If Me._compilation.Options.ConcurrentBuild Then
-                    Dim worker As Task = CompileNamedTypeAsTask(symbol, _filterOpt)
+                    Dim worker As Task = CompileNamedTypeAsync(symbol, _filterOpt)
                     _compilerTasks.Push(worker)
                 Else
                     CompileNamedType(symbol, _filterOpt)
@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CompileNamedTypeAsTask(symbol As NamedTypeSymbol, filter As Predicate(Of Symbol)) As Task
+        Private Function CompileNamedTypeAsync(symbol As NamedTypeSymbol, filter As Predicate(Of Symbol)) As Task
             Return Task.Run(
                 UICultureUtilities.WithCurrentUICulture(
                     Sub()
@@ -1215,18 +1215,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If block Is Nothing Then
                         compilation.SymbolDeclaredEvent(sourceMethod)
                     Else
-                        'create a compilation event that caches the already-computed bound tree
-                        Dim lazySemanticModel = New Lazy(Of SemanticModel)(
-                            Function()
-                                Dim syntax = block.Syntax
-                                Dim semanticModel = CType(compilation.GetSemanticModel(syntax.SyntaxTree), SyntaxTreeSemanticModel)
-                                Dim memberModel = CType(semanticModel.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
-                                If memberModel IsNot Nothing Then
-                                    memberModel.CacheBoundNodes(block, syntax)
-                                End If
-                                Return semanticModel
-                            End Function)
-                        compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, lazySemanticModel))
+                        ' If compilation has a caching semantic model provider, then cache the already-computed bound tree
+                        ' onto the semantic model and store it on the event.
+                        Dim semanticModelWithCachedBoundNodes As SyntaxTreeSemanticModel = Nothing
+                        Dim cachingSemanticModelProvider = TryCast(compilation.SemanticModelProvider, CachingSemanticModelProvider)
+                        If cachingSemanticModelProvider IsNot Nothing Then
+                            Dim syntax = block.Syntax
+                            semanticModelWithCachedBoundNodes = CType(cachingSemanticModelProvider.GetSemanticModel(syntax.SyntaxTree, compilation), SyntaxTreeSemanticModel)
+                            Dim memberModel = CType(semanticModelWithCachedBoundNodes.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
+                            If memberModel IsNot Nothing Then
+                                memberModel.CacheBoundNodes(block, syntax)
+                            End If
+                        End If
+
+                        compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, semanticModelWithCachedBoundNodes))
                     End If
                 End If
             End If

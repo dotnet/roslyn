@@ -71,13 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             switch (snippetFunctionName)
             {
                 case "SimpleTypeName":
-                    pFunc = new SnippetFunctionSimpleTypeName(this, TextView, SubjectBuffer, bstrFieldName, param);
+                    pFunc = new SnippetFunctionSimpleTypeName(this, SubjectBuffer, bstrFieldName, param);
                     return VSConstants.S_OK;
                 case "ClassName":
-                    pFunc = new SnippetFunctionClassName(this, TextView, SubjectBuffer, bstrFieldName);
+                    pFunc = new SnippetFunctionClassName(this, SubjectBuffer, bstrFieldName);
                     return VSConstants.S_OK;
                 case "GenerateSwitchCases":
-                    pFunc = new SnippetFunctionGenerateSwitchCases(this, TextView, SubjectBuffer, bstrFieldName, param);
+                    pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param);
                     return VSConstants.S_OK;
                 default:
                     pFunc = null;

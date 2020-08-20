@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -24,11 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, ILspSolutionProvider solutionProvider) : base(solutionProvider)
             => _metadataAsSourceFileService = metadataAsSourceFileService;
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, string? clientName, CancellationToken cancellationToken)
+        protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();
@@ -47,12 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         continue;
                     }
 
-                    var definitionText = await definition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    locations.Add(new LSP.Location
-                    {
-                        Uri = definition.Document.GetURI(),
-                        Range = ProtocolConversions.TextSpanToRange(definition.SourceSpan, definitionText),
-                    });
+                    var location = await ProtocolConversions.TextSpanToLocationAsync(definition.Document, definition.SourceSpan, cancellationToken).ConfigureAwait(false);
+                    locations.AddIfNotNull(location);
                 }
             }
             else if (document.SupportsSemanticModel && _metadataAsSourceFileService != null)
