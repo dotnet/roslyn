@@ -721,6 +721,13 @@ class C
             };
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: "Error", ensureExpectedItemsAreOrdered: true);
 
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
+
             // Verify CS0168 is now reported as an error.
             VerifyDiagnosticInErrorList("Error", VisualStudio);
 
