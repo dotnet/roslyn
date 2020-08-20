@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -271,21 +272,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => default,
             };
 
-        public static ConditionalAccessExpressionSyntax? GetParentConditionalAccessExpression(this SyntaxNode? node)
+        /// <summary>
+        /// <inheritdoc cref="ISyntaxFacts.GetRootConditionalAccessExpression(SyntaxNode)"/>
+        /// </summary>>
+        public static ConditionalAccessExpressionSyntax? GetRootConditionalAccessExpression(this SyntaxNode? node)
         {
-            var current = node;
-            while (current?.Parent != null)
-            {
-                if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax? conditional) &&
-                    conditional.WhenNotNull == current)
-                {
-                    return conditional;
-                }
+            // Walk upwards based on the grammar/parser rules around ?. expressions (can be seen in
+            // LanguageParser.ParseConsequenceSyntax).
 
+            // These are the parts of the expression that the ?... expression can end with.  Specifically:
+            //
+            //  1.      x?.y.M()
+            //  2.      x?.y[...];
+            //  3.      x?.y.z
+            //  4.      x?.y
+            //  5.      x?[y]
+            var current = node;
+            while (current.IsKind(
+                SyntaxKind.InvocationExpression,
+                SyntaxKind.ElementAccessExpression,
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxKind.MemberBindingExpression,
+                SyntaxKind.ElementBindingExpression))
+            {
                 current = current.Parent;
             }
 
-            return null;
+            // Once we've walked up the entire RHS, now we continually walk up the conditional accesses until we're at
+            // the root. For example, if we have `a?.b` and we're on the `.b`, this will give `a?.b`.  Similarly with
+            // `a?.b?.c` if we're on either `.b` or `.c` this will result in `a?.b?.c` (i.e. the root of this CAE
+            // sequence).
+
+            while (current.IsParentKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax? conditional) &&
+                   conditional.WhenNotNull == current)
+            {
+                current = current.Parent;
+            }
+
+            return current as ConditionalAccessExpressionSyntax;
         }
 
         public static ConditionalAccessExpressionSyntax? GetInnerMostConditionalAccessExpression(this SyntaxNode node)

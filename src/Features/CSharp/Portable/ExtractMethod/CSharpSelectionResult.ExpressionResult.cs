@@ -51,14 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // If the selection ends up mapping to the name on the right in `x.y` or `x?.y`, then grab
                 // the full expr `x.y` or `x?.y` as the part to extract.
 
-                if (scope.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == scope)
-                    scope = (ExpressionSyntax)scope.Parent;
+                scope = SyntaxFactory.GetStandaloneExpression(scope);
 
-                if (scope.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.Name == scope)
-                    scope = (ExpressionSyntax)scope.Parent;
-
-                if (scope is MemberBindingExpressionSyntax || scope is ElementBindingExpressionSyntax)
-                    scope = scope.GetParentConditionalAccessExpression();
+                // If we're in a chain in a conditional access expression, then grab the top of that ?. chain.
+                scope = scope.GetRootConditionalAccessExpression() ?? scope;
 
                 return scope;
             }

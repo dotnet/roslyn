@@ -126,20 +126,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 ' If the selection ends up mapping to the name on the right in `x.y` Or `x?.y`, then grab
                 ' the full expr `x.y` Or `x?.y` as the part to extract.
-                Dim memberAccess = TryCast(scope.Parent, MemberAccessExpressionSyntax)
-                If memberAccess?.Name Is scope Then
-                    If memberAccess.Expression Is Nothing Then
-                        ' .y      or
-                        ' x?.y
-                        scope = If(memberAccess.GetParentConditionalAccessExpression(), DirectCast(memberAccess, ExpressionSyntax))
-                    End If
-                End If
+                scope = SyntaxFactory.GetStandaloneExpression(scope)
 
-                Dim invocation = TryCast(scope, InvocationExpressionSyntax)
-                If invocation IsNot Nothing AndAlso invocation.Expression Is Nothing Then
-                    ' x?(y)
-                    scope = invocation.GetParentConditionalAccessExpression()
-                End If
+                ' If we're in a chain in a conditional access expression, then grab the top of that ?. chain.
+                scope = If(scope.GetRootConditionalAccessExpression(), scope)
 
                 Return scope
             Else

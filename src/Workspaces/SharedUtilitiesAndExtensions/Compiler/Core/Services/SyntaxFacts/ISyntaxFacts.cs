@@ -191,11 +191,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 #nullable restore
 
         /// <summary>
-        /// Call on the `.y` part of a `x?.y` to get the entire `x?.y` conditional access expression.
+        /// Call on the `.y` part of a `x?.y` to get the entire `x?.y` conditional access expression.  This also works
+        /// when there are multiple chained conditional accesses.  For example, calling this on '.y' or '.z' in
+        /// `x?.y?.z` will both return the full `x?.y?.z` node.  This can be used to effectively get 'out' of the RHS of
+        /// a conditional access, and commonly represents the full standalone expression that can be operated on
+        /// atomically.
         /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        SyntaxNode GetParentConditionalAccessExpression(SyntaxNode node);
+        SyntaxNode GetRootConditionalAccessExpression(SyntaxNode node);
 
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 

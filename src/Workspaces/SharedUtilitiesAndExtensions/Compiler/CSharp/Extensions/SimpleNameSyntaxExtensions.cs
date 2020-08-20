@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (name.IsMemberBindingExpressionName())
             {
-                return name.GetParentConditionalAccessExpression().Expression;
+                return name.GetRootConditionalAccessExpression().Expression;
             }
             else if (name.IsRightSideOfQualifiedName())
             {

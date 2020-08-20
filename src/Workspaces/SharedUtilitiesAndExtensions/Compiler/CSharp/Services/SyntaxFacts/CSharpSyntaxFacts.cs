@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return name.IsMemberBindingExpressionName();
         }
 
-        public SyntaxNode GetParentConditionalAccessExpression(SyntaxNode node)
-            => node.GetParentConditionalAccessExpression();
+        public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
+            => node.GetRootConditionalAccessExpression();
 
 #nullable restore
 
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
         public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
-            => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
+            => (node as MemberBindingExpressionSyntax).GetRootConditionalAccessExpression()?.Expression;
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;

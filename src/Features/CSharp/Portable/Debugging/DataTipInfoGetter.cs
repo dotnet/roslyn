@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                     var curr = expression;
                     while (true)
                     {
-                        var conditionalAccess = curr.GetParentConditionalAccessExpression();
+                        var conditionalAccess = curr.GetRootConditionalAccessExpression();
                         if (conditionalAccess == null)
                         {
                             break;
