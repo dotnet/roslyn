@@ -179,6 +179,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return memberAccess IsNot Nothing AndAlso memberAccess.Name Is node
         End Function
 
+        Public Function GetStandaloneExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetStandaloneExpression
+            Return SyntaxFactory.GetStandaloneExpression(TryCast(node, ExpressionSyntax))
+        End Function
+
         Public Function GetRootConditionalAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetRootConditionalAccessExpression
             Return TryCast(node, ExpressionSyntax).GetRootConditionalAccessExpression()
         End Function

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -48,15 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (scope == null)
                     return null;
 
-                // If the selection ends up mapping to the name on the right in `x.y` or `x?.y`, then grab
-                // the full expr `x.y` or `x?.y` as the part to extract.
-
-                scope = SyntaxFactory.GetStandaloneExpression(scope);
-
-                // If we're in a chain in a conditional access expression, then grab the top of that ?. chain.
-                scope = scope.GetRootConditionalAccessExpression() ?? scope;
-
-                return scope;
+                return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
             public override ITypeSymbol? GetContainingScopeType()

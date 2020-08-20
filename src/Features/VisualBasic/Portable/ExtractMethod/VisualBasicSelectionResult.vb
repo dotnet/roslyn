@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -124,14 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim scope = first.GetCommonRoot(last).GetAncestorOrThis(Of ExpressionSyntax)()
                 Contract.ThrowIfNull(scope, "Should always find an expression given that SelectionInExpression was true")
 
-                ' If the selection ends up mapping to the name on the right in `x.y` Or `x?.y`, then grab
-                ' the full expr `x.y` Or `x?.y` as the part to extract.
-                scope = SyntaxFactory.GetStandaloneExpression(scope)
-
-                ' If we're in a chain in a conditional access expression, then grab the top of that ?. chain.
-                scope = If(scope.GetRootConditionalAccessExpression(), scope)
-
-                Return scope
+                Return VisualBasicSyntaxFacts.Instance.GetRootStandaloneExpression(scope)
             Else
                 ' it contains statements
                 Return first.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) TypeOf n Is MethodBlockBaseSyntax OrElse TypeOf n Is LambdaExpressionSyntax)

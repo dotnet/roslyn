@@ -163,6 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return name.IsMemberBindingExpressionName();
         }
 
+        public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
+            => SyntaxFactory.GetStandaloneExpression(node as ExpressionSyntax);
+
         public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
             => node.GetRootConditionalAccessExpression();
 
