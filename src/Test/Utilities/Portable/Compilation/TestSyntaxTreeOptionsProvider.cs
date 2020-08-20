@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
         private readonly Dictionary<string, ReportDiagnostic>? _globalOptions;
         public TestSyntaxTreeOptionsProvider(
             IEqualityComparer<string> comparer,
-            (string, ReportDiagnostic) globalOption,
+            (string? key, ReportDiagnostic diagnostic) globalOption,
             params (SyntaxTree, (string, ReportDiagnostic)[])[] options)
         {
             _options = options.ToDictionary(
@@ -28,9 +28,9 @@ namespace Roslyn.Utilities
                     x => x.Item2,
                     comparer)
             );
-            if (globalOption.Item1 is object)
+            if (globalOption.key is object)
             {
-                _globalOptions = new Dictionary<string, ReportDiagnostic>() { { globalOption.Item1, globalOption.Item2 } };
+                _globalOptions = new Dictionary<string, ReportDiagnostic>() { { globalOption.key, globalOption.diagnostic } };
             }
             _isGenerated = null;
         }
@@ -58,7 +58,7 @@ namespace Roslyn.Utilities
             _options = null;
             _isGenerated = isGenerated.ToDictionary(
                 x => x.Item1,
-                x => x.Item2
+                x => x.isGenerated
             );
         }
 
