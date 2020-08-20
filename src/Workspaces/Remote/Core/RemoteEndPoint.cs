@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (e != null)
             {
-                LogError($@"Stream disconnected unexpectedly:  {e.Reason}, '{e.Description}', LastMessage: {e.LastMessage}, Exception: {e.Exception?.Message}");
+                LogError($@"Stream disconnected unexpectedly:  {e.Reason}, '{e.Description}', Exception: {e.Exception?.Message}");
             }
         }
 
