@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="source">The source code to be add to the compilation</param>
-        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, System.Text.Encoding.UTF8));
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
 
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation

@@ -709,5 +709,6 @@
   </data>
   <data name="SourceTextRequiresEncoding" xml:space="preserve">
     <value>The provided SourceText must have an explicit encoding set.</value>
+    <comment>'SourceText' is not localizable.</comment>
   </data>
 </root>

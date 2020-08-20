@@ -117,7 +117,7 @@
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The provided SourceText must have an explicit encoding set.</source>
         <target state="new">The provided SourceText must have an explicit encoding set.</target>
-        <note />
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
