@@ -492,6 +492,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                 DecodeModuleInitializerAttribute(arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
+            {
+                DecodeUnmanagedCallersOnlyAttribute(arguments);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -806,6 +810,88 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!hasError && !CallsAreOmitted(arguments.AttributeSyntaxOpt.SyntaxTree))
             {
                 DeclaringCompilation.AddModuleInitializerMethod(this);
+            }
+        }
+
+        private void DecodeUnmanagedCallersOnlyAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
+            {
+                // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
+                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
+            }
+
+            if (!arguments.Attribute.CommonNamedArguments.IsDefaultOrEmpty)
+            {
+                foreach (var (key, value) in arguments.Attribute.CommonNamedArguments)
+                {
+                    if (key != "CallConvs"
+                        || value.Kind != TypedConstantKind.Array
+                        || value.Values.Any(v => v.Kind != TypedConstantKind.Type))
+                    {
+                        continue;
+                    }
+
+                    foreach (var callConvTypedConstant in value.Values)
+                    {
+                        Debug.Assert(callConvTypedConstant.Kind == TypedConstantKind.Type);
+                        if (!(callConvTypedConstant.ValueInternal is NamedTypeSymbol callConvType)
+                            || !FunctionPointerTypeSymbol.IsCallingConventionModifier(callConvType))
+                        {
+                            // `{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, arguments.AttributeSyntaxOpt.Location, callConvTypedConstant.ValueInternal ?? "null");
+                        }
+                    }
+                }
+            }
+
+            var returnTypeSyntax = SyntaxNode switch
+            {
+                MethodDeclarationSyntax m => m.ReturnType,
+                LocalFunctionStatementSyntax l => l.ReturnType,
+                _ => null
+            };
+
+            if (returnTypeSyntax is null)
+            {
+                return;
+            }
+
+            checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
+            foreach (var param in Parameters)
+            {
+                checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
+            }
+
+            static void checkAndReportManagedTypes(TypeSymbol type, SyntaxNode syntax, bool isParam, DiagnosticBag diagnostics)
+            {
+                // use-site diagnostics will be reported at actual parameter declaration site, we're only interested
+                // in reporting managed types being used
+                switch (type.ManagedKindNoUseSiteDiagnostics)
+                {
+                    case ManagedKind.Unmanaged:
+                        return;
+
+                    case ManagedKind.UnmanagedWithGenerics:
+                        // If the type has generics, do a check on the generic types. If they're constrained to be unmanaged,
+                        // then this is valid.
+                        Debug.Assert(type is NamedTypeSymbol { IsGenericType: true });
+                        if (((NamedTypeSymbol)type).TypeParameters.Any(parameter => parameter.ManagedKindNoUseSiteDiagnostics != ManagedKind.Unmanaged))
+                        {
+                            // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
+                            diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());
+                        }
+                        return;
+
+                    case ManagedKind.Managed:
+                        // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
+                        diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());
+                        return;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.ManagedKindNoUseSiteDiagnostics);
+                }
             }
         }
 #nullable restore

@@ -7828,6 +7828,400 @@ unsafe class C
             Assert.False(funcPtrRef.Equals(funcPtrWithTestOnRef, TypeCompareKind.ConsiderEverything));
         }
 
+        private const string UnmanagedCallersOnlyAttribute = @"
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+
+        public Type[] CallConvs;
+        public string EntryPoint;
+    }
+}
+";
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresStatic()
+        {
+            var comp = CreateCompilation(new[] { @"
+#pragma warning disable 8321 // Unreferenced local function
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    void M1() {}
+
+    public void M2()
+    {
+        [UnmanagedCallersOnly]
+        void local() {}
+    }
+}
+", UnmanagedCallersOnlyAttribute }, parseOptions: TestOptions.Regular9);
+
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8892: `UnmanagedCallersOnly` can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
+                // (11,10): error CS8892: `UnmanagedCallersOnly` can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(11, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyAllowedOnStatics()
+        {
+            var comp = CreateCompilation(new[] { @"
+#pragma warning disable 8321 // Unreferenced local function
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static void M1() {}
+
+    public void M2()
+    {
+        [UnmanagedCallersOnly]
+        static void local() {}
+    }
+}
+", UnmanagedCallersOnlyAttribute }, parseOptions: TestOptions.Regular9);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustComeFromCorrectNamespace()
+        {
+            var comp = CreateEmptyCompilation(new[] { @"
+using System.Runtime.InteropServices;
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+}
+class CallConvTest
+{
+}
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (26,6): error CS8893: `CallConvTest` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })").WithArguments("CallConvTest").WithLocation(26, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustComeFromCorelib()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+namespace System.Runtime.CompilerServices
+{
+    class CallConvTest
+    {
+    }
+}
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (12,6): error CS8893: `CallConvTest` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvTest) })").WithArguments("System.Runtime.CompilerServices.CallConvTest").WithLocation(12, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsMustStartWithCallConv()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(ExtensionAttribute) })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8893: `ExtensionAttribute` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(System.Runtime.CompilerServices.ExtensionAttribute) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(ExtensionAttribute) })").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(6, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvNull()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: `null` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new System.Type[] { null })").WithArguments("null").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_Errors()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static string M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M2(object o) {}
+
+    [UnmanagedCallersOnly]
+    static T M3<T>() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M4<T>(T t) {}
+
+    [UnmanagedCallersOnly]
+    static T M5<T>() where T : struct => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M6<T>(T t) where T : struct {}
+
+    [UnmanagedCallersOnly]
+    static int? M7() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M8(int? o) {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (6,12): error CS8894: Cannot use 'string' as a return type on a method attributed with 'UnmanagedCallersOnly.
+                //     static string M1() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "string").WithArguments("string", "return").WithLocation(6, 12),
+                // (9,20): error CS8894: Cannot use 'object' as a parameter type on a method attributed with 'UnmanagedCallersOnly.
+                //     static void M2(object o) {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "object o").WithArguments("object", "parameter").WithLocation(9, 20),
+                // (12,12): error CS8894: Cannot use 'T' as a return type on a method attributed with 'UnmanagedCallersOnly.
+                //     static T M3<T>() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T").WithArguments("T", "return").WithLocation(12, 12),
+                // (15,23): error CS8894: Cannot use 'T' as a parameter type on a method attributed with 'UnmanagedCallersOnly.
+                //     static void M4<T>(T t) {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T t").WithArguments("T", "parameter").WithLocation(15, 23),
+                // (18,12): error CS8894: Cannot use 'T' as a return type on a method attributed with 'UnmanagedCallersOnly.
+                //     static T M5<T>() where T : struct => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T").WithArguments("T", "return").WithLocation(18, 12),
+                // (21,23): error CS8894: Cannot use 'T' as a parameter type on a method attributed with 'UnmanagedCallersOnly.
+                //     static void M6<T>(T t) where T : struct {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T t").WithArguments("T", "parameter").WithLocation(21, 23),
+                // (24,12): error CS8894: Cannot use 'int?' as a return type on a method attributed with 'UnmanagedCallersOnly.
+                //     static int? M7() => throw null;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "int?").WithArguments("int?", "return").WithLocation(24, 12),
+                // (27,20): error CS8894: Cannot use 'int?' as a parameter type on a method attributed with 'UnmanagedCallersOnly.
+                //     static void M8(int? o) {}
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "int? o").WithArguments("int?", "parameter").WithLocation(27, 20));
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_Valid()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly]
+    static int M1() => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M2(int o) {}
+
+    [UnmanagedCallersOnly]
+    static T M3<T>() where T : unmanaged => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M4<T>(T t) where T : unmanaged {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_StructWithGenericUnmanagedType()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S<T> where T : unmanaged
+{
+    public T t;
+}
+class C
+{
+    [UnmanagedCallersOnly]
+    static S<T> M1<T>() where T : unmanaged => throw null;
+
+    [UnmanagedCallersOnly]
+    static void M2<T>(S<T> o) where T : unmanaged {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInDefinition()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+
+        public Type[]? CallConvs;
+        public string? EntryPoint;
+
+        [UnmanagedCallersOnly]
+        void M() {}
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (15,10): error CS8892: `UnmanagedCallersOnly` can only be applied to ordinary static methods or static local functions.
+                //         [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(15, 10)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyWithLoopInUsage()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(C) })]
+    public static void Func() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: `C` is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { typeof(C) })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(C) })").WithArguments("C").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyUnrecognizedConstructor()
+        {
+            var comp = CreateCompilation(@"
+using System.Runtime.InteropServices;
+public class C
+{
+    // Invalid typeof for the regular constructor, non-static method
+    [UnmanagedCallersOnly(CallConvs: new[] { typeof(string) })]
+    public void M() {}
+}
+
+#nullable enable
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute(Type[]? CallConvs)
+        {
+        }
+
+        public string? EntryPoint;
+    }
+}
+");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvsWithADifferentType()
+        {
+            var comp = CreateCompilation(@"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
+    public static void M1() {}
+
+    [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
+    public void M2() {}
+}
+
+#nullable enable
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+
+        public string? EntryPoint;
+        public int[]? CallConvs;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,6): error CS8892: `UnmanagedCallersOnly` can only be applied to ordinary static methods or static local functions.
+                //     [UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly(CallConvs = new[] { 1, 2 })").WithLocation(8, 6)
+            );
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 

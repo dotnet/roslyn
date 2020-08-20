@@ -1890,6 +1890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeNotFound = 8890,
         ERR_TypeMustBePublic = 8891,
 
+        ERR_UnmanagedCallersOnlyRequiresStatic = 8892,
+        ERR_InvalidUnmanagedCallersOnlyCallConv = 8893,
+        ERR_CannotUseManagedTypeInUnmanagedCallersOnly = 8894,
+
         #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
