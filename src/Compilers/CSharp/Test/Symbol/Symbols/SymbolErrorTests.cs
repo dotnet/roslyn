@@ -13334,6 +13334,39 @@ public class Test
                 Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "TypeForwardedTo(typeof(Test))").WithArguments("Test"));
         }
 
+        [Fact, WorkItem(38256, "https://github.com/dotnet/roslyn/issues/38256")]
+        public void ParameterAndReturnTypesAreStaticClassesWarning()
+        {
+            var source = @"
+static class C {}
+interface I
+{
+    void M1(C c); // 1
+    C M2(); // 2
+    C Prop { get; set; } // 3, 4
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+
+            comp.VerifyDiagnostics(
+                // (5,10): warning CS8892: 'C': static types cannot be used as parameters
+                //     void M1(C c); // 1
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
+                // (6,7): warning CS8893: 'C': static types cannot be used as return types
+                //     C M2(); // 2
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
+                // (7,14): error CS0722: 'C': static types cannot be used as return types
+                //     C Prop { get; set; } // 3, 4
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
+                // (7,19): warning CS8892: 'C': static types cannot be used as parameters
+                //     C Prop { get; set; } // 3, 4
+                Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19)
+            );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void CS0730ERR_ForwardedTypeIsNested()
         {

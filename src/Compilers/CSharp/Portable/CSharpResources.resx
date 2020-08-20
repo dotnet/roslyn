@@ -2093,7 +2093,13 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ParameterIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as parameters</value>
   </data>
+  <data name="WRN_ParameterIsStaticClass" xml:space="preserve">
+    <value>'{0}': static types cannot be used as parameters</value>
+  </data>
   <data name="ERR_ReturnTypeIsStaticClass" xml:space="preserve">
+    <value>'{0}': static types cannot be used as return types</value>
+  </data>
+  <data name="WRN_ReturnTypeIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as return types</value>
   </data>
   <data name="ERR_VarDeclIsStaticClass" xml:space="preserve">
@@ -6465,6 +6471,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>extension GetAsyncEnumerator</value>
   </data>
   <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
+    <value>extension GetEnumerator</value>
+  </data>
+  <data name="WRN_StaticClassInParameter" xml:space="preserve">
     <value>extension GetEnumerator</value>
   </data>
 </root>
