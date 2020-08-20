@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(request.TextDocument);
+            Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             var resultId = _tokensCache.GetNextResultId();
             var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypeToIndex,

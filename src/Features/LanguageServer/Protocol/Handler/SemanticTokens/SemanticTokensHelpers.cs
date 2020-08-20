@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             CancellationToken cancellationToken)
         {
             var document = solutionProvider.GetDocument(textDocument, clientName);
-            Contract.ThrowIfNull(document);
+            Contract.ThrowIfNull(document, "Document is null.");
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var textSpan = range == null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
             var classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(classifiedSpans);
+            Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
 
             // TO-DO: We should implement support for streaming once this LSP bug is fixed:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1132601
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassifiedSpan[] classifiedSpans,
             Dictionary<string, int> tokenTypesToIndex)
         {
-            using var _ = ArrayBuilder<int>.GetInstance(out var data);
+            using var _ = ArrayBuilder<int>.GetInstance(classifiedSpans.Length, out var data);
 
             // We keep track of the last line number and last start character since tokens are
             // reported relative to each other.
@@ -151,7 +151,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassifiedSpan[] classifiedSpans,
             int currentClassifiedSpanIndex,
             Dictionary<string, int> tokenTypesToIndex,
-            // Out params
             out int deltaLineOut,
             out int startCharacterDeltaOut,
             out int tokenLengthOut,
@@ -172,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // 1. Token line number delta, relative to the previous token
             var deltaLine = lineNumber - lastLineNumber;
-            Contract.ThrowIfTrue(deltaLine < 0);
+            Contract.ThrowIfTrue(deltaLine < 0, $"deltaLine is less than 0: {deltaLine}");
 
             // 2. Token start character delta, relative to the previous token
             // (Relative to 0 or the previous token’s start if they're on the same line)
@@ -207,6 +206,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     modifierBits = TokenModifiers.Static;
                 }
 
+                // Break out of the loop if we have no more classified spans left, or if the next classified span has
+                // a different text span than our current text span.
                 if (currentClassifiedSpanIndex + 1 >= classifiedSpans.Length || classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan != originalTextSpan)
                 {
                     break;
@@ -230,13 +231,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
         {
             s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr);
-            Contract.ThrowIfNull(tokenTypeStr);
-
-            if (!tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex))
-            {
-                Contract.Fail("Token type index not found.");
-            }
-
+            Contract.ThrowIfNull(tokenTypeStr, "tokenTypeStr is null.");
+            Contract.ThrowIfFalse(tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex), "No matching token type index found.");
             return tokenTypeIndex;
         }
     }

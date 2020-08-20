@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,8 +42,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(request.TextDocument);
-            Contract.ThrowIfNull(request.PreviousResultId);
+            Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
+            Contract.ThrowIfNull(request.PreviousResultId, "previousResultId is null.");
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfNull(newSemanticTokensData);
+            Contract.ThrowIfNull(newSemanticTokensData, "newSemanticTokensData is null.");
 
             var resultId = _tokensCache.GetNextResultId();
             var newSemanticTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
@@ -118,13 +117,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 {
                     case EditKind.Insert:
                         indexToEditKinds.TryGetValue(edit.NewIndex, out var editKindWithoutInsert);
-                        Contract.ThrowIfTrue(editKindWithoutInsert == SemanticTokenEditKind.Insert); // We shouldn't have two inserts at the same position
-                        indexToEditKinds[edit.NewIndex] = editKindWithoutInsert == default ? SemanticTokenEditKind.Insert : SemanticTokenEditKind.Update;
+                        Contract.ThrowIfTrue(editKindWithoutInsert == SemanticTokenEditKind.Insert, "There cannot be two inserts at the same position.");
+                        Contract.ThrowIfTrue(editKindWithoutInsert == SemanticTokenEditKind.Update, "There cannot be an insert and update at the same position.");
+                        indexToEditKinds[edit.NewIndex] = editKindWithoutInsert == SemanticTokenEditKind.None ? SemanticTokenEditKind.Insert : SemanticTokenEditKind.Update;
                         break;
                     case EditKind.Delete:
                         indexToEditKinds.TryGetValue(edit.OldIndex, out var editKindWithoutDelete);
-                        Contract.ThrowIfTrue(editKindWithoutDelete == SemanticTokenEditKind.Delete); // We shouldn't have two deletions at the same position
-                        indexToEditKinds[edit.OldIndex] = editKindWithoutDelete == default ? SemanticTokenEditKind.Delete : SemanticTokenEditKind.Update;
+                        Contract.ThrowIfTrue(editKindWithoutDelete == SemanticTokenEditKind.Delete, "There cannot be two deletions at the same position.");
+                        Contract.ThrowIfTrue(editKindWithoutDelete == SemanticTokenEditKind.Update, "There cannot be a deletion and update at the same position.");
+                        indexToEditKinds[edit.OldIndex] = editKindWithoutDelete == SemanticTokenEditKind.None ? SemanticTokenEditKind.Delete : SemanticTokenEditKind.Update;
                         break;
                 }
             }
@@ -155,35 +156,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // one edit.
             Array.Sort(editIndices);
 
-            // Example to give clarity to orderedEditNumber and orderedTokenNumber variables defined below:
+            // Example to give clarity to currentEditIndex and currentTokenIndex variables defined below:
             // Non-grouped semantic tokens: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
-            // orderedEditNumber:           0                   1
-            // orderedTokenNumber:          0         1         2
-            for (var orderedEditNumber = 0; orderedEditNumber < editIndices.Length; orderedEditNumber++)
+            // currentEditIndex:            0                   1
+            // currentTokenIndex:           0         1         2
+            for (var currentEditIndex = 0; currentEditIndex < editIndices.Length; currentEditIndex++)
             {
-                var orderedTokenNumber = editIndices[orderedEditNumber];
-                var initialEditKind = indexToEditKinds[orderedTokenNumber];
+                var currentTokenIndex = editIndices[currentEditIndex];
+                var initialEditKind = indexToEditKinds[currentTokenIndex];
+                var editStartPosition = currentTokenIndex * 5;
 
                 if (initialEditKind == SemanticTokenEditKind.Update)
                 {
-                    orderedEditNumber = AddUpdateEdit(
-                        newGroupedSemanticTokens, indexToEditKinds, semanticTokensEdits, editIndices, orderedEditNumber,
-                        groupedSemanticToken: newGroupedSemanticTokens[orderedTokenNumber],
-                        editStartPosition: orderedTokenNumber * 5);
+                    currentEditIndex = AddUpdateEdit(
+                        newGroupedSemanticTokens, indexToEditKinds, semanticTokensEdits, editIndices,
+                        currentEditIndex, editStartPosition);
                 }
                 else if (initialEditKind == SemanticTokenEditKind.Insert)
                 {
-                    orderedEditNumber = AddInsertionEdit(
-                        newGroupedSemanticTokens, indexToEditKinds, semanticTokensEdits, editIndices, orderedEditNumber,
-                        groupedSemanticToken: newGroupedSemanticTokens[orderedTokenNumber],
-                        editStartPosition: orderedTokenNumber * 5);
+                    currentEditIndex = AddInsertionEdit(
+                        newGroupedSemanticTokens, indexToEditKinds, semanticTokensEdits, editIndices,
+                        currentEditIndex, editStartPosition);
                 }
                 else
                 {
-                    Contract.ThrowIfFalse(initialEditKind == SemanticTokenEditKind.Delete);
-                    orderedEditNumber = AddDeletionEdit(
-                        indexToEditKinds, semanticTokensEdits, editIndices, orderedEditNumber,
-                        editStartPosition: orderedTokenNumber * 5);
+                    Contract.ThrowIfFalse(initialEditKind == SemanticTokenEditKind.Delete, "Expected initialEditKind to be SemanticTokenEditKind.Delete.");
+                    currentEditIndex = AddDeletionEdit(
+                        indexToEditKinds, semanticTokensEdits, editIndices, currentEditIndex, editStartPosition);
                 }
             }
 
@@ -195,27 +194,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 Dictionary<int, SemanticTokenEditKind> indexToEditKinds,
                 ArrayBuilder<SemanticTokensEdit> semanticTokensEdits,
                 int[] editIndices,
-                int orderedEditNumber,
-                SemanticToken groupedSemanticToken,
+                int startEditIndex,
                 int editStartPosition)
             {
                 var _ = ArrayBuilder<int>.GetInstance(out var tokensToInsert);
-                groupedSemanticToken.AddToEnd(tokensToInsert);
 
                 // For simplicitly, we only allow an "update" (i.e. a dual insertion/deletion) to be
                 // combined with other updates.
-                var updatedOrderedEditNumber = GetUpdatedOrderedEditNumber(
-                    SemanticTokenEditKind.Update, indexToEditKinds, editIndices, orderedEditNumber);
+                var endEditIndex = GetCombinedEditEndIndex(
+                    SemanticTokenEditKind.Update, indexToEditKinds, editIndices, startEditIndex);
 
-                var deleteCount = 5 + 5 * (updatedOrderedEditNumber - orderedEditNumber);
-                for (var i = 1; i <= updatedOrderedEditNumber - orderedEditNumber; i++)
+                var deleteCount = 5 * (1 + (endEditIndex - startEditIndex));
+                for (var i = 0; i <= endEditIndex - startEditIndex; i++)
                 {
-                    newGroupedSemanticTokens[editIndices[orderedEditNumber + i]].AddToEnd(tokensToInsert);
+                    newGroupedSemanticTokens[editIndices[startEditIndex + i]].AddToEnd(tokensToInsert);
                 }
 
                 semanticTokensEdits.Add(
                     GenerateEdit(start: editStartPosition, deleteCount: deleteCount, data: tokensToInsert.ToArray()));
-                return updatedOrderedEditNumber;
+                return endEditIndex;
             }
 
             static int AddInsertionEdit(
@@ -223,66 +220,62 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 Dictionary<int, SemanticTokenEditKind> indexToEditKinds,
                 ArrayBuilder<SemanticTokensEdit> semanticTokensEdits,
                 int[] editIndices,
-                int orderedEditNumber,
-                SemanticToken groupedSemanticToken,
+                int startEditIndex,
                 int editStartPosition)
             {
                 var _ = ArrayBuilder<int>.GetInstance(out var tokensToInsert);
-                groupedSemanticToken.AddToEnd(tokensToInsert);
 
                 // An insert can only be combined with other inserts that directly follow it.
-                var updatedOrderedEditNumber = GetUpdatedOrderedEditNumber(
-                    SemanticTokenEditKind.Insert, indexToEditKinds, editIndices, orderedEditNumber);
+                var endEditIndex = GetCombinedEditEndIndex(
+                    SemanticTokenEditKind.Insert, indexToEditKinds, editIndices, startEditIndex);
 
-                for (var i = 1; i <= updatedOrderedEditNumber - orderedEditNumber; i++)
+                for (var i = 0; i <= endEditIndex - startEditIndex; i++)
                 {
-                    newGroupedSemanticTokens[editIndices[orderedEditNumber + i]].AddToEnd(tokensToInsert);
+                    newGroupedSemanticTokens[editIndices[startEditIndex + i]].AddToEnd(tokensToInsert);
                 }
 
                 semanticTokensEdits.Add(
                     GenerateEdit(start: editStartPosition, deleteCount: 0, data: tokensToInsert.ToArray()));
-                return updatedOrderedEditNumber;
+                return endEditIndex;
             }
 
             static int AddDeletionEdit(
                 Dictionary<int, SemanticTokenEditKind> indexToEditKinds,
                 ArrayBuilder<SemanticTokensEdit> semanticTokensEdits,
                 int[] editIndices,
-                int orderedEditNumber,
+                int startEditIndex,
                 int editStartPosition)
             {
                 // A deletion can only be combined with other deletions that directly follow it.
-                var updatedOrderedEditNumber = GetUpdatedOrderedEditNumber(
-                    SemanticTokenEditKind.Delete, indexToEditKinds, editIndices, orderedEditNumber);
+                var endEditNumber = GetCombinedEditEndIndex(
+                    SemanticTokenEditKind.Delete, indexToEditKinds, editIndices, startEditIndex);
 
-                var deleteCount = 5 + 5 * (updatedOrderedEditNumber - orderedEditNumber);
+                var deleteCount = 5 * (1 + (endEditNumber - startEditIndex));
                 semanticTokensEdits.Add(
                     GenerateEdit(start: editStartPosition, deleteCount: deleteCount, data: Array.Empty<int>()));
-                return updatedOrderedEditNumber;
+                return endEditNumber;
             }
 
             // Returns the updated ordered edit number after we know how many edits we can combine.
-            static int GetUpdatedOrderedEditNumber(
+            static int GetCombinedEditEndIndex(
                 SemanticTokenEditKind editKind,
                 Dictionary<int, SemanticTokenEditKind> indexToEditKinds,
                 int[] editIndices,
-                int orderedEditNumber)
+                int currentEditIndex)
             {
-                var originalOrderedEditNumber = orderedEditNumber;
-
                 // To continue combining edits, we need to ensure:
                 // 1) There is an edit following the current edit.
                 // 2) The current and next edits involve tokens that are located right next to
                 // each other in the file.
                 // 3) The next edit is the same type as the current edit.
-                while (orderedEditNumber + 1 < editIndices.Length &&
-                    indexToEditKinds[editIndices[orderedEditNumber + 1]] == editKind &&
-                    editIndices[orderedEditNumber + 1] == editIndices[orderedEditNumber] + 1)
+                while (currentEditIndex + 1 < editIndices.Length &&
+                    indexToEditKinds[editIndices[currentEditIndex + 1]] == editKind &&
+                    editIndices[currentEditIndex + 1] == editIndices[currentEditIndex] + 1)
                 {
-                    orderedEditNumber++;
+                    currentEditIndex++;
                 }
 
-                return orderedEditNumber;
+                return currentEditIndex;
             }
         }
 
@@ -292,7 +285,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// </summary>
         private static SemanticToken[] ConvertToGroupedSemanticTokens(int[] tokens)
         {
-            Contract.ThrowIfTrue(tokens.Length % 5 != 0);
+            Contract.ThrowIfTrue(tokens.Length % 5 != 0, $"Tokens length should be divisible by 5. Actual length: {tokens.Length}");
             using var _ = ArrayBuilder<SemanticToken>.GetInstance(out var fullTokens);
             for (var i = 0; i < tokens.Length; i += 5)
             {
@@ -355,7 +348,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 tokensToInsert.Add(_tokenModifiers);
             }
 
-            public bool Equals([AllowNull] SemanticToken otherToken)
+            public bool Equals(SemanticToken otherToken)
             {
                 return _deltaLine == otherToken._deltaLine &&
                     _deltaStartCharacter == otherToken._deltaStartCharacter &&

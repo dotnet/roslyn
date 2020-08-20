@@ -25,7 +25,6 @@ static class C { }
             using var workspace = CreateTestWorkspace(markup, out var locations);
 
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
-            var cache = GetSemanticTokensCache(workspace);
             var results = await RunGetSemanticTokensRangeAsync(workspace.CurrentSolution, locations["caret"].First(), range);
 
             var expectedResults = new LSP.SemanticTokens

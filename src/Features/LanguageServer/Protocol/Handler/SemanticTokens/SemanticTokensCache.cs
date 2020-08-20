@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     internal class SemanticTokensCache
     {
         /// <summary>
-        /// Maps a LSP token type to its respective index recognized by LSP.
+        /// Maps an LSP token type to the index LSP associates with the token.
+        /// Required since we report tokens back to LSP as a series of ints,
+        /// and LSP needs a way to decipher them.
         /// </summary>
         public static readonly Dictionary<string, int> TokenTypeToIndex;
 

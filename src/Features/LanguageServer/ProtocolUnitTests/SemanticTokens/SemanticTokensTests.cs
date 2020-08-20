@@ -6,9 +6,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -25,7 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 static class C { }";
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
-            var cache = GetSemanticTokensCache(workspace);
             var results = await RunGetSemanticTokensAsync(workspace.CurrentSolution, locations["caret"].First());
 
             var expectedResults = new LSP.SemanticTokens
@@ -59,7 +56,6 @@ static class C { }
 ";
 
             using var workspace = CreateTestWorkspace(markup, out var locations);
-            var cache = GetSemanticTokensCache(workspace);
             var caretLocation = locations["caret"].First();
 
             // 1. Range handler
@@ -103,16 +99,12 @@ static class C { }
             Assert.Equal(expectedWholeDocResults.ResultId, wholeDocResults.ResultId);
 
             // 3. Edits handler - insert newline at beginning of file
-            // Markup becomes:
-            //
-            //   // Comment
-            //   static class C { }";
-            var currentDocText = await workspace.CurrentSolution.Projects.First().Documents.First().GetTextAsync();
-            var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "\n"));
-            var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            ((TestWorkspace)workspace).ChangeDocument(docId, changedSourceText);
-            UpdateSolutionProvider((TestWorkspace)workspace, workspace.CurrentSolution);
+            var newMarkup = @"
+// Comment
+static class C { }
+";
 
+            UpdateDocumentText(newMarkup, workspace);
             var editResults = await RunGetSemanticTokensEditsAsync(workspace.CurrentSolution, caretLocation, previousResultId: "2");
 
             var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(0, 1, new int[] { 1 });

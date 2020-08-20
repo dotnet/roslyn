@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(request.TextDocument);
+            Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             var resultId = _tokensCache.GetNextResultId();
 
             // The results from the range handler should not be cached since we don't want to cache
