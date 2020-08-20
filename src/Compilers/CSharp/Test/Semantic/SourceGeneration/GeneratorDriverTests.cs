@@ -921,7 +921,7 @@ class C { }
 
             Assert.Single(outputDiagnostics);
             outputDiagnostics.Verify(
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                Diagnostic("CS" + ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The provided SourceText must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
                 );
         }
     }
