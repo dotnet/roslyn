@@ -296,7 +296,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46996")]
         public async Task TestDocument()
         {
             var code = @"class Test { void Method() { } }";
