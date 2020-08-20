@@ -97,37 +97,51 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            var linkedToken = linkedTokenSource.Token;
-
-            // This flag is used by SuggestedActionsSource to track what solution is was
-            // last able to get "full results" for.
+            // This flag is used by SuggestedActionsSource to track what solution is was last able to get "full results" // for.
             var isFullResult = await _diagnosticService.TryAppendDiagnosticsForSpanAsync(
-                document, range, diagnostics, cancellationToken: linkedToken).ConfigureAwait(false);
+                document, range, diagnostics, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var errorDiagnostics = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
             var otherDiagnostics = diagnostics.Where(d => d.Severity != DiagnosticSeverity.Error);
 
-            // Kick off a task that will determine there's an Error Diagnostic with a fixer
-            var errorDiagnosticsTask = Task.Run(
-                () => GetFirstDiagnosticWithFixAsync(document, errorDiagnostics, range, linkedToken),
-                linkedToken);
+            // Kick off a task that will determine there's an Error Diagnostic with a fixer.
+            var errorDiagnosticTask = Task.Run(
+                () => GetFirstDiagnosticWithFixAsync(document, errorDiagnostics, range, cancellationToken),
+                cancellationToken);
 
-            // Kick off a task that will determine if any non-Error Diagnostic has a fixer
-            var otherDiagnosticsTask = Task.Run(
-                () => GetFirstDiagnosticWithFixAsync(document, otherDiagnostics, range, linkedToken),
-                linkedToken);
+            // In parallel determine if any non-Error Diagnostic has a fixer.  Do this with a linked token so that it
+            // will both stop if `cancellationToken` is triggered or if we end up getting an errorDiagnostic fix and we
+            // then explicitly stop this.
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            // If the error diagnostics task happens to complete with a non-null result before
-            // the other diagnostics task, we can cancel the other task.
-            var diagnostic = await errorDiagnosticsTask.ConfigureAwait(false)
-                ?? await otherDiagnosticsTask.ConfigureAwait(false);
-            linkedTokenSource.Cancel();
+            var otherDiagnosticTask = Task.Run(
+                () => GetFirstDiagnosticWithFixAsync(document, otherDiagnostics, range, linkedTokenSource.Token),
+                linkedTokenSource.Token);
 
-            return new FirstDiagnosticResult(partialResult: !isFullResult,
-                                   hasFix: diagnostic != null,
-                                   diagnostic: diagnostic);
+            var diagnostic = await errorDiagnosticTask.ConfigureAwait(false);
+            if (diagnostic != null)
+            {
+                // got an error diagnostic.  Cancel the existing work we're doing in parallel as we no longer need that result.
+                linkedTokenSource.Cancel();
+            }
+            else
+            {
+                // Error task didn't result in anything.  Have to wait on the parallel task.  Note: this task may throw
+                // an OperationCanceledException associated with `linkedToken` if `cancellationToken` was triggered. We
+                // cannot let that bubble out as that would result in an aggregate exception on the callee side.
+                try
+                {
+                    diagnostic = await otherDiagnosticTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    Contract.ThrowIfFalse(cancellationToken.IsCancellationRequested);
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+
+            return new FirstDiagnosticResult(partialResult: !isFullResult, hasFix: diagnostic != null, diagnostic: diagnostic);
         }
 
         private async Task<DiagnosticData?> GetFirstDiagnosticWithFixAsync(
