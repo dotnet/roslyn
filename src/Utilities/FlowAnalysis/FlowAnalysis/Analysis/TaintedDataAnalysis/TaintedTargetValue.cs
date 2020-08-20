@@ -10,7 +10,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public const string Return = ".Return";
 
         /// <summary>
-        /// Taint this value.
+        /// Taint the instance value.
         /// </summary>
         public const string This = ".This";
     }

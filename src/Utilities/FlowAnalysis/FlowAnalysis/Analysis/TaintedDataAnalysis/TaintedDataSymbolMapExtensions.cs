@@ -218,16 +218,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IPropertyReferenceOperation propertyReferenceOperation)
         {
             if (!(propertyReferenceOperation.Instance.Type is INamedTypeSymbol namedType))
+            {
                 return false;
+            }
 
             string name = propertyReferenceOperation.Member.Name;
             if (propertyReferenceOperation.Member.Language != LanguageNames.CSharp && propertyReferenceOperation.Member.IsIndexer())
+            {
                 name = IndexerName; // In VB.NET for example the indexer name is `Item`. However let's keep the SourceInfo configuration language agnostic.
+            }
 
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(namedType))
             {
                 if (sourceInfo.TransferProperties.Contains(name))
+                {
                     return true;
+                }
             }
 
             return false;
