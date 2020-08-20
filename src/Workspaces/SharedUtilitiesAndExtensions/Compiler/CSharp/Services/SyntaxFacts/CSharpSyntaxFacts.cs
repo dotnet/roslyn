@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.Kind() == SyntaxKind.ThrowExpression;
 
         public bool IsPredefinedType(SyntaxToken token)
-            => TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
+            => TryGetPredefinedType(token, out var actualType);
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
             => TryGetPredefinedType(token, out var actualType) && actualType == type;
