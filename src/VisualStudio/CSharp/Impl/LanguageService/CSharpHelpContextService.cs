@@ -186,6 +186,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+            {
+                text = "$_CSharpKeyword";
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.StringLiteralToken) && token.ValueText[0] == '@')
+            {
+                text = "@_CSharpKeyword";
+                return true;
+            }
+
             if (token.IsKind(SyntaxKind.ColonColonToken))
             {
                 text = "::_CSharpKeyword";
