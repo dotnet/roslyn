@@ -282,11 +282,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // These are the parts of the expression that the ?... expression can end with.  Specifically:
             //
-            //  1.      x?.y.M()
-            //  2.      x?.y[...];
-            //  3.      x?.y.z
-            //  4.      x?.y
-            //  5.      x?[y]
+            //  1.      x?.y.M()            // invocation
+            //  2.      x?.y[...];          // element access
+            //  3.      x?.y.z              // member access
+            //  4.      x?.y                // member binding
+            //  5.      x?[y]               // element binding
             var current = node;
             while (current.IsKind(
                 SyntaxKind.InvocationExpression,
