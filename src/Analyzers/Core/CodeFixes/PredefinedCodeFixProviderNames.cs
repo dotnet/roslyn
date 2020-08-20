@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
+        public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
         public const string RemoveDocCommentNode = nameof(RemoveDocCommentNode);
         public const string AddMissingReference = nameof(AddMissingReference);
         public const string AddImport = nameof(AddImport);
@@ -50,8 +51,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ReplaceDefaultLiteral = nameof(ReplaceDefaultLiteral);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
+        public const string RemoveAsyncModifier = nameof(RemoveAsyncModifier);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
-        public const string RemoveUnnecessarySuppressions = nameof(RemoveUnnecessarySuppressions);
+        public const string RemoveUnnecessaryAttributeSuppressions = nameof(RemoveUnnecessaryAttributeSuppressions);
+        public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
         public const string RemoveUnusedValues = nameof(RemoveUnusedValues);
         public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);

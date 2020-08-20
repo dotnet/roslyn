@@ -3662,13 +3662,14 @@ namespace Microsoft.Cci
             else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
             {
                 Debug.Assert(!signature.ReturnValueIsByRef);
+                Debug.Assert(signature.RefCustomModifiers.IsEmpty);
                 SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
 
                 returnTypeEncoder.Void();
             }
             else
             {
-                Debug.Assert(signature.RefCustomModifiers.Length == 0 || signature.ReturnValueIsByRef);
+                Debug.Assert(signature.RefCustomModifiers.IsEmpty || signature.ReturnValueIsByRef);
                 SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.RefCustomModifiers);
 
                 var typeEncoder = returnTypeEncoder.Type(signature.ReturnValueIsByRef);

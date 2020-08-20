@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return applied;
         }
 
-        private TextDocument TryGetSingleChangedText(
+        private static TextDocument TryGetSingleChangedText(
             Solution oldSolution, ImmutableArray<CodeActionOperation> operationsList)
         {
             Debug.Assert(operationsList.Length > 0);

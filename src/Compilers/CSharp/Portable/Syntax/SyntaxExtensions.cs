@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.BaseList:
                 case SyntaxKind.SimpleBaseType:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
 
                 case SyntaxKind.Block:
@@ -439,9 +440,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SyntaxKind.FunctionPointerType:
                         var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)type;
-                        for (int i = functionPointerTypeSyntax.Parameters.Count - 1; i >= 0; i--)
+                        for (int i = functionPointerTypeSyntax.ParameterList.Parameters.Count - 1; i >= 0; i--)
                         {
-                            TypeSyntax? paramType = functionPointerTypeSyntax.Parameters[i].Type;
+                            TypeSyntax? paramType = functionPointerTypeSyntax.ParameterList.Parameters[i].Type;
                             Debug.Assert(paramType is object);
                             stack.Push(paramType);
                         }

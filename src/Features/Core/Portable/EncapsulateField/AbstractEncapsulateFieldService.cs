@@ -316,11 +316,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
             var options = new CodeGenerationOptions(
                 contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span),
-                parseOptions: fieldDeclaration.SyntaxTree.Options);
+                parseOptions: fieldDeclaration.SyntaxTree.Options,
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
             var destination = field.ContainingType;
-            var updatedDocument = await codeGenerationService.AddPropertyAsync(destinationSolution, destination, property, options, cancellationToken)
-                .ConfigureAwait(false);
+            var updatedDocument = await codeGenerationService.AddPropertyAsync(
+                destinationSolution, destination, property, options, cancellationToken).ConfigureAwait(false);
 
             updatedDocument = await Formatter.FormatAsync(updatedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             updatedDocument = await Simplifier.ReduceAsync(updatedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);

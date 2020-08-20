@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract string GenericSuffix { get; }
 
-        protected override bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext)
-            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(document);
+        protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
+            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document, completionContext.Options.GetOption(CompletionServiceOptions.DisallowAddingImports));
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         forceIndexCreation: isExpandedCompletion,
                         cancellationToken).ConfigureAwait(false);
 
-                    completionContext.AddItems(items.Select(i => Convert(i)));
+                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+                    completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
                 }
                 else
                 {
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _ => symbol as ITypeSymbol,
             };
 
-        private CompletionItem Convert(SerializableImportCompletionItem serializableItem)
+        private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey)
             => ImportCompletionItem.Create(
                 serializableItem.Name,
                 serializableItem.Arity,
@@ -112,6 +113,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 serializableItem.Glyph,
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
-                serializableItem.SymbolKeyData);
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount));
     }
 }

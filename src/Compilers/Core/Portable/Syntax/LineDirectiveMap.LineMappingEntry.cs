@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             public LineMappingEntry(
                 int unmappedLine,
                 int mappedLine,
-                string mappedPathOpt,
+                string? mappedPathOpt,
                 PositionState state)
             {
                 this.UnmappedLine = unmappedLine;

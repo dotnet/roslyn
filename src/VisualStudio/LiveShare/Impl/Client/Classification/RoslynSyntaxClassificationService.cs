@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -24,16 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
     internal class RoslynSyntaxClassificationService : ISyntaxClassificationService
     {
         private readonly AbstractLspClientServiceFactory _roslynLspClientServiceFactory;
-        private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly ISyntaxClassificationService _originalService;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IThreadingContext _threadingContext;
 
-        public RoslynSyntaxClassificationService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace, ISyntaxClassificationService originalService,
+        public RoslynSyntaxClassificationService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, ISyntaxClassificationService originalService,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory;
-            _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace;
             _originalService = originalService;
             _classificationTypeMap = classificationTypeMap;
             _threadingContext = threadingContext;

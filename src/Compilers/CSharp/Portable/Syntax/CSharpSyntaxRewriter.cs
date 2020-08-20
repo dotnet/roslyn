@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Syntax;
 
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int _recursionDepth;
 
+        [return: NotNullIfNotNull("node")]
         public override SyntaxNode? Visit(SyntaxNode? node)
         {
             if (node != null)

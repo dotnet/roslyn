@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly AttributePredicate _attributePredicate;
             private readonly AttributeLanguagesFunc _languagesFunc;
             private ImmutableArray<TExtension> _lazyAllExtensions;
-            private ImmutableDictionary<string, ImmutableArray<TExtension>>? _lazyExtensionsPerLanguage;
+            private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
             private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
             internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
             {
-                ImmutableHashSet<string> languageSpecificAnalyzerTypeNames;
+                ImmutableHashSet<string>? languageSpecificAnalyzerTypeNames;
                 if (!analyzerTypeNameMap.TryGetValue(language, out languageSpecificAnalyzerTypeNames))
                 {
                     return ImmutableArray<TExtension>.Empty;
@@ -485,8 +485,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Type? type;
                     try
                     {
-                        // TODO: Once we move to CoreCLR we should just call GetType(typeName, throwOnError: true, ignoreCase: false) directly.
-                        // For now we fall back to reflection shim in order to report good error message (type load exception).
                         type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
                     }
                     catch (Exception e)

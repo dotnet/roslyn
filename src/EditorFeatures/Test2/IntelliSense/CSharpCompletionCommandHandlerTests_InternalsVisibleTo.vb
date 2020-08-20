@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     <[UseExportProvider]>
@@ -178,7 +180,7 @@ namespace A
             End Using
         End Function
 
-        Private Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean, showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
@@ -579,7 +581,7 @@ using System.Reflection;
 [assembly: InternalsVisibleTo("$$
                         </Document>
                     </Project>
-                </Workspace>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                </Workspace>, extraExportedTypes:={GetType(NoCompilationContentTypeDefinitions), GetType(NoCompilationContentTypeLanguageService)}, showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
             End Using

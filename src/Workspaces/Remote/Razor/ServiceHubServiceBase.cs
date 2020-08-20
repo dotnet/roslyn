@@ -7,11 +7,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
+
+[assembly: TypeForwardedTo(typeof(ServiceBase))]
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -44,12 +48,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public Task<Solution> GetSolutionAsync(JObject solutionInfo, CancellationToken cancellationToken)
-        {
-            var reader = solutionInfo.CreateReader();
-            var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance } });
-            var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
-
-            return CreateSolutionService(pinnedSolutionInfo).GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
-        }
+            => GetSolutionImplAsync(solutionInfo, cancellationToken);
     }
 }

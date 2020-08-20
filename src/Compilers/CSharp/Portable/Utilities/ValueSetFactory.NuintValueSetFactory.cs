@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private NuintValueSetFactory() { }
 
+            IValueSet IValueSetFactory.AllValues => NuintValueSet.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => NuintValueSet.NoValues;
+
             public IValueSet<uint> Related(BinaryOperatorKind relation, uint value)
             {
                 return new NuintValueSet(

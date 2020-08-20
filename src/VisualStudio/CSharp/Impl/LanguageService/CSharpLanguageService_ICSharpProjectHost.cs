@@ -24,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 projectName,
                 hierarchy,
                 this.SystemServiceProvider,
-                this.Package.ComponentModel.GetService<IThreadingContext>(),
-                this.HostDiagnosticUpdateSource,
-                this.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ICommandLineParserService>());
+                this.Package.ComponentModel.GetService<IThreadingContext>());
 
             projectRoot.SetProjectSite(project);
         }

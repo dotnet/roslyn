@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue).WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Function
 
-        Protected Overrides Function GetExportCatalog() As ComposableCatalog
-            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
+        Protected Overrides Function GetComposition() As TestComposition
+            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
         Friend Overrides Function GetCompletionProviderType() As Type
@@ -274,6 +274,59 @@ End Class]]></Text>.Value
 
             Dim markup = GetMarkup(file2, file1, refType)
             Await VerifyItemIsAbsentAsync(markup, "ExtentionMethod", inlineDescription:="NS")
+        End Function
+
+        <InlineData(ReferenceType.Project, "()", "ExtentionMethod2")>
+        <InlineData(ReferenceType.Project, "()()", "ExtentionMethod3")>
+        <InlineData(ReferenceType.Project, "(,)", "ExtentionMethod4")>
+        <InlineData(ReferenceType.Project, "()(,)", "ExtentionMethod5")>
+        <InlineData(ReferenceType.None, "()", "ExtentionMethod2")>
+        <InlineData(ReferenceType.None, "()()", "ExtentionMethod3")>
+        <InlineData(ReferenceType.None, "(,)", "ExtentionMethod4")>
+        <InlineData(ReferenceType.None, "()(,)", "ExtentionMethod5")>
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExtensionMethodsForArrayType(refType As ReferenceType, rank As String, expectedName As String) As Task
+
+            Dim file1 = <Text><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace NS
+    Public Module Foo
+        <Extension>
+        Public Function ExtentionMethod1(x As Integer) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod2(x As Integer()) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod3(x As Integer()()) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod4(x As Integer(,)) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod5(x As Integer()(,)) As Boolean
+            Return True
+        End Function
+    End Module
+End Namespace]]></Text>.Value
+
+            Dim file2 As String = $"
+Imports System
+
+Public Class Baz
+    Sub M(x As Integer{rank})
+        x.$$
+    End Sub
+End Class"
+
+            Dim markup = GetMarkup(file2, file1, refType)
+            Await VerifyItemExistsAsync(markup, expectedName, glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="NS")
         End Function
     End Class
 End Namespace

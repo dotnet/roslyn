@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
         /// </summary>
-        public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static SymbolKey Create(ISymbol? symbol, CancellationToken cancellationToken = default)
             => new SymbolKey(CreateString(symbol, cancellationToken));
 
         /// <summary>
@@ -161,24 +163,39 @@ namespace Microsoft.CodeAnalysis
             string symbolKey, Compilation compilation,
             bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, out _, cancellationToken);
+        }
+
+        public static SymbolKeyResolution ResolveString(
+            string symbolKey, Compilation compilation,
+            out string? failureReason, CancellationToken cancellationToken)
+        {
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey: false, out failureReason, cancellationToken);
+        }
+
+        public static SymbolKeyResolution ResolveString(
+            string symbolKey, Compilation compilation, bool ignoreAssemblyKey,
+            out string? failureReason, CancellationToken cancellationToken)
+        {
             using var reader = SymbolKeyReader.GetReader(
                 symbolKey, compilation, ignoreAssemblyKey, cancellationToken);
             var version = reader.ReadFormatVersion();
             if (version != FormatVersion)
             {
+                failureReason = $"({nameof(SymbolKey)} invalid format '${version}')";
                 return default;
             }
 
-            var result = reader.ReadSymbolKey();
+            var result = reader.ReadSymbolKey(out failureReason);
             Debug.Assert(reader.Position == symbolKey.Length);
             return result;
         }
 
-        public static string CreateString(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static string CreateString(ISymbol? symbol, CancellationToken cancellationToken = default)
             => CreateStringWorker(FormatVersion, symbol, cancellationToken);
 
         // Internal for testing purposes.
-        internal static string CreateStringWorker(int version, ISymbol symbol, CancellationToken cancellationToken = default)
+        internal static string CreateStringWorker(int version, ISymbol? symbol, CancellationToken cancellationToken = default)
         {
             using var writer = SymbolKeyWriter.GetWriter(cancellationToken);
             writer.WriteFormatVersion(version);
@@ -208,36 +225,33 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
             => _symbolKeyData;
 
-        private static SymbolKeyResolution CreateResolution<TSymbol>(PooledArrayBuilder<TSymbol> symbols)
+        private static SymbolKeyResolution CreateResolution<TSymbol>(
+            PooledArrayBuilder<TSymbol> symbols, string reasonIfFailed, out string? failureReason)
             where TSymbol : class, ISymbol
         {
-#if DEBUG
-            foreach (var symbol in symbols)
-            {
-                Debug.Assert(symbol != null);
-            }
-#endif
-
             if (symbols.Builder.Count == 0)
             {
+                failureReason = reasonIfFailed;
                 return default;
             }
             else if (symbols.Builder.Count == 1)
             {
+                failureReason = null;
                 return new SymbolKeyResolution(symbols.Builder[0]);
             }
             else
             {
+                failureReason = null;
                 return new SymbolKeyResolution(
                     ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutable()),
                     CandidateReason.Ambiguous);
             }
         }
 
-        private static bool Equals(Compilation compilation, string name1, string name2)
+        private static bool Equals(Compilation compilation, string? name1, string? name2)
             => Equals(compilation.IsCaseSensitive, name1, name2);
 
-        private static bool Equals(bool isCaseSensitive, string name1, string name2)
+        private static bool Equals(bool isCaseSensitive, string? name1, string? name2)
             => string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
         private static string GetName(string metadataName)
@@ -273,14 +287,14 @@ namespace Microsoft.CodeAnalysis
 
         private static PooledArrayBuilder<TSymbol> GetMembersOfNamedType<TSymbol>(
             SymbolKeyResolution containingTypeResolution,
-            string metadataNameOpt) where TSymbol : ISymbol
+            string? metadataName) where TSymbol : ISymbol
         {
             var result = PooledArrayBuilder<TSymbol>.GetInstance();
             foreach (var containingType in containingTypeResolution.OfType<INamedTypeSymbol>())
             {
-                var members = metadataNameOpt == null
+                var members = metadataName == null
                     ? containingType.GetMembers()
-                    : containingType.GetMembers(metadataNameOpt);
+                    : containingType.GetMembers(metadataName);
 
                 foreach (var member in members)
                 {
@@ -293,8 +307,5 @@ namespace Microsoft.CodeAnalysis
 
             return result;
         }
-
-        private static T FirstOrDefault<T>(ImmutableArray<T> values)
-            => values.IsDefaultOrEmpty ? default : values[0];
     }
 }

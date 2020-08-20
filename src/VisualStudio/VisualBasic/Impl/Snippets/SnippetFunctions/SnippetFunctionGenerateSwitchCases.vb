@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 Imports TextSpan = Microsoft.CodeAnalysis.Text.TextSpan
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
@@ -20,8 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
     Friend NotInheritable Class SnippetFunctionGenerateSwitchCases
         Inherits AbstractSnippetFunctionGenerateSwitchCases
 
-        Public Sub New(snippetExpansionClient As SnippetExpansionClient, textView As ITextView, subjectBuffer As ITextBuffer, caseGenerationLocationField As String, switchExpressionField As String)
-            MyBase.New(snippetExpansionClient, textView, subjectBuffer, caseGenerationLocationField, switchExpressionField)
+        Public Sub New(snippetExpansionClient As SnippetExpansionClient, subjectBuffer As ITextBuffer, caseGenerationLocationField As String, switchExpressionField As String)
+            MyBase.New(snippetExpansionClient, subjectBuffer, caseGenerationLocationField, switchExpressionField)
         End Sub
 
         Protected Overrides ReadOnly Property CaseFormat As String

@@ -347,6 +347,22 @@ public class Point
         switch (i) { case default: break; } // error 3
         switch (i) { case default when true: break; } // error 4
         switch ((1, 2)) { case (1, default): break; } // error 5
+
+        if (i is < default) {} // error 6
+        switch (i) { case < default: break; } // error 7
+        if (i is < ((default))) {} // error 8
+        switch (i) { case < ((default)): break; } // error 9
+
+        if (i is default!) {} // error 10
+        if (i is (default!)) {} // error 11
+        if (i is < ((default)!)) {} // error 12
+        if (i is default!!) {} // error 13
+        if (i is (default!!)) {} // error 14
+        if (i is < ((default)!!)) {} // error 15
+
+        // These are not accepted by the parser. See https://github.com/dotnet/roslyn/issues/45387
+        if (i is (default)!) {} // error 16
+        if (i is ((default)!)) {} // error 17
     }
 }";
             var compilation = CreatePatternCompilation(source);
@@ -365,7 +381,67 @@ public class Point
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
                 // (10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch ((1, 2)) { case (1, default): break; } // error 5
-                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36),
+                // (12,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < default) {} // error 6
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 20),
+                // (13,29): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case < default: break; } // error 7
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(13, 29),
+                // (14,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default))) {} // error 8
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(14, 22),
+                // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case < ((default)): break; } // error 9
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
+                // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default!) {} // error 10
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
+                // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default!)) {} // error 11
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
+                // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default)!)) {} // error 12
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
+                // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
+                // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
+                // (22,22): error CS8715: Duplicate null suppression operator ('!')
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
+                // (22,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(22, 22),
+                // (25,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(25, 19),
+                // (25,27): error CS1026: ) expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(25, 27),
+                // (25,28): error CS1525: Invalid expression term ')'
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(25, 28),
+                // (25,28): error CS1002: ; expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(25, 28),
+                // (25,28): error CS1513: } expected
+                //         if (i is (default)!) {} // error 16
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(25, 28),
+                // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((default)!)").WithArguments("int", "2").WithLocation(26, 18),
+                // (26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(26, 20),
+                // (26,28): error CS1003: Syntax error, ',' expected
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(26, 28),
+                // (26,29): error CS1525: Invalid expression term ')'
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29)
                 );
         }
 
@@ -494,9 +570,9 @@ public class Point
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         var r = 1 switch { };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 19),
                 // (5,19): error CS8506: No best type was found for the switch expression.
                 //         var r = 1 switch { };
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 19));
@@ -518,9 +594,9 @@ public class Point
     public delegate void D();
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '3' is not covered.
                 //         var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("3").WithLocation(5, 19)
                 );
         }
 
@@ -609,9 +685,9 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (7,19): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 19)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("_").WithLocation(7, 19)
                 );
             var names = new[] { "x1", "x2", "x3", "x4", "x5" };
             var tree = compilation.SyntaxTrees[0];
@@ -674,18 +750,18 @@ class Program
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,18): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x)").WithArguments("parenthesized pattern").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x)").WithArguments("parenthesized pattern", "9.0").WithLocation(8, 18),
                 // (8,19): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         if (t is (int x)) { }                           // error 1
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(8, 19),
-                // (9,27): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,27): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_)").WithArguments("parenthesized pattern").WithLocation(9, 27),
-                // (10,28): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(_)").WithArguments("parenthesized pattern", "9.0").WithLocation(9, 27),
+                // (10,28): error CS8400: Feature 'parenthesized pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int y)").WithArguments("parenthesized pattern").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int y)").WithArguments("parenthesized pattern", "9.0").WithLocation(10, 28),
                 // (10,29): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29)
@@ -2866,6 +2942,42 @@ class F
                         break;
                 }
             }
+        }
+
+        [Fact, WorkItem(45946, "https://github.com/dotnet/roslyn/issues/45946")]
+        public void VoidPattern_01()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        _ = is this.F(1);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS1525: Invalid expression term 'is'
+                //         _ = is this.F(1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(6, 13)
+                );
+        }
+
+        [Fact, WorkItem(45946, "https://github.com/dotnet/roslyn/issues/45946")]
+        public void VoidPattern_02()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        _ = switch { this.F(1) => 1 };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS1525: Invalid expression term 'switch'
+                //         _ = switch { this.F(1) => 1 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "switch").WithArguments("switch").WithLocation(6, 13)
+                );
         }
     }
 }

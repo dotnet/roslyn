@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Invariantly = MessageBase + 12663,
 
         IDS_FeatureAsync = MessageBase + 12668,
+        IDS_FeatureStaticAnonymousFunction = MessageBase + 12669,
 
         IDS_LIB_ENV = MessageBase + 12680,
         IDS_LIB_OPTION = MessageBase + 12681,
@@ -104,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // available
 
+        IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
         IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
         IDS_FeatureExpressionBodiedProperty = MessageBase + 12692,
@@ -206,6 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInitOnlySetters = MessageBase + 12781,
         IDS_FeatureRecords = MessageBase + 12782,
         IDS_FeatureNullPointerConstantPattern = MessageBase + 12783,
+        IDS_FeatureModuleInitializers = MessageBase + 12784,
+        IDS_FeatureTargetTypedConditional = MessageBase + 12785,
+        IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12786,
+        IDS_FeatureExtensionGetEnumerator = MessageBase + 12787,
+        IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -312,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                // C# preview features.
+                // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
@@ -325,12 +332,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureParenthesizedPattern:
                 case MessageID.IDS_FeatureTypePattern:
                 case MessageID.IDS_FeatureRelationalPattern:
+                case MessageID.IDS_FeatureExtensionGetEnumerator: // semantic check
+                case MessageID.IDS_FeatureExtensionGetAsyncEnumerator: // semantic check
                 case MessageID.IDS_FeatureNativeInt:
                 case MessageID.IDS_FeatureExtendedPartialMethods: // semantic check
                 case MessageID.IDS_TopLevelStatements:
                 case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureRecords:
-                    return LanguageVersion.Preview;
+                case MessageID.IDS_FeatureTargetTypedConditional:  // semantic check
+                case MessageID.IDS_FeatureCovariantReturnsForOverrides: // semantic check
+                case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
+                case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
+                case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
+                    return LanguageVersion.CSharp9;
 
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:

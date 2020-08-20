@@ -758,6 +758,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerThatThrowsInSupportedDiagnostics : DiagnosticAnalyzer
+        {
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+            public override void Initialize(AnalysisContext context) { }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -2142,6 +2149,97 @@ namespace Microsoft.CodeAnalysis
             {
                 context.RegisterOperationBlockEndAction(
                     endContext => endContext.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.OwningSymbol.Locations[0])));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class FieldAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _syntaxTreeAction;
+            public FieldAnalyzer(string diagnosticId, bool syntaxTreeAction)
+            {
+                _syntaxTreeAction = syntaxTreeAction;
+                Descriptor = new DiagnosticDescriptor(
+                    diagnosticId,
+                    "Title",
+                    "Message",
+                    "Category",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_syntaxTreeAction)
+                {
+                    context.RegisterSyntaxTreeAction(context =>
+                    {
+                        var fields = context.Tree.GetRoot().DescendantNodes().OfType<CSharp.Syntax.FieldDeclarationSyntax>();
+                        foreach (var variable in fields.SelectMany(f => f.Declaration.Variables))
+                        {
+                            context.ReportDiagnostic(Diagnostic.Create(Descriptor, variable.Identifier.GetLocation()));
+                        }
+                    });
+                }
+                else
+                {
+                    context.RegisterSymbolAction(
+                        context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                        SymbolKind.Field);
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class AdditionalFileAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _registerFromInitialize;
+            private readonly TextSpan _diagnosticSpan;
+
+            public AdditionalFileAnalyzer(bool registerFromInitialize, TextSpan diagnosticSpan, string id = "ID0001")
+            {
+                _registerFromInitialize = registerFromInitialize;
+                _diagnosticSpan = diagnosticSpan;
+
+                Descriptor = new DiagnosticDescriptor(
+                    id,
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_registerFromInitialize)
+                {
+                    context.RegisterAdditionalFileAction(AnalyzeAdditionalFile);
+                }
+                else
+                {
+                    context.RegisterCompilationStartAction(context =>
+                        context.RegisterAdditionalFileAction(AnalyzeAdditionalFile));
+                }
+            }
+
+            private void AnalyzeAdditionalFile(AdditionalFileAnalysisContext context)
+            {
+                if (context.AdditionalFile.Path == null)
+                {
+                    return;
+                }
+
+                var text = context.AdditionalFile.GetText();
+                var location = Location.Create(context.AdditionalFile.Path, _diagnosticSpan, text.Lines.GetLinePositionSpan(_diagnosticSpan));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
             }
         }
     }

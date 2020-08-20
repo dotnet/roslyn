@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
-        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
-
         // use eventMap and taskQueue to serialize events
         private readonly EventMap _eventMap;
         private readonly TaskQueue _eventQueue;
@@ -46,27 +44,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : this(registrationService,
-                   listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
-        {
-        }
-
-        // protected for testing purposes.
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        protected DiagnosticAnalyzerService(
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
-            Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
+            Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
             _eventMap = new EventMap();
 
-            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
-            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new TaskQueue(Listener, s_eventScheduler);
+            _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             registrationService.Register(this);
         }

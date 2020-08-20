@@ -40,7 +40,7 @@ record Base(int Alice, int Bob)
     }
 }
                               </Document>,
-                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
 
                 state.SendTypeChars("{ ")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=False)
@@ -69,7 +69,7 @@ record Base(int Alice, int Bob)
     }
 }
                               </Document>,
-                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp9)
 
                 state.SendTypeChars(", ")
                 Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=False)
@@ -984,7 +984,7 @@ class C
         Public Async Function TestNonTrailingNamedArgumentInCSharp7_1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="C#" LanguageVersion="CSharp7_1" CommonReferences="true" AssemblyName="CSProj">
+                     <Project Language="C#" LanguageVersion="7.1" CommonReferences="true" AssemblyName="CSProj">
                          <Document FilePath="C.cs">
 class C
 {
@@ -1011,7 +1011,7 @@ class C
         Public Async Function TestNonTrailingNamedArgumentInCSharp7_2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="C#" LanguageVersion="CSharp7_2" CommonReferences="true" AssemblyName="CSProj">
+                     <Project Language="C#" LanguageVersion="7.2" CommonReferences="true" AssemblyName="CSProj">
                          <Document FilePath="C.cs">
 class C
 {
@@ -1765,7 +1765,7 @@ public class C
     {
         C c = new($$
     }
-}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+}]]></Document>, languageVersion:=LanguageVersion.CSharp9, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
@@ -1789,7 +1789,7 @@ public class C
     {
         C c = new$$
     }
-}]]></Document>, languageVersion:=LanguageVersion.Preview, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+}]]></Document>, languageVersion:=LanguageVersion.CSharp9, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
@@ -2201,7 +2201,7 @@ class Goo
             Await EnumCompletionNotTriggeredOn(";"c, showCompletionInArgumentLists)
         End Function
 
-        Private Async Function EnumCompletionNotTriggeredOn(c As Char, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function EnumCompletionNotTriggeredOn(c As Char, showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
 enum Numeros { Uno, Dos }
@@ -3072,7 +3072,7 @@ class Program
         <WorkItem(785637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785637")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Sub CommitMovesCaretToWordEnd(showCompletionInArgumentLists As Boolean)
+        Public Async Function CommitMovesCaretToWordEnd(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -3089,7 +3089,7 @@ class C
                 Await state.SendCommitUniqueCompletionListItemAsync()
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(775370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775370")>
         <WpfTheory, CombinatorialData>
@@ -5223,7 +5223,7 @@ class C
 
                 state.SendBackspace()
                 state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
 
             End Using
         End Function
@@ -6423,7 +6423,7 @@ class C
         Public Async Function CompletionBeforeVarWithEnableNullableReferenceAnalysisIDEFeatures(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="C#" LanguageVersion="CSharp8" CommonReferences="true" AssemblyName="CSProj" Features="run-nullable-analysis">
+                     <Project Language="C#" LanguageVersion="8" CommonReferences="true" AssemblyName="CSProj" Features="run-nullable-analysis">
                          <Document><![CDATA[
 class C
 {
@@ -7440,6 +7440,36 @@ class Program
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("Name", "")
+            End Using
+        End Function
+
+        <WorkItem(1128749, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1128749")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFallingBackToItemWithLongestCommonPrefixWhenNoMatch(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class SomePrefixAndName {}
+
+class C
+{
+    void Method()
+    {
+        SomePrefixOrName$$
+    }
+}
+                              </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Await state.SendCommitUniqueCompletionListItemAsync()
+                Await state.AssertNoCompletionSession()
+
+                state.SendEscape()
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="SomePrefixAndName", isHardSelected:=False)
+
             End Using
         End Function
 

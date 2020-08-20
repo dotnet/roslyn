@@ -11,11 +11,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;
 
-        public ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo
-            => _extensionMethodInfo.SimpleExtensionMethodInfo;
-
-        public ImmutableArray<int> ComplexExtensionMethodInfo
-            => _extensionMethodInfo.ComplexExtensionMethodInfo;
+        public ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap
+            => _extensionMethodInfo.ReceiverTypeNameToExtensionMethodMap;
 
         public bool ContainsExtensionMethod => _extensionMethodInfo.ContainsExtensionMethod;
 

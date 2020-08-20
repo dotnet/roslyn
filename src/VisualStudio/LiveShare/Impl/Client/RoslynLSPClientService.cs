@@ -88,17 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         TextDocumentSync = null,
                     })));
 
-            languageServerGuestService.RegisterClientMetadata(
-                new string[] { ContentTypeNames.CSharpLspContentTypeName, ContentTypeNames.VBLspContentTypeName },
-                new LS.LanguageServerClientMetadata(
-                    true,
-                    JObject.FromObject(new ServerCapabilities
-                    {
-                        // Uses Roslyn client.
-                        CodeActionProvider = true,
-                        ExecuteCommandProvider = new ExecuteCommandOptions(),
-                    })));
-
             var lifeTimeService = LspClientLifeTimeService;
             lifeTimeService.Disposed += (s, e) =>
             {
@@ -132,14 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var intializeResult = await ActiveLanguageServerClient.RequestAsync(initializeRequest, new InitializeParams(), cancellationToken).ConfigureAwait(false);
-
-                var serverCapabilities = intializeResult?.Capabilities;
-                if (serverCapabilities != null && LanguageServicesUtils.TryParseJson<RoslynExperimentalCapabilities>(serverCapabilities?.Experimental, out var roslynExperimentalCapabilities))
-                {
-                    serverCapabilities.Experimental = roslynExperimentalCapabilities;
-                }
-
-                ServerCapabilities = serverCapabilities;
+                ServerCapabilities = intializeResult?.Capabilities;
             });
         }
     }

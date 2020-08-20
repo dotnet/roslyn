@@ -21,11 +21,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
     <[UseExportProvider]>
     Public Class NavigableSymbolsTest
 
-        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
-                    GetType(MockDocumentNavigationServiceProvider),
-                    GetType(MockSymbolNavigationServiceProvider)))
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
+            GetType(MockDocumentNavigationServiceProvider),
+            GetType(MockSymbolNavigationServiceProvider))
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestCharp() As Task
@@ -39,7 +37,7 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -53,8 +51,8 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
-                Await TestNotNavigated(workspace, position.Value, spans)
+            Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
+                Await TestNotNavigated(workspace, position.Value)
             End Using
         End Function
 
@@ -67,8 +65,8 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
-                Await TestNotNavigated(workspace, position.Value, spans)
+            Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
+                Await TestNotNavigated(workspace, position.Value)
             End Using
         End Function
 
@@ -83,7 +81,7 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
                 Await TestNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -97,8 +95,8 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
-                Await TestNotNavigated(workspace, position.Value, spans)
+            Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
+                Await TestNotNavigated(workspace, position.Value)
             End Using
         End Function
 
@@ -111,12 +109,12 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
-                Await TestNotNavigated(workspace, position.Value, spans)
+            Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
+                Await TestNotNavigated(workspace, position.Value)
             End Using
         End Function
 
-        Private Function ExtractSymbol(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task(Of INavigableSymbol)
+        Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Return)
             Dim service = New NavigableSymbolService(TestWaitIndicator.Default, threadingContext, presenter)
@@ -127,8 +125,8 @@ End Class"
             Return source.GetNavigableSymbolAsync(triggerSpan, CancellationToken.None)
         End Function
 
-        Private Async Function TestNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
-            Dim symbol = Await ExtractSymbol(workspace, position, spans)
+        Private Shared Async Function TestNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
+            Dim symbol = Await ExtractSymbol(workspace, position)
 
             Dim highlightedSpan = spans("highlighted").First()
             Dim navigationTarget = spans("target").First()
@@ -145,8 +143,8 @@ End Class"
             Assert.Equal(navigationTarget, navigationService.ProvidedTextSpan)
         End Function
 
-        Private Async Function TestNotNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
-            Dim symbol = Await ExtractSymbol(workspace, position, spans)
+        Private Shared Async Function TestNotNavigated(workspace As TestWorkspace, position As Integer) As Task
+            Dim symbol = Await ExtractSymbol(workspace, position)
             Assert.Null(symbol)
         End Function
     End Class

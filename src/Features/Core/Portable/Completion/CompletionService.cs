@@ -153,8 +153,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// name="document"/> passed in.
         /// </summary>
         internal virtual Task<CompletionChange> GetChangeAsync(
-            Document document, CompletionItem item, TextSpan completionListSpan,
-            char? commitCharacter = null, CancellationToken cancellationToken = default)
+            Document document,
+            CompletionItem item,
+            TextSpan completionListSpan,
+            char? commitCharacter = null,
+            bool disallowAddingImports = false,
+            CancellationToken cancellationToken = default)
         {
             return GetChangeAsync(document, item, commitCharacter, cancellationToken);
         }

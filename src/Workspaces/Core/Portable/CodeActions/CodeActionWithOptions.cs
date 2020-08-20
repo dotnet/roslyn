@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
-            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
         }
 
         /// <summary>
