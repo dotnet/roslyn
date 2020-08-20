@@ -56,8 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
 
-            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName,
-                callback: async (context, cancellationToken) =>
+            var textDocument = handler.GetTextDocumentIdentifier(request);
+            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, textDocument,
+                callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
                     if (cancellationToken.IsCancellationRequested)
@@ -110,11 +111,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
                 // to merge in the changes from any mutations that have been applied to open documents
-                var solution = GetCurrentSolution();
+                var (document, solution) = _solutionProvider.GetDocumentAndSolution(work.TextDocument, work.ClientName);
                 solution = MergeChanges(solution, lastMutatedSolution);
 
                 Solution? mutatedSolution = null;
-                var context = new RequestContext(solution, s => mutatedSolution = s, work.ClientCapabilities, work.ClientName);
+                var context = new RequestContext(document, solution, s => mutatedSolution = s, work.ClientCapabilities, work.ClientName);
 
                 if (work.MutatesSolutionState)
                 {
@@ -142,9 +143,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // https://github.com/dotnet/roslyn/issues/45427
             return mutatedSolution ?? solution;
         }
-
-        private Solution GetCurrentSolution()
-            => _solutionProvider.GetCurrentSolutionForMainWorkspace();
 
         public void Dispose()
         {

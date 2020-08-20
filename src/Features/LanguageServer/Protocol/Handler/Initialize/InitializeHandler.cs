@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .ToImmutableArray();
         }
 
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(InitializeParams request) => null;
+
         public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var triggerCharacters = _completionProviders.SelectMany(lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();

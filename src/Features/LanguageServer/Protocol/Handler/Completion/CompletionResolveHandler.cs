@@ -31,24 +31,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
+            => GetCompletionResolveData(request).TextDocument;
+
+        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem completionItem)
+            => completionItem.Data as CompletionResolveData ?? ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+
         public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            CompletionResolveData data;
-            if (completionItem.Data is CompletionResolveData)
-            {
-                data = (CompletionResolveData)completionItem.Data;
-            }
-            else
-            {
-                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
-            }
-
-            var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return completionItem;
             }
 
+            var data = GetCompletionResolveData(completionItem);
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();

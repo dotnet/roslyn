@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -38,6 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return requestHandlerDictionary.ToImmutable();
         }
+
+        public virtual TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request) => null;
 
         /// <summary>
         /// Handles an <see cref="LSP.Methods.WorkspaceExecuteCommand"/>

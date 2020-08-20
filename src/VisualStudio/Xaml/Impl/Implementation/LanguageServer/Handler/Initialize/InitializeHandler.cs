@@ -25,6 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(InitializeParams request) => null;
+
         public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
 

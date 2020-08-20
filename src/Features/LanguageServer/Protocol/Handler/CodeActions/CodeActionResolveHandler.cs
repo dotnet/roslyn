@@ -51,12 +51,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
+            => ((JToken)request.Data).ToObject<CodeActionResolveData>().TextDocument;
+
         public override async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
-            var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
-            var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
+            var document = context.Document;
             Contract.ThrowIfNull(document);
 
+            var data = ((JToken)codeAction.Data).ToObject<CodeActionResolveData>();
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache,
                 document,
