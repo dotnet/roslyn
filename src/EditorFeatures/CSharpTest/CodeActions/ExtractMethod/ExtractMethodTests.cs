@@ -3972,7 +3972,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
         public async Task TestConditionalAccess1()
         {
             await TestInRegularAndScript1Async(@"
@@ -4005,7 +4005,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
         public async Task TestConditionalAccess2()
         {
             await TestInRegularAndScript1Async(@"
@@ -4038,7 +4038,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
         public async Task TestConditionalAccess3()
         {
             await TestInRegularAndScript1Async(@"
@@ -4071,7 +4071,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
         public async Task TestConditionalAccess4()
         {
             await TestInRegularAndScript1Async(@"
@@ -4104,7 +4104,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
         public async Task TestConditionalAccess5()
         {
             await TestInRegularAndScript1Async(@"
@@ -4137,7 +4137,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
         public async Task TestConditionalAccess6()
         {
             await TestInRegularAndScript1Async(@"
@@ -4170,7 +4170,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(43834, "https://github.com/dotnet/roslyn/issues/43834")]
+        [Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")]
         public async Task TestConditionalAccess7()
         {
             await TestInRegularAndScript1Async(@"
