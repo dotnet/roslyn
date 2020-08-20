@@ -261,20 +261,8 @@ if (true)
 {");
         }
 
-        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task PragmaWarning()
-        {
-            await TestInMethodAsync(
-@"
-#pragma warning disable CS0168$$
-            int i;
-#pragma warning restore CS0168
-", @"test1.cs(4,17): warning CS0168: Die Variable ""i"" ist deklariert, wird aber nie verwendet.");
-        }
-
         private static QuickInfoProvider CreateProvider()
-            => new CSharpSyntacticQuickInfoProvider(null);
+            => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
             TestWorkspace workspace,
@@ -303,13 +291,7 @@ if (true)
             var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, document, threadingContext, streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;
 
-            var textElements = containerElement.Elements
-                .SelectMany(e => e switch
-                    {
-                        ContainerElement container => container.Elements,
-                        var other => Enumerable.Repeat(other, 1),
-                    })
-                .OfType<ClassifiedTextElement>();
+            var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
             Assert.NotEmpty(textElements);
 
             var textElement = textElements.First();
