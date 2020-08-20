@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (index < 0)
                     return variableInfo;
 
-                return variableInfo.RemoveAt(index).Insert(index, VariableInfo.CreateReturnValue(variableInfo[index]));
+                return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
             }
 
             private ImmutableArray<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
