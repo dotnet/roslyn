@@ -56,6 +56,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ),
                     (
                         (methodName, arguments) =>
+                            methodName == "AppendJoin",
+                        new (string, string)[]{
+                            ("separator", TaintedTargetValue.This),
+                            ("values", TaintedTargetValue.This),
+                        }
+                    ),
+                    (
+                        (methodName, arguments) =>
                             methodName == "AppendLine",
                         new (string, string)[]{
                             ("value", TaintedTargetValue.This),
