@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken) && token.ValueText[0] == '@')
+            if (token.IsVerbatimStringLiteral())
             {
                 text = "@_CSharpKeyword";
                 return true;
@@ -221,18 +221,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 text = "=>_CSharpKeyword";
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.PlusEqualsToken))
-            {
-                text = "+=_CSharpKeyword";
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.MinusEqualsToken))
-            {
-                text = "-=_CSharpKeyword";
                 return true;
             }
 
