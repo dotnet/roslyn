@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private static bool TryGetTextForOperator(SyntaxToken token, Document document, out string text)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
+            if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token))
             {
                 text = Keyword(syntaxFacts.GetText(token.RawKind));
                 return true;
