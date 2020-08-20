@@ -108,6 +108,7 @@ public class D
         }
 
         [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPoints_CSharp71()
         {
             string source = @"
@@ -144,6 +145,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPointsCSharpLatest_SyncAndAsync()
         {
             string source = @"
@@ -163,7 +165,8 @@ public class C
         }
 
         [Fact]
-        public void ERR_MultipleEntryPointsCSharpLatest_TwoSyncAndOneAsync()
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
+        public void ERR_And_WRN_MultipleEntryPointsCSharpLatest_TwoSyncAndOneAsync()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -183,10 +186,13 @@ public class D
 
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
-                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"));
+                Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main"),
+                // (6,28): warning CS8892: Method 'C.Main()' will not be used as an entry point because a synchronous entry point 'C.Main(string[])' was found.
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("C.Main()", "C.Main(string[])").WithLocation(6, 28));
         }
 
         [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPointsCSharpLatest_TwoAsyncAndOneSync()
         {
             string source = @"
@@ -236,6 +242,7 @@ public class D
         }
 
         [Fact]
+        [WorkItem(46831, "https://github.com/dotnet/roslyn/issues/46831")]
         public void WRN_SyncAndAsyncEntryPoints_WithTypeDefined()
         {
             string source = @"
