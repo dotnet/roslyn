@@ -9,7 +9,7 @@ namespace System.Collections.Immutable
     {
         public static ImmutableHashSet<T> AddRange<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
         {
-            var builder = PooledHashSet<T>.GetInstance();
+            using var builder = PooledHashSet<T>.GetInstance();
 
             foreach (var item in set1)
             {
@@ -23,17 +23,15 @@ namespace System.Collections.Immutable
 
             if (builder.Count == set1.Count)
             {
-                builder.Free();
                 return set1;
             }
 
             if (builder.Count == set2.Count)
             {
-                builder.Free();
                 return set2;
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         public static ImmutableHashSet<T> IntersectSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
@@ -51,7 +49,7 @@ namespace System.Collections.Immutable
                 return set1.Contains(set2.First()) ? set2 : ImmutableHashSet<T>.Empty;
             }
 
-            var builder = PooledHashSet<T>.GetInstance();
+            using var builder = PooledHashSet<T>.GetInstance();
             foreach (var item in set1)
             {
                 if (set2.Contains(item))
@@ -62,16 +60,14 @@ namespace System.Collections.Immutable
 
             if (builder.Count == set1.Count)
             {
-                builder.Free();
                 return set1;
             }
             else if (builder.Count == set2.Count)
             {
-                builder.Free();
                 return set2;
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         public static bool IsSubsetOfSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)

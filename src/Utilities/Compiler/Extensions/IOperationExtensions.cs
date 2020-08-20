@@ -455,43 +455,36 @@ namespace Analyzer.Utilities.Extensions
             lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
 
             var builder = PooledHashSet<ISymbol>.GetInstance();
-            var nestedLambdasAndLocalFunctions = PooledHashSet<IMethodSymbol>.GetInstance();
+            using var nestedLambdasAndLocalFunctions = PooledHashSet<IMethodSymbol>.GetInstance();
             nestedLambdasAndLocalFunctions.Add(lambdaOrLocalFunction);
 
-            try
+            foreach (var child in operation.Descendants())
             {
-                foreach (var child in operation.Descendants())
+                switch (child.Kind)
                 {
-                    switch (child.Kind)
-                    {
-                        case OperationKind.LocalReference:
-                            ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local);
-                            break;
+                    case OperationKind.LocalReference:
+                        ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local);
+                        break;
 
-                        case OperationKind.ParameterReference:
-                            ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter);
-                            break;
+                    case OperationKind.ParameterReference:
+                        ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter);
+                        break;
 
-                        case OperationKind.InstanceReference:
-                            builder.Add(lambdaOrLocalFunction.ContainingType);
-                            break;
+                    case OperationKind.InstanceReference:
+                        builder.Add(lambdaOrLocalFunction.ContainingType);
+                        break;
 
-                        case OperationKind.AnonymousFunction:
-                            nestedLambdasAndLocalFunctions.Add(((IAnonymousFunctionOperation)child).Symbol);
-                            break;
+                    case OperationKind.AnonymousFunction:
+                        nestedLambdasAndLocalFunctions.Add(((IAnonymousFunctionOperation)child).Symbol);
+                        break;
 
-                        case OperationKind.LocalFunction:
-                            nestedLambdasAndLocalFunctions.Add(((ILocalFunctionOperation)child).Symbol);
-                            break;
-                    }
+                    case OperationKind.LocalFunction:
+                        nestedLambdasAndLocalFunctions.Add(((ILocalFunctionOperation)child).Symbol);
+                        break;
                 }
+            }
 
-                return builder;
-            }
-            finally
-            {
-                nestedLambdasAndLocalFunctions.Free();
-            }
+            return builder;
 
             // Local functions.
             void ProcessLocalOrParameter(ISymbol symbol)

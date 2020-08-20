@@ -170,41 +170,28 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (constructorMapper.MapFromPointsToAbstractValue != null)
                     {
-                        ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
-                        try
-                        {
-                            foreach (IArgumentOperation argumentOperation in operation.Arguments)
-                            {
-                                builder.Add(this.GetPointsToAbstractValue(argumentOperation));
-                            }
+                        using ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
 
-                            abstractValue = constructorMapper.MapFromPointsToAbstractValue(operation.Constructor, builder);
-                        }
-                        finally
+                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
-                            builder.Free();
+                            builder.Add(this.GetPointsToAbstractValue(argumentOperation));
                         }
+
+                        abstractValue = constructorMapper.MapFromPointsToAbstractValue(operation.Constructor, builder);
                     }
                     else if (constructorMapper.MapFromValueContentAbstractValue != null)
                     {
                         Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResult != null);
-                        ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
-                        ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
-                        try
-                        {
-                            foreach (IArgumentOperation argumentOperation in operation.Arguments)
-                            {
-                                pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
-                                valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation.Value));
-                            }
+                        using ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
+                        using ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
 
-                            abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, pointsToBuilder);
-                        }
-                        finally
+                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
-                            pointsToBuilder.Free();
-                            valueContentBuilder.Free();
+                            pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
+                            valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation.Value));
                         }
+
+                        abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, pointsToBuilder);
                     }
                     else
                     {
@@ -470,7 +457,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         trackedAssignmentData.Free();
                     }
 
-                    this.TrackedFieldPropertyAssignments.Free();
+                    this.TrackedFieldPropertyAssignments.Dispose();
                     this.TrackedFieldPropertyAssignments = null;
                 }
             }
@@ -570,7 +557,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
                 finally
                 {
-                    hazardousUsageTypeNames?.Free();
+                    hazardousUsageTypeNames?.Dispose();
                 }
 
                 return false;

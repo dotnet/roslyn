@@ -342,14 +342,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
 
-                var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
+                using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
                 foreach (var field in tupleType.TupleElements)
                 {
                     var tupleFieldName = field.CorrespondingTupleField.Name;
                     var mappedValueTupleField = underlyingValueTupleType.GetMembers(tupleFieldName).OfType<IFieldSymbol>().FirstOrDefault();
                     if (mappedValueTupleField == null)
                     {
-                        builder.Free();
                         return false;
                     }
 
@@ -357,7 +356,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         type: mappedValueTupleField.Type, instanceLocation, parentEntity));
                 }
 
-                elementEntities = builder.ToImmutableAndFree();
+                elementEntities = builder.ToImmutable();
                 return true;
             }
             finally

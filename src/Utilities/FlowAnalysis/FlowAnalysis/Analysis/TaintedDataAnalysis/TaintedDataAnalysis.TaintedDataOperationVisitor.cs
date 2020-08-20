@@ -384,10 +384,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
                 finally
                 {
-                    taintedTargets?.Free();
-                    taintedParameterPairs?.Free();
-                    sanitizedParameterPairs?.Free();
-                    taintedParameterNamesCached?.Free();
+                    taintedTargets?.Dispose();
+                    taintedParameterPairs?.Dispose();
+                    sanitizedParameterPairs?.Dispose();
+                    taintedParameterNamesCached?.Dispose();
                 }
 
                 return result;

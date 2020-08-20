@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
                 finally
                 {
-                    escapedLocationsBuilder.Free();
+                    escapedLocationsBuilder.Dispose();
                 }
             }
 
