@@ -46,14 +46,13 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BracePlacement
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokenToToken = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance();
+            using var tokenToToken = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance();
 
             foreach (var diagnostic in diagnostics)
                 FixOne(root, text, tokenToToken, diagnostic, cancellationToken);
 
             var newRoot = root.ReplaceTokens(tokenToToken.Keys, (t1, _) => tokenToToken[t1]);
 
-            tokenToToken.Free();
             return newRoot;
         }
 

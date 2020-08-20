@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (_lazyPredicateDataMap != null)
             {
                 Debug.Assert(!_lazyPredicateDataMap.IsDisposed);
-                var builder = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance();
+                using var builder = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance();
                 foreach (var value in _lazyPredicateDataMap.Values)
                 {
                     if (value.TruePredicatedData != null)
@@ -77,8 +77,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         Debug.Assert(builder.Add(value.FalsePredicatedData));
                     }
                 }
-
-                builder.Free();
             }
         }
 
