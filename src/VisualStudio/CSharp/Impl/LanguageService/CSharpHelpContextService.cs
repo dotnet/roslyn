@@ -118,8 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 TryGetTextForCombinationKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
-                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
-                TryGetTextForOperator(token, document, out text))
+                TryGetTextForOperator(token, document, out text) ||
+                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text))
             {
                 return text;
             }
