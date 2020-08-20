@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
-            => SyntaxFactory.GetStandaloneExpression(node as ExpressionSyntax);
+            => node is ExpressionSyntax expression ? SyntaxFactory.GetStandaloneExpression(expression) : node;
 
         public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
             => node.GetRootConditionalAccessExpression();
