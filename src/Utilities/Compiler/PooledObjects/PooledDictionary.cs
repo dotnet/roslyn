@@ -57,7 +57,7 @@ namespace Analyzer.Utilities.PooledObjects
                 this.Clear();
             }
 
-            _pool?.Free(this);
+            _pool?.Free(this, CancellationToken.None);
             return result;
         }
 
