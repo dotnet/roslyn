@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                data.WriteObjectTo(writer, Serializer, CancellationToken.None);
+                Serializer.Serialize(data.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;

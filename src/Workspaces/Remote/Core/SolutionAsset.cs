@@ -43,13 +43,5 @@ namespace Microsoft.CodeAnalysis.Remote
             : this(value, checksum, value.GetWellKnownSynchronizationKind())
         {
         }
-
-        public void WriteObjectTo(ObjectWriter writer, ISerializerService serializer, CancellationToken cancellationToken)
-        {
-            if (Value is not null)
-            {
-                serializer.Serialize(Value, writer, cancellationToken);
-            }
-        }
     }
 }

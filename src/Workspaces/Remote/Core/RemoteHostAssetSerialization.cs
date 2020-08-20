@@ -52,7 +52,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 checksum.WriteTo(writer);
                 writer.WriteInt32((int)asset.Kind);
 
-                asset.WriteObjectTo(writer, serializer, cancellationToken);
+                // null is already indicated by checksum and kind above:
+                if (asset.Value is not null)
+                {
+                    serializer.Serialize(asset.Value, writer, cancellationToken);
+                }
             }
         }
 

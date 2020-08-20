@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                asset.WriteObjectTo(writer, serializer, CancellationToken.None);
+                serializer.Serialize(asset.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
