@@ -19,13 +19,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly Action<Solution>? _solutionUpdater;
 
         /// <summary>
-        /// The document that the request is for, if applicable
+        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
         /// </summary>
         public Document? Document { get; }
+
         /// <summary>
-        /// The solution state that the request should operate on
+        /// The solution state that the request should operate on.
         /// </summary>
-        public Solution? Solution { get; }
+        public Solution Solution { get; }
 
         /// <summary>
         /// The client capabilities for the request.
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public string? ClientName { get; }
 
-        public RequestContext(Document? document, Solution? solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
+        public RequestContext(Document? document, Solution solution, Action<Solution>? solutionUpdater, ClientCapabilities clientCapabilities, string? clientName)
         {
             Document = document;
             Solution = solution;
