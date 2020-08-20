@@ -2096,11 +2096,17 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="WRN_ParameterIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as parameters</value>
   </data>
+  <data name="WRN_ParameterIsStaticClass_Title" xml:space="preserve">
+    <value>Static types cannot be used as parameters</value>
+  </data>
   <data name="ERR_ReturnTypeIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as return types</value>
   </data>
   <data name="WRN_ReturnTypeIsStaticClass" xml:space="preserve">
     <value>'{0}': static types cannot be used as return types</value>
+  </data>
+  <data name="WRN_ReturnTypeIsStaticClass_Title" xml:space="preserve">
+    <value>Static types cannot be used as return types</value>
   </data>
   <data name="ERR_VarDeclIsStaticClass" xml:space="preserve">
     <value>Cannot declare a variable of static type '{0}'</value>

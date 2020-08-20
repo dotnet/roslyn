@@ -2489,6 +2489,11 @@
         <target state="new">'{0}': static types cannot be used as parameters</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterIsStaticClass_Title">
+        <source>Static types cannot be used as parameters</source>
+        <target state="new">Static types cannot be used as parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrecedenceInversion">
         <source>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</source>
         <target state="new">Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</target>
@@ -2512,6 +2517,11 @@
       <trans-unit id="WRN_ReturnTypeIsStaticClass">
         <source>'{0}': static types cannot be used as return types</source>
         <target state="new">'{0}': static types cannot be used as return types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnTypeIsStaticClass_Title">
+        <source>Static types cannot be used as return types</source>
+        <target state="new">Static types cannot be used as return types</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
