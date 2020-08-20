@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Debugging
     {
         event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
 
+        DebuggingState CurrentDebuggingState { get; }
+
         void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after);
     }
 }

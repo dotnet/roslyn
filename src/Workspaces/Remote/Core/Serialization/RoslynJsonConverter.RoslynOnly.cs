@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var id = ReadProperty<string>(reader);
                 var category = ReadProperty<string>(reader);
                 var message = ReadProperty<string>(reader);
-                var enuMessageForBingSearch = ReadProperty<string?>(reader);
+                var enuMessageForBingSearch = ReadProperty<string>(reader);
                 var severity = ReadProperty<DiagnosticSeverity>(reader, serializer);
                 var defaultSeverity = ReadProperty<DiagnosticSeverity>(reader, serializer);
                 var isEnabledByDefault = ReadProperty<bool>(reader);
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var customTags = ReadProperty<IReadOnlyList<string>>(reader, serializer);
                 var properties = ReadProperty<ImmutableDictionary<string, string>>(reader, serializer);
                 var projectId = ReadProperty<ProjectId>(reader, serializer);
-                var location = ReadProperty<DiagnosticDataLocation?>(reader, serializer);
+                var location = ReadProperty<DiagnosticDataLocation>(reader, serializer);
                 var additionalLocations = ReadProperty<IReadOnlyCollection<DiagnosticDataLocation>>(reader, serializer);
                 var language = ReadProperty<string>(reader);
                 var title = ReadProperty<string>(reader);

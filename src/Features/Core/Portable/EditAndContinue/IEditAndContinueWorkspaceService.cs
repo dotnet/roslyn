@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void CommitSolutionUpdate();
         void DiscardSolutionUpdate();
 
-        bool IsDebuggingSessionInProgress { get; }
         void OnSourceFileUpdated(DocumentId documentId);
 
         void StartDebuggingSession(Solution solution);

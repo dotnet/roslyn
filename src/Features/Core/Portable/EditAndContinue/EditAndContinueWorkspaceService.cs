@@ -79,9 +79,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal EditSession? Test_GetEditSession() => _editSession;
         internal Workspace Test_GetWorkspace() => _workspace;
 
-        public bool IsDebuggingSessionInProgress
-            => _debuggingSession != null;
-
         private static CompilationOutputs GetCompilationOutputs(Project project)
         {
             // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.

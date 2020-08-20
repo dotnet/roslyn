@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionAsyncImpl;
         public Action<DocumentId>? OnSourceFileUpdatedImpl;
 
-        public bool IsDebuggingSessionInProgress => throw new NotImplementedException();
-
         public void CommitSolutionUpdate() { }
 
         public void DiscardSolutionUpdate() { }
