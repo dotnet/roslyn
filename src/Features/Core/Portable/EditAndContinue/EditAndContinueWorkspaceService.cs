@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), WorkspaceKind.RemoteWorkspace), Shared]
+        [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService)), Shared]
         private sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
@@ -368,13 +368,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return editSession.HasChangesAsync(solution, sourceFilePath, cancellationToken);
         }
 
-        public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> Diagnostics)>
+        public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)>
             EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
             {
-                return (SolutionUpdateStatus.None, ImmutableArray<Deltas>.Empty, ImmutableArray<(ProjectId, ImmutableArray<Diagnostic>)>.Empty);
+                return (SolutionUpdateStatus.None, ImmutableArray<Deltas>.Empty, ImmutableArray<DiagnosticData>.Empty);
             }
 
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
@@ -385,7 +385,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return (solutionUpdate.Summary, solutionUpdate.Deltas, solutionUpdate.Diagnostics);
+            return (solutionUpdate.Summary, solutionUpdate.Deltas, ToDiagnosticData(solution, solutionUpdate.Diagnostics));
+        }
+
+        private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
+        {
+            var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
+
+            foreach (var (projectId, diagnostics) in diagnosticsByProject)
+            {
+                var project = solution.GetProject(projectId);
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
+                    if (document != null)
+                    {
+                        result.Add(DiagnosticData.Create(diagnostic, document));
+                    }
+                    else if (project != null)
+                    {
+                        result.Add(DiagnosticData.Create(diagnostic, project));
+                    }
+                    else
+                    {
+                        result.Add(DiagnosticData.Create(diagnostic, solution.Options));
+                    }
+                }
+            }
+
+            return result.ToImmutable();
         }
 
         public void CommitSolutionUpdate()

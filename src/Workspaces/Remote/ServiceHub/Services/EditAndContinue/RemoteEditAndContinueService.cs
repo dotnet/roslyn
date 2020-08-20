@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     var result = await service.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                    return (result.Summary, result.Deltas.SelectAsArray(d => d.Serialize()), ToDiagnosticData(solution, result.Diagnostics));
+                    return (result.Summary, result.Deltas.SelectAsArray(d => d.Serialize()), result.Diagnostics);
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e, cancellationToken))
                 {
@@ -159,39 +159,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }, cancellationToken);
         }
 
-        private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
-        {
-            var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
-
-            foreach (var (projectId, diagnostics) in diagnosticsByProject)
-            {
-                var project = solution.GetProject(projectId);
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    if (document != null)
-                    {
-                        result.Add(DiagnosticData.Create(diagnostic, document));
-                    }
-                    else if (project != null)
-                    {
-                        result.Add(DiagnosticData.Create(diagnostic, project));
-                    }
-                    else
-                    {
-                        result.Add(DiagnosticData.Create(diagnostic, solution.Options));
-                    }
-                }
-            }
-
-            return result.ToImmutable();
-        }
-
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task CommitUpdateAsync(CancellationToken cancellationToken)
+        public Task CommitSolutionUpdateAsync(CancellationToken cancellationToken)
         {
             RunService(() => GetService().CommitSolutionUpdate(), cancellationToken);
             return Task.CompletedTask;
@@ -200,7 +171,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public Task DiscardUpdatesAsync(CancellationToken cancellationToken)
+        public Task DiscardSolutionUpdateAsync(CancellationToken cancellationToken)
         {
             RunService(() => GetService().DiscardSolutionUpdate(), cancellationToken);
             return Task.CompletedTask;

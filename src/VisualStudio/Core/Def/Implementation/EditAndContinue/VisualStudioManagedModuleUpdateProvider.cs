@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 try
                 {
-                    await _proxy.CommitUpdatesAsync(CancellationToken.None).ConfigureAwait(false);
+                    await _proxy.CommitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 try
                 {
-                    await _proxy.DiscardUpdatesAsync(CancellationToken.None).ConfigureAwait(false);
+                    await _proxy.DiscardSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {

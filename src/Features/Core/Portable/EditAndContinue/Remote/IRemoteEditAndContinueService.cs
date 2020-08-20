@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas.Data> Deltas, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
 
-        Task CommitUpdateAsync(CancellationToken cancellationToken);
-        Task DiscardUpdatesAsync(CancellationToken cancellationToken);
+        Task CommitSolutionUpdateAsync(CancellationToken cancellationToken);
+        Task DiscardSolutionUpdateAsync(CancellationToken cancellationToken);
 
         Task StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
         Task<ImmutableArray<DocumentId>> StartEditSessionAsync(CancellationToken cancellationToken);

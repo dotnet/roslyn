@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -25,15 +26,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public EndSession? EndDebuggingSessionImpl;
         public EndSession? EndEditSessionImpl;
         public Func<Solution, string?, bool>? HasChangesAsyncImpl;
-        public Func<Solution, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)>)>? EmitSolutionUpdateAsyncImpl;
+        public Func<Solution, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateAsyncImpl;
         public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionAsyncImpl;
         public Action<DocumentId>? OnSourceFileUpdatedImpl;
+        public Action CommitSolutionUpdateImpl;
+        public Action DiscardSolutionUpdateImpl;
 
-        public void CommitSolutionUpdate() { }
+        public void CommitSolutionUpdate()
+            => CommitSolutionUpdateImpl?.Invoke();
 
-        public void DiscardSolutionUpdate() { }
+        public void DiscardSolutionUpdate()
+            => DiscardSolutionUpdateImpl?.Invoke();
 
-        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> Diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
             => Task.FromResult((EmitSolutionUpdateAsyncImpl ?? throw new NotImplementedException()).Invoke(solution));
 
         public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)

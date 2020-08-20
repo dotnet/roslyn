@@ -34,9 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly IActiveStatementTrackingService _activeStatementTrackingService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
-        private readonly Dbg.IManagedModuleInfoProvider _managedModuleInfoProvider;
+        private readonly DebuggeeModuleMetadataProvider _managedModuleInfoProvider;
 
-        private RemoteServiceConnection? _editSessionConnection;
+        private IDisposable? _editSessionConnection;
 
         private bool _disabled;
 
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             _proxy = new RemoteEditAndContinueServiceProxy(workspace);
             _debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
             _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
-            _managedModuleInfoProvider = managedModuleInfoProvider;
+            _managedModuleInfoProvider = new DebuggeeModuleMetadataProvider(managedModuleInfoProvider);
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
@@ -106,7 +106,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 _editSessionConnection = await _proxy.StartEditSessionAsync(
                     _diagnosticService,
-                    new StartEditSessionCallback(activeStatementProvider, _managedModuleInfoProvider),
+                    activeStatementProvider: async cancellationToken =>
+                    {
+                        var infos = await activeStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+                        return infos.SelectAsArray(ModuleUtilities.ToActiveStatementDebugInfo);
+                    },
+                    debuggeeModuleMetadataProvider: _managedModuleInfoProvider,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -161,68 +166,30 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        private sealed class StartEditSessionCallback : IRemoteEditAndContinueService.IStartEditSessionCallback
+        private sealed class DebuggeeModuleMetadataProvider : IDebuggeeModuleMetadataProvider
         {
-            private readonly Dbg.IManagedActiveStatementProvider _activeStatementProvider;
             private readonly Dbg.IManagedModuleInfoProvider _managedModuleInfoProvider;
 
-            public StartEditSessionCallback(Dbg.IManagedActiveStatementProvider activeStatementProvider, Dbg.IManagedModuleInfoProvider managedModuleInfoProvider)
+            public DebuggeeModuleMetadataProvider(Dbg.IManagedModuleInfoProvider managedModuleInfoProvider)
             {
-                _activeStatementProvider = activeStatementProvider;
                 _managedModuleInfoProvider = managedModuleInfoProvider;
             }
 
-            /// <summary>
-            /// Remote API.
-            /// </summary>
-            public async Task<ImmutableArray<ActiveStatementDebugInfo.Data>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var infos = await _activeStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
-                    return infos.SelectAsArray(ModuleUtilities.ToActiveStatementDebugInfoData);
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                    return ImmutableArray<ActiveStatementDebugInfo.Data>.Empty;
-                }
-            }
-
-            /// <summary>
-            /// Remote API.
-            /// </summary>
             public async Task<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
             {
-                try
+                var availability = await _managedModuleInfoProvider.GetEncAvailability(mvid, cancellationToken).ConfigureAwait(false);
+                return availability.Status switch
                 {
-                    var availability = await _managedModuleInfoProvider.GetEncAvailability(mvid, cancellationToken).ConfigureAwait(false);
-                    return availability.Status switch
-                    {
-                        DkmEncAvailableStatus.Available => (0, null),
-                        DkmEncAvailableStatus.ModuleNotLoaded => null,
-                        _ => ((int)availability.Status, availability.LocalizedMessage)
-                    };
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                    // TODO: better error code
-                    return ((int)DkmEncAvailableStatus.EngineMetricFalse, e.Message);
-                }
+                    DkmEncAvailableStatus.Available => (0, null),
+                    DkmEncAvailableStatus.ModuleNotLoaded => null,
+                    _ => ((int)availability.Status, availability.LocalizedMessage)
+                };
             }
 
-            /// <summary>
-            /// Remote API.
-            /// </summary>
             public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
             {
-                try
-                {
-                    return _managedModuleInfoProvider.PrepareModuleForUpdate(mvid, cancellationToken);
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                    return Task.CompletedTask;
-                }
+                _managedModuleInfoProvider.PrepareModuleForUpdate(mvid, cancellationToken);
+                return Task.CompletedTask;
             }
         }
     }

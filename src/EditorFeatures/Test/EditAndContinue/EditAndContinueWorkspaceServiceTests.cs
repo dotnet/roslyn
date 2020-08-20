@@ -67,13 +67,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
-        {
-            var exportProviderFactory = (additionalParts != null) ?
-                ExportProviderCache.GetOrCreateExportProviderFactory(s_defaultCatalog.WithParts(additionalParts)) :
-                s_defaultExportProviderFactory;
-
-            return new TestWorkspace(workspaceKind: WorkspaceKind.RemoteWorkspace, exportProvider: exportProviderFactory.CreateExportProvider());
-        }
+            => new TestWorkspace(composition: s_composition.AddParts(additionalParts));
 
         private static Project AddDefaultTestProject(TestWorkspace workspace, string source)
         {
@@ -151,14 +145,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        private static IEnumerable<string> InspectDiagnostics(ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> actual)
-            => actual.Select(d => $"{d.ProjectId} {InspectDiagnostics(d.Diagnostics)}");
+        private static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
+            => actual.Select(d => $"{d.ProjectId} {InspectDiagnostic(d)}");
 
-        private static string InspectDiagnostics(IEnumerable<Diagnostic> diagnostics)
-            => string.Join(",", diagnostics.Select(InspectDiagnostic));
-
-        private static string InspectDiagnostic(Diagnostic diagnostic)
-            => $"{diagnostic.Severity} {diagnostic.Id}: {diagnostic.GetMessage()}";
+        private static string InspectDiagnostic(DiagnosticData diagnostic)
+            => $"{diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
         internal static Guid ReadModuleVersionId(Stream stream)
         {
@@ -1443,7 +1434,6 @@ class C1
 
             var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             AssertEx.Equal(new[] { $"{project.Id} Error CS8055: {string.Format(CSharpResources.ERR_EncodinglessSyntaxTree)}" }, InspectDiagnostics(emitDiagnostics));
-            Assert.Empty(emitDiagnostics);
 
             // no emitted delta:
             Assert.Empty(deltas);
