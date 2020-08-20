@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 return _variables.WhereAsArray(
                     v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitIn ||
-                    v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
+                         v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)

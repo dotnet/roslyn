@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private ImmutableArray<VariableInfo> GetMethodParameters(ICollection<VariableInfo> variableInfo)
             {
-                using var _ = ArrayBuilder<VariableInfo>.GetInstance(out var list);
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfo.Count, out var list);
                 list.AddRange(variableInfo);
 
                 VariableInfo.SortVariables(_semanticDocument.SemanticModel.Compilation, list);
