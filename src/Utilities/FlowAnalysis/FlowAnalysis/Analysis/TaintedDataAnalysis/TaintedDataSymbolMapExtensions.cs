@@ -208,8 +208,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return taintedParameterPairs != null;
         }
 
-        private const string IndexerName = "this[]";
-
         /// <summary>
         /// Determines if the property taints the instance.
         /// </summary>
@@ -225,7 +223,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string name = propertyReferenceOperation.Member.Name;
             if (propertyReferenceOperation.Member.Language != LanguageNames.CSharp && propertyReferenceOperation.Member.IsIndexer())
             {
-                name = IndexerName; // In VB.NET for example the indexer name is `Item`. However let's keep the SourceInfo configuration language agnostic.
+                name = TaintedDataProperties.IndexerName; // In VB.NET for example the indexer name is `Item`. However let's keep the SourceInfo configuration language agnostic.
             }
 
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(namedType))

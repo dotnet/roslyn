@@ -158,6 +158,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSourceSink.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSymbolMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSymbolMapExtensions.cs" />
