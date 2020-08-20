@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierNameSyntax, TStatementSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierNameSyntax, TStatementSyntax, TVariableDeclarationSyntax>
         : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationSyntax : TExpressionSyntax
@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         where TMethodDeclarationSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
+        where TVariableDeclarationSyntax : SyntaxNode
     {
         private readonly ISyntaxFacts _syntaxFacts;
         private readonly ISemanticFactsService _semanticFactsService;
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         private async Task<ImmutableArray<CodeAction>> GenerateCodeActionsAsync(
             Document document,
-            SyntaxNode calleeMethodInvocationSyntaxNode,
+            TInvocationSyntax calleeMethodInvocationSyntaxNode,
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode,
             TExpressionSyntax inlineExpression,
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 document,
                 calleeMethodInvocationSyntaxNode,
                 calleeMethodSymbol,
+                calleeMethodDeclarationSyntaxNode,
                 inlineExpression,
                 statementContainsCallee,
                 methodParametersInfo,

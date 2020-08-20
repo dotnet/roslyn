@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierNameSyntax, TStatementSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierNameSyntax, TStatementSyntax, TVariableDeclarationSyntax>
     {
         private readonly struct InlineMethodContext
         {
@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         private async Task<InlineMethodContext> GetInlineMethodContextAsync(
             Document document,
-            SyntaxNode calleeInvocationNode,
+            TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
+            TMethodDeclarationSyntax calleeMethodDeclarationNode,
             TExpressionSyntax inlineExpression,
             SyntaxNode statementContainsCallee,
             MethodParametersInfo methodParametersInfo,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -276,19 +276,16 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 syntaxGenerator,
                 renameTable);
 
+            // Check if there is await expression. It is used later if the caller should be changed to async
+            var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodDeclarationNode);
+
             // Do the replacement work within the callee's body so that it can be inserted to the caller later.
             inlineExpression = await ReplaceAllSyntaxNodesForSymbolAsync(
                document,
                inlineExpression,
                syntaxGenerator,
-               root,
                replacementTable,
                cancellationToken).ConfigureAwait(false);
-
-            // Check if there is await expression. It is used later if the caller should be changed to async
-            var containsAwaitExpression = inlineExpression
-                .DescendantNodesAndSelf()
-                .Any(node => node != null && _syntaxFacts.IsAwaitExpression(node));
 
             if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
                 && !calleeMethodSymbol.ReturnsVoid
@@ -359,6 +356,25 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return declarationsQuery.Concat(declarationsForVariableDeclarationArgumentQuery).ToImmutableArray();
         }
 
+        private bool ContainsAwaitExpression(TExpressionSyntax inlineExpression, TMethodDeclarationSyntax calleeMethodDeclarationNode)
+        {
+            // Check if there is await expression. It is used later if the caller should be changed to async
+            var awaitExpressions = inlineExpression
+                .DescendantNodesAndSelf()
+                .Where(node => node != null && _syntaxFacts.IsAwaitExpression(node))
+                .ToImmutableArray();
+            foreach (var awaitExpression in awaitExpressions)
+            {
+                var enclosingMethodLikeNode = GetEnclosingMethodLikeNode(awaitExpression);
+                if (calleeMethodDeclarationNode.Equals(enclosingMethodLikeNode))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private SyntaxNode CreateLocalDeclarationStatement(
             SyntaxGenerator syntaxGenerator,
             ImmutableDictionary<ISymbol, string> renameTable,
@@ -390,11 +406,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
         }
 
-        private static async Task<TExpressionSyntax> ReplaceAllSyntaxNodesForSymbolAsync(
-            Document document,
+        private static async Task<TExpressionSyntax> ReplaceAllSyntaxNodesForSymbolAsync(Document document,
             TExpressionSyntax inlineExpression,
             SyntaxGenerator syntaxGenerator,
-            SyntaxNode root,
             ImmutableDictionary<ISymbol, SyntaxNode> replacementTable,
             CancellationToken cancellationToken)
         {

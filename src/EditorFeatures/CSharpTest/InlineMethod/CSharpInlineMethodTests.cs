@@ -799,6 +799,84 @@ public class TestClass
 }");
 
         [Fact]
+        public Task TestAwaitExpressionInMethod2()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+using System;
+public class TestClass
+{
+    public void Caller(bool x)
+    {
+        System.Console.WriteLine("""");
+        var f = C[||]allee();
+    }
+
+    private Func<Task> Callee()
+    {
+        return async () => await Task.Delay(100);
+    }
+}",
+                @"
+using System.Threading.Tasks;
+using System;
+public class TestClass
+{
+    public void Caller(bool x)
+    {
+        System.Console.WriteLine("""");
+        var f = C[||]allee();
+    }
+
+    private Func<Task> Callee()
+    {
+        return async () => await Task.Delay(100);
+    }
+}");
+
+        [Fact]
+        public Task TestAwaitExpressionInLambda()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    private void Method()
+    {
+        Func<bool, Task<int>> x1 = (x) =>
+        {
+            System.Console.WriteLine("""");
+            return Call[||]ee();
+        };
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(i + j);
+    }
+}",
+                @"
+using System;
+using System.Threading.Tasks;
+public class TestClass
+{
+    private void Method()
+    {
+        Func<bool, Task<int>> x1 = async (x) =>
+        {
+            System.Console.WriteLine("""");
+            return await Task.FromResult(10);
+        };
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(10);
+    }
+}");
+
+        [Fact]
         public Task TestAwaitExpressionInLocalMethod()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
