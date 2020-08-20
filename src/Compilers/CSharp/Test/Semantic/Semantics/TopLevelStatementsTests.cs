@@ -5994,7 +5994,7 @@ class MyAttribute : System.Attribute
             Assert.Equal("System.Int32 j", declSymbol.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
         public void Attributes_02()
         {
             var source = @"
@@ -6070,7 +6070,7 @@ extern static void internalCallStatic();
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
         public void Attributes_03()
         {
             var source = @"

@@ -5689,7 +5689,7 @@ class C
     } // end of class C");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
         public void ExternLocalFunction()
         {
             var source = @"
@@ -5755,7 +5755,7 @@ class C
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
         public void ExternLocalFunction_ComplexDllImport()
         {
             var source = @"
@@ -5827,7 +5827,7 @@ class C
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(ParamNullCheck)")]
         public void LocalFunction_MethodImpl()
         {
             var source = @"
