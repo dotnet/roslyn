@@ -459,22 +459,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> targetAnalysisData,
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> newAnalysisData)
         {
-            var builder = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count);
-            try
+            using var builder = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count);
+            builder.AddRange(targetAnalysisData.Keys);
+
+            for (int i = 0; i < builder.Count; i++)
             {
-                builder.AddRange(targetAnalysisData.Keys);
-                for (int i = 0; i < builder.Count; i++)
+                var key = builder[i];
+                if (newAnalysisData.TryGetValue(key, out var newValue))
                 {
-                    var key = builder[i];
-                    if (newAnalysisData.TryGetValue(key, out var newValue))
-                    {
-                        targetAnalysisData[key] = newValue;
-                    }
+                    targetAnalysisData[key] = newValue;
                 }
-            }
-            finally
-            {
-                builder.Free();
             }
         }
 
@@ -2308,37 +2302,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
                     }
 
-                    var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
-                    try
+                    using var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
+                    if (capturedVariables.Count == 0)
                     {
-                        if (capturedVariables.Count == 0)
+                        return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
+                    }
+                    else
+                    {
+                        var builder = ImmutableDictionary.CreateBuilder<ISymbol, PointsToAbstractValue>();
+                        foreach (var capturedVariable in capturedVariables)
                         {
-                            return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
-                        }
-                        else
-                        {
-                            var builder = ImmutableDictionary.CreateBuilder<ISymbol, PointsToAbstractValue>();
-                            foreach (var capturedVariable in capturedVariables)
+                            if (capturedVariable.Kind == SymbolKind.NamedType)
                             {
-                                if (capturedVariable.Kind == SymbolKind.NamedType)
-                                {
-                                    // ThisOrMeInstance capture can be skipped here
-                                    // as we already pass down the invocation instance through "GetInvocationInstance".
-                                    continue;
-                                }
-
-                                var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(capturedVariable, out var capturedEntity);
-                                Debug.Assert(success);
-                                RoslynDebug.Assert(capturedEntity != null);
-                                builder.Add(capturedVariable, capturedEntity.InstanceLocation);
+                                // ThisOrMeInstance capture can be skipped here
+                                // as we already pass down the invocation instance through "GetInvocationInstance".
+                                continue;
                             }
 
-                            return builder.ToImmutable();
+                            var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(capturedVariable, out var capturedEntity);
+                            Debug.Assert(success);
+                            RoslynDebug.Assert(capturedEntity != null);
+                            builder.Add(capturedVariable, capturedEntity.InstanceLocation);
                         }
-                    }
-                    finally
-                    {
-                        capturedVariables.Free();
+
+                        return builder.ToImmutable();
                     }
                 }
 
@@ -3164,49 +3151,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue VisitTuple(ITupleOperation operation, object? argument)
         {
-            var elementValueBuilder = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length);
+            using var elementValueBuilder = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length);
 
-            try
+            foreach (var element in operation.Elements)
             {
-                foreach (var element in operation.Elements)
-                {
-                    elementValueBuilder.Add(Visit(element, argument));
-                }
+                elementValueBuilder.Add(Visit(element, argument));
+            }
 
-                // Set abstract value for tuple element/field assignment if the tuple is not target of a deconstruction assignment.
-                // For deconstruction assignment, the value would be assigned from the computed value for the right side of the assignment.
-                var deconstructionAncestorOpt = operation.GetAncestor<IDeconstructionAssignmentOperation>(OperationKind.DeconstructionAssignment);
-                if (deconstructionAncestorOpt == null ||
-                    !deconstructionAncestorOpt.Target.Descendants().Contains(operation))
+            // Set abstract value for tuple element/field assignment if the tuple is not target of a deconstruction assignment.
+            // For deconstruction assignment, the value would be assigned from the computed value for the right side of the assignment.
+            var deconstructionAncestorOpt = operation.GetAncestor<IDeconstructionAssignmentOperation>(OperationKind.DeconstructionAssignment);
+            if (deconstructionAncestorOpt == null ||
+                !deconstructionAncestorOpt.Target.Descendants().Contains(operation))
+            {
+                if (AnalysisEntityFactory.TryCreateForTupleElements(operation, out var elementEntities))
                 {
-                    if (AnalysisEntityFactory.TryCreateForTupleElements(operation, out var elementEntities))
+                    Debug.Assert(elementEntities.Length == elementValueBuilder.Count);
+                    Debug.Assert(elementEntities.Length == operation.Elements.Length);
+                    for (int i = 0; i < elementEntities.Length; i++)
                     {
-                        Debug.Assert(elementEntities.Length == elementValueBuilder.Count);
-                        Debug.Assert(elementEntities.Length == operation.Elements.Length);
-                        for (int i = 0; i < elementEntities.Length; i++)
-                        {
-                            var tupleElementEntity = elementEntities[i];
-                            var assignedValueOperation = operation.Elements[i];
-                            var assignedValue = elementValueBuilder[i];
-                            SetAbstractValueForTupleElementAssignment(tupleElementEntity, assignedValueOperation, assignedValue);
-                        }
-                    }
-                    else
-                    {
-                        // Reset data for elements.
-                        foreach (var element in operation.Elements)
-                        {
-                            SetAbstractValueForAssignment(element, operation, ValueDomain.UnknownOrMayBeValue);
-                        }
+                        var tupleElementEntity = elementEntities[i];
+                        var assignedValueOperation = operation.Elements[i];
+                        var assignedValue = elementValueBuilder[i];
+                        SetAbstractValueForTupleElementAssignment(tupleElementEntity, assignedValueOperation, assignedValue);
                     }
                 }
+                else
+                {
+                    // Reset data for elements.
+                    foreach (var element in operation.Elements)
+                    {
+                        SetAbstractValueForAssignment(element, operation, ValueDomain.UnknownOrMayBeValue);
+                    }
+                }
+            }
 
-                return GetAbstractDefaultValue(operation.Type);
-            }
-            finally
-            {
-                elementValueBuilder.Free();
-            }
+            return GetAbstractDefaultValue(operation.Type);
         }
 
         public virtual TAbstractAnalysisValue VisitUnaryOperatorCore(IUnaryOperation operation, object? argument)
