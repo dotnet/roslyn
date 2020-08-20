@@ -903,7 +903,7 @@ class C
             Assert.Same(oldDriver, driver);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
         public void Adding_A_Source_Text_Without_Encoding_Fails_Generation()
         {
             var source = @"
