@@ -1009,8 +1009,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' These are the parts of the expression that the ?... expression can end with.  Specifically
             '
             '  1.      x?.y.M()             // invocation
-            '  2.      x?.y and x?.y.z      // member access
-            '  3.      x?!y                 // dictionary access
+            '  2.      x?.y and x?.y.z      // member access (covered under MemberAccessExpressionSyntax below)
+            '  3.      x?!y                 // dictionary access (covered under MemberAccessExpressionSyntax below)
             '  4.      x?.y<...>            // xml access
 
             While TypeOf node Is InvocationExpressionSyntax OrElse
