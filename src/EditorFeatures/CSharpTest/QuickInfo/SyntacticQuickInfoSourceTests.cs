@@ -326,7 +326,7 @@ if (true)
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
-            
+
             if (string.IsNullOrEmpty(expectedContent))
             {
                 await AssertNoContentAsync(workspace, document, position);
