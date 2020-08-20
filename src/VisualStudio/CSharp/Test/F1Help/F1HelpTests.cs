@@ -658,7 +658,7 @@ class Program
         e +[||]= () => {
         };
     }
-}", "CCC.e.add");
+}", "+=_CSharpKeyword");
         }
 
         [WorkItem(867554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867554")]
