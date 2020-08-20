@@ -1010,8 +1010,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             '
             '  1.      x?.y.M()             // invocation
             '  2.      x?.y and x?.y.z      // member access
-            '  4.      x?!y                 // dictionary access
-            '  5.      x?.y<...>            // xml access
+            '  3.      x?!y                 // dictionary access
+            '  4.      x?.y<...>            // xml access
 
             While TypeOf node Is InvocationExpressionSyntax OrElse
                   TypeOf node Is MemberAccessExpressionSyntax OrElse
