@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         public static bool? IsSymbolAssignedPossiblyNullValue(SemanticModel semanticModel, IOperation containingOperation, ISymbol symbol)
         {
             var references = containingOperation.DescendantsAndSelf()
-                .Where(o => IsSymbolReferencedByOperation(o, symbol));
+                .Where(o => IsSymbolReferencedByOperation(o, symbol, allowNullInitializer: false));
 
             var hasReference = false;
 
@@ -29,9 +29,12 @@ namespace Microsoft.CodeAnalysis
             {
                 hasReference = true;
 
+                // foreach statements are handled special because the iterator is not assignable, so the elementtype 
+                // annotation is accurate for determining if the loop declaration has a reference that allows the symbol
+                // to be null
                 if (reference is IForEachLoopOperation forEachLoop)
                 {
-                    var foreachInfo = semanticModel.GetForEachStatementInfo((ForEachStatementSyntax)forEachLoop.Syntax);
+                    var foreachInfo = semanticModel.GetForEachStatementInfo((CommonForEachStatementSyntax)forEachLoop.Syntax);
 
                     // Use NotAnnotated here to keep both Annotated and None (oblivious) treated the same, since
                     // this is directly looking at the annotation and not the flow state
@@ -39,6 +42,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         return true;
                     }
+
+                    continue;
                 }
 
                 var syntax = reference switch
@@ -58,13 +63,16 @@ namespace Microsoft.CodeAnalysis
             return hasReference ? (bool?)false : null;
         }
 
-        private static bool IsSymbolReferencedByOperation(IOperation operation, ISymbol symbol, bool allowNullInitializer = false)
+        private static bool IsSymbolReferencedByOperation(IOperation operation, ISymbol symbol, bool allowNullInitializer)
             => operation switch
             {
                 ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
                 IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
-                IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target, symbol),
+                IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target, symbol, allowNullInitializer: false),
                 IForEachLoopOperation loopOperation => IsSymbolReferencedByOperation(loopOperation.LoopControlVariable, symbol, allowNullInitializer: true),
+
+                // We want to be explicit about if we allow the variable to have a null variable initializer. The use case for now is around foreach loops 
+                // where the LoopControlVariable of the operation will have a null initializer.
                 IVariableDeclaratorOperation variableDeclarator => (allowNullInitializer || variableDeclarator.GetVariableInitializer() != null) && variableDeclarator.Symbol.Equals(symbol),
                 _ => false
             };
