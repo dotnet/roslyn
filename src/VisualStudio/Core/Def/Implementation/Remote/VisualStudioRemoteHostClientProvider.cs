@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -22,10 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), WorkspaceKind.Host), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
+            private readonly IBrokeredServiceContainer _brokeredServiceContainer;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
+            public Factory(SVsBrokeredServiceContainer brokeredServiceContainer)
             {
+                _brokeredServiceContainer = (IBrokeredServiceContainer)brokeredServiceContainer;
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
@@ -38,21 +42,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices, _brokeredServiceContainer);
             }
         }
 
         private readonly HostWorkspaceServices _services;
         private readonly AsyncLazy<RemoteHostClient> _lazyClient;
+        private readonly IBrokeredServiceContainer _brokeredServiceContainer;
 
-        private VisualStudioRemoteHostClientProvider(HostWorkspaceServices services)
+        private VisualStudioRemoteHostClientProvider(HostWorkspaceServices services, IBrokeredServiceContainer brokeredServiceContainer)
         {
             _services = services;
+            _brokeredServiceContainer = brokeredServiceContainer;
             _lazyClient = new AsyncLazy<RemoteHostClient>(CreateHostClientAsync, cacheResult: true);
         }
 
-        private Task<RemoteHostClient> CreateHostClientAsync(CancellationToken cancellationToken)
-            => ServiceHubRemoteHostClient.CreateAsync(_services, cancellationToken);
+        private async Task<RemoteHostClient> CreateHostClientAsync(CancellationToken cancellationToken)
+        {
+            var client = await ServiceHubRemoteHostClient.CreateAsync(_services, cancellationToken).ConfigureAwait(false);
+
+            // proffer brokered services:
+            _brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => new ValueTask<object>(new SolutionAssetProvider(_services)));
+
+            return client;
+        }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             => _lazyClient.GetValueAsync(cancellationToken).AsNullable();

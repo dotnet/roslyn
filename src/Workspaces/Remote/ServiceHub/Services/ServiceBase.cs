@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.ServiceHub.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -38,6 +39,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected readonly RemoteWorkspaceManager WorkspaceManager;
 
+        // TODO: move to WM?
+        protected readonly SolutionAssetSource? SolutionAssetSource;
+
+#pragma warning disable ISB001 // Dispose of proxies (TODO)
+        protected readonly ServiceBrokerClient? ServiceBrokerClient;
+#pragma warning restore
+
         // test data are only available when running tests:
         internal readonly RemoteHostTestData? TestData;
 
@@ -47,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             WatsonTraceListener.Install();
         }
 
-        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
+        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IServiceBroker? serviceBroker, IEnumerable<JsonConverter>? jsonConverters)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
@@ -59,6 +67,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // invoke all calls incoming over the stream on this service instance:
             EndPoint = new RemoteEndPoint(stream, Logger, incomingCallTarget: this, jsonConverters);
+
+            // TODO: remove null once all services transition to ISB
+            ServiceBrokerClient = (serviceBroker != null) ? new ServiceBrokerClient(serviceBroker, null) : null;
+            SolutionAssetSource = (ServiceBrokerClient != null) ? new SolutionAssetSource(ServiceBrokerClient) : null;
+        }
+
+        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
+            : this(serviceProvider, stream, serviceBroker: null, jsonConverters)
+        {
         }
 
         public void Dispose()
@@ -72,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             EndPoint.Dispose();
-
-            Log(TraceEventType.Information, "Service instance disposed");
+            ServiceBrokerClient?.Dispose();
         }
 
         protected void StartService()
@@ -92,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource ?? WorkspaceManager.GetAssetSource());
             return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
 

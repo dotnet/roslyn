@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
+                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource ?? WorkspaceManager.GetAssetSource());
                     await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);

@@ -6,9 +6,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
