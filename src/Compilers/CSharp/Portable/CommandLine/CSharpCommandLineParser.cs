@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         warnAsErrors[id] = ruleSetValue;
                                     }
-                                    else
+                                    else if (ruleSetValue == ReportDiagnostic.Warning)
                                     {
                                         warnAsErrors[id] = ReportDiagnostic.Default;
                                     }
