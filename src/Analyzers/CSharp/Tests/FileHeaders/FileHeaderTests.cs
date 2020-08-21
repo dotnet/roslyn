@@ -174,22 +174,22 @@ namespace N
         }
 
         /// <summary>
-        /// Verifies that the built-in variable <c>fileName</c> works as expected.
+        /// Verifies that the built-in variables <c>fileName</c> and <c>currentYear</c> work as expected.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
-        public async Task TestFileNameBuiltInVariableAsync()
+        public async Task TestBuiltInVariablesAsync()
         {
             var editorConfig = @"
 [*.cs]
-file_header_template = {fileName} Copyright (c) SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
+file_header_template = {fileName} Copyright (c) {currentYear} SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
 
             var testCode = @"[||]namespace N
 {
 }
 ";
-            var fixedCode = @"// Test0.cs Copyright (c) SomeCorp. All rights reserved.
+            var fixedCode = @"// Test0.cs Copyright (c) 2020 SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 namespace N
