@@ -401,8 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (Exception ex)
                 {
                     var diagnostic = Diagnostic.Create(
-                        new DiagnosticDescriptor("RE001", "Transformer failed", "Transformer '{0}' failed.", Diagnostic.CompilerDiagnosticCategory, DiagnosticSeverity.Error, true),
-                        location: null, transformer.GetType().Name);
+                        new DiagnosticDescriptor("RE001", "Transformer failed", "Transformer '{0}' failed: {1}", Diagnostic.CompilerDiagnosticCategory, DiagnosticSeverity.Error, true),
+                        location: null, transformer.GetType().Name, ex);
                     diagnostics.Add(diagnostic);
                 }
             }
