@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestSubTextAfterMultipleChanges()
         {
-            var text = SourceText.From("Hello World", Encoding.UTF7, SourceHashAlgorithm.Sha256);
+            var text = SourceText.From("Hello World", Encoding.Unicode, SourceHashAlgorithm.Sha256);
             var newText = text.WithChanges(
                 new TextChange(new TextSpan(4, 1), string.Empty),
                 new TextChange(new TextSpan(6, 5), "Universe"));
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("l Un", subText.ToString());
 
             Assert.Equal(SourceHashAlgorithm.Sha256, subText.ChecksumAlgorithm);
-            Assert.Same(Encoding.UTF7, subText.Encoding);
+            Assert.Same(Encoding.Unicode, subText.Encoding);
         }
 
         [Fact]
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestGetTextChangesToChangedText()
         {
-            var text = SourceText.From(new string('.', 2048), Encoding.UTF7, SourceHashAlgorithm.Sha256); // start bigger than GetText() copy buffer
+            var text = SourceText.From(new string('.', 2048), Encoding.Unicode, SourceHashAlgorithm.Sha256); // start bigger than GetText() copy buffer
             var changes = new TextChange[] {
                 new TextChange(new TextSpan(0, 1), "[1]"),
                 new TextChange(new TextSpan(1, 1), "[2]"),
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var newText = text.WithChanges(changes);
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
-            Assert.Same(Encoding.UTF7, newText.Encoding);
+            Assert.Same(Encoding.Unicode, newText.Encoding);
 
             var result = newText.GetTextChanges(text).ToList();
 
