@@ -688,6 +688,90 @@ class C
         }
 
         [Fact]
+        public async Task TestNullabilityAssignment_Lambda3()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        [||]var v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string GetString() => """";
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        string v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string GetString() => """";
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        public async Task TestNullabilityAssignment_Lambda4()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        var[||] v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string? GetString() => null;
+}";
+
+            var expected = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        string? v = """";
+        Action a = () => {
+            v = GetString();
+        };
+    }
+
+    static string? GetString() => null;
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
         public async Task TestNullabilityAssignment_Property1()
         {
             var code = @"
