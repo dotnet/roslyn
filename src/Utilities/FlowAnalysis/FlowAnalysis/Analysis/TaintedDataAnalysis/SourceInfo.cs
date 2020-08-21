@@ -28,7 +28,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="taintedMethods">Methods that generate tainted data and whose arguments don't need extra analysis.</param>
         /// <param name="taintedMethodsNeedsPointsToAnalysis">Methods that generate tainted data and whose arguments don't need extra value content analysis.</param>
         /// <param name="taintedMethodsNeedsValueContentAnalysis">Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.</param>
+        /// <param name="transferProperties">Properties that transfer taint to `this` on assignment.</param>
+        /// <param name="transferMethods">Methods that could taint another argument when one of its argument is tainted.</param>
         /// <param name="taintConstantArray"></param>
+        /// <param name="dependencyFullTypeNames">Full type names of the optional dependency/referenced types that should be resolved</param>
         public SourceInfo(
             string fullTypeName,
             bool isInterface,
@@ -37,6 +40,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)> taintedMethods,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> taintedMethodsNeedsValueContentAnalysis,
+            ImmutableHashSet<string> transferProperties,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
             bool taintConstantArray,
             ImmutableArray<string>? dependencyFullTypeNames = null)
@@ -48,6 +52,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
+            TransferProperties = transferProperties ?? throw new ArgumentNullException(nameof(transferProperties));
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
             DependencyFullTypeNames = dependencyFullTypeNames ?? ImmutableArray<string>.Empty;
@@ -67,6 +72,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates this type is an interface.
         /// </summary>
         public bool IsInterface { get; }
+
+        /// <summary>
+        /// Properties that transfer taint to `this` on assignment.
+        /// </summary>
+        public ImmutableHashSet<string> TransferProperties { get; }
 
         /// <summary>
         /// Properties that generate tainted data.
@@ -173,8 +183,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
                 HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
                 HashUtilities.Combine(this.TransferMethods,
+                HashUtilities.Combine(this.TransferProperties,
+                HashUtilities.Combine(this.DependencyFullTypeNames,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))))))));
         }
 
         public override bool Equals(object obj)
@@ -193,6 +205,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
                 && this.TransferMethods == other.TransferMethods
+                && this.TransferProperties == other.TransferProperties
+                && this.DependencyFullTypeNames == other.DependencyFullTypeNames
                 && this.TaintConstantArray == other.TaintConstantArray;
         }
     }
