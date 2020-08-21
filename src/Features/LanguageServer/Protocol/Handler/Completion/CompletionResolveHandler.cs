@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionTrigger = new CompletionTrigger(data.TriggerKind, data.TriggerCharacter);
+            var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return completionItem;

@@ -438,7 +438,7 @@ class Bar : IGoo
      void IGoo.Generic<K, V>(K key, V value)
 }";
 
-            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t', "");
+            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -466,7 +466,7 @@ class Bar : IGoo
      void IGoo.Generic<
 }";
 
-            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '<', "");
+            await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '<');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -494,7 +494,7 @@ class Bar : IGoo
      void IGoo.Generic(K key, V value)
 }";
 
-            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t', "");
+            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -522,7 +522,7 @@ class Bar : IGoo
      void IGoo.Generic(
 }";
 
-            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -550,7 +550,7 @@ class Bar : IGoo
      void IGoo.this[K key, V value]
 }";
 
-            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t', "");
+            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -578,7 +578,7 @@ class Bar : IGoo
      void IGoo.this[
 }";
 
-            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[', "");
+            await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
         }
     }
 }

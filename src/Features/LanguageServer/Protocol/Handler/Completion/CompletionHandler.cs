@@ -74,7 +74,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
 
             // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
-            var completionTrigger = new CompletionTrigger(GetTriggerKind(request.Context.TriggerKind), char.Parse(request.Context.TriggerCharacter));
+            // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
+            var triggerCharacter = char.Parse(request.Context.TriggerCharacter);
+            var triggerKind = GetTriggerKind(request.Context.TriggerKind);
+            var completionTrigger = new CompletionTrigger(triggerKind, triggerCharacter);
+
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
@@ -83,26 +87,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
 
-            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability)).ToArray();
+            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, triggerCharacter, triggerKind)).ToArray();
 
             // local functions
-            static LSP.CompletionItem CreateLSPCompletionItem(LSP.CompletionParams request, CompletionItem item, bool useVSCompletionItem)
+            static LSP.CompletionItem CreateLSPCompletionItem(
+                LSP.CompletionParams request,
+                CompletionItem item,
+                bool useVSCompletionItem,
+                char triggerCharacter,
+                CompletionTriggerKind triggerKind)
             {
                 if (useVSCompletionItem)
                 {
-                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item);
+                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, triggerCharacter, triggerKind);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
                 else
                 {
-                    var roslynCompletionItem = CreateCompletionItem<RoslynCompletionItem>(request, item);
+                    var roslynCompletionItem = CreateCompletionItem<RoslynCompletionItem>(request, item, triggerCharacter, triggerKind);
                     roslynCompletionItem.Tags = item.Tags.ToArray();
                     return roslynCompletionItem;
                 }
             }
 
-            static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
+            static TCompletionItem CreateCompletionItem<TCompletionItem>(
+                LSP.CompletionParams request,
+                CompletionItem item,
+                char triggerCharacter,
+                CompletionTriggerKind triggerKind) where TCompletionItem : LSP.CompletionItem, new()
             {
                 var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
                 var completionItem = new TCompletionItem
@@ -112,8 +125,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { TextDocument = request.TextDocument, Position = request.Position, DisplayText = item.DisplayText },
-                    Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
+                    Data = new CompletionResolveData
+                    {
+                        TextDocument = request.TextDocument,
+                        Position = request.Position,
+                        DisplayText = item.DisplayText,
+                        TriggerCharacter = triggerCharacter,
+                        TriggerKind = triggerKind // TO-DO: Can we pass in a Roslyn type here?
+                    },
+                    Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection && triggerCharacter != '(',
                 };
 
                 // We only set the commit characters if they differ from the default.
