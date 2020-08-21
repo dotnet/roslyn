@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
+            : base(threadingContext, (IAsyncServiceProvider)serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
         {
         }
 

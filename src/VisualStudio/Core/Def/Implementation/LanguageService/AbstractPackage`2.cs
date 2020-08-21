@@ -96,8 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
-
-            AbstractCreateServicesOnTextViewConnection.CreateServices(ComponentModel, RoslynLanguageName);
         }
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();

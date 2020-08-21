@@ -16,8 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     /// <summary>
     /// Creates services on the first connection of an applicable subject buffer to an IWpfTextView. 
     /// This ensures the services are available by the time an open document or the interactive window needs them.
-    /// The <see cref="CreateServices(IComponentModel, string)"/> method should also be
-    /// called during package load to front load some of the work.
     /// </summary>
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
@@ -47,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// <summary>
         /// Must be invoked from the UI thread.
         /// </summary>
-        public static void CreateServices(IComponentModel componentModel, string languageName)
+        private static void CreateServices(IComponentModel componentModel, string languageName)
         {
             var serviceTypeAssemblyQualifiedName = typeof(ISnippetInfoService).AssemblyQualifiedName;
             var languageServices = componentModel.DefaultExportProvider.GetExports<ILanguageService, LanguageServiceMetadata>();
