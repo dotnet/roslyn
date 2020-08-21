@@ -114,7 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            if (TryGetTextForContextualKeyword(token, out var text) ||
+            if (TryGetTextForSpecialCharacters(token, out var text) ||
+                TryGetTextForContextualKeyword(token, out var text) ||
                 TryGetTextForCombinationKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
@@ -125,6 +126,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             return string.Empty;
+        }
+
+        private bool TryGetTextForSpecialCharacters(SyntaxToken token, out string text)
+        {
+            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
+                token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+            {
+                text = "$_CSharpKeyword";
+                return true;
+            }
+
+            if (token.IsVerbatimStringLiteral())
+            {
+                text = "@_CSharpKeyword";
+                return true;
+            }
+
+            text = null;
+            return false;
         }
 
         private bool TryGetTextForSymbol(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken, out string text)
@@ -183,20 +204,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
                 text = Keyword(syntaxFacts.GetText(token.RawKind));
-                return true;
-            }
-
-            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringTextToken))
-            {
-                text = "$_CSharpKeyword";
-                return true;
-            }
-
-            if (token.IsVerbatimStringLiteral())
-            {
-                text = "@_CSharpKeyword";
                 return true;
             }
 
