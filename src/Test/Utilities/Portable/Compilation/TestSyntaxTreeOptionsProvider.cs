@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -50,12 +51,13 @@ namespace Roslyn.Utilities
             );
         }
 
-        public override bool? IsGenerated(SyntaxTree tree)
+        public override bool? IsGenerated(SyntaxTree tree, CancellationToken cancellationToken)
         => _isGenerated != null && _isGenerated.TryGetValue(tree, out var val) ? val : null;
 
         public override bool TryGetDiagnosticValue(
             SyntaxTree tree,
             string diagnosticId,
+            CancellationToken cancellationToken,
             out ReportDiagnostic severity)
         {
             if (_options != null &&
