@@ -43,22 +43,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             switch (language)
             {
-                case LanguageNames.CSharp:
-                case LanguageNames.VisualBasic:
-                    return options.GetOption(BackgroundAnalysisScopeOption, language);
-
-                default:
-#pragma warning disable CS0618 // Type or member is obsolete - TypeScript and F# are still on the older ClosedFileDiagnostic option.
+                case LanguageNames.FSharp:
+#pragma warning disable CS0618 // Type or member is obsolete - F# is still on the older ClosedFileDiagnostic option.
                     var option = options.GetOption(ClosedFileDiagnostic, language);
 #pragma warning restore CS0618 // Type or member is obsolete
 
-                    // Note that the default value for this option is 'true' for these languages.
+                    // Note that the default value for this option is 'true' for this language.
                     if (!option.HasValue || option.Value)
                     {
                         return BackgroundAnalysisScope.FullSolution;
                     }
 
                     return BackgroundAnalysisScope.Default;
+                default:
+                    return options.GetOption(BackgroundAnalysisScopeOption, language);
             }
         }
     }
