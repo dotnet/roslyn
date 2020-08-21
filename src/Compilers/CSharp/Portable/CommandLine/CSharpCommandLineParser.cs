@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 foreach (var id in ParseWarnings(value))
                                 {
-                                    if (diagnosticOptions.TryGetValue(id, out var ruleSetValue) && ruleSetValue == ReportDiagnostic.Warning)
+                                    if (diagnosticOptions.TryGetValue(id, out var ruleSetValue) && ruleSetValue == ReportDiagnostic.Warn)
                                     {
                                         warnAsErrors[id] = ruleSetValue;
                                     }
