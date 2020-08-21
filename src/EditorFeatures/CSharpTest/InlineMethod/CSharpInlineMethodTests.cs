@@ -916,6 +916,33 @@ public class TestClass
         return await Task.FromResult(i + j);
     }
 }");
+        [Fact]
+        public Task TestInlineMethodForLambda()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        Call[||]ee()(10);
+    }
+
+    private Func<int, int> Callee()
+        => i => 1;
+}",
+                @"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        ((Func<int, int>)(i => 1))(10);
+    }
+
+    private Func<int, int> Callee()
+        => i => 1;
+}");
 
         [Fact]
         public Task TestInlineWithinDoStatement()

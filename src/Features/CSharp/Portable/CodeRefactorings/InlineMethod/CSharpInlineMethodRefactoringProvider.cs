@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return null;
         }
 
-        protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol)
-            => symbol.GenerateTypeSyntax();
+        protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar)
+            => symbol.GenerateTypeSyntax(allowVar);
 
         // TODO: Use the SyntaxGenerator array initialization when this
         // https://github.com/dotnet/roslyn/issues/46651 is resolved.

@@ -331,32 +331,45 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     containsAwaitExpression);
             }
 
-            if (calleeMethodSymbol.ReturnType.IsDelegateType()
-                && calleeMethodSymbol.Language.Equals(LanguageNames.CSharp)
-                && statementContainsCallee is TLocalDeclarationSyntax localDeclarationSyntax
-                && IsVariableInitializerInLocalDeclarationSyntax(calleeInvocationNode, localDeclarationSyntax)
-                && IsUsingInferTypeDeclarator(localDeclarationSyntax))
+            if (calleeMethodSymbol.Language.Equals(LanguageNames.CSharp))
             {
-                // For C#, 'var' can't be used as the delegate type in local declaration syntax
-                // example:
-                // before:
-                // void Caller() { var x = Callee(); }
-                // Action Callee() { return () => {}; }
-                // after inline it should be:
-                // void Caller() { Action x = () => {};}
-                // Action Callee() { return () => {}; }
-                // For VB, 'Dim' can be used for 'Sub' and 'Function'
-                return new InlineMethodContext(
-                    localDeclarationStatementsNeedInsert,
-                    statementContainsCallee,
-                    UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
-                        localDeclarationSyntax,
-                        syntaxGenerator,
-                        calleeMethodSymbol.ReturnType,
+                if (calleeMethodSymbol.ReturnType.IsDelegateType()
+                    && statementContainsCallee is TLocalDeclarationSyntax localDeclarationSyntax
+                    && IsVariableInitializerInLocalDeclarationSyntax(calleeInvocationNode, localDeclarationSyntax)
+                    && IsUsingInferTypeDeclarator(localDeclarationSyntax))
+                {
+                    // For C#, 'var' can't be used as the delegate type in local declaration syntax
+                    // example:
+                    // before:
+                    // void Caller() { var x = Callee(); }
+                    // Action Callee() { return () => {}; }
+                    // after inline it should be:
+                    // void Caller() { Action x = () => {};}
+                    // Action Callee() { return () => {}; }
+                    // For VB, 'Dim' can be used for 'Sub' and 'Function'
+                    return new InlineMethodContext(
+                        localDeclarationStatementsNeedInsert,
+                        statementContainsCallee,
+                        UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
+                            localDeclarationSyntax,
+                            syntaxGenerator,
+                            calleeMethodSymbol.ReturnType,
+                            calleeInvocationNode,
+                            inlineExpression),
+                        statementContainsCallee,
+                        containsAwaitExpression);
+                }
+
+                if (calleeMethodSymbol.ReturnType.IsDelegateType()
+                    && _syntaxFacts.IsInvocationExpression(calleeInvocationNode.Parent))
+                {
+                    return new InlineMethodContext(
+                        localDeclarationStatementsNeedInsert,
+                        statementContainsCallee,
+                        Parenthesize((TExpressionSyntax)syntaxGenerator.CastExpression(GenerateTypeSyntax(calleeMethodSymbol.ReturnType, false), Parenthesize(inlineExpression))),
                         calleeInvocationNode,
-                        inlineExpression),
-                    statementContainsCallee,
-                    containsAwaitExpression);
+                        containsAwaitExpression);
+                }
             }
 
             return new InlineMethodContext(
@@ -482,7 +495,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var typeParametersReplacementQuery = calleeMethodSymbol.TypeParameters
                 .Zip(calleeMethodSymbol.TypeArguments,
                     (parameter, argument) => (parameter: (ISymbol)parameter,
-                        syntaxNode: GenerateTypeSyntax(argument)));
+                        syntaxNode: GenerateTypeSyntax(argument, allowVar: true)));
             var defaultValueReplacementQuery = parametersWithDefaultValue
                 .Select(symbol => (parameter: (ISymbol)symbol,
                     syntaxNode: syntaxGenerator.LiteralExpression(symbol.ExplicitDefaultValue)));
