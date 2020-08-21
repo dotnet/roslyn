@@ -64,7 +64,7 @@ end class")
             Await TestMissingInRegularAndScriptAsync(
 "
 class C
-    public sub new([||]byval s as string)
+    public sub new([||]byref s as string)
     end sub
 end class")
         End Function
