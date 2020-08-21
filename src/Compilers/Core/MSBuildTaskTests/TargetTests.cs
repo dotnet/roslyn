@@ -5,7 +5,7 @@
 #nullable enable
 
 // uncomment the below define to dump binlogs of each test
-// #define DUMP_MSBUILD_BIN_LOG
+//#define DUMP_MSBUILD_BIN_LOG
 
 
 using System;
@@ -569,6 +569,106 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("Never", noneItems[2].GetMetadataValue("CopyToOutputDirectory"));
         }
 
+        [Fact]
+        public void GeneratedFilesOutputPathHasDefaults()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
+            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+
+            Assert.Equal("true", emit);
+            Assert.Equal(string.Empty, dir);
+        }
+
+        [Fact]
+        public void GeneratedFilesOutputPathDefaultsToIntermediateOutputPathWhenSet()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <IntermediateOutputPath>fallbackDirectory</IntermediateOutputPath>
+    </PropertyGroup>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "CreateGeneratedFilesOutputPath", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
+            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+
+            Assert.Equal("true", emit);
+            Assert.Equal("fallbackDirectory/generated", dir);
+        }
+
+        [Fact]
+        public void GeneratedFilesOutputPathDefaultsIsEmptyWhenEmitDisable()
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <EmitGeneratedFiles>false</EmitGeneratedFiles>
+        <IntermediateOutputPath>fallbackDirectory</IntermediateOutputPath>
+    </PropertyGroup>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
+            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+
+            Assert.Equal("false", emit);
+            Assert.Equal("", dir);
+        }
+
+        [Theory]
+        [InlineData(true, "generatedDirectory")]
+        [InlineData(true, null)]
+        [InlineData(false, "generatedDirectory")]
+        [InlineData(false, null)]
+        public void GeneratedFilesOutputPathCanBeSetAndSuppressed(bool emitGeneratedFiles, string? generatedFilesDir)
+        {
+            XmlReader xmlReader = XmlReader.Create(new StringReader($@"
+<Project>
+    <PropertyGroup>
+        <EmitGeneratedFiles>{(emitGeneratedFiles.ToString().ToLower())}</EmitGeneratedFiles>
+        <GeneratedFilesOutputPath>{generatedFilesDir}</GeneratedFilesOutputPath>
+        <IntermediateOutputPath>fallbackDirectory</IntermediateOutputPath>
+    </PropertyGroup>
+    <Import Project=""Microsoft.Managed.Core.targets"" />
+</Project>
+"));
+
+            var instance = CreateProjectInstance(xmlReader);
+
+            bool runSuccess = instance.Build(target: "CreateGeneratedFilesOutputPath", GetTestLoggers());
+            Assert.True(runSuccess);
+
+            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
+            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+
+            Assert.Equal(emitGeneratedFiles.ToString().ToLower(), emit);
+            if (emitGeneratedFiles)
+            {
+                string expectedDir = generatedFilesDir ?? "fallbackDirectory/generated";
+                Assert.Equal(expectedDir, dir);
+            }
+            else
+            {
+                Assert.Equal(string.Empty, dir);
+            }
+        }
+
         [Theory, CombinatorialData]
         [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
         public void TestSkipAnalyzers(
@@ -616,7 +716,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
-        private ProjectInstance CreateProjectInstance(XmlReader reader)
+        private static ProjectInstance CreateProjectInstance(XmlReader reader)
         {
             Project proj = new Project(reader);
 
@@ -624,25 +724,43 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             proj.Xml.AddTarget("PrepareForBuild");
 
             // create a dummy WriteLinesToFile task
-            var usingTask = proj.Xml.AddUsingTask("WriteLinesToFile", string.Empty, Assembly.GetExecutingAssembly().FullName);
-            usingTask.TaskFactory = nameof(DummyTaskFactory);
+            addTask(proj, "WriteLinesToFile", new()
+            {
+                { "Lines", "System.String[]" },
+                { "File", "System.String" },
+                { "Overwrite", "System.Boolean" },
+                { "WriteOnlyWhenDifferent", "System.Boolean" }
+            });
 
-            var taskParams = usingTask.AddParameterGroup();
-            taskParams.AddParameter("Lines", "", "", "System.String[]");
-            taskParams.AddParameter("File", "", "", "System.String");
-            taskParams.AddParameter("Overwrite", "", "", "System.Boolean");
-            taskParams.AddParameter("WriteOnlyWhenDifferent", "", "", "System.Boolean");
+            // dummy makeDir task
+            addTask(proj, "MakeDir", new()
+            {
+                { "Directories", "System.String[]" }
+            });
 
             // create an instance and return it
             return proj.CreateProjectInstance();
+
+            static void addTask(Project proj, string taskName, Dictionary<string, string> parameters)
+            {
+                var task = proj.Xml.AddUsingTask(taskName, string.Empty, Assembly.GetExecutingAssembly().FullName);
+                task.TaskFactory = nameof(DummyTaskFactory);
+
+                var taskParams = task.AddParameterGroup();
+                foreach (var kvp in parameters)
+                {
+                    taskParams.AddParameter(kvp.Key, string.Empty, string.Empty, kvp.Value);
+                }
+
+            }
         }
 
-        private ILogger[] GetTestLoggers([CallerMemberName] string callerName = "")
+        private static ILogger[] GetTestLoggers([CallerMemberName] string callerName = "")
         {
 #if DUMP_MSBUILD_BIN_LOG
             return new ILogger[]
             {
-                new BinaryLogger()
+                new Build.Logging.BinaryLogger()
                 {
                     Parameters = callerName + ".binlog"
                 }

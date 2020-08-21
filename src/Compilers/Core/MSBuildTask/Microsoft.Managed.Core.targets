@@ -26,7 +26,7 @@
 
   <Target Name="_BeforeVBCSCoreCompile"
           DependsOnTargets="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies">
-    
+
     <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
       <ReferencePathWithRefAssemblies>
         <EmbedInteropTypes />
@@ -259,12 +259,41 @@
     If a user requests that any @(AdditionalFiles) items are copied to the output directory
     we add them to the @(None) group to ensure they will be copied.
  -->
- 
-   <Target Name="CopyAdditionalFiles" 
-           BeforeTargets="AssignTargetPaths">
+
+  <Target Name="CopyAdditionalFiles"
+          BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <None Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.CopyToOutputDirectory)' != ''" />
     </ItemGroup>
   </Target>
 
+  <!--
+    ========================
+    GeneratedFilesOutputPath
+    ========================
+    
+    Controls output of generated files.
+    
+    GeneratedFilesOutputPath controls the location the files will be output to.
+    The compiler will not emit any generated files when the path is empty, and defaults to a /generated directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
+    EmitGeneratedFiles allows the user to control if anything is emitted by clearing the property when not true.
+    When GeneratedFilesOutputPath is set we ensure the directory exists, and issue a warning if EmitGeneratedFiles is true, but no GeneratedFilesOutputPath is set
+    -->
+  <PropertyGroup>
+    <EmitGeneratedFiles Condition="'$(EmitGeneratedFiles)' == ''">true</EmitGeneratedFiles>
+    <GeneratedFilesOutputPath Condition="'$(EmitGeneratedFiles)' != 'true'"></GeneratedFilesOutputPath>
+    <GeneratedFilesOutputPath Condition="'$(EmitGeneratedFiles)' == 'true' and '$(GeneratedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/generated</GeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <Target Name="CreateGeneratedFilesOutputPath"
+        BeforeTargets="CoreCompile"
+        Condition="'$(EmitGeneratedFiles)' == 'true'">
+
+    <Warning Condition="'$(GeneratedFilesOutputPath)' == ''"
+             Text="EmitGeneratedFiles was true, but no GeneratedFilesOutputPath was provided. GeneratedFilesOutputPath must be set in order to emit generated files." />
+    
+    <MakeDir Condition="'$(GeneratedFilesOutputPath)' != ''" 
+             Directories="$(GeneratedFilesOutputPath)"  />
+  </Target>
+  
 </Project>
