@@ -167,7 +167,7 @@ file_header_template = {fileName} Copyright (c) {currentYear} SomeCorp. All righ
             Dim testCode = "[||]Namespace N
 End Namespace
 "
-            Dim fixedCode = "' Test0.vb Copyright (c) 2020 SomeCorp. All rights reserved.
+            Dim fixedCode = $"' Test0.vb Copyright (c) {DateTime.Now.Year} SomeCorp. All rights reserved.
 ' Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 Namespace N
