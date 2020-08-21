@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (node.Kind() == SyntaxKind.MemberBindingExpression)
             {
-                var parentConditionalAccess = node.GetRootConditionalAccessExpression();
+                var parentConditionalAccess = node.GetParentConditionalAccessExpression();
                 return GetSymbolsOffOfConditionalReceiver(parentConditionalAccess.Expression);
             }
             else
