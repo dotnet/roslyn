@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return;
             }
 
-            var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(tree.FilePath));
+            var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(tree.FilePath)).Replace("{currentYear}", DateTime.Now.ToString("yyyy"));
             if (!CompareCopyrightText(expectedFileHeader, fileHeader.CopyrightText))
             {
                 context.ReportDiagnostic(Diagnostic.Create(InvalidHeaderDescriptor, fileHeader.GetLocation(tree)));
