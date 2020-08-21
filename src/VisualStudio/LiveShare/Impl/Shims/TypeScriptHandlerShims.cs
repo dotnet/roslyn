@@ -349,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
             var (document, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
 
-            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, null);
+            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, solutionUpdater: null);
         }
     }
 }
