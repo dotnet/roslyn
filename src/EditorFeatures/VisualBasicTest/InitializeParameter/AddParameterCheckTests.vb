@@ -60,11 +60,19 @@ end class")
 
         <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
-            Public Async Function TestNotOnByRefParameter() As Task
+            Public Async Function TestOnByRefParameter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
 class C
     public sub new([||]byref s as string)
+    end sub
+end class",
+"
+class C
+    public sub new(byref s as string)
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
     end sub
 end class")
         End Function
