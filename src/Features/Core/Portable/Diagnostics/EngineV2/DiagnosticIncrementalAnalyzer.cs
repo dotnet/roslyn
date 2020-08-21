@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -87,10 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             return e.Option.Feature == nameof(SimplificationOptions) ||
                    e.Option.Feature == nameof(CodeStyleOptions) ||
-                   e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption ||
-#pragma warning disable CS0618 // Type or member is obsolete - TypeScript and F# are still on the older ClosedFileDiagnostic option.
-                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic;
-#pragma warning restore CS0618 // Type or member is obsolete
+                   e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption;
         }
 
         private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
