@@ -144,6 +144,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
+            {
+                text = "@$_CSharpKeyword";
+                return true;
+            }
+
             text = null;
             return false;
         }
