@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -33,9 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
 
-        public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
-            => (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) && memberAccess.Name == expression) ||
-               IsMemberBindingExpressionName(expression);
+        public static bool IsSimpleMemberAccessExpressionName(this ExpressionSyntax expression)
+            => expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) && memberAccess.Name == expression;
 
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsMemberBindingExpressionName();
         }
 
-        private static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
+        public static bool IsMemberBindingExpressionName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax memberBinding) &&
                memberBinding.Name == expression;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.AliasQualifiedName, out AliasQualifiedNameSyntax aliasName) && aliasName.Name == expression;
 
         public static bool IsRightSideOfDot(this ExpressionSyntax name)
-            => IsMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
+            => IsSimpleMemberAccessExpressionName(name) || IsMemberBindingExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
 
         public static bool IsRightSideOfDotOrArrow(this ExpressionSyntax name)
             => IsAnyMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsRightSideOfDotOrColonColon(this ExpressionSyntax name)
             => IsRightSideOfDot(name) || IsRightSideOfColonColon(name);
 
-        public static bool IsRightSideOfDotOrArrowOrColonColon(this ExpressionSyntax name)
+        public static bool IsRightSideOfDotOrArrowOrColonColon([NotNullWhen(true)] this ExpressionSyntax name)
             => IsRightSideOfDotOrArrow(name) || IsRightSideOfColonColon(name);
 
         public static bool IsRightOfCloseParen(this ExpressionSyntax expression)

@@ -147,11 +147,28 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
 #nullable enable
-        public bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+
+        public bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
-            return name.IsMemberAccessExpressionName();
+            return name.IsSimpleMemberAccessExpressionName();
         }
+
+        public bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node?.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node;
+
+        public bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        {
+            var name = node as SimpleNameSyntax;
+            return name.IsMemberBindingExpressionName();
+        }
+
+        public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
+            => node is ExpressionSyntax expression ? SyntaxFactory.GetStandaloneExpression(expression) : node;
+
+        public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
+            => node.GetRootConditionalAccessExpression();
+
 #nullable restore
 
         public bool IsObjectCreationExpressionType(SyntaxNode node)
