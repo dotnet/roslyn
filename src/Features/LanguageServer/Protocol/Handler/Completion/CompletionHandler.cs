@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -41,6 +42,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<LSP.CompletionItem>();
             }
 
+            // C# and VB share the same LSP language server, and thus by default share the same trigger characters.
+            // The '{' character, while a trigger character in VB, is not a trigger character in C#, so we must
+            // handle it in a special case.
+            if (request.Context.TriggerCharacter == "{")
+            {
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (syntaxRoot.Language == LanguageNames.CSharp)
+                {
+                    return Array.Empty<LSP.CompletionItem>();
+                }
+            }
+
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             // Filter out snippets as they are not supported in the LSP client
@@ -59,7 +72,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
+            var completionTrigger = new CompletionTrigger(GetTriggerKind(request.Context.TriggerKind), char.Parse(request.Context.TriggerCharacter));
+            var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return Array.Empty<LSP.CompletionItem>();
@@ -169,5 +185,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return LSP.CompletionItemKind.Text;
         }
+
+        private static CompletionTriggerKind GetTriggerKind(LSP.CompletionTriggerKind triggerKind)
+            => triggerKind switch
+            {
+                LSP.CompletionTriggerKind.Invoked => CompletionTriggerKind.Invoke,
+                LSP.CompletionTriggerKind.TriggerCharacter => CompletionTriggerKind.Insertion,
+                _ => throw new ArgumentException($"LSP.CompletionTriggerKind {triggerKind} unexpected.")
+            };
     }
 }
