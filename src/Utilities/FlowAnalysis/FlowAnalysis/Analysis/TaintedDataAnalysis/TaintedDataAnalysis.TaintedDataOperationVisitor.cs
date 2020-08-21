@@ -260,37 +260,30 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
                 }
 
-                bool isSanitizingMethod = false;
                 PooledHashSet<string>? taintedTargets = null;
                 PooledHashSet<(string, string)>? taintedParameterPairs = null;
                 PooledHashSet<(string, string)>? sanitizedParameterPairs = null;
                 PooledHashSet<string>? taintedParameterNamesCached = null;
                 try
                 {
-                    IEnumerable<string>? taintedParameterNames = visitedArguments
-                            .Where(s => this.GetCachedAbstractValue(s).Kind == TaintedDataAbstractValueKind.Tainted)
-                            .Select(s => s.Parameter.Name);
+                    IEnumerable<string> GetTaintedParameterNames()
+                    {
+                        IEnumerable<string> taintedParameterNames = visitedArguments
+                                .Where(s => this.GetCachedAbstractValue(s).Kind == TaintedDataAbstractValueKind.Tainted)
+                                .Select(s => s.Parameter.Name);
+
+                        if (visitedInstance != null && this.GetCachedAbstractValue(visitedInstance).Kind == TaintedDataAbstractValueKind.Tainted)
+                        {
+                            taintedParameterNames = taintedParameterNames.Concat(TaintedTargetValue.This);
+                        }
+
+                        return taintedParameterNames;
+                    }
 
                     taintedParameterNamesCached = PooledHashSet<string>.GetInstance();
-                    if (taintedParameterNames != null)
-                    {
-                        taintedParameterNamesCached.UnionWith(taintedParameterNames);
-                    }
+                    taintedParameterNamesCached.UnionWith(GetTaintedParameterNames());
 
-                    if (this.IsSanitizingMethod(
-                        method,
-                        visitedArguments,
-                        taintedParameterNamesCached,
-                        out sanitizedParameterPairs))
-                    {
-                        isSanitizingMethod = true;
-                    }
-                    else if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
-                    {
-                        result = TaintedDataAbstractValue.NotTainted;
-                        SetTaintedForEntity(visitedInstance, result);
-                    }
-                    else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
+                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(
                         method,
                         visitedArguments,
                         new Lazy<PointsToAnalysisResult?>(() => DataFlowAnalysisContext.PointsToAnalysisResult),
@@ -323,7 +316,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         if (rebuildTaintedParameterNames)
                         {
                             taintedParameterNamesCached.Clear();
-                            taintedParameterNamesCached.UnionWith(taintedParameterNames);
+                            taintedParameterNamesCached.UnionWith(GetTaintedParameterNames());
                         }
                     }
 
@@ -335,13 +328,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         foreach ((string ifTaintedParameter, string thenTaintedTarget) in taintedParameterPairs)
                         {
-                            IArgumentOperation thenTaintedTargetOperation = visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
+                            IOperation thenTaintedTargetOperation = visitedInstance != null && thenTaintedTarget == TaintedTargetValue.This
+                                ? visitedInstance
+                                : visitedArguments.FirstOrDefault(o => o.Parameter.Name == thenTaintedTarget);
                             if (thenTaintedTargetOperation != null)
                             {
                                 SetTaintedForEntity(
                                     thenTaintedTargetOperation,
                                     this.GetCachedAbstractValue(
-                                        visitedArguments.FirstOrDefault(o => o.Parameter.Name == ifTaintedParameter)));
+                                        visitedInstance != null && ifTaintedParameter == TaintedTargetValue.This
+                                            ? visitedInstance
+                                            : visitedArguments.FirstOrDefault(o => o.Parameter.Name == ifTaintedParameter)));
                             }
                             else
                             {
@@ -350,9 +347,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         }
                     }
 
-                    if (isSanitizingMethod)
+                    if (visitedInstance != null && this.IsSanitizingInstanceMethod(method))
                     {
-                        RoslynDebug.Assert(sanitizedParameterPairs != null, "sanitizedParameterPairs is not null when isSanitizingMethod is true as per IsSanitizingMethod declaration");
+                        SetTaintedForEntity(visitedInstance, TaintedDataAbstractValue.NotTainted);
+                    }
+
+                    if (this.IsSanitizingMethod(
+                        method,
+                        visitedArguments,
+                        taintedParameterNamesCached,
+                        out sanitizedParameterPairs))
+                    {
                         if (sanitizedParameterPairs.Count == 0)
                         {
                             // it was either sanitizing constructor or
@@ -559,14 +564,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 TaintedDataAbstractValue assignmentValueAbstractValue = this.GetCachedAbstractValue(assignmentOperation.Value);
                 if (assignmentOperation.Target != null
                     && assignmentValueAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted
-                    && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && this.IsPropertyASink(propertyReferenceOperation, out HashSet<SinkKind>? sinkKinds))
+                    && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation)
                 {
-                    this.TrackTaintedDataEnteringSink(
-                        propertyReferenceOperation.Member,
-                        propertyReferenceOperation.Syntax.GetLocation(),
-                        sinkKinds,
-                        assignmentValueAbstractValue.SourceOrigins);
+                    if (this.IsPropertyASink(propertyReferenceOperation, out HashSet<SinkKind>? sinkKinds))
+                    {
+                        this.TrackTaintedDataEnteringSink(
+                            propertyReferenceOperation.Member,
+                            propertyReferenceOperation.Syntax.GetLocation(),
+                            sinkKinds,
+                            assignmentValueAbstractValue.SourceOrigins);
+                    }
+
+                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourceTransferProperty(propertyReferenceOperation))
+                    {
+                        SetTaintedForEntity(propertyReferenceOperation.Instance, assignmentValueAbstractValue);
+                    }
                 }
             }
 
