@@ -131,15 +131,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var codeActions = await GenerateCodeActionsAsync(
+            var codeActions = GenerateCodeActions(
                 document,
                 calleeMethodInvocationNode,
                 calleeMethodSymbol,
                 calleeMethodDeclarationNode,
                 inlineExpression,
                 statementContainsCallee,
-                invocationOperation,
-                cancellationToken).ConfigureAwait(false);
+                invocationOperation);
 
             var nestedCodeAction = new MyNestedCodeAction(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
@@ -149,48 +148,40 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             context.RegisterRefactoring(nestedCodeAction, calleeMethodInvocationNode.Span);
         }
 
-        private async Task<ImmutableArray<CodeAction>> GenerateCodeActionsAsync(
+        private ImmutableArray<CodeAction> GenerateCodeActions(
             Document document,
-            TInvocationSyntax calleeMethodInvocationSyntaxNode,
+            TInvocationSyntax calleeMethodInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode,
+            TMethodDeclarationSyntax calleeMethodDeclarationNode,
             TExpressionSyntax inlineExpression,
             TStatementSyntax statementContainsCallee,
-            IInvocationOperation invocationOperation,
-            CancellationToken cancellationToken)
+            IInvocationOperation invocationOperation)
         {
-            var methodParametersInfo = await MethodParametersInfo
-                .GetMethodParametersInfoAsync(_syntaxFacts, document, invocationOperation, cancellationToken).ConfigureAwait(false);
-            var inlineContext = await GetInlineMethodContextAsync(
-                document,
-                calleeMethodInvocationSyntaxNode,
-                calleeMethodSymbol,
-                calleeMethodDeclarationSyntaxNode,
-                inlineExpression,
-                statementContainsCallee,
-                methodParametersInfo,
-                cancellationToken).ConfigureAwait(false);
-
             var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
             var codeActionKeepsCallee = new MySolutionChangeAction(
                 string.Format(FeaturesResources.Keep_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(document,
-                        calleeMethodInvocationSyntaxNode,
+                        calleeMethodInvocationNode,
                         calleeMethodSymbol,
-                        calleeMethodDeclarationSyntaxNode,
-                        inlineContext,
+                        calleeMethodDeclarationNode,
+                        inlineExpression,
+                        statementContainsCallee,
+                        invocationOperation,
                         removeCalleeDeclarationNode: false,
                         cancellationToken));
 
             var codeActionRemovesCallee = new MySolutionChangeAction(
                 string.Format(FeaturesResources.Remove_0, calleeMethodName),
                 cancellationToken =>
-                    InlineMethodAsync(document,
-                        calleeMethodInvocationSyntaxNode,
+                    InlineMethodAsync(
+                        document,
+                        calleeMethodInvocationNode,
                         calleeMethodSymbol,
-                        calleeMethodDeclarationSyntaxNode,
-                        inlineContext,
+                        calleeMethodDeclarationNode,
+                        inlineExpression,
+                        statementContainsCallee,
+                        invocationOperation,
                         removeCalleeDeclarationNode: true,
                         cancellationToken));
 
@@ -198,6 +189,37 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         }
 
         private async Task<Solution> InlineMethodAsync(
+            Document document,
+            TInvocationSyntax calleeMethodInvocationNode,
+            IMethodSymbol calleeMethodSymbol,
+            TMethodDeclarationSyntax calleeMethodDeclarationNode,
+            TExpressionSyntax inlineExpression,
+            TStatementSyntax statementContainsCallee,
+            IInvocationOperation invocationOperation,
+            bool removeCalleeDeclarationNode,
+            CancellationToken cancellationToken)
+        {
+            var methodParametersInfo = await MethodParametersInfo.GetMethodParametersInfoAsync(_syntaxFacts, document, invocationOperation, cancellationToken).ConfigureAwait(false);
+            var inlineContext = await GetInlineMethodContextAsync(
+                document,
+                calleeMethodInvocationNode,
+                calleeMethodSymbol,
+                calleeMethodDeclarationNode,
+                inlineExpression,
+                statementContainsCallee,
+                methodParametersInfo,
+                cancellationToken).ConfigureAwait(false);
+            return await ChangeSolutionAsync(
+                document,
+                calleeMethodInvocationNode,
+                calleeMethodSymbol,
+                calleeMethodDeclarationNode,
+                inlineContext,
+                removeCalleeDeclarationNode,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Solution> ChangeSolutionAsync(
             Document document,
             SyntaxNode calleeMethodInvocationNode,
             IMethodSymbol calleeMethodSymbol,
