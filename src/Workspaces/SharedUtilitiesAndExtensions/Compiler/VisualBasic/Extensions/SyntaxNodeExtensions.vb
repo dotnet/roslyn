@@ -1013,6 +1013,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             '  3.      x?!y                 // dictionary access (covered under MemberAccessExpressionSyntax below)
             '  4.      x?.y<...>            // xml access
 
+            If node.IsAnyMemberAccessExpressionName() Then
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
+
             While TypeOf node Is InvocationExpressionSyntax OrElse
                   TypeOf node Is MemberAccessExpressionSyntax OrElse
                   TypeOf node Is XmlMemberAccessExpressionSyntax

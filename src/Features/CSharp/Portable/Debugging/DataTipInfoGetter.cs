@@ -51,18 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 if (expression.IsRightSideOfDotOrArrow())
                 {
-                    var curr = expression;
-                    while (true)
-                    {
-                        var conditionalAccess = curr.GetRootConditionalAccessExpression();
-                        if (conditionalAccess == null)
-                        {
-                            break;
-                        }
-
-                        curr = conditionalAccess;
-                    }
-
+                    var curr = expression.GetRootConditionalAccessExpression() ?? expression;
                     if (curr == expression)
                     {
                         // NB: Parent.Span, not Span as below.

@@ -288,6 +288,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //  4.      x?.y                // member binding
             //  5.      x?[y]               // element binding
             var current = node;
+
+            if ((current.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess) && memberAccess.Name == current) ||
+                (current.IsParentKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax? memberBinding) && memberBinding.Name == current))
+            {
+                current = current.Parent;
+            }
+
             while (current.IsKind(
                 SyntaxKind.InvocationExpression,
                 SyntaxKind.ElementAccessExpression,

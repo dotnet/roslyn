@@ -60,8 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsAnyMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
-            Return expression IsNot Nothing AndAlso
-                   TypeOf expression.Parent Is MemberAccessExpressionSyntax AndAlso
+            Return TypeOf expression?.Parent Is MemberAccessExpressionSyntax AndAlso
                    DirectCast(expression.Parent, MemberAccessExpressionSyntax).Name Is expression
         End Function
 
