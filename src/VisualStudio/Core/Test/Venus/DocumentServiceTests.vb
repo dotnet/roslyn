@@ -97,9 +97,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 ' which will use their own implementation of these services
                 Assert.True(documentOperations.CanApplyChange)
                 Assert.True(documentOperations.SupportDiagnostics)
-
-                Dim documentProperties = service.GetService(Of DocumentPropertiesService)
-                Assert.True(documentProperties.DesignTimeOnly)
             End Using
         End Sub
 
