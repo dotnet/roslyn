@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
-            // For C# this will return MethodDeclarationSyntax,
+            // For C# it will return MethodDeclarationSyntax,
             // For VB it will return MethodStatementSyntax, and what it is expecting is MethodBlockSyntax
             var calleeMethodDeclarationOrStatementNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
             var calleeMethodNode = calleeMethodDeclarationOrStatementNode as TMethodDeclarationSyntax

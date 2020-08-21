@@ -149,7 +149,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // }
                 var operationsWithIdentifierArgument = allArgumentOperations
                     .WhereAsArray(argumentAndArgumentOperation =>
-                        syntaxFacts.IsIdentifierName(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
+                        syntaxFacts.IsIdentifierName(argumentAndArgumentOperation.argumentExpressionOperation.Syntax)
+                        && argumentAndArgumentOperation.argumentOperation.ArgumentKind == ArgumentKind.Explicit);
 
                 // 2. Find all the declaration arguments (e.g. out var declaration in C#).
                 // After inlining, an declaration needs to be put before the invocation. And also use the declared identifier to replace the mapping parameter in callee.
@@ -170,7 +171,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // void Callee(out int i) => i = 100;
                 var operationsWithVariableDeclarationArgument = allArgumentOperations
                     .WhereAsArray(argumentAndArgumentOperation =>
-                        syntaxFacts.IsDeclarationExpression(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
+                        syntaxFacts.IsDeclarationExpression(argumentAndArgumentOperation.argumentExpressionOperation.Syntax)
+                        && argumentAndArgumentOperation.argumentOperation.ArgumentKind == ArgumentKind.Explicit);
 
                 // 3. Find the literal arguments, and the mapping parameter will be replaced by that literal expression
                 // Example:
@@ -194,7 +196,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // }
                 var operationsWithLiteralArgument = allArgumentOperations
                     .WhereAsArray(argumentAndArgumentOperation =>
-                        syntaxFacts.IsLiteralExpression(argumentAndArgumentOperation.argumentExpressionOperation.Syntax));
+                        syntaxFacts.IsLiteralExpression(argumentAndArgumentOperation.argumentExpressionOperation.Syntax)
+                        && argumentAndArgumentOperation.argumentOperation.ArgumentKind == ArgumentKind.Explicit);
 
                 // 4. Find the default value parameters. Similarly to 3, they should be replaced by the default value.
                 // Example:
