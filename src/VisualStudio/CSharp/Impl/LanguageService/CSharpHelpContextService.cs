@@ -213,9 +213,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.ColonToken && token.Parent is NameColonSyntax)
+            if (token.IsKind(SyntaxKind.ColonToken) && token.Parent is NameColonSyntax)
             {
-                text = "cs_namedParameter";
+                text = "namedParameter_CSharpKeyword";
                 return true;
             }
 
@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private static bool TryGetTextForKeyword(SyntaxToken token, ISyntaxFactsService syntaxFacts, out string text)
         {
-            if (token.Kind() == SyntaxKind.InKeyword)
+            if (token.IsKind(SyntaxKind.InKeyword))
             {
                 if (token.GetAncestor<FromClauseSyntax>() != null)
                 {
