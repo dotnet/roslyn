@@ -58,6 +58,17 @@ class C
 end class")
         End Function
 
+        <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+            Public Async Function TestNotOnByRefParameter() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    public sub new([||]byval s as string)
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNotOnValueType() As Task
             Await TestMissingInRegularAndScriptAsync(
