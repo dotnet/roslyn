@@ -112,6 +112,19 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnOutParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public C([||]out string s)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnValueType()
         {
             await TestMissingInRegularAndScriptAsync(
