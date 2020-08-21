@@ -189,12 +189,12 @@ file_header_template = {fileName} Copyright (c) {currentYear} SomeCorp. All righ
 {
 }
 ";
-            var fixedCode = @$"// Test0.cs Copyright (c) {DateTime.Now.Year} SomeCorp. All rights reserved.
+            var fixedCode = $@"// Test0.cs Copyright (c) {DateTime.Now.Year} SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 namespace N
-{
-}
+{{
+}}
 ";
 
             await new VerifyCS.Test
