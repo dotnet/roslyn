@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// This option is used by TypeScript and F#.
         /// </summary>
-        [Obsolete("Currently used by TypeScript and F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
+        [Obsolete("Currently used by F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
         internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(
             "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
