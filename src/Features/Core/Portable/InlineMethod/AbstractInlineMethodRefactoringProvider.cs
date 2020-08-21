@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var nestedCodeAction = new MyNestedCodeAction(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 codeActions,
-                isInlinable: true);
+                isInlinable: false);
 
             context.RegisterRefactoring(nestedCodeAction, calleeMethodInvocationNode.Span);
         }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 documentEditor.InsertBefore(
                     statementContainsCalleeInvocationExpression,
                     // Make sure the statement is aligned with the existing statement
-                    statement.WithLeadingTrivia(statementContainsCalleeInvocationExpression.GetLeadingTrivia()));
+                    statement.WithTriviaFrom(statementContainsCalleeInvocationExpression));
             }
 
             var syntaxNodeToReplace = inlineMethodContext.SyntaxNodeToReplace;

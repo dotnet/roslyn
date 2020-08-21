@@ -534,7 +534,6 @@ public class TestClass
         System.Console.WriteLine(x.Length);
     }
 }",
-                // Is this is the intentional array format?
                 @"
 public class TestClass
 {
