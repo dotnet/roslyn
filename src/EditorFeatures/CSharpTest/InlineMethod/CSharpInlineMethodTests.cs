@@ -853,7 +853,7 @@ public class TestClass
 
     private async Task<int> Callee()
     {
-        return await Task.FromResult(i + j);
+        return await Task.FromResult(10);
     }
 }",
                 @"

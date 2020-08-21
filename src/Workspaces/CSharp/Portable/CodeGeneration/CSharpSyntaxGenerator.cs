@@ -1462,6 +1462,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Static |
             DeclarationModifiers.Extern;
 
+        private static readonly DeclarationModifiers s_lambdaModifiers =
+            DeclarationModifiers.Async;
+
         private static DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
             switch (kind)
@@ -1515,6 +1518,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.LocalFunctionStatement:
                     return s_localFunctionModifiers;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                    return s_lambdaModifiers;
 
                 case SyntaxKind.EnumMemberDeclaration:
                 case SyntaxKind.Parameter:
@@ -1564,6 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 LocalDeclarationStatementSyntax localDecl => localDecl.WithModifiers(modifiers),
                 LocalFunctionStatementSyntax localFunc => localFunc.WithModifiers(modifiers),
                 AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
+                LambdaExpressionSyntax lambda => lambda.WithModifiers(modifiers),
                 _ => declaration,
             };
 

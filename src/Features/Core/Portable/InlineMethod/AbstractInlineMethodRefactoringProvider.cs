@@ -227,11 +227,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             if (inlineMethodContext.ContainsAwaitExpression)
             {
                 var enclosingMethod = GetEnclosingMethodLikeNode(calleeMethodInvocationNode);
-                if (enclosingMethod != null
-                    && semanticModel.GetDeclaredSymbol(enclosingMethod, cancellationToken) is IMethodSymbol callerMethodSymbol
-                    && !callerMethodSymbol.IsAsync)
+                if (enclosingMethod != null)
                 {
-                    documentEditor.SetModifiers(enclosingMethod, DeclarationModifiers.From(calleeMethodSymbol).WithAsync(isAsync: true));
+                    var methodSymbol = semanticModel.GetDeclaredSymbol(enclosingMethod, cancellationToken)
+                        ?? semanticModel.GetSymbolInfo(enclosingMethod, cancellationToken).GetAnySymbol();
+                    if (methodSymbol is IMethodSymbol callerMethodSymbol && !callerMethodSymbol.IsAsync)
+                    {
+                        documentEditor.SetModifiers(enclosingMethod, DeclarationModifiers.From(calleeMethodSymbol).WithAsync(isAsync: true));
+                    }
                 }
             }
 
