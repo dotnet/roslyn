@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             Document document,
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TMethodDeclarationSyntax calleeMethodDeclarationNode,
+            TMethodDeclarationSyntax calleeMethodNode,
             TExpressionSyntax rawInlineExpression,
             TStatementSyntax statementContainsCallee,
             MethodParametersInfo methodParametersInfo,
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 renameTable);
 
             // Check if there is await expression. It is used later if the caller should be changed to async
-            var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodDeclarationNode);
+            var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodNode);
 
             // Do the replacement work within the callee's body so that it can be inserted to the caller later.
             inlineExpression = await ReplaceAllSyntaxNodesForSymbolAsync(

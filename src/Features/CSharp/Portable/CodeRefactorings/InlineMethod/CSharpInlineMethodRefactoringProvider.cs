@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             var blockSyntaxNode = methodDeclarationSyntax.Body;
             if (blockSyntaxNode != null)
             {
+
                 // 1. If it is an ordinary method with block
                 var blockStatements = blockSyntaxNode.Statements;
                 if (blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]))

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(PredefinedCodeRefactoringProviderNames.InlineMethod)), [Shared]>
     <Export(GetType(VisualBasicInlineMethodRefactoringProvider))>
     Friend Class VisualBasicInlineMethodRefactoringProvider
-        Inherits AbstractInlineMethodRefactoringProvider(Of InvocationExpressionSyntax, ExpressionSyntax, MethodStatementSyntax, StatementSyntax, LocalDeclarationStatementSyntax)
+        Inherits AbstractInlineMethodRefactoringProvider(Of InvocationExpressionSyntax, ExpressionSyntax, MethodBlockSyntax, StatementSyntax, LocalDeclarationStatementSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -24,21 +24,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             MyBase.New(VisualBasicSyntaxFacts.Instance, VisualBasicSemanticFactsService.Instance)
         End Sub
 
-        Protected Overrides Function GetInlineExpression(calleeMethodStatementSyntax As MethodStatementSyntax) As ExpressionSyntax
-            Dim methodBlock = TryCast(calleeMethodStatementSyntax.Parent, MethodBlockSyntax)
-            If methodblock IsNot Nothing then
-                Dim statements = methodBlock.Statements
-                If statements.Count = 1 Then
-                    Dim singleStatement = statements(0)
-                    Dim returnStatement = TryCast(singleStatement, ReturnStatementSyntax)
-                    If returnStatement IsNot Nothing Then
-                        Return returnStatement.Expression
-                    End If
+        Protected Overrides Function GetInlineExpression(methodBlock As MethodBlockSyntax) As ExpressionSyntax
+            Dim statements = methodBlock.Statements
+            If statements.Count = 1 Then
+                Dim singleStatement = statements(0)
+                Dim returnStatement = TryCast(singleStatement, ReturnStatementSyntax)
+                If returnStatement IsNot Nothing Then
+                    Return returnStatement.Expression
+                End If
 
-                    Dim expressionStatement = TryCast(singleStatement, ExpressionStatementSyntax)
-                    If expressionStatement IsNot Nothing Then
-                        Return expressionStatement.Expression
-                    End If
+                Dim expressionStatement = TryCast(singleStatement, ExpressionStatementSyntax)
+                If expressionStatement IsNot Nothing Then
+                    Return expressionStatement.Expression
                 End If
             End If
             Return Nothing
@@ -46,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
         Protected Overrides Function GetEnclosingMethodLikeNode(syntaxNode As SyntaxNode) As SyntaxNode
             While syntaxNode IsNot Nothing
-                If TypeOf syntaxNode Is MethodBlockSyntax Or TypeOf syntaxNode Is LambdaExpressionSyntax Then
+                If TypeOf syntaxNode Is MethodBlockSyntax OrElse TypeOf syntaxNode Is LambdaExpressionSyntax Then
                     Return syntaxNode
                 End If
                 syntaxNode = syntaxNode.Parent

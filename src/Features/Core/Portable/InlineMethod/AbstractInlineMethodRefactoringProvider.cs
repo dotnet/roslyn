@@ -106,14 +106,18 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
-            var calleeMethodDeclarationNode = await calleeMethodDeclarationSyntaxReference
-                .GetSyntaxAsync(cancellationToken).ConfigureAwait(false) as TMethodDeclarationSyntax;
-            if (calleeMethodDeclarationNode == null)
+            // For C# this will return MethodDeclarationSyntax,
+            // For VB it will return MethodStatementSyntax, and what it is expecting is MethodBlockSyntax
+            var calleeMethodDeclarationOrStatementNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+            var calleeMethodNode = calleeMethodDeclarationOrStatementNode as TMethodDeclarationSyntax
+                ?? calleeMethodDeclarationOrStatementNode.Parent as TMethodDeclarationSyntax;
+
+            if (calleeMethodNode == null)
             {
                 return;
             }
 
-            var inlineExpression = GetInlineExpression(calleeMethodDeclarationNode);
+            var inlineExpression = GetInlineExpression(calleeMethodNode);
             if (inlineExpression == null)
             {
                 return;
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 document,
                 calleeMethodInvocationNode,
                 calleeMethodSymbol,
-                calleeMethodDeclarationNode,
+                calleeMethodNode,
                 inlineExpression,
                 statementContainsCallee,
                 invocationOperation);
@@ -152,7 +156,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             Document document,
             TInvocationSyntax calleeMethodInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TMethodDeclarationSyntax calleeMethodDeclarationNode,
+            TMethodDeclarationSyntax calleeMethodNode,
             TExpressionSyntax inlineExpression,
             TStatementSyntax statementContainsCallee,
             IInvocationOperation invocationOperation)
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     InlineMethodAsync(document,
                         calleeMethodInvocationNode,
                         calleeMethodSymbol,
-                        calleeMethodDeclarationNode,
+                        calleeMethodNode,
                         inlineExpression,
                         statementContainsCallee,
                         invocationOperation,
@@ -178,7 +182,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         document,
                         calleeMethodInvocationNode,
                         calleeMethodSymbol,
-                        calleeMethodDeclarationNode,
+                        calleeMethodNode,
                         inlineExpression,
                         statementContainsCallee,
                         invocationOperation,
@@ -192,7 +196,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             Document document,
             TInvocationSyntax calleeMethodInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TMethodDeclarationSyntax calleeMethodDeclarationNode,
+            TMethodDeclarationSyntax calleeMethodNode,
             TExpressionSyntax inlineExpression,
             TStatementSyntax statementContainsCallee,
             IInvocationOperation invocationOperation,
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 document,
                 calleeMethodInvocationNode,
                 calleeMethodSymbol,
-                calleeMethodDeclarationNode,
+                calleeMethodNode,
                 inlineExpression,
                 statementContainsCallee,
                 methodParametersInfo,
@@ -213,7 +217,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 document,
                 calleeMethodInvocationNode,
                 calleeMethodSymbol,
-                calleeMethodDeclarationNode,
+                calleeMethodNode,
                 inlineContext,
                 removeCalleeDeclarationNode,
                 cancellationToken).ConfigureAwait(false);
@@ -223,7 +227,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             Document document,
             SyntaxNode calleeMethodInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TMethodDeclarationSyntax calleeMethodDeclarationNode,
+            TMethodDeclarationSyntax calleeMethodNode,
             InlineMethodContext inlineMethodContext,
             bool removeCalleeDeclarationNode,
             CancellationToken cancellationToken)
@@ -262,11 +266,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             if (removeCalleeDeclarationNode)
             {
-                var documentId = solution.GetDocumentId(calleeMethodDeclarationNode.SyntaxTree);
+                var documentId = solution.GetDocumentId(calleeMethodNode.SyntaxTree);
                 if (documentId != null)
                 {
                     var editor = await solutionEditor.GetDocumentEditorAsync(documentId, cancellationToken).ConfigureAwait(false);
-                    editor.RemoveNode(calleeMethodDeclarationNode);
+                    editor.RemoveNode(calleeMethodNode);
                 }
             }
 
