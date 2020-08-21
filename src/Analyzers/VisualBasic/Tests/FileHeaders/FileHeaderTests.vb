@@ -154,20 +154,20 @@ End Namespace
         End Function
 
         ''' <summary>
-        ''' Verifies that the built-in variable <c>fileName</c> works as expected.
+        ''' Verifies that the built-in variables <c>fileName</c> and <c>currentYear</c> work as expected.
         ''' </summary>
         ''' <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         <Fact>
-        Public Async Function TestFileNameBuiltInVariableAsync() As Task
+        Public Async Function TestBuiltInVariablesAsync() As Task
             Dim editorConfig = "
 [*.vb]
-file_header_template = {fileName} Copyright (c) SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
+file_header_template = {fileName} Copyright (c) {currentYear} SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
 "
 
             Dim testCode = "[||]Namespace N
 End Namespace
 "
-            Dim fixedCode = "' Test0.vb Copyright (c) SomeCorp. All rights reserved.
+            Dim fixedCode = "' Test0.vb Copyright (c) 2020 SomeCorp. All rights reserved.
 ' Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 Namespace N
