@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             if (TryGetTextForSpecialCharacters(token, out var text) ||
-                TryGetTextForContextualKeyword(token, out var text) ||
+                TryGetTextForContextualKeyword(token, out text) ||
                 TryGetTextForCombinationKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForKeyword(token, syntaxFacts, out text) ||
                 TryGetTextForPreProcessor(token, syntaxFacts, out text) ||
