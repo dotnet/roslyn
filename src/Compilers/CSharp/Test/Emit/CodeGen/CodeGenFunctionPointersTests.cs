@@ -7861,7 +7861,7 @@ class C
         void local() {}
     }
 }
-", UnmanagedCallersOnlyAttribute }, parseOptions: TestOptions.Regular9);
+", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
                 // (6,6): error CS8892: `UnmanagedCallersOnly` can only be applied to ordinary static methods or static local functions.
@@ -7890,7 +7890,7 @@ class C
         static void local() {}
     }
 }
-", UnmanagedCallersOnlyAttribute }, parseOptions: TestOptions.Regular9);
+", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics();
         }
@@ -7997,6 +7997,25 @@ class C
                 // (5,6): error CS8893: `null` is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //     [UnmanagedCallersOnly(CallConvs = new System.Type[] { null })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new System.Type[] { null })").WithArguments("null").WithLocation(5, 6)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyCallConvDefault()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C
+{
+    [UnmanagedCallersOnly(CallConvs = new System.Type[] { default })]
+    static void M() {}
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8893: 'null' is not a valid calling convention type for 'UnmanagedCallersOnly'.
+                //     [UnmanagedCallersOnly(CallConvs = new System.Type[] { default })]
+                Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new System.Type[] { default })").WithArguments("null").WithLocation(5, 6)
             );
         }
 

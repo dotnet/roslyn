@@ -6462,13 +6462,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>extension GetEnumerator</value>
   </data>
   <data name="ERR_UnmanagedCallersOnlyRequiresStatic" xml:space="preserve">
-    <value>`UnmanagedCallersOnly` can only be applied to ordinary static methods or static local functions.</value>
+    <value>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
   <data name="ERR_InvalidUnmanagedCallersOnlyCallConv" xml:space="preserve">
-    <value>`{0}` is not a valid calling convention type for 'UnmanagedCallersOnly'.</value>
+    <value>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
   <data name="ERR_CannotUseManagedTypeInUnmanagedCallersOnly" xml:space="preserve">
-    <value>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.</value>
+    <value>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</value>
     <comment>1 is the localized word for 'parameter' or 'return'</comment>
   </data>
 </root>
