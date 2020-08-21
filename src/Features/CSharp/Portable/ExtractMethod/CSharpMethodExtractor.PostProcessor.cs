@@ -92,9 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     if (!IsDeclarationMergable(statement))
                     {
-                        foreach (var declStatement in GetMergedDeclarationStatements(map))
-                            result.Add(declStatement);
-
+                        result.AddRange(GetMergedDeclarationStatements(map));
                         result.Add(statement);
                         continue;
                     }
