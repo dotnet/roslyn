@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierNameSyntax, TStatementSyntax, TVariableDeclarationSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TMethodDeclarationSyntax, TStatementSyntax, TLocalDeclarationSyntax>
     {
         private readonly struct InlineMethodContext
         {
@@ -74,11 +74,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodDeclarationNode,
-            TExpressionSyntax inlineExpression,
-            SyntaxNode statementContainsCallee,
+            TExpressionSyntax rawInlineExpression,
+            TStatementSyntax statementContainsCallee,
             MethodParametersInfo methodParametersInfo,
             CancellationToken cancellationToken)
         {
+            var inlineExpression = rawInlineExpression;
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -326,6 +327,34 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     statementContainsCallee,
                     syntaxGenerator
                         .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedLocalName.Text, inlineExpression),
+                    statementContainsCallee,
+                    containsAwaitExpression);
+            }
+
+            if (calleeMethodSymbol.ReturnType.IsDelegateType()
+                && calleeMethodSymbol.Language.Equals(LanguageNames.CSharp)
+                && statementContainsCallee is TLocalDeclarationSyntax localDeclarationSyntax
+                && IsVariableInitializerInLocalDeclarationSyntax(calleeInvocationNode, localDeclarationSyntax)
+                && IsUsingInferTypeDeclarator(localDeclarationSyntax))
+            {
+                // For C#, 'var' can't be used as the delegate type in local declaration syntax
+                // example:
+                // before:
+                // void Caller() { var x = Callee(); }
+                // Action Callee() { return () => {}; }
+                // after inline it should be:
+                // void Caller() { Action x = () => {};}
+                // Action Callee() { return () => {}; }
+                // For VB, 'Dim' can be used for 'Sub' and 'Function'
+                return new InlineMethodContext(
+                    localDeclarationStatementsNeedInsert,
+                    statementContainsCallee,
+                    UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
+                        localDeclarationSyntax,
+                        syntaxGenerator,
+                        calleeMethodSymbol.ReturnType,
+                        calleeInvocationNode,
+                        inlineExpression),
                     statementContainsCallee,
                     containsAwaitExpression);
             }

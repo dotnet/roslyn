@@ -7,10 +7,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineMethod;
 
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, MethodDeclarationSyntax, IdentifierNameSyntax, StatementSyntax, VariableDeclaratorSyntax>
+        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, MethodDeclarationSyntax, StatementSyntax, LocalDeclarationStatementSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 var blockStatements = blockSyntaxNode.Statements;
                 if (blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]))
                 {
-                    StatementSyntax statementSyntax = blockStatements[0];
+                    var statementSyntax = blockStatements[0];
                     return statementSyntax switch
                     {
                         // Check has been done before to make sure the argument is ReturnStatementSyntax or ExpressionStatementSyntax
@@ -96,6 +98,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override ExpressionSyntax Parenthesize(ExpressionSyntax expressionSyntax)
             => expressionSyntax.Parenthesize();
+
+        protected override bool IsVariableInitializerInLocalDeclarationSyntax(
+            InvocationExpressionSyntax expressionSyntax,
+            LocalDeclarationStatementSyntax statementSyntaxEnclosingCallee)
+            => statementSyntaxEnclosingCallee.Declaration.Variables
+                .Any(variable => expressionSyntax.Equals(variable?.Initializer?.Value));
+
+        protected override bool IsUsingInferTypeDeclarator(LocalDeclarationStatementSyntax localDeclarationSyntax)
+            => localDeclarationSyntax.Declaration.Type.IsVar;
+
+        protected override LocalDeclarationStatementSyntax UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
+            LocalDeclarationStatementSyntax localDeclarationSyntax,
+            SyntaxGenerator syntaxGenerator,
+            ITypeSymbol type,
+            ExpressionSyntax initializer,
+            ExpressionSyntax replacementInitializer)
+        {
+            var syntaxEditor = new SyntaxEditor(localDeclarationSyntax, syntaxGenerator);
+            var typeSyntax = type.GenerateTypeSyntax(allowVar: false);
+            syntaxEditor.ReplaceNode(localDeclarationSyntax.Declaration.Type, typeSyntax);
+            syntaxEditor.ReplaceNode(initializer, replacementInitializer);
+            return (LocalDeclarationStatementSyntax)syntaxEditor.GetChangedRoot();
+        }
 
         protected override bool IsValidExpressionUnderStatementExpression(ExpressionSyntax expressionNode)
         {

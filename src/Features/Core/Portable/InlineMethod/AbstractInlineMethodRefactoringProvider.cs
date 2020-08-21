@@ -17,15 +17,18 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TArgumentSyntax, TMethodDeclarationSyntax, TIdentifierNameSyntax, TStatementSyntax, TVariableDeclarationSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<
+            TInvocationSyntax,
+            TExpressionSyntax,
+            TMethodDeclarationSyntax,
+            TStatementSyntax,
+            TLocalDeclarationSyntax>
         : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationSyntax : TExpressionSyntax
-        where TArgumentSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
-        where TIdentifierNameSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
-        where TVariableDeclarationSyntax : SyntaxNode
+        where TLocalDeclarationSyntax : TStatementSyntax
     {
         private readonly ISyntaxFacts _syntaxFacts;
         private readonly ISemanticFactsService _semanticFactsService;
@@ -35,6 +38,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol);
         protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
         protected abstract TExpressionSyntax Parenthesize(TExpressionSyntax expressionNode);
+        protected abstract bool IsVariableInitializerInLocalDeclarationSyntax(TInvocationSyntax expressionSyntax, TLocalDeclarationSyntax statementSyntaxEnclosingCallee);
+        protected abstract bool IsUsingInferTypeDeclarator(TLocalDeclarationSyntax localDeclarationSyntax);
+        protected abstract TLocalDeclarationSyntax UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(TLocalDeclarationSyntax localDeclarationSyntax, SyntaxGenerator syntaxGenerator, ITypeSymbol type, TExpressionSyntax initializer, TExpressionSyntax replacementInitializer);
 
         /// <summary>
         /// Check if <paramref name="expressionNode"/> could be used as an Expression in ExpressionStatement
@@ -149,7 +155,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode,
             TExpressionSyntax inlineExpression,
-            SyntaxNode statementContainsCallee,
+            TStatementSyntax statementContainsCallee,
             IInvocationOperation invocationOperation,
             CancellationToken cancellationToken)
         {

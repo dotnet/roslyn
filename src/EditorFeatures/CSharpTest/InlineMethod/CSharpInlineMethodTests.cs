@@ -825,7 +825,7 @@ public class TestClass
     public void Caller(bool x)
     {
         System.Console.WriteLine("""");
-        var f = C[||]allee();
+        Func<Task> f = async () => await Task.Delay(100);
     }
 
     private Func<Task> Callee()
