@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
-using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -769,9 +768,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "Text"
                 },
                 taintedMethods: null);
-
-            sourceInfosBuilder.AddRange(StringTranferSources.SourceInfos);
-
             SourceInfos = sourceInfosBuilder.ToImmutableAndFree();
         }
     }

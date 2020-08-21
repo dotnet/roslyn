@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
-using Analyzer.Utilities.PooledObjects.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -129,9 +127,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "HtmlAttributeEncode",
                     "HtmlEncode",
                 });
-
-            builder.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos);
-            builder.AddRange(AnySanitizers.SanitizerInfos);
 
             SanitizerInfos = builder.ToImmutableAndFree();
         }

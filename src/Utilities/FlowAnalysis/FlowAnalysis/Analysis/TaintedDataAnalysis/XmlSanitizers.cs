@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.PooledObjects;
-using Analyzer.Utilities.PooledObjects.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -44,8 +43,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
 
             // Consider SecurityElement.Escape().
-
-            builder.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos);
 
             SanitizerInfos = builder.ToImmutableAndFree();
         }
