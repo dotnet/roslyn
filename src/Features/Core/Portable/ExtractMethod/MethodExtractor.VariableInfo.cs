@@ -121,10 +121,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
-            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> list)
+            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
             {
                 var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
-                list.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
+                variables.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
             }
 
             private static int Compare(VariableInfo left, VariableInfo right, INamedTypeSymbol cancellationTokenType)

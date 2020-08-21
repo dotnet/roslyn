@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = Me.InsertionPoint.GetContext()
-                Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
+
                 statements = PostProcessor.RemoveDeclarationAssignmentPattern(statements)
                 statements = PostProcessor.RemoveInitializedDeclarationAndReturnPattern(statements)
 
