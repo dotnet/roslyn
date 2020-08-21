@@ -546,8 +546,7 @@ public class C
     }
         ";
 
-            await TestChangeSignatureViaCommandAsync(
-                            LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, xmlMarkup: true);
+            await TestChangeSignatureViaCommandAsync("XML", markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
     }
 }

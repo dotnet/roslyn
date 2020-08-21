@@ -99,10 +99,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
             OptionsCollection options = null,
-            int expectedSelectedIndex = -1,
-            bool xmlMarkup = false)
+            int expectedSelectedIndex = -1)
         {
-            using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions, options, xmlMarkup))
+            using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions, options))
             {
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
                 var result = testState.ChangeSignature();
