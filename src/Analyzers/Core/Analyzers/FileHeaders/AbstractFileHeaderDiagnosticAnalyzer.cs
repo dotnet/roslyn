@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
