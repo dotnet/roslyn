@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 throw ExceptionUtilities.Unreachable;
             }
 
-            var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
+            var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath)).Replace("{currentYear}", DateTime.Now.ToString("yyyy"));
 
             var fileHeader = fileHeaderHelper.ParseFileHeader(root);
             SyntaxNode newSyntaxRoot;
