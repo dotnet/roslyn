@@ -998,11 +998,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Next
         End Function
 
-        ''' <summary>
-        ''' <see cref="ISyntaxFacts.GetRootConditionalAccessExpression"/>
-        ''' </summary>
         <Extension>
-        Friend Function GetRootConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+        Friend Function GetParentConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
             ' Walk upwards based on the grammar/parser rules around ?. expressions (can be seen in
             ' ParseExpression.vb (.ParsePostFixExpression).
             '
@@ -1017,17 +1014,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 node = DirectCast(node.Parent, ExpressionSyntax)
             End If
 
-            While TypeOf node Is InvocationExpressionSyntax OrElse
-                  TypeOf node Is MemberAccessExpressionSyntax OrElse
-                  TypeOf node Is XmlMemberAccessExpressionSyntax
+            ' Effectively, if we're on the RHS of the ? we have to walk up the RHS spine first until we hit the first
+            ' conditional access.
+
+            While (TypeOf node Is InvocationExpressionSyntax OrElse
+                   TypeOf node Is MemberAccessExpressionSyntax OrElse
+                   TypeOf node Is XmlMemberAccessExpressionSyntax) AndAlso
+                   TypeOf node.Parent IsNot ConditionalAccessExpressionSyntax
+
                 node = TryCast(node.Parent, ExpressionSyntax)
             End While
 
+            ' Two cases we have to care about
+            '
+            '      1. a?.b.$$c.d        And
+            '      2. a?.b.$$c.d?.e...
+            '
+            ' Note that `a?.b.$$c.d?.e.f?.g.h.i` falls into the same bucket as two.  i.e. the parts after `.e` are
+            ' lower in the tree And are Not seen as we walk upwards.
+            '
+            '
+            ' To get the root ?. (the one after the `a`) we have to potentially consume the first ?. on the RHS of the
+            ' right spine (i.e. the one after `d`).  Once we do this, we then see if that itself Is on the RHS of a
+            ' another conditional, And if so we hten return the one on the left.  i.e. for '2' this goes in this direction:
+            '
+            '      a?.b.$$c.d?.e            // it will do:
+            '           ----->
+            '       <---------
+            '
+            ' Note that this only one CAE consumption on both sides.  GetRootConditionalAccessExpression can be used to
+            ' get the root parent in a case Like:
+            '
+            '      x?.y?.z?.a?.b.$$c.d?.e.f?.g.h.i              // It will do:
+            '                    ----->
+            '                <---------
+            '             <---
+            '          <---
+            '       <---
+
+            If TypeOf node?.Parent Is ConditionalAccessExpressionSyntax AndAlso
+               DirectCast(node.Parent, ConditionalAccessExpressionSyntax).Expression Is node Then
+
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
+
+            If TypeOf node?.Parent Is ConditionalAccessExpressionSyntax AndAlso
+               DirectCast(node.Parent, ConditionalAccessExpressionSyntax).WhenNotNull Is node Then
+
+                node = DirectCast(node.Parent, ExpressionSyntax)
+            End If
+
+            Return TryCast(node, ConditionalAccessExpressionSyntax)
+        End Function
+
+        ''' <summary>
+        ''' <see cref="ISyntaxFacts.GetRootConditionalAccessExpression"/>
+        ''' </summary>
+        <Extension>
+        Friend Function GetRootConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
             ' Once we've walked up the entire RHS, now we continually walk up the conditional accesses until we're at
             ' the root. For example, if we have `a?.b` And we're on the `.b`, this will give `a?.b`.  Similarly with
             ' `a?.b?.c` if we're on either `.b` or `.c` this will result in `a?.b?.c` (i.e. the root of this CAE
             ' sequence).
 
+            node = node.GetParentConditionalAccessExpression()
             While TypeOf node?.Parent Is ConditionalAccessExpressionSyntax
                 Dim conditionalParent = DirectCast(node.Parent, ConditionalAccessExpressionSyntax)
                 If conditionalParent.WhenNotNull Is node Then

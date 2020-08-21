@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 current = current.Parent;
             }
 
-            // Effectively, if we're on the RHS of hte ? we have to walk up the RHS spine first until we hit the first
+            // Effectively, if we're on the RHS of the ? we have to walk up the RHS spine first until we hit the first
             // conditional access.
 
             while (current.IsKind(
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Two cases we have to care about:
-
+            //
             //      1. a?.b.$$c.d        and
             //      2. a?.b.$$c.d?.e...
             //
@@ -319,19 +319,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // right spine (i.e. the one after `d`).  Once we do this, we then see if that itself is on the RHS of a
             // another conditional, and if so we hten return the one on the left.  i.e. for '2' this goes in this direction:
             //
-            //      a?.b.$$c.d?.e
+            //      a?.b.$$c.d?.e           // it will do:
             //           ----->
-            // then
-            //
             //       <---------
             //
             // Note that this only one CAE consumption on both sides.  GetRootConditionalAccessExpression can be used to
             // get the root parent in a case like:
             //
-            //      x?.y?.z?.a?.b.$$c.d?.e.f?.g.h.i
-            //
-            // It will do:
-            //
+            //      x?.y?.z?.a?.b.$$c.d?.e.f?.g.h.i         // it will do:
             //                    ----->
             //                <---------
             //             <---
