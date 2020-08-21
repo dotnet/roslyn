@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
         public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
-            => (node as MemberBindingExpressionSyntax).GetRootConditionalAccessExpression()?.Expression;
+            => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => (node as MemberAccessExpressionSyntax)?.Expression;
