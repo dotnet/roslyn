@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                     Return SpecializedCollections.EmptyEnumerable(Of ReferenceLocation)()
                 End If
                 If Not referencedSymbol.Locations.Any(Function(loc) semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)) Then
-                    Return locations
+                    Return referencedSymbol.Locations
                 End If
             End If
 
