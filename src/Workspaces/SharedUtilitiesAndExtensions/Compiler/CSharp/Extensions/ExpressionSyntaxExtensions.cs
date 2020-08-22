@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SymbolKind.Parameter:
                 case SymbolKind.Property:
                 case SymbolKind.RangeVariable:
-                case SymbolKindEx.FunctionPointerType:
+                case SymbolKind.FunctionPointerType:
                     return true;
             }
 
@@ -699,6 +699,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
 
                     return OperatorPrecedence.Unary;
+
+                case SyntaxKind.RangeExpression:
+                    // From C# spec, https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#systemrange
+                    // Range: ..
+
+                    return OperatorPrecedence.Range;
 
                 case SyntaxKind.MultiplyExpression:
                 case SyntaxKind.DivideExpression:

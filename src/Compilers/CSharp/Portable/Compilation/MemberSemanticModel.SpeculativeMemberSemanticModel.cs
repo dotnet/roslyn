@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
             {
                 Debug.Assert(boundRoot.Syntax is TypeSyntax);
-                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
+                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
             }
 
 #if DEBUG

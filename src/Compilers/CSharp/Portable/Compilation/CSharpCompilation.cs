@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get;
         }
 
-        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity)
         {
             return new ExtendedErrorTypeSymbol(
                        container.EnsureCSharpSymbolOrNull(nameof(container)),
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">The compiler options to use.</param>
         /// <returns>A new compilation.</returns>
         public static CSharpCompilation Create(
-            string assemblyName,
+            string? assemblyName,
             IEnumerable<SyntaxTree>? syntaxTrees = null,
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null)
@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options.SourceReferenceResolver,
                     CSharp.MessageProvider.Instance,
                     isSubmission,
-                    state: null));
+                    state: null),
+                semanticModelProvider: null);
 
             if (syntaxTrees != null)
             {
@@ -383,8 +384,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReferenceManager? referenceManager,
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
+            SemanticModelProvider? semanticModelProvider,
             AsyncQueue<CompilationEvent>? eventQueue = null)
-            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), eventQueue)
+            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), semanticModelProvider, eventQueue)
         {
         }
 
@@ -400,8 +402,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             IReadOnlyDictionary<string, string> features,
+            SemanticModelProvider? semanticModelProvider,
             AsyncQueue<CompilationEvent>? eventQueue = null)
-            : base(assemblyName, references, features, isSubmission, eventQueue)
+            : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
@@ -494,7 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         private CSharpCompilation Update(
@@ -512,7 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager,
                 reuseReferenceManager,
-                syntaxAndDeclarations);
+                syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -534,7 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: assemblyName == this.AssemblyName,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -563,7 +569,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager: null,
                 reuseReferenceManager: false,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -602,7 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         options.SourceReferenceResolver,
                         _syntaxAndDeclarations.MessageProvider,
                         _syntaxAndDeclarations.IsSubmission,
-                        state: null));
+                        state: null),
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -617,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Metadata references are inherited from the previous submission,
             // so we can only reuse the manager if we can guarantee that these references are the same.
-            // Check if the previous script compilation doesn't change. 
+            // Check if the previous script compilation doesn't change.
 
             // TODO: Consider comparing the metadata references if they have been bound already.
             // https://github.com/dotnet/roslyn/issues/43397
@@ -633,7 +641,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isSubmission: info != null,
                 _referenceManager,
                 reuseReferenceManager,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
+        }
+
+        /// <summary>
+        /// Returns a new compilation with the given semantic model provider.
+        /// </summary>
+        internal override Compilation WithSemanticModelProvider(SemanticModelProvider? semanticModelProvider)
+        {
+            if (this.SemanticModelProvider == semanticModelProvider)
+            {
+                return this;
+            }
+
+            return new CSharpCompilation(
+                this.AssemblyName,
+                _options,
+                this.ExternalReferences,
+                this.PreviousSubmission,
+                this.SubmissionReturnType,
+                this.HostObjectType,
+                this.IsSubmission,
+                _referenceManager,
+                reuseReferenceManager: true,
+                _syntaxAndDeclarations,
+                semanticModelProvider);
         }
 
         /// <summary>
@@ -651,8 +684,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
-                syntaxAndDeclarations: _syntaxAndDeclarations,
-                eventQueue: eventQueue);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider,
+                eventQueue);
         }
 
         #endregion
@@ -2085,8 +2119,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
-            return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
+            SemanticModel? model = null;
+            if (SemanticModelProvider != null)
+            {
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, ignoreAccessibility);
+                Debug.Assert(model != null);
+            }
+
+            return model ?? CreateSemanticModel(syntaxTree, ignoreAccessibility);
         }
+
+        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -3260,7 +3304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ITypeSymbol returnType,
             RefKind returnRefKind,
             ImmutableArray<ITypeSymbol> parameterTypes,
-            ImmutableArray<RefKind> parameterRefKinds)
+            ImmutableArray<RefKind> parameterRefKinds,
+            SignatureCallingConvention callingConvention,
+            ImmutableArray<INamedTypeSymbol> callingConventionTypes)
         {
             if (returnType is null)
             {
@@ -3297,11 +3343,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.OutIsNotValidForReturn);
             }
 
+            if (callingConvention != SignatureCallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty)
+            {
+                throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypesRequireUnmanaged, nameof(callingConventionTypes), nameof(callingConvention)));
+            }
+
+            if (!callingConvention.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(callingConvention));
+            }
+
             var returnTypeWithAnnotations = TypeWithAnnotations.Create(returnType.EnsureCSharpSymbolOrNull(nameof(returnType)), returnType.NullableAnnotation.ToInternalAnnotation());
             var parameterTypesWithAnnotations = parameterTypes.SelectAsArray(
                 type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
+            var internalCallingConvention = callingConvention.FromSignatureConvention();
+            var conventionModifiers = internalCallingConvention == CallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty
+                ? callingConventionTypes.SelectAsArray((type, i, @this) => getCustomModifierForType(type, @this, i), this)
+                : ImmutableArray<CustomModifier>.Empty;
 
-            return FunctionPointerTypeSymbol.CreateFromParts(returnTypeWithAnnotations, returnRefKind, parameterTypesWithAnnotations, parameterRefKinds, this).GetPublicSymbol();
+            return FunctionPointerTypeSymbol.CreateFromParts(
+                internalCallingConvention,
+                conventionModifiers,
+                returnTypeWithAnnotations,
+                returnRefKind: returnRefKind,
+                parameterTypes: parameterTypesWithAnnotations,
+                parameterRefKinds: parameterRefKinds,
+                compilation: this).GetPublicSymbol();
+
+            static CustomModifier getCustomModifierForType(INamedTypeSymbol type, CSharpCompilation @this, int index)
+            {
+                if (type is null)
+                {
+                    throw new ArgumentNullException($"{nameof(callingConventionTypes)}[{index}]");
+                }
+
+                var internalType = type.EnsureCSharpSymbolOrNull($"{nameof(callingConventionTypes)}[{index}]");
+                if (!FunctionPointerTypeSymbol.IsCallingConventionModifier(internalType) || @this.Assembly.CorLibrary != internalType.ContainingAssembly)
+                {
+                    throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypeIsInvalid, type.ToDisplayString()));
+                }
+
+                return CSharpCustomModifier.CreateOptional(internalType);
+            }
         }
 
         protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)

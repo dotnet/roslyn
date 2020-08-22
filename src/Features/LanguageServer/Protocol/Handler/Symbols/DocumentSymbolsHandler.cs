@@ -29,10 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, ClientCapabilities clientCapabilities,
-            string clientName, CancellationToken cancellationToken)
+        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
-            if (clientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
+            if (context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
             {
                 foreach (var item in navBarItems)
                 {

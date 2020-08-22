@@ -8,39 +8,32 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
-using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
-    [Export(typeof(IVisualStudioDesignerAttributeService))]
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioDesignerAttributeService
-        : ForegroundThreadAffinitizedObject, IVisualStudioDesignerAttributeService, IDesignerAttributeListener
+        : ForegroundThreadAffinitizedObject, IDesignerAttributeListener, IEventListener<object>
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
-
-        /// <summary>
-        /// Used so we can switch over to the UI thread for communicating with legacy projects that
-        /// require that.
-        /// </summary>
-        private readonly IThreadingContext _threadingContext;
 
         /// <summary>
         /// Used to acquire the legacy project designer service.
@@ -62,13 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?>();
 
         /// <summary>
-        /// Cached designer service for notifying legacy projects about designer atttributes.
+        /// Cached designer service for notifying legacy projects about designer attributes.
         /// </summary>
         private IVSMDDesignerService? _legacyDesignerService;
 
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
-        private AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
+        private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -79,20 +72,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             : base(threadingContext)
         {
             _workspace = workspace;
-            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
+
+            _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
+                TimeSpan.FromSeconds(1),
+                this.NotifyProjectSystemAsync,
+                ThreadingContext.DisposalToken);
         }
 
-        void IVisualStudioDesignerAttributeService.Start(CancellationToken cancellationToken)
-            => _ = StartAsync(cancellationToken);
+        void IEventListener<object>.StartListening(Workspace workspace, object _)
+        {
+            if (workspace is VisualStudioWorkspace)
+                _ = StartAsync();
+        }
 
-        private async Task StartAsync(CancellationToken cancellationToken)
+        private async Task StartAsync()
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
             {
-                await StartWorkerAsync(cancellationToken).ConfigureAwait(false);
+                await StartWorkerAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -105,23 +105,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        private async Task StartWorkerAsync(CancellationToken cancellationToken)
+        private async Task StartWorkerAsync()
         {
-            // Set a short batch time so we update VS in a timely manner.  We still want to batch things up though as we
-            // might receive many notifications about files in a project, and it would be better to notify VS of them
-            // all at once rather than saturating the UI work queue with a lot of work that keeps being processed in
-            // between everything else that is going on.
-            //
-            // In manual testing, 250 ms proved more than enough time to analyze full projects, while also making sure
-            // that updated data made it to the final UI quickly.
-            _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromMilliseconds(250),
-                this.NotifyProjectSystemAsync,
-                cancellationToken);
+            var cancellationToken = ThreadingContext.DisposalToken;
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
+            {
+                StartScanningForDesignerAttributesInCurrentProcess(cancellationToken);
                 return;
+            }
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
@@ -135,6 +128,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 solution: null,
                 arguments: Array.Empty<object>(),
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        public void StartScanningForDesignerAttributesInCurrentProcess(CancellationToken cancellation)
+        {
+            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            var analyzerProvider = new InProcDesignerAttributeIncrementalAnalyzerProvider(this);
+
+            registrationService.AddAnalyzerProvider(
+                analyzerProvider,
+                new IncrementalAnalyzerProviderMetadata(
+                    nameof(InProcDesignerAttributeIncrementalAnalyzerProvider),
+                    highPriorityForActiveFile: false,
+                    workspaceKinds: WorkspaceKind.Host));
         }
 
         private async Task NotifyProjectSystemAsync(
@@ -192,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             CancellationToken cancellationToken)
         {
             // legacy project system can only be talked to on the UI thread.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
             AssertIsForeground();
 
@@ -297,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             if (!_cpsProjects.TryGetValue(projectId, out var updateService))
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                 this.AssertIsForeground();
 
                 updateService = ComputeUpdateService();

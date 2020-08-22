@@ -285,11 +285,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_Single:
                     case SpecialType.System_Double:
                     case SpecialType.System_Decimal:
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                     case SpecialType.System_IntPtr when type.IsNativeIntegerType:
                     case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
-#endif
                         return true;
                 }
             }
@@ -390,11 +387,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_UInt16:
                     case SpecialType.System_UInt32:
                     case SpecialType.System_UInt64:
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                     case SpecialType.System_IntPtr when symbol.IsNativeIntegerType:
                     case SpecialType.System_UIntPtr when symbol.IsNativeIntegerType:
-#endif
                         return true;
                 }
             }

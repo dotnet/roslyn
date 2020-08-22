@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
@@ -109,21 +111,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             cancellationToken.ThrowIfCancellationRequested();
             Assumes.Present(_componentModel);
 
-            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-            // the background thread then we will experience hangs like we see in this bug:
-            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
-            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-            var telemetrySession = TelemetryService.DefaultSession;
-
-            WatsonReporter.InitializeFatalErrorHandlers(telemetrySession);
-
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _componentModel.GetExtensions<IOptionPersister>();
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
 
-            RoslynTelemetrySetup.Initialize(this, telemetrySession);
+            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
+            // the background thread then we will experience hangs like we see in this bug:
+            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
+            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
+            var telemetryService = (VisualStudioWorkspaceTelemetryService)_workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
+            telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession);
+
+            Logger.Log(FunctionId.Run_Environment,
+                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
 
             InitializeColors();
 
@@ -196,19 +198,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
-
-            // Load the designer attribute service and tell it to start watching the solution for
-            // designable files.
-            var designerAttributeService = this.ComponentModel.GetService<IVisualStudioDesignerAttributeService>();
-            designerAttributeService.Start(this.DisposalToken);
-
-            // Load the telemetry service and tell it to start watching the solution for project info.
-            var projectTelemetryService = this.ComponentModel.GetService<IVisualStudioProjectTelemetryService>();
-            projectTelemetryService.Start(this.DisposalToken);
-
-            // Load the todo comments service and tell it to start watching the solution for new comments
-            var todoCommentsService = this.ComponentModel.GetService<IVisualStudioTodoCommentsService>();
-            todoCommentsService.Start(this.DisposalToken);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)

@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForReturnCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\VisualBasicUseInferredMemberNameCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\VisualBasicUseIsNotExpressionCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.vb" />

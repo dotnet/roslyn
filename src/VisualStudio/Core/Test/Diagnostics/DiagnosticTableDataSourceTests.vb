@@ -627,10 +627,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim tableManagerProvider = New TestTableManagerProvider()
                 Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, service, tableManagerProvider)
 
-                Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
-                RunCompilerAnalyzer(workspace, service, listener)
+                RunCompilerAnalyzer(workspace)
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
+                Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())
+                Await DirectCast(analyzerService.Listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -673,7 +673,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 Dim service = Assert.IsType(Of DiagnosticService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService)())
-                Dim analyzerService = New MyDiagnosticAnalyzerService(service, listener)
+                Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())
 
                 Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener)
 
@@ -775,15 +775,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        Private Sub RunCompilerAnalyzer(workspace As TestWorkspace, registrationService As IDiagnosticUpdateSourceRegistrationService, listener As IAsynchronousOperationListener)
+        Private Sub RunCompilerAnalyzer(workspace As TestWorkspace)
             Dim snapshot = workspace.CurrentSolution
 
-            Dim analyzerService = New MyDiagnosticAnalyzerService(registrationService, listener)
+            Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())
 
             Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
             service.Register(workspace)
 
-            service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
+            service.GetTestAccessor().WaitUntilCompletion(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
         End Sub
 
         Private Function CreateItem(documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
@@ -809,14 +809,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 description:="Description",
                 helpLink:=link)
         End Function
-
-        Private Class MyDiagnosticAnalyzerService
-            Inherits DiagnosticAnalyzerService
-
-            Friend Sub New(registrationService As IDiagnosticUpdateSourceRegistrationService, listener As IAsynchronousOperationListener)
-                MyBase.New(registrationService, listener)
-            End Sub
-        End Class
 
         Private Class TestDiagnosticService
             Implements IDiagnosticService

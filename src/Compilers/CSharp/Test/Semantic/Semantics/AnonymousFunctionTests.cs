@@ -72,10 +72,10 @@ public class C
         Func<int> f = static () => a;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (10,23): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int> f = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 23));
         }
 
         [Fact]
@@ -1190,7 +1190,7 @@ public class Program
                 var verifier = CompileAndVerify(
                         source,
                         options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                        parseOptions: TestOptions.RegularPreview,
+                        parseOptions: TestOptions.Regular9,
                         symbolValidator: symbolValidator,
                         expectedOutput: "0False")
                     .VerifyDiagnostics();
@@ -1318,7 +1318,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,32): error CS1525: Invalid expression term 'static'
                 //         delegate*<void> ptr = &static () => { };
@@ -1357,7 +1357,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,31): error CS1660: Cannot convert lambda expression to type 'delegate*<void>' because it is not a delegate type
                 //         delegate*<void> ptr = static () => { };
@@ -1378,7 +1378,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,32): error CS0211: Cannot take the address of the given expression
                 //         delegate*<void> ptr = &static delegate() { };
@@ -1399,7 +1399,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,31): error CS1660: Cannot convert anonymous method to type 'delegate*<void>' because it is not a delegate type
                 //         delegate*<void> ptr = static delegate() { };
@@ -1448,7 +1448,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123456", parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(source, expectedOutput: "123456", parseOptions: TestOptions.Regular9);
         }
 
         [Fact]
@@ -1562,7 +1562,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123456", parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(source, expectedOutput: "123456", parseOptions: TestOptions.Regular9);
         }
 
         [Fact]
@@ -1583,7 +1583,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "hello world", parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(source, expectedOutput: "hello world", parseOptions: TestOptions.Regular9);
         }
 
         [Fact]
@@ -1614,7 +1614,7 @@ class C
 
             void verify(string source)
             {
-                CompileAndVerify(source, expectedOutput: "12", parseOptions: TestOptions.RegularPreview);
+                CompileAndVerify(source, expectedOutput: "12", parseOptions: TestOptions.Regular9);
             }
         }
     }

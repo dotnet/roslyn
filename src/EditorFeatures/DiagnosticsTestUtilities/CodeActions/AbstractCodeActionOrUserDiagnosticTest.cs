@@ -12,16 +12,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Roslyn.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.VisualStudio.Composition;
+using Newtonsoft.Json.Linq;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 
 #if CODE_STYLE
 using System.Diagnostics;
@@ -99,7 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected internal abstract string GetLanguage();
         protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new ParenthesesOptionsProvider(this.GetLanguage());
         protected abstract ParseOptions GetScriptOptions();
-        protected virtual TestComposition GetComposition() => EditorTestCompositions.EditorFeatures;
+        protected virtual TestComposition GetComposition() => EditorTestCompositions.EditorFeatures
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
         protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
@@ -402,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         .WithRetainNonFixableDiagnostics(true)
                         .WithIncludeDiagnosticsOutsideSelection(true));
 
-                    TestDiagnosticTags(allDiagnostics, unnecessarySpans, WellKnownDiagnosticTags.Unnecessary, UnnecessaryMarkupKey, initialMarkupWithoutSpans);
+                    TestUnnecessarySpans(allDiagnostics, unnecessarySpans, UnnecessaryMarkupKey, initialMarkupWithoutSpans);
                 }
 
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
@@ -410,6 +415,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     workspace, expected, action,
                     conflictSpans, renameSpans, warningSpans, navigationSpans,
                     parameters);
+            }
+        }
+
+        private static void TestUnnecessarySpans(
+            ImmutableArray<Diagnostic> diagnostics,
+            ImmutableArray<TextSpan> expectedSpans,
+            string markupKey,
+            string initialMarkupWithoutSpans)
+        {
+            var unnecessaryLocations = diagnostics.SelectMany(GetUnnecessaryLocations)
+                .OrderBy(location => location.SourceSpan.Start)
+                .ThenBy(location => location.SourceSpan.End)
+                .ToArray();
+
+            if (expectedSpans.Length != unnecessaryLocations.Length)
+            {
+                AssertEx.Fail(BuildFailureMessage(expectedSpans, WellKnownDiagnosticTags.Unnecessary, markupKey, initialMarkupWithoutSpans, diagnostics));
+            }
+
+            for (var i = 0; i < expectedSpans.Length; i++)
+            {
+                var actual = unnecessaryLocations[i].SourceSpan;
+                var expected = expectedSpans[i];
+                Assert.Equal(expected, actual);
+            }
+
+            static IEnumerable<Location> GetUnnecessaryLocations(Diagnostic diagnostic)
+            {
+                if (diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                    yield return diagnostic.Location;
+
+                if (!diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var additionalUnnecessaryLocationsString))
+                    yield break;
+
+                var locations = JArray.Parse(additionalUnnecessaryLocationsString);
+                foreach (var locationIndex in locations)
+                    yield return diagnostic.AdditionalLocations[(int)locationIndex];
             }
         }
 
@@ -603,7 +645,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     foreach (var doc in project.Documents)
                     {
                         var root = await doc.GetSyntaxRootAsync();
-                        var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
+                        var expectedDocuments = expectedProject.Documents.Where(d => d.Name == doc.Name);
+
+                        if (expectedDocuments.Any())
+                        {
+                            Assert.Single(expectedDocuments);
+                        }
+                        else
+                        {
+                            AssertEx.Fail($"Could not find document with name '{doc.Name}'");
+                        }
+
+                        var expectedDocument = expectedDocuments.Single();
+
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
                         VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
                     }

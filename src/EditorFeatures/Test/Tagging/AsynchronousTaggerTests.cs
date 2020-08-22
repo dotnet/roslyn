@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -93,16 +93,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         [WpfFact]
         public void TestSynchronousOutlining()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}");
+            using var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}", composition: EditorTestCompositions.EditorFeaturesWpf);
             WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
-            var tagProvider = new VisualStudio14StructureTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.GetService<IForegroundNotificationService>(),
-                workspace.GetService<ITextEditorFactoryService>(),
-                workspace.GetService<IEditorOptionsFactoryService>(),
-                workspace.GetService<IProjectionBufferFactoryService>(),
-                workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+            var tagProvider = workspace.ExportProvider.GetExportedValue<VisualStudio14StructureTaggerProvider>();
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();

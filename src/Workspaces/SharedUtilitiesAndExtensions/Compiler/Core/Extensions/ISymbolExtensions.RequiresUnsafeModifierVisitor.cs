@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-#if !CODE_STYLE
-
             public override bool VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
                 if (!_visited.Add(symbol))
@@ -82,8 +80,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 return true;
             }
-
-#endif
 
             public override bool VisitProperty(IPropertySymbol symbol)
             {

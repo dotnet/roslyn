@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -15,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -32,8 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticAnalyzerServiceTests
     {
+        private static readonly TestComposition s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService = FeaturesTestCompositions.Features
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
+        private static readonly TestComposition s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+            => new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
 
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalse()
@@ -45,9 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var document = GetDocumentFromIncompleteProject(workspace);
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
@@ -58,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
         }
 
         [Fact]
@@ -167,9 +173,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var applied = workspace.TryApplyChanges(document.Project.Solution);
             Assert.True(applied);
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
@@ -203,7 +208,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
 
             Assert.Equal(enabledWithEditorconfig, syntaxDiagnostic);
             Assert.Equal(enabledWithEditorconfig, semanticDiagnostic);
@@ -216,9 +221,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             Func<bool, bool, ImmutableArray<DiagnosticData>, (bool, bool)> resultSetter,
             bool expectedSyntax, bool expectedSemantic)
         {
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             var syntax = false;
@@ -234,7 +238,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
 
             // two should have been called.
             Assert.Equal(expectedSyntax, syntax);
@@ -259,9 +263,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             var document = workspace.AddDocument(project.Id, "Empty.cs", SourceText.From(""));
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
@@ -296,7 +299,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
-            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
         }
 
         [Fact]
@@ -325,9 +328,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create(), filePath)),
                     filePath: filePath));
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             var syntax = false;
@@ -358,7 +360,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                     ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))));
 
             // wait for all events to raised
-            await listener.ExpeditedWaitAsync().ConfigureAwait(false);
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
 
             // two should have been called.
             Assert.True(syntax);
@@ -391,9 +393,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                               "Dummy",
                               LanguageNames.CSharp));
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
@@ -439,9 +440,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                                       loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A {}"), VersionStamp.Create(), filePath: "test.cs")),
                                       filePath: "test.cs")}));
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
 
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
@@ -460,7 +460,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
 
-            await listener.ExpeditedWaitAsync();
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.True(called);
         }
@@ -472,7 +472,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             using var workspace = CreateWorkspaceWithProjectAndAnalyzer(new NamedTypeAnalyzer(DiagnosticSeverity.Hidden));
             var project = workspace.CurrentSolution.Projects.Single();
 
-            await TestFullSolutionAnalysisForProjectAsync(project, expectAnalyzerExecuted: false);
+            await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: false);
         }
 
         [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
@@ -485,7 +485,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             var newSpecificOptions = project.CompilationOptions.SpecificDiagnosticOptions.Add(NamedTypeAnalyzer.DiagnosticId, ReportDiagnostic.Warn);
             project = project.WithCompilationOptions(project.CompilationOptions.WithSpecificDiagnosticOptions(newSpecificOptions));
-            await TestFullSolutionAnalysisForProjectAsync(project, expectAnalyzerExecuted: true);
+            await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: true);
         }
 
         [Fact, WorkItem(42353, "https://github.com/dotnet/roslyn/issues/42353")]
@@ -506,7 +506,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 text: SourceText.From(analyzerConfigText),
                 filePath: "z:\\.editorconfig").Project;
 
-            await TestFullSolutionAnalysisForProjectAsync(project, expectAnalyzerExecuted: true);
+            await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: true);
         }
 
         private static AdhocWorkspace CreateWorkspaceWithProjectAndAnalyzer(DiagnosticAnalyzer analyzer)
@@ -539,11 +539,10 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             return workspace;
         }
 
-        private static async Task TestFullSolutionAnalysisForProjectAsync(Project project, bool expectAnalyzerExecuted)
+        private static async Task TestFullSolutionAnalysisForProjectAsync(AdhocWorkspace workspace, Project project, bool expectAnalyzerExecuted)
         {
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
 
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
@@ -562,7 +561,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
 
-            await listener.ExpeditedWaitAsync();
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.Equal(expectAnalyzerExecuted, called);
         }
@@ -570,7 +569,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         [Theory, CombinatorialData]
         internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple, BackgroundAnalysisScope analysisScope)
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 
@@ -597,9 +596,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var applied = workspace.TryApplyChanges(project.Solution);
             Assert.True(applied);
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IDiagnosticAnalyzerService>());
 
             var diagnostics = new ConcurrentSet<DiagnosticData>();
             service.DiagnosticsUpdated += (s, e) =>
@@ -626,7 +624,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     throw ExceptionUtilities.UnexpectedValue(analysisScope);
             }
 
-            await listener.ExpeditedWaitAsync();
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             var expectedCount = !testMultiple
                 ? 1
@@ -682,7 +680,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
 
-            using var workspace = TestWorkspace.CreateCSharp("class A {}", composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService)));
+            using var workspace = TestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 
@@ -691,9 +689,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var project = workspace.CurrentSolution.Projects.Single();
             var document = project.Documents.Single();
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.ExportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
@@ -727,7 +724,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     break;
             }
 
-            await listener.ExpeditedWaitAsync();
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             if (includeAnalyzer)
             {
@@ -786,7 +783,7 @@ class A
 ";
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService)));
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 
@@ -795,9 +792,8 @@ class A
             var project = workspace.CurrentSolution.Projects.Single();
             var document = project.Documents.Single();
 
-            // create listener/service/analyzer
-            var listener = new AsynchronousOperationListener();
-            var service = new MyDiagnosticAnalyzerService(listener);
+            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.ExportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+            var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var diagnostics = ArrayBuilder<DiagnosticData>.GetInstance();
             service.DiagnosticsUpdated += (s, e) =>
@@ -826,7 +822,7 @@ class A
                     break;
             }
 
-            await listener.ExpeditedWaitAsync();
+            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.Equal(2, diagnostics.Count);
             var root = await document.GetSyntaxRootAsync();
@@ -898,14 +894,6 @@ class A
             }
 
             await analyzer.AnalyzeProjectAsync(textDocument.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-        }
-
-        private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
-        {
-            internal MyDiagnosticAnalyzerService(IAsynchronousOperationListener listener)
-                : base(new MockDiagnosticUpdateSourceRegistrationService(), listener: listener)
-            {
-            }
         }
 
         private class Analyzer : DiagnosticAnalyzer

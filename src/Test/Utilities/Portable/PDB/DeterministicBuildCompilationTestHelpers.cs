@@ -37,8 +37,8 @@ namespace Roslyn.Test.Utilities.PDB
 
             yield return emitOptions;
             yield return emitOptions.WithDefaultSourceFileEncoding(Encoding.ASCII);
-            yield return emitOptions.WithDefaultSourceFileEncoding(null).WithFallbackSourceFileEncoding(Encoding.UTF7);
-            yield return emitOptions.WithFallbackSourceFileEncoding(Encoding.UTF7).WithDefaultSourceFileEncoding(Encoding.ASCII);
+            yield return emitOptions.WithDefaultSourceFileEncoding(null).WithFallbackSourceFileEncoding(Encoding.Unicode);
+            yield return emitOptions.WithFallbackSourceFileEncoding(Encoding.Unicode).WithDefaultSourceFileEncoding(Encoding.ASCII);
         }
 
         internal static void AssertCommonOptions(EmitOptions emitOptions, CompilationOptions compilationOptions, Compilation compilation, ImmutableDictionary<string, string> pdbOptions)

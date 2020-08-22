@@ -501,7 +501,6 @@ namespace Roslyn.Utilities
         }
 #nullable enable
 
-#if !CODE_STYLE
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
@@ -515,7 +514,6 @@ namespace Roslyn.Utilities
 
             return dictionary;
         }
-#endif
 
         /// <summary>
         /// Returns the only element of specified sequence if it has exactly one, and default(TSource) otherwise.
