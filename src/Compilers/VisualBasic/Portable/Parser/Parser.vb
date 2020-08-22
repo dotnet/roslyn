@@ -1742,7 +1742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' But since "Select" is the solitary point of contention, I'll go for a uglier smaller fix:
 
             Dim nextToken = PeekToken(1)
-            If CanFollowStatementButIsNotSelectFollowingExpression(nextToken) Then
+            If CanFollowStatementButIsNotSelectFollowingExpression(nextToken) OrElse (Context.IsLineIf AndAlso nextToken.Kind = SyntaxKind.ElseKeyword) Then
                 Return ParseStopOrEndStatement()
             End If
 
