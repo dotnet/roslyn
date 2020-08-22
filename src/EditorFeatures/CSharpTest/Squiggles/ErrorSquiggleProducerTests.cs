@@ -194,10 +194,9 @@ class Program
             Assert.Equal(5, fourth.Span.Length);
         }
 
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public async Task ErrorDoesNotCrashPastEOF([CombinatorialRange(0, 100)] int iteration)
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public async Task ErrorDoesNotCrashPastEOF()
         {
-            _ = iteration;
             var spans = await GetTagSpansAsync("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
