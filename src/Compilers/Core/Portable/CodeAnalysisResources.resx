@@ -707,4 +707,8 @@
     <value>The hintName contains an invalid character '{0}' at position {1}.</value>
     <comment>{0}: the invalid character, {1} the position it occurred at</comment>
   </data>
+  <data name="SourceTextRequiresEncoding" xml:space="preserve">
+    <value>The provided SourceText must have an explicit encoding set.</value>
+    <comment>'SourceText' is not localizable.</comment>
+  </data>
 </root>
