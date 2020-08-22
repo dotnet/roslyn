@@ -3741,7 +3741,7 @@ Done
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/45158")>
+        <Fact>
         Public Sub EndWithSingleLineIf()
             Dim source =
 <compilation>
