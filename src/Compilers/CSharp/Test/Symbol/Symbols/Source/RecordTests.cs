@@ -1307,7 +1307,7 @@ class SomeClass : AbstractRecord {}";
             comp.VerifyDiagnostics(
                 // (3,19): error CS8865: Only records may inherit from records.
                 // class SomeClass : AbstractRecord {}
-                Diagnostic(ErrorCode.ERR_BadInheritanceFromRecord, "AbstractRecord").WithLocation(5, 19)
+                Diagnostic(ErrorCode.ERR_BadInheritanceFromRecord, "AbstractRecord").WithLocation(3, 19)
             );
         }
 
