@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -45,23 +46,51 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             if (pragmaWarningDiagnosticId != null)
             {
+                // First look in the analyzer diagnostics of the document. By doing so we get detailed information about the actual
+                // diagnostic message and the code that is affected by the diagnostic id.
                 var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsAsync(document.Project.Solution, document.Project.Id, document.Id,
                     includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                var findDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
-                if (findDiagnostic != null)
+                var supressedDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
+                if (supressedDiagnostic != null)
                 {
-                    return QuickInfoItem.Create(pragmaWarningDiagnosticId.Span, sections: new[]
-                        {
-                            QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
-                            {
-                                new TaggedText(TextTags.Text, findDiagnostic.Message)
-                            }.ToImmutableArray())
-                        }.ToImmutableArray(), relatedSpans: new[] { findDiagnostic.GetTextSpan() }.ToImmutableArray());
+                    var relatedSpans = supressedDiagnostic.HasTextSpan
+                        ? new[] { supressedDiagnostic.GetTextSpan() }
+                        : Array.Empty<TextSpan>();
+                    return CreateQuickInfo(pragmaWarningDiagnosticId,
+                        supressedDiagnostic.Message ?? supressedDiagnostic.Title ?? supressedDiagnostic.Id,
+                        relatedSpans);
+                }
+                else
+                {
+                    // The diagnostic id from the pragma could not be found in the analyzer diagnostics of the document
+                    // We now try to find it in the SupportedDiagnostics of all referenced analyzers.
+                    var analyzerReferences = document.Project.AnalyzerReferences.Union(document.Project.Solution.AnalyzerReferences);
+                    var supportedDiagnostics = from r in analyzerReferences
+                                               from a in r.GetAnalyzersForAllLanguages()
+                                               from d in a.SupportedDiagnostics
+                                               select d;
+                    var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
+                    if (diagnosticDescriptor != null)
+                    {
+                        return CreateQuickInfo(pragmaWarningDiagnosticId, diagnosticDescriptor.Title.ToString());
+                    }
                 }
             }
 
             return null;
+        }
+
+        private static QuickInfoItem CreateQuickInfo(IdentifierNameSyntax pragmaWarningDiagnosticId, string description,
+            params TextSpan[] relatedSpans)
+        {
+            return QuickInfoItem.Create(pragmaWarningDiagnosticId.Span, sections: new[]
+                {
+                    QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
+                    {
+                        new TaggedText(TextTags.Text, description)
+                    }.ToImmutableArray())
+                }.ToImmutableArray(), relatedSpans: relatedSpans.ToImmutableArray());
         }
     }
 }
