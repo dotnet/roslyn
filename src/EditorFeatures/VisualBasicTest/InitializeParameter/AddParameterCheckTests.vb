@@ -61,7 +61,7 @@ end class")
         <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
             Public Async Function TestOnByRefParameter() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "
 class C
     public sub new([||]byref s as string)
