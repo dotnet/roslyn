@@ -71,7 +71,7 @@ end class",
 class C
     public sub new(byref s as string)
         If s Is Nothing Then
-            Throw New ArgumentNullException(NameOf(s))
+            Throw New System.ArgumentNullException(NameOf(s))
         End If
     end sub
 end class")
