@@ -20,74 +20,94 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
-    public class DiagnosticAnalyzerQuickInfoSourceTests : AbstractQuickInfoSourceTests
+    [UseExportProvider]
+    public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task PragmaWarning()
+        public async Task DisabledWarningIsShownInQuickInfoWithCodeDetails()
         {
-            await TestInClassAsync(
+            await TestInMethodAsync(
 @"
-        static void M()
-        {
 #pragma warning disable CS0219$$
             var i = 0;
 #pragma warning restore CS0219
-        }
-", @"test1.cs(4,17): warning CS0168: Die Variable ""i"" ist deklariert, wird aber nie verwendet.");
+", @"Die Variable ""i"" ist zugewiesen, ihr Wert wird aber nie verwendet.", TextSpan.FromBounds(71, 72));
         }
 
-        protected override async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedContent, string expectedDocumentationComment = null)
+        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task DisabledWarningNotExistingInCodeIsDisplayedByTitleWithoutCodeDetails()
+        {
+            await TestInMethodAsync(
+@"
+#pragma warning disable CS0219$$
+", @"Variable ist zugewiesen, der Wert wird jedoch niemals verwendet");
+        }
+
+        protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
+            ImmutableArray<TextSpan> relatedSpans)
+        {
+            var info = await GetQuickinfo(workspace, document, position);
+            var description = info?.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
+            Assert.Equal(expectedDescription, description.Text);
+            Assert.Collection(info.RelatedSpans,
+                relatedSpans.Select(expectedSpan => new Action<TextSpan>(actualSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
+        }
+
+        private static async Task<QuickInfoItem> GetQuickinfo(TestWorkspace workspace, Document document, int position)
         {
             var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var analyzer = (diagnosticAnalyzerService as IIncrementalAnalyzerProvider).CreateIncrementalAnalyzer(workspace);
-            await analyzer.AnalyzeProjectAsync(document.Project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
             var sut = new CSharpDiagnosticAnalyzerQuickInfoProvider(diagnosticAnalyzerService);
             var info = await sut.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            return info;
         }
 
-        protected override Task AssertNoContentAsync(TestWorkspace workspace, Document document, int position)
+        protected static async Task AssertNoContentAsync(TestWorkspace workspace, Document document, int position)
         {
-            throw new NotImplementedException();
+            var info = await GetQuickinfo(workspace, document, position);
+            Assert.Null(info);
         }
 
-        protected override async Task TestAsync(
+        protected static async Task TestAsync(
             string code,
-            string expectedContent,
-            string expectedDocumentationComment = null,
+            string expectedDescription,
+            ImmutableArray<TextSpan> relatedSpans,
             CSharpParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
+            var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+            var analyzer = (diagnosticAnalyzerService as IIncrementalAnalyzerProvider).CreateIncrementalAnalyzer(workspace);
+            await analyzer.AnalyzeProjectAsync(workspace.CurrentSolution.Projects.Single(), semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
-            if (string.IsNullOrEmpty(expectedContent))
+            if (string.IsNullOrEmpty(expectedDescription))
             {
                 await AssertNoContentAsync(workspace, document, position);
             }
             else
             {
-                await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
+                await AssertContentIsAsync(workspace, document, position, expectedDescription, relatedSpans);
             }
         }
 
-        protected override Task TestInClassAsync(string code, string expectedContent, string expectedDocumentationComment = null)
+        protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
             => TestAsync(
 @"class C
-{" + code + "}", expectedContent, expectedDocumentationComment);
+{" + code + "}", expectedDescription, relatedSpans.ToImmutableArray());
 
-        protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)
+        protected Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
             => TestInClassAsync(
 @"void M()
-{" + code + "}", expectedContent, expectedDocumentationComment);
-
-        protected override Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
-            => TestAsync(code, expectedContent, expectedContent, Options.Script);
+{" + code + "}", expectedDescription, relatedSpans);
     }
 }
