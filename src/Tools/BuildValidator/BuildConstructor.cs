@@ -40,6 +40,11 @@ namespace BuildValidator
             var pdbReader = new CompilationOptionsReader(metadataReader);
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
+            if (pdbCompilationOptions.Count == 0)
+            {
+                throw new InvalidDataException("Did not find compilation options in pdb");
+            }
+
             if (pdbCompilationOptions.TryGetValue("language", out var language))
             {
                 var compilation = language switch
@@ -52,7 +57,7 @@ namespace BuildValidator
                 return compilation;
             }
 
-            throw new InvalidDataException("Did not find compilation options in pdb");
+            throw new InvalidDataException("Did not find language in compilation options");
         }
 
         private async Task<ImmutableArray<MetadataReference>> CreateMetadataReferencesAsync(CompilationOptionsReader pdbReader)

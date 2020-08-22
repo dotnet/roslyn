@@ -134,19 +134,6 @@ namespace BuildValidator
                 return null;
             }
 
-            // Check if the file was built by us
-            if (!TryLoadAssembly(file.FullName, out var assembly) || assembly is null)
-            {
-                return null;
-            }
-
-            var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            if (thisCompilerVersion != null && assemblyVersion != thisCompilerVersion)
-            {
-                s_logger.LogInformation($"Skipping {file.FullName}");
-                return null;
-            }
-
             MetadataReaderProvider? pdbReaderProvider = null;
 
             try
@@ -157,7 +144,7 @@ namespace BuildValidator
 
                 var pdbOpened = peReader.TryOpenAssociatedPortablePdb(
                     peImagePath: file.FullName,
-                    filePath => File.OpenRead(filePath),
+                    filePath => File.Exists(filePath) ? File.OpenRead(filePath) : null,
                     out pdbReaderProvider,
                     out var pdbPath);
 
@@ -167,16 +154,19 @@ namespace BuildValidator
                     return null;
                 }
 
-                s_logger.LogInformation($"Compiling {file.FullName} with pdb {pdbPath}");
+                s_logger.LogInformation($"Compiling {file.FullName} with pdb {pdbPath ?? "[embedded]"}");
 
                 var reader = pdbReaderProvider.GetMetadataReader();
+
+                // TODO: Check compilation version using the PEReader
+
                 var compilation = await buildConstructor.CreateCompilationAsync(reader, file.Name).ConfigureAwait(false);
-                return CompilationDiff.Create(assembly, compilation);
+                return CompilationDiff.Create(file, compilation);
             }
             catch (Exception e)
             {
                 s_logger.LogError(e, file.FullName);
-                return CompilationDiff.Create(assembly, e);
+                return CompilationDiff.Create(file, e);
             }
             finally
             {
@@ -191,26 +181,6 @@ namespace BuildValidator
             Console.WriteLine("/verbose                 Output verbose log information");
             Console.WriteLine("/quiet                   Do not output log information to console");
             Console.WriteLine("/ignorecompilerversion   Do not verify compiler version that assemblies were generated with");
-        }
-
-        private static bool TryLoadAssembly(string fullPath, out Assembly? assembly)
-        {
-            assembly = null;
-            try
-            {
-                assembly = Assembly.LoadFrom(fullPath);
-                return true;
-            }
-            catch (BadImageFormatException)
-            {
-                s_logger.LogTrace($"Failed to load assembly for {fullPath}: Bad Image Format");
-            }
-            catch (IOException e)
-            {
-                s_logger.LogError(e, $"Loading {fullPath} failed: IO Exception");
-            }
-
-            return false;
         }
     }
 }

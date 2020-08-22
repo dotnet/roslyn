@@ -144,6 +144,11 @@ namespace BuildValidator
 
                 if (key is null)
                 {
+                    if (value is null or { Length: 0 })
+                    {
+                        throw new InvalidDataException("Encountered null or empty key for compilation options pairs");
+                    }
+
                     key = value;
                 }
                 else

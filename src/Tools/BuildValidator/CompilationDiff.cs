@@ -40,30 +40,30 @@ namespace BuildValidator
             OriginalPath = originalPath;
         }
 
-        public static CompilationDiff Create(Assembly originalAssembly, Compilation producedCompilation)
+        public static CompilationDiff Create(FileInfo assemblyFile, Compilation producedCompilation)
         {
             using var peStream = new MemoryStream();
 
             var emitResult = producedCompilation.Emit(peStream);
             if (emitResult.Success)
             {
-                using var originalStream = File.OpenRead(originalAssembly.Location);
+                using var originalStream = assemblyFile.OpenRead();
                 var originalBytes = new byte[originalStream.Length];
                 originalStream.Read(originalBytes, 0, (int)originalStream.Length);
 
                 var newBytes = peStream.ToArray();
 
-                return new CompilationDiff(originalAssembly.Location, newBytes.SequenceEqual(originalBytes));
+                return new CompilationDiff(assemblyFile.FullName, newBytes.SequenceEqual(originalBytes));
             }
             else
             {
-                return new CompilationDiff(emitResult.Diagnostics, originalAssembly.Location);
+                return new CompilationDiff(emitResult.Diagnostics, assemblyFile.FullName);
             }
         }
 
-        public static CompilationDiff Create(Assembly originalAssembly, Exception exception)
+        public static CompilationDiff Create(FileInfo assemblyFile, Exception exception)
         {
-            return new CompilationDiff(originalPath: originalAssembly.Location, exception);
+            return new CompilationDiff(originalPath: assemblyFile.FullName, exception);
         }
     }
 }
