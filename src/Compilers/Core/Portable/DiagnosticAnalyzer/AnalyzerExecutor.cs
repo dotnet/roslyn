@@ -806,6 +806,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (ShouldExecuteAction(analyzerState, syntaxTreeAction))
                 {
+                    Thread.Sleep(300);
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, _cancellationToken);
