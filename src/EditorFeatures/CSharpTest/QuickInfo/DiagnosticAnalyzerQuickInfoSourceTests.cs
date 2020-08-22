@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
@@ -59,6 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             CSharpParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
