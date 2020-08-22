@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             if (pragmaWarningDiagnosticId != null)
             {
-                var diagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(document.Project.Solution.Workspace, document.Project.Id, document.Id,
+                var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsAsync(document.Project.Solution, document.Project.Id, document.Id,
                     includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var findDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
