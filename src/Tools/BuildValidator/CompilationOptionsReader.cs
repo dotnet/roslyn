@@ -18,14 +18,14 @@ namespace BuildValidator
         public static readonly Guid EmbeddedSourceGuid = new Guid("0E8A571B-6926-466E-B4AD-8AB04611F5FE");
         public static readonly Guid SourceLinkGuid = new Guid("CC110556-A091-4D38-9FEC-25AB9A351A6A");
 
-        private readonly MetadataReaderProvider _metadataReaderProvider;
+        private readonly MetadataReader _metadataReader;
 
         private ImmutableDictionary<string, string>? _compilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
 
-        public CompilationOptionsReader(MetadataReaderProvider metadataReaderProvider)
+        public CompilationOptionsReader(MetadataReader metadataReader)
         {
-            _metadataReaderProvider = metadataReaderProvider;
+            _metadataReader = metadataReader;
         }
 
         public ImmutableDictionary<string, string> GetCompilationOptions()
@@ -52,11 +52,10 @@ namespace BuildValidator
 
         internal IEnumerable<string> GetSourceFileNames()
         {
-            var reader = _metadataReaderProvider.GetMetadataReader();
-            foreach (var documentHandle in reader.Documents)
+            foreach (var documentHandle in _metadataReader.Documents)
             {
-                var document = reader.GetDocument(documentHandle);
-                yield return reader.GetString(document.Name);
+                var document = _metadataReader.GetDocument(documentHandle);
+                yield return _metadataReader.GetString(document.Name);
             }
         }
 
@@ -111,12 +110,10 @@ namespace BuildValidator
 
         private BlobReader GetSingleBlob(Guid infoGuid)
         {
-            var metadataReader = _metadataReaderProvider.GetMetadataReader();
-
-            return (from cdiHandle in metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
-                    let cdi = metadataReader.GetCustomDebugInformation(cdiHandle)
-                    where metadataReader.GetGuid(cdi.Kind) == infoGuid
-                    select metadataReader.GetBlobReader(cdi.Value)).FirstOrDefault();
+            return (from cdiHandle in _metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                    let cdi = _metadataReader.GetCustomDebugInformation(cdiHandle)
+                    where _metadataReader.GetGuid(cdi.Kind) == infoGuid
+                    select _metadataReader.GetBlobReader(cdi.Value)).FirstOrDefault();
         }
 
         private static ImmutableDictionary<string, string> ParseCompilationOptions(BlobReader blobReader)

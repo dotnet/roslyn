@@ -34,9 +34,9 @@ namespace BuildValidator
             _sourceResolver = sourceResolver;
         }
 
-        public async Task<Compilation> CreateCompilationAsync(MetadataReaderProvider metadataReaderProvider, string name)
+        public async Task<Compilation> CreateCompilationAsync(MetadataReader metadataReader, string name)
         {
-            var pdbReader = new CompilationOptionsReader(metadataReaderProvider);
+            var pdbReader = new CompilationOptionsReader(metadataReader);
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
             if (pdbCompilationOptions.TryGetValue("language", out var language))

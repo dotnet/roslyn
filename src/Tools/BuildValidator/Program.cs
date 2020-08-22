@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -146,40 +147,40 @@ namespace BuildValidator
                 return null;
             }
 
-            // Find the embedded pdb
-            using var fileStream = file.OpenRead();
-            using var peReader = new PEReader(fileStream);
-
-            var entries = peReader.ReadDebugDirectory();
-            DebugDirectoryEntry? embedded = null;
-            foreach (var entry in entries)
-            {
-                if (entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb)
-                {
-                    embedded = entry;
-                    break;
-                }
-            }
-
-            if (!embedded.HasValue)
-            {
-                s_logger.LogError($"Could not find embedded pdb for {file.FullName}");
-                return null;
-            }
+            MetadataReaderProvider? pdbReaderProvider = null;
 
             try
             {
-                using var embeddedPdb = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded.Value);
+                // Find the embedded pdb
+                using var fileStream = file.OpenRead();
+                using var peReader = new PEReader(fileStream);
 
-                s_logger.LogInformation($"Compiling {file.FullName}");
+                var pdbOpened = peReader.TryOpenAssociatedPortablePdb(
+                    peImagePath: file.FullName,
+                    pdbFileStreamProvider: null,
+                    out pdbReaderProvider,
+                    out var pdbPath);
 
-                var compilation = await buildConstructor.CreateCompilationAsync(embeddedPdb, file.Name).ConfigureAwait(false);
+                if (!pdbOpened)
+                {
+                    s_logger.LogError($"Could not find pdb for {file.FullName}");
+                    return null;
+                }
+
+                s_logger.LogInformation($"Compiling {file.FullName} with pdb {pdbPath}");
+
+                var reader = pdbReaderProvider.GetMetadataReader();
+                var compilation = await buildConstructor.CreateCompilationAsync(reader, file.Name).ConfigureAwait(false);
                 return CompilationDiff.Create(assembly, compilation);
             }
             catch (Exception e)
             {
                 s_logger.LogError(e, file.FullName);
                 return CompilationDiff.Create(assembly, e);
+            }
+            finally
+            {
+                pdbReaderProvider?.Dispose();
             }
         }
 
