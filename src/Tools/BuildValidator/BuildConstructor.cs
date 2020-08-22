@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -28,7 +29,7 @@ namespace BuildValidator
         private readonly IMetadataReferenceResolver _referenceResolver;
         private readonly ISourceResolver _sourceResolver;
 
-        public BuildConstructor(ILoggerFactory _, IMetadataReferenceResolver referenceResolver, ISourceResolver sourceResolver)
+        public BuildConstructor(IMetadataReferenceResolver referenceResolver, ISourceResolver sourceResolver)
         {
             _referenceResolver = referenceResolver;
             _sourceResolver = sourceResolver;
@@ -45,13 +46,13 @@ namespace BuildValidator
                 {
                     LanguageNames.CSharp => await CreateCSharpCompilationAsync(pdbReader, name).ConfigureAwait(false),
                     LanguageNames.VisualBasic => await CreateVisualBasicCompilationAsync(pdbReader, name).ConfigureAwait(false),
-                    _ => throw new InvalidOperationException($"{language} is not a known language")
+                    _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
                 return compilation;
             }
 
-            throw new Exception("Did not find compilation options in pdb");
+            throw new InvalidDataException("Did not find compilation options in pdb");
         }
 
         private async Task<ImmutableArray<MetadataReference>> CreateMetadataReferencesAsync(CompilationOptionsReader pdbReader)
@@ -160,7 +161,7 @@ namespace BuildValidator
                 "debug" => (OptimizationLevel.Debug, false),
                 "debug-plus" => (OptimizationLevel.Debug, true),
                 "release" => (OptimizationLevel.Release, false),
-                _ => throw new InvalidOperationException()
+                _ => throw new InvalidDataException($"Optimization \"{optimizationLevel}\" level not recognized")
             };
 
         #endregion

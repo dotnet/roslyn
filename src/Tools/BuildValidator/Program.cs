@@ -60,7 +60,7 @@ namespace BuildValidator
             var sourceResolver = new LocalSourceResolver(loggerFactory);
             var referenceResolver = new LocalReferenceResolver(loggerFactory);
 
-            var buildConstructor = new BuildConstructor(loggerFactory, referenceResolver, sourceResolver);
+            var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver);
 
             var artifactsDir = LocalReferenceResolver.GetArtifactsDirectory();
             var thisCompilerVersion = options.IgnoreCompilerVersion
@@ -157,11 +157,11 @@ namespace BuildValidator
 
                 var pdbOpened = peReader.TryOpenAssociatedPortablePdb(
                     peImagePath: file.FullName,
-                    pdbFileStreamProvider: null,
+                    filePath => File.OpenRead(filePath),
                     out pdbReaderProvider,
                     out var pdbPath);
 
-                if (!pdbOpened)
+                if (!pdbOpened || pdbReaderProvider is null)
                 {
                     s_logger.LogError($"Could not find pdb for {file.FullName}");
                     return null;

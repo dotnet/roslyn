@@ -28,7 +28,7 @@
     <ProjectReference Include="..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <!-- These aren't used by the build, but it allows the tool to locate dependencies of the built-in analyzers. -->
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+    <!--<ProjectReference Include="..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />-->
   </ItemGroup>
 
   <ItemGroup>

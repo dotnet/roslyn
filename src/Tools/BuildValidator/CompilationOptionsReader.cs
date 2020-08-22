@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
@@ -32,7 +33,7 @@ namespace BuildValidator
         {
             if (_compilationOptions is null)
             {
-                var optionsBlob = GetSingleBlob(CompilationOptionsGuid);
+                var optionsBlob = GetCustomDebugInformationBlobReader(CompilationOptionsGuid);
                 _compilationOptions = ParseCompilationOptions(optionsBlob);
             }
 
@@ -43,14 +44,16 @@ namespace BuildValidator
         {
             if (_metadataReferenceInfo.IsDefault)
             {
-                var referencesBlob = GetSingleBlob(MetadataReferenceInfoGuid);
+                var referencesBlob = GetCustomDebugInformationBlobReader(MetadataReferenceInfoGuid);
                 _metadataReferenceInfo = ParseMetadataReferenceInfo(referencesBlob).ToImmutableArray();
             }
 
             return _metadataReferenceInfo;
         }
 
-        internal IEnumerable<string> GetSourceFileNames()
+        public OutputKind GetOutputKind() => OutputKind.DynamicallyLinkedLibrary;
+
+        public IEnumerable<string> GetSourceFileNames()
         {
             foreach (var documentHandle in _metadataReader.Documents)
             {
@@ -75,15 +78,13 @@ namespace BuildValidator
 
                 var name = blobReader.ReadUTF8(terminatorIndex);
 
-                // Skip the null terminator
-                blobReader.ReadByte();
+                blobReader.SkipNullTerminator();
 
                 terminatorIndex = blobReader.IndexOf(0);
 
                 var externAliases = blobReader.ReadUTF8(terminatorIndex);
 
-                // Skip the null terminator
-                blobReader.ReadByte();
+                blobReader.SkipNullTerminator();
 
                 var embedInteropTypesAndKind = blobReader.ReadByte();
                 var embedInteropTypes = (embedInteropTypesAndKind & 0b10) == 0b10;
@@ -108,12 +109,19 @@ namespace BuildValidator
             }
         }
 
-        private BlobReader GetSingleBlob(Guid infoGuid)
+        private BlobReader GetCustomDebugInformationBlobReader(Guid infoGuid)
         {
-            return (from cdiHandle in _metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
-                    let cdi = _metadataReader.GetCustomDebugInformation(cdiHandle)
-                    where _metadataReader.GetGuid(cdi.Kind) == infoGuid
-                    select _metadataReader.GetBlobReader(cdi.Value)).FirstOrDefault();
+            var blobs = from cdiHandle in _metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                        let cdi = _metadataReader.GetCustomDebugInformation(cdiHandle)
+                        where _metadataReader.GetGuid(cdi.Kind) == infoGuid
+                        select _metadataReader.GetBlobReader(cdi.Value);
+
+            if (blobs.Any())
+            {
+                return blobs.First();
+            }
+
+            throw new InvalidDataException($"No blob found for {infoGuid}");
         }
 
         private static ImmutableDictionary<string, string> ParseCompilationOptions(BlobReader blobReader)
@@ -132,8 +140,7 @@ namespace BuildValidator
 
                 var value = blobReader.ReadUTF8(nullIndex);
 
-                // Skip the null terminator
-                blobReader.ReadByte();
+                blobReader.SkipNullTerminator();
 
                 if (key is null)
                 {
@@ -148,7 +155,5 @@ namespace BuildValidator
 
             return kvp.ToImmutableDictionary();
         }
-
-        public OutputKind GetOutputKind() => OutputKind.DynamicallyLinkedLibrary;
     }
 }
