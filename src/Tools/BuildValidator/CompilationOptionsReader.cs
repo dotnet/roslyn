@@ -87,6 +87,14 @@ namespace BuildValidator
                 blobReader.SkipNullTerminator();
 
                 var embedInteropTypesAndKind = blobReader.ReadByte();
+
+                // Only the last two bits are used, verify nothing else in the 
+                // byte has data. 
+                if ((embedInteropTypesAndKind & 0b11111100) != 0)
+                {
+                    throw new InvalidDataException($"Unexpected value for EmbedInteropTypes/MetadataImageKind {embedInteropTypesAndKind}");
+                }
+
                 var embedInteropTypes = (embedInteropTypesAndKind & 0b10) == 0b10;
                 var kind = (embedInteropTypesAndKind & 0b1) == 0b1
                     ? MetadataImageKind.Assembly
