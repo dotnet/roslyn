@@ -99,30 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
         protected override ExpressionSyntax Parenthesize(ExpressionSyntax expressionSyntax)
             => expressionSyntax.Parenthesize();
-
-        protected override bool IsVariableInitializerInLocalDeclarationSyntax(
-            InvocationExpressionSyntax expressionSyntax,
-            LocalDeclarationStatementSyntax statementSyntaxEnclosingCallee)
-            => statementSyntaxEnclosingCallee.Declaration.Variables
-                .Any(variable => expressionSyntax.Equals(variable?.Initializer?.Value));
-
-        protected override bool IsUsingInferTypeDeclarator(LocalDeclarationStatementSyntax localDeclarationSyntax)
-            => localDeclarationSyntax.Declaration.Type.IsVar;
-
-        protected override LocalDeclarationStatementSyntax UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
-            LocalDeclarationStatementSyntax localDeclarationSyntax,
-            SyntaxGenerator syntaxGenerator,
-            ITypeSymbol type,
-            ExpressionSyntax initializer,
-            ExpressionSyntax replacementInitializer)
-        {
-            var syntaxEditor = new SyntaxEditor(localDeclarationSyntax, syntaxGenerator);
-            var typeSyntax = type.GenerateTypeSyntax(allowVar: false);
-            syntaxEditor.ReplaceNode(localDeclarationSyntax.Declaration.Type, typeSyntax);
-            syntaxEditor.ReplaceNode(initializer, replacementInitializer);
-            return (LocalDeclarationStatementSyntax)syntaxEditor.GetChangedRoot();
-        }
-
         protected override bool IsValidExpressionUnderStatementExpression(ExpressionSyntax expressionNode)
         {
             // C# Expression Statements defined in the language reference
@@ -154,6 +130,80 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                    || expressionNode.IsKind(SyntaxKind.PostIncrementExpression)
                    || expressionNode.IsKind(SyntaxKind.PostDecrementExpression)
                    || expressionNode.IsKind(SyntaxKind.AwaitExpression);
+        }
+
+        protected override bool TryGetInlineNodeAndReplacementNodeForDelegate(
+            InvocationExpressionSyntax calleeInvocationNode,
+            IMethodSymbol calleeMethodSymbol,
+            ExpressionSyntax inlineExpressionNode,
+            StatementSyntax statementContainsCallee,
+            SyntaxGenerator syntaxGenerator,
+            out SyntaxNode? inlineSyntaxNode,
+            out SyntaxNode? syntaxNodeToReplace)
+        {
+            inlineSyntaxNode = null;
+            syntaxNodeToReplace = null;
+            if (statementContainsCallee is LocalDeclarationStatementSyntax localDeclarationSyntax
+                && IsVariableInitializerInLocalDeclarationSyntax(calleeInvocationNode, localDeclarationSyntax)
+                && localDeclarationSyntax.Declaration.Type.IsVar)
+            {
+                // Example:
+                // Before:
+                // void Caller() { var x = Callee(); }
+                // Action Callee() { return () => {}; }
+                //
+                // After inline it should be
+                // void Caller() { Action x = () => {};}
+                // Action Callee() { return () => {}; }
+                inlineSyntaxNode = UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
+                    localDeclarationSyntax,
+                    syntaxGenerator,
+                    calleeMethodSymbol.ReturnType,
+                    calleeInvocationNode,
+                    inlineExpressionNode);
+
+                syntaxNodeToReplace = statementContainsCallee;
+                return true;
+            }
+
+            // Example:
+            // Before:
+            // void Caller() { var x = Callee()(); }
+            // Func<int> Callee() { return () => 1; }
+            // After:
+            // void Caller() { var x = ((Func<int>)(() => 1))(); }
+            // Func<int> Callee() { return () => 1; }
+            // This is also not a problem for VB
+            if (calleeInvocationNode.Parent?.IsKind(SyntaxKind.InvocationExpression) == true)
+            {
+                inlineSyntaxNode = SyntaxFactory.CastExpression(
+                    calleeMethodSymbol.ReturnType.GenerateTypeSyntax(allowVar: false),
+                    inlineExpressionNode.Parenthesize()).Parenthesize();
+                syntaxNodeToReplace = calleeInvocationNode;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsVariableInitializerInLocalDeclarationSyntax(
+            InvocationExpressionSyntax expressionSyntax,
+            LocalDeclarationStatementSyntax statementSyntaxEnclosingCallee)
+            => statementSyntaxEnclosingCallee.Declaration.Variables
+                .Any(variable => expressionSyntax.Equals(variable?.Initializer?.Value));
+
+        private LocalDeclarationStatementSyntax UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
+            LocalDeclarationStatementSyntax localDeclarationSyntax,
+            SyntaxGenerator syntaxGenerator,
+            ITypeSymbol type,
+            ExpressionSyntax initializer,
+            ExpressionSyntax replacementInitializer)
+        {
+            var syntaxEditor = new SyntaxEditor(localDeclarationSyntax, syntaxGenerator);
+            var typeSyntax = type.GenerateTypeSyntax(allowVar: false);
+            syntaxEditor.ReplaceNode(localDeclarationSyntax.Declaration.Type, typeSyntax);
+            syntaxEditor.ReplaceNode(initializer, replacementInitializer);
+            return (LocalDeclarationStatementSyntax)syntaxEditor.GetChangedRoot();
         }
     }
 }

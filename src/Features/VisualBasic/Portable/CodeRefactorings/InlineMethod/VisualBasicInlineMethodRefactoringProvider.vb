@@ -64,16 +64,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return expressionNode.Parenthesize()
         End Function
 
-        Protected Overrides Function IsVariableInitializerInLocalDeclarationSyntax(expressionSyntax As InvocationExpressionSyntax, statementSyntaxEnclosingCallee As LocalDeclarationStatementSyntax) As Boolean
+        Protected Overrides Function TryGetInlineNodeAndReplacementNodeForDelegate(calleeInvocationNode As InvocationExpressionSyntax, calleeMethodSymbol As IMethodSymbol, inlineExpressionNode As ExpressionSyntax, statementContainsCallee As StatementSyntax, syntaxGenerator As SyntaxGenerator, ByRef inlineSyntaxNode As SyntaxNode, ByRef syntaxNodeToReplace As SyntaxNode) As Boolean
             Return False
-        End Function
-
-        Protected Overrides Function IsUsingInferTypeDeclarator(localDeclarationSyntax As LocalDeclarationStatementSyntax) As Boolean
-            Throw New NotImplementedException()
-        End Function
-
-        Protected Overrides Function UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(localDeclarationSyntax As LocalDeclarationStatementSyntax, syntaxGenerator As SyntaxGenerator, type As ITypeSymbol, initializer As ExpressionSyntax, replacementInitializer As ExpressionSyntax) As LocalDeclarationStatementSyntax
-            Throw New NotImplementedException()
         End Function
 
         Protected Overrides Function IsValidExpressionUnderStatementExpression(expressionNode As ExpressionSyntax) As Boolean

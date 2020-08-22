@@ -38,9 +38,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
         protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
         protected abstract TExpressionSyntax Parenthesize(TExpressionSyntax expressionNode);
-        protected abstract bool IsVariableInitializerInLocalDeclarationSyntax(TInvocationSyntax expressionSyntax, TLocalDeclarationSyntax statementSyntaxEnclosingCallee);
-        protected abstract bool IsUsingInferTypeDeclarator(TLocalDeclarationSyntax localDeclarationSyntax);
-        protected abstract TLocalDeclarationSyntax UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(TLocalDeclarationSyntax localDeclarationSyntax, SyntaxGenerator syntaxGenerator, ITypeSymbol type, TExpressionSyntax initializer, TExpressionSyntax replacementInitializer);
+        protected abstract bool TryGetInlineNodeAndReplacementNodeForDelegate(
+            TInvocationSyntax calleeInvocationNode,
+            IMethodSymbol calleeMethodSymbol,
+            TExpressionSyntax inlineExpressionNode,
+            TStatementSyntax statementContainsCallee,
+            SyntaxGenerator syntaxGenerator,
+            out SyntaxNode? inlineSyntaxNode,
+            out SyntaxNode? syntaxNodeToReplace);
 
         /// <summary>
         /// Check if <paramref name="expressionNode"/> could be used as an Expression in ExpressionStatement

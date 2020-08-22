@@ -331,45 +331,42 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     containsAwaitExpression);
             }
 
-            if (calleeMethodSymbol.Language.Equals(LanguageNames.CSharp))
+            // Handle the special cases for C# if the return type is delegate.
+            // Case 1:
+            // Before:
+            // void Caller() { var x = Callee(); }
+            // Action Callee() { return () => {}; }
+            //
+            // After inline it should be
+            // void Caller() { Action x = () => {};}
+            // Action Callee() { return () => {}; }
+            // because 'var' can't be used as the delegate type in local declaration syntax
+            // For VB, 'Dim' can be used for 'Sub' and 'Function'
+            //
+            // Case 2:
+            // Before:
+            // void Caller() { var x = Callee()(); }
+            // Func<int> Callee() { return () => 1; }
+            // After:
+            // void Caller() { var x = ((Func<int>)(() => 1))(); }
+            // Func<int> Callee() { return () => 1; }
+            // This is also not a problem for VB
+            if (calleeMethodSymbol.ReturnType.IsDelegateType()
+                && TryGetInlineNodeAndReplacementNodeForDelegate(
+                    calleeInvocationNode,
+                    calleeMethodSymbol,
+                    inlineExpression,
+                    statementContainsCallee,
+                    syntaxGenerator,
+                    out var inlineExpresionNode,
+                    out var syntaxNodeToReplace))
             {
-                if (calleeMethodSymbol.ReturnType.IsDelegateType()
-                    && statementContainsCallee is TLocalDeclarationSyntax localDeclarationSyntax
-                    && IsVariableInitializerInLocalDeclarationSyntax(calleeInvocationNode, localDeclarationSyntax)
-                    && IsUsingInferTypeDeclarator(localDeclarationSyntax))
-                {
-                    // For C#, 'var' can't be used as the delegate type in local declaration syntax
-                    // example:
-                    // before:
-                    // void Caller() { var x = Callee(); }
-                    // Action Callee() { return () => {}; }
-                    // after inline it should be:
-                    // void Caller() { Action x = () => {};}
-                    // Action Callee() { return () => {}; }
-                    // For VB, 'Dim' can be used for 'Sub' and 'Function'
-                    return new InlineMethodContext(
-                        localDeclarationStatementsNeedInsert,
-                        statementContainsCallee,
-                        UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
-                            localDeclarationSyntax,
-                            syntaxGenerator,
-                            calleeMethodSymbol.ReturnType,
-                            calleeInvocationNode,
-                            inlineExpression),
-                        statementContainsCallee,
-                        containsAwaitExpression);
-                }
-
-                if (calleeMethodSymbol.ReturnType.IsDelegateType()
-                    && _syntaxFacts.IsInvocationExpression(calleeInvocationNode.Parent))
-                {
-                    return new InlineMethodContext(
-                        localDeclarationStatementsNeedInsert,
-                        statementContainsCallee,
-                        Parenthesize((TExpressionSyntax)syntaxGenerator.CastExpression(GenerateTypeSyntax(calleeMethodSymbol.ReturnType, false), Parenthesize(inlineExpression))),
-                        calleeInvocationNode,
-                        containsAwaitExpression);
-                }
+                return new InlineMethodContext(
+                    localDeclarationStatementsNeedInsert,
+                    statementContainsCallee,
+                    inlineExpresionNode!,
+                    syntaxNodeToReplace!,
+                    containsAwaitExpression);
             }
 
             return new InlineMethodContext(
