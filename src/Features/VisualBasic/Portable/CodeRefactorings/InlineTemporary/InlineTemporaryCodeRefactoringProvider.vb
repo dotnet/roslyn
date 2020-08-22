@@ -74,8 +74,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 Dim solution = document.Project.Solution
                 Dim findReferencesResult = Await SymbolFinder.FindReferencesAsync(local, solution, cancellationToken).ConfigureAwait(False)
 
-                Dim locations = findReferencesResult.Single(Function(r) Equals(r.Definition, local)).Locations
-                If Not locations.Any(Function(loc) semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)) Then
+                Dim referencedSymbol = findReferencesResult.SingleOrDefault(Function(r) Equals(r.Definition, local))
+                If referencedSymbol Is Nothing Then
+                    Return SpecializedCollections.EmptyEnumerable(Of ReferenceLocation)()
+                End If
+                If Not referencedSymbol.Locations.Any(Function(loc) semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)) Then
                     Return locations
                 End If
             End If
