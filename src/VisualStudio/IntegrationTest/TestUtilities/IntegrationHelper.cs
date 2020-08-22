@@ -401,52 +401,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        /// <summary>Locates the DTE object for the specified process.</summary>
-        public static DTE TryLocateDteForProcess(Process process)
-        {
-            object dte = null;
-            var monikers = new IMoniker[1];
-
-            NativeMethods.GetRunningObjectTable(0, out var runningObjectTable);
-            runningObjectTable.EnumRunning(out var enumMoniker);
-            NativeMethods.CreateBindCtx(0, out var bindContext);
-
-            do
-            {
-                monikers[0] = null;
-                var hresult = enumMoniker.Next(1, monikers, out _);
-
-                if (hresult == VSConstants.S_FALSE)
-                {
-                    // There's nothing further to enumerate, so fail
-                    return null;
-                }
-                else
-                {
-                    Marshal.ThrowExceptionForHR(hresult);
-                }
-
-                var moniker = monikers[0];
-                moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
-
-                // FullDisplayName will look something like: <ProgID>:<ProcessId>
-                var displayNameParts = fullDisplayName.Split(':');
-                if (!int.TryParse(displayNameParts.Last(), out var displayNameProcessId))
-                {
-                    continue;
-                }
-
-                if (displayNameParts[0].StartsWith("!VisualStudio.DTE", StringComparison.OrdinalIgnoreCase) &&
-                    displayNameProcessId == process.Id)
-                {
-                    runningObjectTable.GetObject(moniker, out dte);
-                }
-            }
-            while (dte == null);
-
-            return (DTE)dte;
-        }
-
         public static async Task WaitForResultAsync<T>(Func<T> action, T expectedResult)
         {
             while (!action().Equals(expectedResult))

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Telemetry;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -51,8 +51,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _lazyClient = new AsyncLazy<RemoteHostClient>(CreateHostClientAsync, cacheResult: true);
         }
 
-        private Task<RemoteHostClient> CreateHostClientAsync(CancellationToken cancellationToken)
-            => ServiceHubRemoteHostClient.CreateAsync(_services, cancellationToken);
+        private async Task<RemoteHostClient> CreateHostClientAsync(CancellationToken cancellationToken)
+        {
+            var client = await ServiceHubRemoteHostClient.CreateAsync(_services, cancellationToken).ConfigureAwait(false);
+
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                var currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+                if (currentProcessId != client.ProcessId)
+                {
+                    VisualStudioDebugAttacher.AttachTo(client.ProcessId);
+                }
+            }
+
+            return client;
+        }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             => _lazyClient.GetValueAsync(cancellationToken).AsNullable();

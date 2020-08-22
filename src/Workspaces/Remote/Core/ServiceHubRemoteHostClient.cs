@@ -91,7 +91,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object?[] { uiCultureLCID, cultureLCID },
                     cancellationToken).ConfigureAwait(false);
 
-                client.Started();
+                var processId = await client._endPoint.InvokeAsync<int>(
+                       nameof(IRemoteHostService.GetProcessIdAsync),
+                       new object?[0],
+                       cancellationToken).ConfigureAwait(false);
+
+                client.Started(processId);
                 return client;
             }
         }
@@ -221,7 +226,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw ExceptionUtilities.Unreachable;
             }
         }
-
         #endregion
     }
 }

@@ -346,5 +346,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }, cancellationToken);
         }
+
+        public Task<int> GetProcessIdAsync(CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(() =>
+            {
+                return Task.FromResult(Process.GetCurrentProcess().Id);
+            }, cancellationToken);
+        }
     }
 }

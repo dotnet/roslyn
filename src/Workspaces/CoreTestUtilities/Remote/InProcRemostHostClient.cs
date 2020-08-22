@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 new object?[] { uiCultureLCIDE, cultureLCID },
                 CancellationToken.None).ConfigureAwait(false);
 
-            instance.Started();
+            instance.Started(Process.GetCurrentProcess().Id);
 
             // return instance
             return instance;

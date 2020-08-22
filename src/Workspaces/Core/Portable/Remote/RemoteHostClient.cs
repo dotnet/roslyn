@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public event EventHandler<bool>? StatusChanged;
 
+        public int ProcessId { get; private set; }
+
         /// <summary>
         /// Return an unique string per client.
         /// 
@@ -31,8 +33,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public abstract string ClientId { get; }
 
-        protected void Started()
+        protected void Started(int processId)
         {
+            ProcessId = processId;
             OnStatusChanged(started: true);
         }
 

@@ -30,5 +30,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         Task SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken);
         Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Get the process id for the remote host service
+        /// </summary>
+        Task<int> GetProcessIdAsync(CancellationToken cancellationToken);
     }
 }
