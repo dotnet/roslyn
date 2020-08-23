@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ParenthesesForMethodInvocations
         Private Sub AnalyzeInvocation(context As OperationAnalysisContext)
             Dim node = context.Operation.Syntax
             Dim invocationExpression = DirectCast(node, InvocationExpressionSyntax)
-            Dim includeParentheses = context.Options.GetOption(VisualBasicCodeStyleOptions.IncludeParenthesesForMethodInvocations, node.SyntaxTree, context.CancellationToken).Value
+            Dim [option] = context.Options.GetOption(VisualBasicCodeStyleOptions.IncludeParenthesesForMethodInvocations, node.SyntaxTree, context.CancellationToken)
             Dim descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat)
 
-            If IsViolatingPreference(includeParentheses, invocationExpression) Then
-                context.ReportDiagnostic(DiagnosticHelper.Create(descriptor, node.GetLocation(), ReportDiagnostic.Hidden, ' Will the hidden severity here overwrite any user preference?
+            If IsViolatingPreference([option].Value, invocationExpression) Then
+                context.ReportDiagnostic(DiagnosticHelper.Create(descriptor, node.GetLocation(), [option].Notification.Severity,
                     additionalLocations:={node.GetLocation()}, properties:=Nothing))
             End If
         End Sub
