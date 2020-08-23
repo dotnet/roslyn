@@ -422,7 +422,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestCallingOtherLocalFunction()
+        public async Task TestCallingStaticLocalFunction()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -456,6 +456,47 @@ class C
 
         static void B()
         {
+        }
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestCallingNestedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        void [||]A()
+        {
+            B();
+
+            void B()
+            {
+            }
+        }
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        static void A()
+        {
+            B();
+
+            void B()
+            {
+            }
         }
     }
 }",
