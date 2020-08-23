@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out IEnumerable<Symbol> unsafeAddressTaken,
             out IEnumerable<Symbol> capturedInside,
             out IEnumerable<Symbol> capturedOutside,
-            out IEnumerable<Symbol> usedLocalFunctions)
+            out IEnumerable<MethodSymbol> usedLocalFunctions)
         {
             var walker = new ReadWriteWalker(compilation, member, node, firstInRegion, lastInRegion, unassignedVariableAddressOfSyntaxes);
             try
@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Analyze(ref badRegion);
                 if (badRegion)
                 {
-                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = usedLocalFunctions = Enumerable.Empty<Symbol>();
+                    readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = Enumerable.Empty<Symbol>();
+                    usedLocalFunctions = Enumerable.Empty<MethodSymbol>();
                 }
                 else
                 {

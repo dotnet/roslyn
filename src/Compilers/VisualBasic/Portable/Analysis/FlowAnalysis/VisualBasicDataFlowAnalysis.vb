@@ -285,9 +285,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property UsedLocalFunctions As ImmutableArray(Of ISymbol)
+        Public Overrides ReadOnly Property UsedLocalFunctions As ImmutableArray(Of IMethodSymbol)
             Get
-                Return ImmutableArray(Of ISymbol).Empty
+                Return ImmutableArray(Of IMethodSymbol).Empty
             End Get
         End Property
 

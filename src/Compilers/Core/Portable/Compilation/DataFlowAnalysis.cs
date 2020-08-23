@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The set of local functions that are called.
         /// </summary>
-        public abstract ImmutableArray<ISymbol> UsedLocalFunctions { get; }
+        public abstract ImmutableArray<IMethodSymbol> UsedLocalFunctions { get; }
 
         /// <summary>
         /// Returns true iff analysis was successful.  Analysis can fail if the region does not
