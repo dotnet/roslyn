@@ -17,7 +17,7 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
+    internal abstract class CSharpTypeStyleDiagnosticAnalyzerBase :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected abstract CSharpTypeStyleHelper Helper { get; }
