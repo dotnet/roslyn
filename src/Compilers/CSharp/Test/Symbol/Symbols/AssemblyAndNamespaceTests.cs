@@ -112,11 +112,11 @@ namespace N1 {
     }
 }
 ";
-            var comp1 = CSharpCompilation.Create(assemblyName: "Test", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+            var comp1 = CSharpCompilation.Create(assemblyName: "Test", options: TestOptions.ReleaseExe,
                             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text) }, references: new MetadataReference[] { });
             var compRef = new CSharpCompilationReference(comp1);
 
-            var comp = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+            var comp = CSharpCompilation.Create(assemblyName: "Test1", options: TestOptions.ReleaseExe,
                             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1), SyntaxFactory.ParseSyntaxTree(text2) },
                             references: new MetadataReference[] { compRef });
 
@@ -159,7 +159,7 @@ namespace NS.NS1 {
             var comp1 = CreateCompilation(text);
             var compRef = new CSharpCompilationReference(comp1);
 
-            var comp = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+            var comp = CSharpCompilation.Create(assemblyName: "Test1", options: TestOptions.ReleaseExe,
                             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1), SyntaxFactory.ParseSyntaxTree(text2) },
                             references: new MetadataReference[] { compRef });
 
@@ -246,13 +246,13 @@ namespace NS.NS1 {
 }
 ";
 
-            var comp1 = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1) }, references: new MetadataReference[] { });
-            var comp2 = CSharpCompilation.Create(assemblyName: "Test2", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text2) }, references: new MetadataReference[] { });
+            var comp1 = CSharpCompilation.Create(assemblyName: "Test1", options: TestOptions.ReleaseExe, syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1) }, references: new MetadataReference[] { });
+            var comp2 = CSharpCompilation.Create(assemblyName: "Test2", options: TestOptions.ReleaseExe, syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text2) }, references: new MetadataReference[] { });
 
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CSharpCompilation.Create(assemblyName: "Test3", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+            var comp = CSharpCompilation.Create(assemblyName: "Test3", options: TestOptions.ReleaseExe,
                                         syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text3) },
                                         references: new MetadataReference[] { compRef1, compRef2 });
 
