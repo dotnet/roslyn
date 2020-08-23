@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
                 if (currentProcessId != client.ProcessId)
                 {
-                    VisualStudioDebugAttacher.AttachTo(client.ProcessId);
+                    VisualStudioHelpers.AttachTo(client.ProcessId);
                 }
             }
 
