@@ -129,13 +129,13 @@
   <data name="If_statement_can_be_simplified" xml:space="preserve">
     <value>'If' statement can be simplified</value>
   </data>
-  <data name="Add_method_invocation_parentheses" xml:space="preserve">
+  <data name="Add_parentheses_to_method_invocation" xml:space="preserve">
     <value>Add parentheses to method invocation</value>
   </data>
   <data name="Remove_property_parentheses" xml:space="preserve">
     <value>Remove parentheses from property invocation</value>
   </data>
-  <data name="Remove_method_invocation_parentheses" xml:space="preserve">
+  <data name="Remove_parentheses_from_method_invocation" xml:space="preserve">
     <value>Remove parentheses from method invocation</value>
   </data>
   <data name="Remove_ByVal" xml:space="preserve">
