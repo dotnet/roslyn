@@ -527,7 +527,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">Nastavit třídu jako abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -993,7 +993,7 @@ Ukotvení $ najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků návrat
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">výraz</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1263,7 +1263,7 @@ Ukotvení $ najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků návrat
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">název</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1363,7 +1363,7 @@ Je možné zřetězit dva nebo více rozsahů znaků. Pokud chcete například z
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">ne</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1746,7 +1746,7 @@ Pokud je zadané chování kompatibilní s ECMAScriptem, je \w ekvivalentem [a-z
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">ano</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -1812,7 +1812,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">Odebrat modifikátor async</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2077,12 +2077,12 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">{0} tady není null.</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">{0} tady může být null.</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

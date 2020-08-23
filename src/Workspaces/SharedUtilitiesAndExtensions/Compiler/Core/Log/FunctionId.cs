@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeAnalysisService_GetDesignerAttributesAsync = 294,
 
         ServiceHubRemoteHostClient_CreateAsync = 295,
-        PinnedRemotableDataScope_GetRemotableData = 296,
+        // obsolete: PinnedRemotableDataScope_GetRemotableData = 296,
 
         RemoteHost_Connect = 297,
         RemoteHost_Disconnect = 298,
@@ -395,8 +395,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ProjectState_ComputeChecksumsAsync = 316,
         DocumentState_ComputeChecksumsAsync = 317,
 
-        SolutionSynchronizationService_GetRemotableData = 318,
-        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
+        // obsolete: SolutionSynchronizationService_GetRemotableData = 318,
+        // obsolete: SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
 
         SolutionChecksumUpdater_SynchronizePrimaryWorkspace = 320,
 

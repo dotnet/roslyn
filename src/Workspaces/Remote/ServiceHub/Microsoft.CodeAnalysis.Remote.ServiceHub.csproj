@@ -47,9 +47,7 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\WorkspaceTelemetry\AbstractWorkspaceTelemetryService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Roslyn.Services.UnitTests.Utilities" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
@@ -60,5 +58,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
+    <!-- TODO - This IVT should be removed - https://github.com/dotnet/roslyn/issues/46940 -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
   </ItemGroup>
 </Project>

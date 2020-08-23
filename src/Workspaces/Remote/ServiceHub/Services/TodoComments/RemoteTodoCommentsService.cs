@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(() =>
             {
-                var workspace = SolutionService.PrimaryWorkspace;
+                var workspace = GetWorkspace();
                 var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
                 var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(endpoint);

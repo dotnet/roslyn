@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
-        <target state="new">32-bit</target>
+        <target state="translated">32 位</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness64">
         <source>64-bit</source>
-        <target state="new">64-bit</target>
+        <target state="translated">64 位</target>
         <note />
       </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
-        <target state="new">Current parameter</target>
+        <target state="translated">当前参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints (experimental)</source>
-        <target state="new">Disp_lay inline parameter name hints (experimental)</target>
+        <target state="translated">显示内联参数名称提示(实验)(_L)</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -2258,12 +2258,12 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="needs-review-translation">重要说明: Visual Studio 包含反编译功能("Decompiler")，可支持从二进制代码重现源代码。访问和使用 Decompiler 即表示您同意 Visual Studio 许可条款和以下 Decompiler 条款。如果不同意这些组合条款，请勿访问和使用 Decompiler。
- 
-您同意二进制代码和源代码可能受版权法和商标法保护。在对任何二进制代码使用 Decompiler 前，首先需要:  
+        <target state="translated">重要说明: Visual Studio 包含反编译功能("Decompiler")，可支持从二进制代码重现源代码。访问和使用 Decompiler 即表示您同意 Visual Studio 许可条款和以下 Decompiler 条款。如果不同意这些组合条款，请勿访问和使用 Decompiler。
+
+您同意二进制代码和源代码可能受版权法和商标法保护。在对任何二进制代码使用 Decompiler 前，首先需要:
 (i) 确认约束您使用二进制代码的许可条款不包含禁止反编译软件的条款；或者
 (ii) 获得软件所有者关于反编译二进制代码的许可。
- 
+
 使用 Decompiler 是个人的选择。如果您使用 Decompiler 时违反了任何法律或任何禁止软件反编译的软件许可条款，Microsoft 不承担任何责任和法律责任。
 
 我同意上述所有条款:</target>
