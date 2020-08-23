@@ -4,8 +4,6 @@
 
 #nullable enable
 
-#if !CODE_STYLE
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
@@ -49,5 +47,3 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             => binaryLike.Parent as PatternSyntax;
     }
 }
-
-#endif

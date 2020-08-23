@@ -993,7 +993,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">式</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1263,7 +1263,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">名前</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1363,7 +1363,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">いいえ</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1746,7 +1746,7 @@ ECMAScript 準拠の動作が指定されている場合、\w は [a-zA-Z_0-9] �
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">はい</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2077,12 +2077,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">ここでは、'{0}' は null ではありません。</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

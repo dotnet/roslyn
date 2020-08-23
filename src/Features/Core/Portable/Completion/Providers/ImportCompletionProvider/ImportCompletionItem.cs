@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private const string ReceiverKey = nameof(ReceiverKey);
         private const string OverloadCountKey = nameof(OverloadCountKey);
 
-        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
-            => Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, extensionMethodData: null);
-
         public static CompletionItem Create(
             string name,
             int arity,

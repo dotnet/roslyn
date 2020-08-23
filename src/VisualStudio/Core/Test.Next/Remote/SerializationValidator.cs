@@ -34,13 +34,29 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 => _validator.GetValueAsync<T>(checksum);
         }
 
-        internal sealed class ChecksumObjectCollection<T> : RemotableData, IEnumerable<T> where T : ChecksumWithChildren
+        internal sealed class ChecksumObjectCollection<T> : IEnumerable<T> where T : ChecksumWithChildren
         {
             public ImmutableArray<T> Children { get; }
 
+            /// <summary>
+            /// Indicates what kind of object it is
+            /// <see cref="WellKnownSynchronizationKind"/> for examples.
+            /// 
+            /// this will be used in tranportation framework and deserialization service
+            /// to hand shake how to send over data and deserialize serialized data
+            /// </summary>
+            public readonly WellKnownSynchronizationKind Kind;
+
+            /// <summary>
+            /// Checksum of this object
+            /// </summary>
+            public readonly Checksum Checksum;
+
             public ChecksumObjectCollection(SerializationValidator validator, ChecksumCollection collection)
-                : base(collection.Checksum, collection.GetWellKnownSynchronizationKind())
             {
+                Checksum = collection.Checksum;
+                Kind = collection.GetWellKnownSynchronizationKind();
+
                 // using .Result here since we don't want to convert all calls to this to async.
                 // and none of ChecksumWithChildren actually use async
                 Children = ImmutableArray.CreateRange(collection.Select(c => validator.GetValueAsync<T>(c).Result));
@@ -50,30 +66,27 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             public T this[int index] => Children[index];
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             public IEnumerator<T> GetEnumerator() => Children.Select(t => t).GetEnumerator();
-
-            public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
         }
 
-        public RemotableDataService RemotableDataService { get; }
+        public SolutionAssetStorage AssetStorage { get; }
         public ISerializerService Serializer { get; }
         public HostWorkspaceServices Services { get; }
 
         public SerializationValidator(HostWorkspaceServices services)
         {
-            RemotableDataService = (RemotableDataService)services.GetRequiredService<IRemotableDataService>();
+            AssetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             Serializer = services.GetRequiredService<ISerializerService>();
             Services = services;
         }
 
         public async Task<T> GetValueAsync<T>(Checksum checksum)
         {
-            var data = (await RemotableDataService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var data = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                await data.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+                Serializer.Serialize(data.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
@@ -83,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
         }
 
-        public async Task<Solution> GetSolutionAsync(PinnedRemotableDataScope scope)
+        public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
         {
-            var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionInfo.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(Services.HostServices);
             return workspace.AddSolution(solutionInfo);
@@ -107,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
                 solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
 
             foreach (var projectChecksum in solutionObject.Projects)
             {
@@ -120,15 +133,15 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<ProjectInfo.ProjectAttributes>(
                 projectObject.Info, WellKnownSynchronizationKind.ProjectAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<CompilationOptions>(
                 projectObject.CompilationOptions, WellKnownSynchronizationKind.CompilationOptions,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
 
             await VerifyAssetSerializationAsync<ParseOptions>(
                 projectObject.ParseOptions, WellKnownSynchronizationKind.ParseOptions,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
 
             foreach (var checksum in projectObject.Documents)
             {
@@ -140,21 +153,21 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             {
                 await VerifyAssetSerializationAsync<ProjectReference>(
                     checksum, WellKnownSynchronizationKind.ProjectReference,
-                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
             foreach (var checksum in projectObject.MetadataReferences)
             {
                 await VerifyAssetSerializationAsync<MetadataReference>(
                     checksum, WellKnownSynchronizationKind.MetadataReference,
-                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
             foreach (var checksum in projectObject.AnalyzerReferences)
             {
                 await VerifyAssetSerializationAsync<AnalyzerReference>(
                     checksum, WellKnownSynchronizationKind.AnalyzerReference,
-                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
             foreach (var checksum in projectObject.AdditionalDocuments)
@@ -174,20 +187,20 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var info = await VerifyAssetSerializationAsync<DocumentInfo.DocumentAttributes>(
                 documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
                 documentObject.Text, WellKnownSynchronizationKind.SourceText,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s));
+                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
         }
 
         internal async Task<T> VerifyAssetSerializationAsync<T>(
             Checksum checksum,
             WellKnownSynchronizationKind kind,
-            Func<T, WellKnownSynchronizationKind, ISerializerService, RemotableData> assetGetter)
+            Func<T, WellKnownSynchronizationKind, ISerializerService, SolutionAsset> assetGetter)
         {
             // re-create asset from object
-            var syncObject = (await RemotableDataService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var syncObject = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             var recoveredValue = await GetValueAsync<T>(checksum).ConfigureAwait(false);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, Serializer);
@@ -319,18 +332,27 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await VerifyChecksumInServiceAsync(documentObject.Text, WellKnownSynchronizationKind.SourceText).ConfigureAwait(false);
         }
 
-        internal async Task VerifySynchronizationObjectInServiceAsync(RemotableData syncObject)
+        internal async Task VerifySynchronizationObjectInServiceAsync(SolutionAsset syncObject)
+            => await VerifyChecksumInServiceAsync(syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
+
+        internal async Task VerifySynchronizationObjectInServiceAsync<T>(ChecksumObjectCollection<T> syncObject) where T : ChecksumWithChildren
             => await VerifyChecksumInServiceAsync(syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
 
         internal async Task VerifyChecksumInServiceAsync(Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = (await RemotableDataService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            var otherObject = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }
 
-        internal static void SynchronizationObjectEqual<T>(T checksumObject1, T checksumObject2) where T : RemotableData
+        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, ChecksumObjectCollection<T> checksumObject2) where T : ChecksumWithChildren
+            => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
+
+        internal static void SynchronizationObjectEqual<T>(ChecksumObjectCollection<T> checksumObject1, SolutionAsset checksumObject2) where T : ChecksumWithChildren
+            => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
+
+        internal static void SynchronizationObjectEqual(SolutionAsset checksumObject1, SolutionAsset checksumObject2)
             => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
 
         internal static void ChecksumEqual(Checksum checksum1, WellKnownSynchronizationKind kind1, Checksum checksum2, WellKnownSynchronizationKind kind2)

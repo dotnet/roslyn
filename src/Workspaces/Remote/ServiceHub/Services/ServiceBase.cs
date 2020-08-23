@@ -37,6 +37,17 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
 
+        private readonly RemoteWorkspaceManager _workspaceManager;
+
+        /// <summary>
+        /// Default workspace manager used by the product. Tests may specify a custom <see cref="RemoteWorkspaceManager"/>
+        /// in order to override workspace services.
+        /// </summary>
+        internal static readonly RemoteWorkspaceManager s_defaultWorkspaceManager = new RemoteWorkspaceManager();
+
+        // test data are only available when running tests:
+        internal readonly RemoteHostTestData? TestData;
+
         static ServiceBase()
         {
             // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
@@ -47,8 +58,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
+            TestData = (RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData));
+
             // in unit test, service provider will return asset storage, otherwise, use the default one
-            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
+            AssetStorage = TestData?.AssetStorage ?? AssetStorage.Default;
+
+            _workspaceManager = TestData?.WorkspaceManager ?? s_defaultWorkspaceManager;
 
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Log(TraceEventType.Information, "Service instance created");
@@ -82,11 +97,15 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void Log(TraceEventType errorType, string message)
             => Logger.TraceEvent(errorType, 0, $"{DebugInstanceString}: {message}");
 
-        protected SolutionService CreateSolutionService(PinnedSolutionInfo solutionInfo)
-            => new SolutionService(SolutionService.CreateAssetProvider(solutionInfo, AssetStorage));
+        public RemoteWorkspace GetWorkspace()
+            => _workspaceManager.GetWorkspace();
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-            => CreateSolutionService(solutionInfo).GetSolutionAsync(solutionInfo, cancellationToken);
+        {
+            var workspace = GetWorkspace();
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, AssetStorage);
+            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+        }
 
         internal Task<Solution> GetSolutionImplAsync(JObject solutionInfo, CancellationToken cancellationToken)
         {
@@ -94,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance }, DateParseHandling = DateParseHandling.None });
             var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
 
-            return CreateSolutionService(pinnedSolutionInfo).GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
+            return GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
         }
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)

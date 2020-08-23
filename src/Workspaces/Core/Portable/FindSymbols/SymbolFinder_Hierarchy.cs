@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                         var bestMember = sourceMember ?? m;
 
-                        if (IsOverride(solution, bestMember, symbol))
+                        if (IsOverride(solution, bestMember, symbol, cancellationToken))
                         {
                             results.Add(bestMember);
                         }
@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndFree();
         }
 
-        internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol)
+        internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
             for (var current = member; current != null; current = current.OverriddenMember())
             {
-                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution))
+                if (OriginalSymbolsMatch(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken))
                 {
                     return true;
                 }
