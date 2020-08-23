@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
 
         public Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, this.CreateRequestContext(request, SolutionProvider, requestContext.GetClientCapabilities()), cancellationToken);
+            => base.HandleRequestAsync(param, this.CreateRequestContext(param, _solutionProvider, requestContext.GetClientCapabilities()), cancellationToken);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentSignatureHelpName)]
