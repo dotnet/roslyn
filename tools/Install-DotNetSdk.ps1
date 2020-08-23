@@ -148,7 +148,10 @@ if (-not (Test-Path $DotNetInstallScriptPath)) {
     }
 }
 
+$anythingInstalled = $false
+
 if ($PSCmdlet.ShouldProcess(".NET Core SDK $sdkVersion", "Install")) {
+    $anythingInstalled = $true
     Invoke-Expression -Command "$DotNetInstallScriptPath -Version $sdkVersion $switches"
 } else {
     Invoke-Expression -Command "$DotNetInstallScriptPath -Version $sdkVersion $switches -DryRun"
@@ -158,6 +161,7 @@ $switches += '-Runtime','dotnet'
 
 $runtimeVersions | Get-Unique |% {
     if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
+        $anythingInstalled = $true
         Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $switches"
     } else {
         Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $switches -DryRun"
@@ -166,4 +170,8 @@ $runtimeVersions | Get-Unique |% {
 
 if ($PSCmdlet.ShouldProcess("Set DOTNET environment variables to discover these installed runtimes?")) {
     & "$PSScriptRoot/Set-EnvVars.ps1" -Variables $envVars -PrependPath $DotNetInstallDir | Out-Null
+}
+
+if ($anythingInstalled -and ($InstallLocality -ne 'machine') -and !$env:TF_BUILD -and !$env:GITHUB_ACTIONS) {
+    Write-Warning ".NET Core runtimes or SDKs were installed to a non-machine location. Perform your builds or open Visual Studio from this same environment in order for tools to discover the location of these dependencies."
 }
