@@ -555,6 +555,9 @@ dotnet_diagnostic.IDE0082.severity = %value%
 # IDE0084
 visual_basic_style_prefer_isnot_expression = true:suggestion
 
+# IDE0085
+visual_basic_style_parentheses_for_invocations = true:silent
+
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
 
@@ -1117,6 +1120,9 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
 No editorconfig based code style option
+
+# IDE0082, IncludeParenthesesForMethodInvocations
+visual_basic_style_parentheses_for_invocations = true:silent
 
 # IDE0077
 No editorconfig based code style option

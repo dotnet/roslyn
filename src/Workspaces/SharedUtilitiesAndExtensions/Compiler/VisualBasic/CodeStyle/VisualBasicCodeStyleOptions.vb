@@ -59,10 +59,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
                 editorConfigName:="visual_basic_style_unused_value_assignment_preference",
                 defaultValue:=New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion),
                 optionsBuilder:=s_allOptionsBuilder)
+
+        Public Shared ReadOnly IncludeParenthesesForMethodInvocations As [Option2](Of CodeStyleOption2(Of Boolean)) = CreateOption(
+            VisualBasicCodeStyleOptionGroups.Parentheses, NameOf(IncludeParenthesesForMethodInvocations),
+            defaultValue:=CodeStyleOptions2.TrueWithSilentEnforcement,
+            EditorConfigStorageLocation.ForBoolCodeStyleOption("visual_basic_style_parentheses_for_invocations")) ' RoamingProfileStorageLocation ??
+
+        Public Shared ReadOnly IncludeParenthesesForPropertyInvocations As [Option2](Of CodeStyleOption2(Of Boolean)) = CreateOption(
+            VisualBasicCodeStyleOptionGroups.Parentheses, NameOf(IncludeParenthesesForPropertyInvocations),
+            defaultValue:=CodeStyleOptions2.FalseWithSilentEnforcement,
+            EditorConfigStorageLocation.ForBoolCodeStyleOption("visual_basic_style_parentheses_for_properties")) ' RoamingProfileStorageLocation ??
     End Class
 
     Friend NotInheritable Class VisualBasicCodeStyleOptionGroups
         Public Shared ReadOnly Modifier As New OptionGroup(CompilerExtensionsResources.Modifier_preferences, priority:=1)
         Public Shared ReadOnly ExpressionLevelPreferences As New OptionGroup(CompilerExtensionsResources.Expression_level_preferences, priority:=2)
+        ' I didn't create Parentheses_preferences in resources. Not sure if I shouldn't use it, not also sure where does this value get used? Not sure about priority also :/
+        Public Shared ReadOnly Parentheses As New OptionGroup(CompilerExtensionsResources.Parentheses_preferences, priority:=1)
     End Class
 End Namespace
