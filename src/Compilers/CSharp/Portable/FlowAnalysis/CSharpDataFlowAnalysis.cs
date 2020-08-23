@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.CreateRange(data.Where(s => s.CanBeReferencedByName).OrderBy(s => s, LexicalOrderSymbolComparer.Instance).GetPublicSymbols());
         }
 
-         private static ImmutableArray<IMethodSymbol> Normalize(IEnumerable<MethodSymbol> data)
+        private static ImmutableArray<IMethodSymbol> Normalize(IEnumerable<MethodSymbol> data)
         {
             return ImmutableArray.CreateRange(data.Where(s => s.CanBeReferencedByName).OrderBy(s => s, LexicalOrderSymbolComparer.Instance).Select(p => p.GetPublicSymbol()));
         }
