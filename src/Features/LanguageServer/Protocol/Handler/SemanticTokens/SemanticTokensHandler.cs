@@ -25,29 +25,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// is difficult to correctly apply to their tags cache. This allows for reliable recovery from errors and accounts
     /// for limitations in the edits application logic.
     /// </remarks>
-    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName), Shared]
-    internal class SemanticTokensHandler : AbstractRequestHandler<LSP.SemanticTokensParams, LSP.SemanticTokens>
+    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName, mutatesSolutionState: false), Shared]
+    internal class SemanticTokensHandler : IRequestHandler<LSP.SemanticTokensParams, LSP.SemanticTokens>
     {
         private readonly SemanticTokensCache _tokensCache;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensHandler(
-            ILspSolutionProvider solutionProvider,
-            SemanticTokensCache tokensCache) : base(solutionProvider)
+        public SemanticTokensHandler(SemanticTokensCache tokensCache)
         {
             _tokensCache = tokensCache;
         }
 
-        public override async Task<LSP.SemanticTokens> HandleRequestAsync(
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensParams request) => request.TextDocument;
+
+        public async Task<LSP.SemanticTokens> HandleRequestAsync(
             LSP.SemanticTokensParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Document, "Document is null.");
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
+
             var resultId = _tokensCache.GetNextResultId();
             var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                request.TextDocument, context.ClientName, SolutionProvider, SemanticTokensCache.TokenTypeToIndex,
+                context.Document, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
             var tokens = new LSP.SemanticTokens { ResultId = resultId, Data = tokensData };
