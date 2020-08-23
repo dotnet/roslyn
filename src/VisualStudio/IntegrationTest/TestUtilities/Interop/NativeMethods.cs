@@ -3,18 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Setup.Configuration;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 {
     internal static class NativeMethods
     {
         private const string Kernel32 = "kernel32.dll";
-        private const string Ole32 = "ole32.dll";
         private const string User32 = "User32.dll";
 
         #region kernel32.dll
@@ -32,16 +28,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(Kernel32, SetLastError = false)]
         public static extern IntPtr GetConsoleWindow();
-
-        #endregion
-
-        #region ole32.dll
-
-        [DllImport(Ole32, PreserveSig = false)]
-        public static extern void CreateBindCtx(int reserved, [MarshalAs(UnmanagedType.Interface)] out IBindCtx bindContext);
-
-        [DllImport(Ole32, PreserveSig = false)]
-        public static extern void GetRunningObjectTable(int reserved, [MarshalAs(UnmanagedType.Interface)] out IRunningObjectTable runningObjectTable);
 
         #endregion
 

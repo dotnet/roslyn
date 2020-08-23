@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var processId = await client._endPoint.InvokeAsync<int>(
                        nameof(IRemoteHostService.GetProcessIdAsync),
-                       new object?[0],
+                       Array.Empty<object?>(),
                        cancellationToken).ConfigureAwait(false);
 
                 client.Started(processId);
@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
         #endregion
     }
 }

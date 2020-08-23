@@ -104,34 +104,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         [DllImport("ole32.dll", PreserveSig = false)]
         public static extern void CreateBindCtx(int reserved, [MarshalAs(UnmanagedType.Interface)] out Microsoft.VisualStudio.OLE.Interop.IBindCtx bindContext);
-
-        private static void RetryIfBusy(Action action)
-        {
-            const int MaxAttempts = 5;
-            const int SleepInterval = 2000;
-
-            int attempts = 0;
-            while (true)
-            {
-                try
-                {
-                    attempts++;
-                    action();
-                    return;
-                }
-                catch (COMException e) when
-                    (e.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER && attempts < MaxAttempts)
-                {
-                    Thread.Sleep(SleepInterval);
-                }
-            }
-        }
-
-        private static T RetryIfBusy<T>(Func<T> func)
-        {
-            T result = default;
-            RetryIfBusy(() => { result = func(); });
-            return result;
-        }
     }
 }

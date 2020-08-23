@@ -348,11 +348,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public Task<int> GetProcessIdAsync(CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(() =>
-            {
-                return Task.FromResult(Process.GetCurrentProcess().Id);
-            }, cancellationToken);
-        }
+            => Task.FromResult(Process.GetCurrentProcess().Id);
     }
 }
