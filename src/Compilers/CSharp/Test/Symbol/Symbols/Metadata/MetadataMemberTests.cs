@@ -794,7 +794,7 @@ public class C
             Assert.Empty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithMetadataImportOptions(metadataImportOptions: MetadataImportOptions.All));
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
