@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IncludeParenthesesForMethodInvocati
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
-            ImmutableArray.Create(IDEDiagnosticIds.IncludeParenthesesForMethodInvocationsDiagnosticId)
+            ImmutableArray.Create(IDEDiagnosticIds.AddParenthesesForMethodInvocationsDiagnosticId)
 
         Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.CodeStyle
 
@@ -42,13 +42,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IncludeParenthesesForMethodInvocati
                 If invocationExpression.ArgumentList Is Nothing Then
                     ' Add the parentheses.
                     context.RegisterCodeFix(New MyCodeAction(
-                        VisualBasicAnalyzersResources.Add_method_invocation_parentheses,
+                        VisualBasicAnalyzersResources.Add_parentheses_to_method_invocation,
                         Function(ct) FixAsync(context.Document, diagnostic, ct)),
                         diagnostic)
                 Else
                     ' Remove the parentheses.
                     context.RegisterCodeFix(New MyCodeAction(
-                        VisualBasicAnalyzersResources.Remove_method_invocation_parentheses,
+                        VisualBasicAnalyzersResources.Remove_parentheses_from_method_invocation,
                         Function(ct) FixAsync(context.Document, diagnostic, ct)),
                         diagnostic)
                 End If

@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.IncludeParenthesesForMethodInvocations.VisualBasicIncludeParenthesesForMethodInvocationsDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.ParenthesesForMethodInvocations.VisualBasicAddParenthesesAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.IncludeParenthesesForMethodInvocations.VisualBasicIncludeParenthesesForMethodInvocationsCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.IncludeParenthesesForMethodInvocations

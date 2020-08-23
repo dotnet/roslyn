@@ -2,7 +2,7 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VisualBasicAnalyzersResources.resx">
     <body>
-      <trans-unit id="Add_method_invocation_parentheses">
+      <trans-unit id="Add_parentheses_to_method_invocation">
         <source>Add parentheses to method invocation</source>
         <target state="new">Add parentheses to method invocation</target>
         <note />
@@ -27,7 +27,7 @@
         <target state="translated">"ByVal" 关键字是不必要的，可以删除。</target>
         <note>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
       </trans-unit>
-      <trans-unit id="Remove_method_invocation_parentheses">
+      <trans-unit id="Remove_parentheses_from_method_invocation">
         <source>Remove parentheses from method invocation</source>
         <target state="new">Remove parentheses from method invocation</target>
         <note />
