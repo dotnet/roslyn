@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -60,6 +61,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentHighlightProvider = true,
                     ReferencesProvider = true,
                     ProjectContextProvider = true,
+                    SemanticTokensOptions = new LSP.SemanticTokensOptions
+                    {
+                        DocumentProvider = new LSP.SemanticTokensDocumentProviderOptions { Edits = true },
+                        RangeProvider = true,
+                        Legend = new LSP.SemanticTokensLegend
+                        {
+                            TokenTypes = LSP.SemanticTokenTypes.AllTypes.ToArray(),
+                            TokenModifiers = new string[] { LSP.SemanticTokenModifiers.Static }
+                        }
+                    },
                     ExecuteCommandProvider = new LSP.ExecuteCommandOptions(),
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {

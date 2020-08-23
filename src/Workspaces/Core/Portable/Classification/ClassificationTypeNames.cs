@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <summary>
         /// Additive classifications types supply additional context to other classifications.
         /// </summary>
+        /// <remarks>
+        /// NOTE: Any updates to this class should also be reflected in LSP - see
+        /// Features/LanguageServer/Protocol/Handler/SemanticTokens/SemanticTokensHelpers.cs
+        /// </remarks>
         public static ImmutableArray<string> AdditiveTypeNames { get; } = ImmutableArray.Create(StaticSymbol);
 
         public const string Comment = "comment";
