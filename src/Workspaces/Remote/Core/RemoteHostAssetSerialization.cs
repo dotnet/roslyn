@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
-        public static async Task WriteDataAsync(ObjectWriter writer, IRemotableDataService remotableDataService, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
+        public static async Task WriteDataAsync(ObjectWriter writer, SolutionAssetStorage assetStorage, ISerializerService serializer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             writer.WriteInt32(scopeId);
 
@@ -31,27 +31,32 @@ namespace Microsoft.CodeAnalysis.Remote
             if (checksums.Length == 1)
             {
                 var checksum = checksums[0];
-                var remotableData = (await remotableDataService.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
+
+                var asset = (await assetStorage.GetAssetAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
                 writer.WriteInt32(1);
 
-                await WriteRemotableData(writer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
+                WriteAsset(writer, serializer, checksum, asset, cancellationToken);
                 return;
             }
 
-            var remotableDataMap = await remotableDataService.GetRemotableDataAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
-            writer.WriteInt32(remotableDataMap.Count);
+            var assets = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
+            writer.WriteInt32(assets.Count);
 
-            foreach (var (checksum, remotableData) in remotableDataMap)
+            foreach (var (checksum, asset) in assets)
             {
-                await WriteRemotableData(writer, checksum, remotableData, cancellationToken).ConfigureAwait(false);
+                WriteAsset(writer, serializer, checksum, asset, cancellationToken);
             }
 
-            static async Task WriteRemotableData(ObjectWriter writer, Checksum checksum, RemotableData remotableData, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
             {
                 checksum.WriteTo(writer);
-                writer.WriteInt32((int)remotableData.Kind);
+                writer.WriteInt32((int)asset.Kind);
 
-                await remotableData.WriteObjectToAsync(writer, cancellationToken).ConfigureAwait(false);
+                // null is already indicated by checksum and kind above:
+                if (asset.Value is not null)
+                {
+                    serializer.Serialize(asset.Value, writer, cancellationToken);
+                }
             }
         }
 

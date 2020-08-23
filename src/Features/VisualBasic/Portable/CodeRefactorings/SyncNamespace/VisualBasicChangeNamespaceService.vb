@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
                 [new] = [new].WithTriviaFrom(old)
 
-            ElseIf syntaxFacts.IsNameOfMemberAccessExpression(nameRef) Then
+            ElseIf syntaxFacts.IsNameOfsimpleMemberAccessExpression(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.SimpleMemberAccessExpression(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())

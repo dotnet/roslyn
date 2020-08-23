@@ -277,7 +277,7 @@ function GetIbcSourceBranchName() {
   }
 
   function calculate {
-    $fallback = "master"
+    $fallback = "main"
 
     $branchData = GetBranchPublishData $officialSourceBranchName
     if ($branchData -eq $null) {
