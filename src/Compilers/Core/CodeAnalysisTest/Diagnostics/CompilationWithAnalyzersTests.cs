@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void GetEffectiveDiagnostics()
         {
-            var c = CSharpCompilation.Create("c", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+            var c = CSharpCompilation.Create("c", options: TestOptions.ReleaseDll.
                 WithSpecificDiagnosticOptions(
                     new[] { KeyValuePairUtil.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void GetAnalyzerTelemetry()
         {
-            var compilation = CSharpCompilation.Create("c", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = CSharpCompilation.Create("c", options: TestOptions.ReleaseDll);
             DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
             var analyzers = ImmutableArray.Create(analyzer);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
             var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var options = TestOptions.ReleaseDll;
             _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException: null);
         }
     }
