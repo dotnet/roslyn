@@ -207,30 +207,64 @@ End Class")
         End Function
 
         <Fact>
-        Public Function TestInlineLambda() As Task
+        Public Function TestInlineLambda1() As Task
             Return TestVerifier.TestInRegularAndScript1Async(
                 "
-Imports system;
+Imports System
 Public Class TestClass
     Public Sub Caller(i As Integer, j As Integer)
-        Dim x = Call[||]ee()
+        Dim x = Call[||]ee(i, j)
     End Sub
 
-    Private Function Callee(i As Integer, j As Integer) as Func<int>
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
         return Function()
                    Return i * j
                End Function
     End Function
 End Class",
                 "
+Imports System
 Public Class TestClass
     Public Sub Caller(i As Integer, j As Integer)
         Dim x = Function()
-                    Return i * j
-                End Function
+                   Return i * j
+               End Function
     End Sub
 
-    Private Function Callee(i As Integer, j As Integer) as Func<int>
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
+        return Function()
+                   Return i * j
+               End Function
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineLambda2() As Task
+            Return TestVerifier.TestInRegularAndScript1Async(
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller(i As Integer, j As Integer)
+        Dim x = Call[||]ee(i, j)()
+    End Sub
+
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
+        return Function()
+                   Return i * j
+               End Function
+    End Function
+End Class",
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller(i As Integer, j As Integer)
+        Dim x = Function()
+                   Return i * j
+               End Function()
+    End Sub
+
+    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
         return Function()
                    Return i * j
                End Function
@@ -283,18 +317,19 @@ Public Class TestClass
         Return Ca[||]llee()
     End Function
 
-    Public Async Function Callee() As Task
-        Return Await Task.Delay(100)
+    Private Async Function Callee() As Task
+        Await Task.Delay(100)
     End Function
 End Class",
                 "
+Imports System.Threading.Tasks
 Public Class TestClass
-    Public Async Function Caller() As Task
-        Return await Task.Delay(100)
+    Public Function Caller() As Task
+        Return Task.Delay(100)
     End Function
 
-    Public Async Function Callee() As Task
-        Return Await Task.Delay(100)
+    Private Async Function Callee() As Task
+        Await Task.Delay(100)
     End Function
 End Class")
         End Function
@@ -318,14 +353,41 @@ End Class",
                 "
 Imports System.Threading.Tasks
 Public Class TestClass
-    Public Function Caller() As Task
-        Dim x = Async Function(i As Integer) As Task
-                    Return Await Task.Delay(100)
+    Public Sub Caller()
+        Dim x = Function(i As Integer) As Task
+                    Return Task.Delay(100)
                 End Function
-    End Function
+    End Sub
 
     Private Async Function Callee() As Task
-        Return Await Task.Delay(100)
+        Await Task.Delay(100)
+    End Function
+End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineAwaitExpression3() As Task
+            Return TestVerifier.TestInRegularAndScript1Async(
+                "
+Imports System.Threading.Tasks
+Public Class TestClass
+    Public Async Function Caller() As Task
+        Await Ca[||]llee()
+    End Function
+
+    Private Async Function Callee() As Task(Of Integer)
+        Return Await Task.FromResult(1)
+    End Function
+End Class",
+                "
+Imports System.Threading.Tasks
+Public Class TestClass
+    Public Async Function Caller() As Task
+        Await Task.FromResult(1)
+    End Function
+
+    Private Async Function Callee() As Task(Of Integer)
+        Return Await Task.FromResult(1)
     End Function
 End Class")
         End Function

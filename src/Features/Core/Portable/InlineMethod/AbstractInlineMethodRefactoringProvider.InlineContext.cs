@@ -277,9 +277,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 syntaxGenerator,
                 renameTable);
 
-            // Check if there is await expression. It is used later if the caller should be changed to async
-            var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodNode);
-
             // Do the replacement work within the callee's body so that it can be inserted to the caller later.
             inlineExpression = await ReplaceAllSyntaxNodesForSymbolAsync(
                document,
@@ -287,6 +284,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                syntaxGenerator,
                replacementTable,
                cancellationToken).ConfigureAwait(false);
+
+            // Check if there is await expression. It is used later if the caller should be changed to async
+            var containsAwaitExpression = ContainsAwaitExpression(rawInlineExpression, calleeMethodNode);
 
             if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
                 && !calleeMethodSymbol.ReturnsVoid
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // Func<int> Callee() { return () => 1; }
             // This is also not a problem for VB
             if (calleeMethodSymbol.ReturnType.IsDelegateType()
-                && TryGetInlineNodeAndReplacementNodeForDelegate(
+                && TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(
                     calleeInvocationNode,
                     calleeMethodSymbol,
                     inlineExpression,
@@ -445,7 +445,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
         }
 
-        private static async Task<TExpressionSyntax> ReplaceAllSyntaxNodesForSymbolAsync(Document document,
+        private static async Task<TExpressionSyntax> ReplaceAllSyntaxNodesForSymbolAsync(
+            Document document,
             TExpressionSyntax inlineExpression,
             SyntaxGenerator syntaxGenerator,
             ImmutableDictionary<ISymbol, SyntaxNode> replacementTable,

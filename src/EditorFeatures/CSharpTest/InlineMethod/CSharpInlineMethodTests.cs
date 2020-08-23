@@ -784,11 +784,11 @@ public class TestClass
 using System.Threading.Tasks;
 public class TestClass
 {
-    public async Task<int> Caller(bool x)
+    public Task<int> Caller(bool x)
     {
         System.Console.WriteLine("""");
         int j = x ? 1 : 2;
-        return await Task.FromResult(10 + j);
+        return Task.FromResult(10 + j);
     }
 
     private async Task<int> Callee(int i, int j)
@@ -834,6 +834,164 @@ public class TestClass
 }");
 
         [Fact]
+        public Task TestAwaitExpresssion1()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public Task Caller()
+    {
+        return Cal[||]lee();
+    }
+
+    private async Task Callee()
+    {
+        await Task.CompletedTask;
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public Task Caller()
+    {
+        return Task.CompletedTask;
+    }
+
+    private async Task Callee()
+    {
+        await Task.CompletedTask;
+    }
+}");
+
+        [Fact]
+        public Task TestAwaitExpresssion2()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public async Task Caller()
+    {
+        await Cal[||]lee().ConfigureAwait(false);
+    }
+
+    private async Task Callee() => await Task.CompletedTask;
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public async Task Caller()
+    {
+        await Task.CompletedTask.ConfigureAwait(false);
+    }
+
+    private async Task Callee() => await Task.CompletedTask;
+}");
+
+        [Fact]
+        public Task TestAwaitExpresssion3()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public Task<int> Caller()
+    {
+        return Cal[||]lee();
+    }
+
+    private async Task<int> Callee() => await Task.FromResult(1);
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public Task<int> Caller()
+    {
+        return Task.FromResult(1);
+    }
+
+    private async Task<int> Callee() => await Task.FromResult(1);
+}");
+
+        [Fact]
+        public Task TestAwaitExpresssion4()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public int Caller()
+    {
+        var x = Cal[||]lee();
+        return 1;
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }
+    
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public async Task<int> Caller()
+    {
+        var x = Task.FromResult(await SomeCalculation());
+        return 1;
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }
+    
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}");
+
+        [Fact]
+        public Task TestAwaitExpresssion5()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee();
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }
+    
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public async void Caller()
+    {
+        var x = Task.FromResult(await SomeCalculation());
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }
+    
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}");
+
+        [Fact]
         public Task TestAwaitExpressionInLambda()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
@@ -862,10 +1020,10 @@ public class TestClass
 {
     private void Method()
     {
-        Func<bool, Task<int>> x1 = async (x) =>
+        Func<bool, Task<int>> x1 = (x) =>
         {
             System.Console.WriteLine("""");
-            return await Task.FromResult(10);
+            return Task.FromResult(10);
         };
     }
 
@@ -902,11 +1060,11 @@ public class TestClass
 {
     private void Method()
     {
-        async Task<int> Caller(bool x)
+        Task<int> Caller(bool x)
         {
             System.Console.WriteLine("""");
             int j = x ? 1 : 2;
-            return await Task.FromResult(10 + j);
+            return Task.FromResult(10 + j);
         }
     }
 
@@ -1489,6 +1647,7 @@ public class TestClass
     }
 }");
 
+
         [Fact]
         public Task TestInlineExpressionAsRightValueInRightAssociativeExpression()
             => TestVerifier.TestInRegularAndScript1Async(
@@ -2026,7 +2185,7 @@ public class TestClass
 }".Replace("(op)", op));
 
         [Fact]
-        public Task TestAwaitExpression()
+        public Task TestAwaitExpressionWithFireAndForgot()
             => TestVerifier.TestInRegularAndScript1Async(@"
 using System.Threading.Tasks;
 public class TestClass
@@ -2046,7 +2205,7 @@ public class TestClass
 {
     public async void Caller()
     {
-        await Task.Delay(100);
+        Task.Delay(100);
     }
     private async Task Callee()
     {

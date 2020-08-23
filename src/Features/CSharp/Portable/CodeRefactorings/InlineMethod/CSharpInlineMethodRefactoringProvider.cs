@@ -29,33 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         {
         }
 
-        private static bool CanStatementBeInlined(StatementSyntax statementSyntax)
-            => statementSyntax switch
-            {
-                ExpressionStatementSyntax _ => true,
-                // In this case don't provide inline.
-                // void Caller() { Callee(); }
-                // void Callee() { return; }
-                ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression != null,
-                _ => false
-            };
-
         protected override ExpressionSyntax? GetInlineExpression(MethodDeclarationSyntax methodDeclarationSyntax)
         {
             var blockSyntaxNode = methodDeclarationSyntax.Body;
             if (blockSyntaxNode != null)
             {
-
                 // 1. If it is an ordinary method with block
                 var blockStatements = blockSyntaxNode.Statements;
-                if (blockStatements.Count == 1 && CanStatementBeInlined(blockStatements[0]))
+                if (blockStatements.Count == 1)
                 {
                     var statementSyntax = blockStatements[0];
                     return statementSyntax switch
                     {
-                        // Check has been done before to make sure the argument is ReturnStatementSyntax or ExpressionStatementSyntax
-                        // and their expression is not null
-                        ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression!,
+                        // Note: For this case this will return null in Callee()
+                        // void Caller() { Callee(); }
+                        // void Callee() { return; }
+                        // Refactoring won't be provided for this case.
+                        ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression,
                         ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax.Expression,
                         _ => null
                     };
@@ -132,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                    || expressionNode.IsKind(SyntaxKind.AwaitExpression);
         }
 
-        protected override bool TryGetInlineNodeAndReplacementNodeForDelegate(
+        protected override bool TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(
             InvocationExpressionSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
             ExpressionSyntax inlineExpressionNode,
@@ -155,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                 // After inline it should be
                 // void Caller() { Action x = () => {};}
                 // Action Callee() { return () => {}; }
+                // 'var' can't be used for delegate
                 inlineSyntaxNode = UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
                     localDeclarationSyntax,
                     syntaxGenerator,
@@ -173,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             // After:
             // void Caller() { var x = ((Func<int>)(() => 1))(); }
             // Func<int> Callee() { return () => 1; }
-            // This is also not a problem for VB
+            // Cast expression is needed for lambda
             if (calleeInvocationNode.Parent?.IsKind(SyntaxKind.InvocationExpression) == true)
             {
                 inlineSyntaxNode = SyntaxFactory.CastExpression(

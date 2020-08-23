@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
         protected abstract SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments);
         protected abstract TExpressionSyntax Parenthesize(TExpressionSyntax expressionNode);
-        protected abstract bool TryGetInlineNodeAndReplacementNodeForDelegate(
+        protected abstract bool TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
             TExpressionSyntax inlineExpressionNode,
@@ -123,6 +123,17 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var inlineExpression = GetInlineExpression(calleeMethodNode);
+            if (_syntaxFacts.IsAwaitExpression(inlineExpression))
+            {
+                // This will make sure there is no duplicate 'await'
+                // Example:
+                // async Task Caller() => await Callee();
+                // async Task Callee() => await Task.CompletedTask;
+                // The original inline expression in callee will be 'await Task.CompletedTask'
+                // The caller just need 'Task.CompletedTask' without the 'await'
+                inlineExpression = _syntaxFacts.GetExpressionOfAwaitExpression(inlineExpression) as TExpressionSyntax;
+            }
+
             if (inlineExpression == null)
             {
                 return;
@@ -221,17 +232,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return await ChangeSolutionAsync(
                 document,
                 calleeMethodInvocationNode,
-                calleeMethodSymbol,
                 calleeMethodNode,
                 inlineContext,
                 removeCalleeDeclarationNode,
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> ChangeSolutionAsync(
-            Document document,
-            SyntaxNode calleeMethodInvocationNode,
-            IMethodSymbol calleeMethodSymbol,
+        private async Task<Solution> ChangeSolutionAsync(Document document,
+            TInvocationSyntax calleeMethodInvocationNode,
             TMethodDeclarationSyntax calleeMethodNode,
             InlineMethodContext inlineMethodContext,
             bool removeCalleeDeclarationNode,
@@ -257,16 +265,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // If the inline content has 'await' expression, then make sure the caller is converted to 'async' method
             if (inlineMethodContext.ContainsAwaitExpression)
             {
-                var enclosingMethod = GetEnclosingMethodLikeNode(calleeMethodInvocationNode);
-                if (enclosingMethod != null)
-                {
-                    var methodSymbol = semanticModel.GetDeclaredSymbol(enclosingMethod, cancellationToken)
-                        ?? semanticModel.GetSymbolInfo(enclosingMethod, cancellationToken).GetAnySymbol();
-                    if (methodSymbol is IMethodSymbol callerMethodSymbol && !callerMethodSymbol.IsAsync)
-                    {
-                        documentEditor.SetModifiers(enclosingMethod, DeclarationModifiers.From(calleeMethodSymbol).WithAsync(isAsync: true));
-                    }
-                }
+                ChangeCallerToAsyncDeclaration(calleeMethodInvocationNode, semanticModel, documentEditor, cancellationToken);
             }
 
             if (removeCalleeDeclarationNode)
@@ -280,6 +279,45 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             return solutionEditor.GetChangedSolution();
+        }
+
+        private void ChangeCallerToAsyncDeclaration(
+            TInvocationSyntax calleeMethodInvocationNode,
+            SemanticModel semanticModel,
+            DocumentEditor documentEditor,
+            CancellationToken cancellationToken)
+        {
+            var callerMethodNode = GetEnclosingMethodLikeNode(calleeMethodInvocationNode);
+            if (callerMethodNode != null)
+            {
+                var methodSymbol = semanticModel.GetDeclaredSymbol(callerMethodNode, cancellationToken)
+                    ?? semanticModel.GetSymbolInfo(callerMethodNode, cancellationToken).GetAnySymbol();
+                if (methodSymbol is IMethodSymbol callerMethodSymbol && !callerMethodSymbol.IsAsync)
+                {
+                    var declarationModifiers = DeclarationModifiers.From(callerMethodSymbol).WithAsync(true);
+                    if (callerMethodSymbol.IsAwaitableNonDynamic(semanticModel, callerMethodNode.Span.Start)
+                        || callerMethodSymbol.ReturnsVoid)
+                    {
+                        documentEditor.SetModifiers(callerMethodNode, declarationModifiers);
+                    }
+                    else
+                    {
+                        // If the caller is not returning await types,
+                        // Try change it to Task<T>
+                        var newType = semanticModel.Compilation.TaskOfTType()?.Construct(callerMethodSymbol.ReturnType);
+                        if (newType != null)
+                        {
+                            var typeSyntax = GenerateTypeSyntax(newType, allowVar: false);
+                            documentEditor.ReplaceNode(callerMethodNode,
+                                (node, generator) =>
+                                {
+                                    var declarationWithNewType = generator.WithType(node, typeSyntax);
+                                    return generator.WithModifiers(declarationWithNewType, declarationModifiers);
+                                });
+                        }
+                    }
+                }
+            }
         }
 
         private class MySolutionChangeAction : CodeAction.SolutionChangeAction

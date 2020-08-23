@@ -64,12 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return expressionNode.Parenthesize()
         End Function
 
-        Protected Overrides Function TryGetInlineNodeAndReplacementNodeForDelegate(calleeInvocationNode As InvocationExpressionSyntax, calleeMethodSymbol As IMethodSymbol, inlineExpressionNode As ExpressionSyntax, statementContainsCallee As StatementSyntax, syntaxGenerator As SyntaxGenerator, ByRef inlineSyntaxNode As SyntaxNode, ByRef syntaxNodeToReplace As SyntaxNode) As Boolean
+        Protected Overrides Function TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(calleeInvocationNode As InvocationExpressionSyntax, calleeMethodSymbol As IMethodSymbol, inlineExpressionNode As ExpressionSyntax, statementContainsCallee As StatementSyntax, syntaxGenerator As SyntaxGenerator, ByRef inlineSyntaxNode As SyntaxNode, ByRef syntaxNodeToReplace As SyntaxNode) As Boolean
             Return False
         End Function
 
         Protected Overrides Function IsValidExpressionUnderStatementExpression(expressionNode As ExpressionSyntax) As Boolean
-            Return expressionNode.IsKind(SyntaxKind.AwaitExpression) Or expressionNode.IsKind(SyntaxKind.InvocationExpression)
+            Return expressionNode.IsKind(SyntaxKind.AwaitExpression) OrElse expressionNode.IsKind(SyntaxKind.InvocationExpression)
         End Function
     End Class
 End Namespace
