@@ -3741,6 +3741,7 @@ Done
 
         End Sub
 
+        <WorkItem(45158, "https://github.com/dotnet/roslyn/issues/45158")>
         <Fact>
         Public Sub EndWithSingleLineIf()
             Dim source =
@@ -3762,7 +3763,8 @@ End Module
             AssertTheseDiagnostics(compilation)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/45158")>
+        <WorkItem(45158, "https://github.com/dotnet/roslyn/issues/45158")>
+        <Fact>
         Public Sub EndWithMultiLineIf()
             Dim source =
 <compilation>
