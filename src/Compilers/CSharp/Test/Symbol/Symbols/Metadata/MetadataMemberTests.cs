@@ -682,7 +682,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var options = TestOptions.ReleaseDll;
 
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
@@ -724,7 +724,7 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            options = TestOptions.ReleaseDll;
             var compilation = CreateCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
@@ -764,16 +764,16 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal);
+            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal);
             Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All);
+            options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
             Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Public);
+            options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public);
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue);
+            options = TestOptions.ReleaseDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue);
             Assert.Equal((MetadataImportOptions)byte.MaxValue, options.MetadataImportOptions);
             options.VerifyErrors(expectedDiagnostics);
 
@@ -787,21 +787,21 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            var compilation = CreateCompilation("", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.Empty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All));
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithMetadataImportOptions(metadataImportOptions: MetadataImportOptions.All));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.NotEmpty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: (MetadataImportOptions)byte.MaxValue));
+            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
