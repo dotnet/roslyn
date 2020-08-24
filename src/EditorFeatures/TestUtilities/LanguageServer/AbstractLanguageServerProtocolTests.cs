@@ -336,7 +336,10 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = (TestWorkspace)solution.Workspace;
             var server = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
-            server.InitializeRequestQueue();
+            var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
+            var queue = new RequestExecutionQueue(solutionProvider);
+            queue.Initialize();
+            server.InitializeRequestQueue(queue);
             return server;
         }
 

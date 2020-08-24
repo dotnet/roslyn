@@ -23,8 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlLanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, ILspSolutionProvider solutionProvider)
-            : base(requestHandlers, solutionProvider, languageName: StringConstants.XamlLanguageName)
+        public XamlLanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers, languageName: StringConstants.XamlLanguageName)
         {
         }
     }

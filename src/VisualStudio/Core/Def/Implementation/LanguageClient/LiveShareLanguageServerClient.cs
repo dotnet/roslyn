@@ -29,8 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public LiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, diagnosticsClientName: null)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ILspSolutionProvider solutionProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
         }
 

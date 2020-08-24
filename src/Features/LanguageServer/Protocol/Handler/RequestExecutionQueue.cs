@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private AsyncQueue<QueueItem>? _queue;
         private CancellationTokenSource? _cancelSource;
 
+        public event EventHandler? Errored;
+
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _solutionProvider = solutionProvider;
@@ -67,8 +69,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public void Shutdown()
         {
-            _queue = null;
             _cancelSource?.Cancel();
+            _queue = null;
         }
 
         /// <summary>
@@ -145,6 +147,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
+            Contract.ThrowIfNull(_queue, "Queue should not be running when there isn't a queue to pull tasks from");
             Contract.ThrowIfNull(_cancelSource, "Queue should not run without a cancellation token source to stop it");
 
             // Keep track of solution state modifications made by LSP requests
@@ -153,35 +156,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             while (!queueToken.IsCancellationRequested)
             {
-                var work = await _queue.DequeueAsync().ConfigureAwait(false);
-
-                // Create a linked cancellation token to cancel any requests in progress when this shuts down
-                var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(queueToken, work.CancellationToken).Token;
-
-                // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
-                // to merge in the changes from any mutations that have been applied to open documents
-                var (document, solution) = _solutionProvider.GetDocumentAndSolution(work.TextDocument, work.ClientName);
-                solution = MergeChanges(solution, lastMutatedSolution);
-
-                Solution? mutatedSolution = null;
-                var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
-
-                if (work.MutatesSolutionState)
+                try
                 {
-                    // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                    var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                    var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
-                    // If the handling of the request failed, the exception will bubble back up to the caller, but we
-                    // still need to react to it here by throwing away solution updates
-                    if (ranToCompletion)
+                    // Create a linked cancellation token to cancel any requests in progress when this shuts down
+                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(queueToken, work.CancellationToken).Token;
+
+                    // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
+                    // to merge in the changes from any mutations that have been applied to open documents
+                    var (document, solution) = _solutionProvider.GetDocumentAndSolution(work.TextDocument, work.ClientName);
+                    solution = MergeChanges(solution, lastMutatedSolution);
+
+                    Solution? mutatedSolution = null;
+                    var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
+
+                    if (work.MutatesSolutionState)
                     {
-                        lastMutatedSolution = mutatedSolution ?? lastMutatedSolution;
+                        // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
+                        var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+
+                        // If the handling of the request failed, the exception will bubble back up to the caller, but we
+                        // still need to react to it here by throwing away solution updates
+                        if (ranToCompletion)
+                        {
+                            lastMutatedSolution = mutatedSolution ?? lastMutatedSolution;
+                        }
+                        else
+                        {
+                            Errored?.Invoke(this, EventArgs.Empty);
+                        }
+                    }
+                    else
+                    {
+                        // Non mutating request get given the current solution state, but are otherwise fire-and-forget
+                        _ = work.CallbackAsync(context, cancellationToken);
                     }
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    // Non mutating request get given the current solution state, but are otherwise fire-and-forget
-                    _ = work.CallbackAsync(context, cancellationToken);
+                }
+                catch (Exception) when (FatalError.ReportWithoutCrash(e))
+                {
+                    Errored?.Invoke(this, EventArgs.Empty);
                 }
             }
         }

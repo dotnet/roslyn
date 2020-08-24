@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         public RazorLanguageClient(LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, ClientName)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ILspSolutionProvider solutionProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, ClientName)
         {
         }
     }

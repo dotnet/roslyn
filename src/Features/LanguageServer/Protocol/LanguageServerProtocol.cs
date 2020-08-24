@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, ILspSolutionProvider solutionProvider)
-            : base(requestHandlers, solutionProvider)
+        public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers)
         {
         }
     }

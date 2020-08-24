@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -41,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly CodeAnalysis.Workspace _workspace;
+        private readonly RequestExecutionQueue _queue;
 
         private VSClientCapabilities _clientCapabilities;
         private bool _shuttingDown;
@@ -51,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             CodeAnalysis.Workspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
+            ILspSolutionProvider solutionProvider,
             string? clientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
@@ -70,6 +73,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
             _clientCapabilities = new VSClientCapabilities();
+
+            _queue = new RequestExecutionQueue(solutionProvider);
+            _queue.Errored += RequestExecutionQueue_Errored;
+
+            _requestHandlerProvider.InitializeRequestQueue(_queue);
         }
 
         public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
@@ -83,8 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
-
-            _requestHandlerProvider.InitializeRequestQueue();
 
             var serverCapabilities = await _requestHandlerProvider.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName,
                 initializeParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
@@ -120,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _shuttingDown = true;
             _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
-            _requestHandlerProvider.ShutdownRequestQueue();
+            _queue.Shutdown();
 
             return Task.CompletedTask;
         }
@@ -282,6 +288,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Task.Run(() => PublishDiagnosticsAsync(document))
                     .CompletesAsyncOperation(asyncToken);
             }
+        }
+
+        private void RequestExecutionQueue_Errored(object sender, EventArgs e)
+        {
+            // log message and shut down
+            _jsonRpc.Dispose();
         }
 
         /// <summary>
