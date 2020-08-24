@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             {
                 // First look in the analyzer diagnostics of the document. By doing so we get detailed information about the actual
                 // diagnostic message and the code that is affected by the diagnostic id.
-                // If this fails, try to find it in the SupportedDiagnostics of all referenced analyzers.
+                // If this fails, try to find the error code in the SupportedDiagnostics of all referenced analyzers.
                 return
                     (await GetQuickInfoFromDiagnosticAnalyzerAsync(document, pragmaWarning, errorCode, cancellationToken).ConfigureAwait(false))
                     ?? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode);
