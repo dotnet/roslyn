@@ -2504,6 +2504,16 @@
         <target state="new">Type does not implement the collection pattern; member is is not a public instance or extension method.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>A type should not be named 'record'.</source>
+        <target state="new">A type should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>A type should not be named 'record'.</source>
+        <target state="new">A type should not be named 'record'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Une méthode marquée [DoesNotReturn] ne doit pas être retournée.</target>

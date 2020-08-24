@@ -1968,7 +1968,7 @@ class C : Base<S>
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord()
         {
             var src = @"
@@ -1980,21 +1980,87 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,7): error CS8860: A type should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 24),
                 // (6,24): error CS1513: } expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 24),
-                // (6,24): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (6,24): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 24),
-                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28),
-                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28)
+                );
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS8860: A type should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Struct()
+        {
+            var src = @"
+struct record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,8): warning CS8860: A type should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Interface()
+        {
+            var src = @"
+interface record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,11): warning CS8860: A type should not be named 'record'.
+                // interface record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 11)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Record()
+        {
+            var src = @"
+record record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,8): warning CS8860: A type should not be named 'record'.
+                // record record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Escaped()
+        {
+            var src = @"
+class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8860: A type should not be named 'record'.
+                // class @record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "@record").WithArguments("record").WithLocation(2, 7)
                 );
         }
 
@@ -2019,7 +2085,11 @@ class C
     }
 }";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (2,7): warning CS8860: A type should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                );
             CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
