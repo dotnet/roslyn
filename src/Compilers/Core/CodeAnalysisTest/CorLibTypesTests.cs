@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class CorLibTypesAndConstantTests : TestBase
     {
+        private const int MaxWarningLevel = 9999;
+
         [Fact]
         public void IntegrityTest()
         {
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var comp = CSharp.CSharpCompilation.Create(
                 "c",
-                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: MaxWarningLevel),
                 references: new[] { TestMetadata.NetCoreApp31.SystemRuntime });
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)

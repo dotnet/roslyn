@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,6 +14,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ShadowCopyAnalyzerAssemblyLoaderTests : TestBase
     {
+        private const int MaxWarningLevel = 9999;
+        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: MaxWarningLevel);
+
         [Fact, WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void LoadWithDependency()
         {
@@ -52,9 +56,9 @@ public abstract class AbstractTestAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
 }";
 
-                var analyzerDependencyCompilation = CSharp.CSharpCompilation.Create(
+                var analyzerDependencyCompilation = CSharpCompilation.Create(
                    "AnalyzerDependency",
-                   new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerDependencySource) },
+                   new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerDependencySource) },
                    new MetadataReference[]
                    {
                     TestMetadata.NetStandard20.mscorlib,
@@ -63,7 +67,7 @@ public abstract class AbstractTestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(microsoftCodeAnalysis.Path)
                    },
-                   new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                   s_dllWithMaxWarningLevel);
 
                 return directory.CreateDirectory("AnalyzerDependency").CreateFile("AnalyzerDependency.dll").WriteAllBytes(analyzerDependencyCompilation.EmitToArray());
             }
@@ -79,9 +83,9 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
 {
     private static string SomeString2 = AbstractTestAnalyzer.SomeString;
 }";
-                var analyzerMainCompilation = CSharp.CSharpCompilation.Create(
+                var analyzerMainCompilation = CSharpCompilation.Create(
                    "AnalyzerMain",
-                   new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerMainSource) },
+                   new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerMainSource) },
                    new MetadataReference[]
                    {
                         TestMetadata.NetStandard20.mscorlib,
@@ -91,7 +95,7 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
                         MetadataReference.CreateFromFile(microsoftCodeAnalysis.Path),
                         MetadataReference.CreateFromFile(analyzerDependency.Path)
                    },
-                   new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                   s_dllWithMaxWarningLevel);
 
                 return directory.CreateDirectory("AnalyzerMain").CreateFile("AnalyzerMain.dll").WriteAllBytes(analyzerMainCompilation.EmitToArray());
             }

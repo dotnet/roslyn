@@ -261,7 +261,7 @@ namespace N
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
                                                        new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
-                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
+                                                       TestOptions.DebugExe.WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
         }

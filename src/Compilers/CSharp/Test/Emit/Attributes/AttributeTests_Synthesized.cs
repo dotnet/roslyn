@@ -166,8 +166,7 @@ class Test
     public event Func<int> MyEvent;
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(source, options: options, symbolValidator: module =>
@@ -216,8 +215,7 @@ abstract class C
     public event Func<int> E;
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(source, options: options, symbolValidator: module =>
@@ -256,8 +254,7 @@ class C
     }
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: m =>
@@ -285,8 +282,7 @@ class C
     }
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: m =>
@@ -424,8 +420,7 @@ public class C
     }
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: module =>
@@ -480,8 +475,7 @@ class C
     }
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
@@ -539,8 +533,7 @@ class B : A
     }
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
@@ -578,8 +571,7 @@ class B : A
     }
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
@@ -622,8 +614,7 @@ class B : A
     }
 }
 ";
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
@@ -673,7 +664,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
@@ -708,7 +699,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
@@ -743,7 +734,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
@@ -778,7 +769,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
@@ -814,7 +805,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyDebuggableAttribute(module.GetAttributes().Single(), optimizationLevel, isSynthesized: false);
@@ -852,7 +843,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
@@ -887,7 +878,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyCompilationRelaxationsAttribute(module.GetAttributes().Single(), isSynthesized: false);
@@ -924,7 +915,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyDebuggableAttribute(module.GetAttributes().Single(), options.OptimizationLevel, isSynthesized: false);
@@ -950,7 +941,7 @@ public class Test
         [MemberData(nameof(FullMatrixTheoryData))]
         public void MissingWellKnownAttributesNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             var compilation = CreateEmptyCompilation("", options: options);
 
             if (outputKind.IsApplication())
@@ -988,7 +979,7 @@ public class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
@@ -1037,7 +1028,7 @@ public class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
@@ -1084,7 +1075,7 @@ public class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
@@ -1128,7 +1119,7 @@ public class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
@@ -1171,7 +1162,7 @@ public class Test
     {
     }
 }";
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             var compilation = CreateCompilation(source, options: options);
 
             if (outputKind.IsNetModule())
@@ -1202,7 +1193,7 @@ public class Test
 using System.Runtime.CompilerServices;
 
 [assembly: CompilationRelaxationsAttribute(0)]
-", options: new CSharpCompilationOptions(OutputKind.NetModule, optimizationLevel: optimizationLevel));
+", options: TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel));
 
             var reference = ModuleMetadata.CreateFromImage(referenceComp.EmitToArray()).GetReference();
 
@@ -1215,7 +1206,7 @@ public class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
@@ -1243,7 +1234,7 @@ public class Test
 using System.Runtime.CompilerServices;
 
 [assembly: RuntimeCompatibilityAttribute()]
-", options: new CSharpCompilationOptions(OutputKind.NetModule, optimizationLevel: optimizationLevel));
+", options: TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel));
 
             var reference = ModuleMetadata.CreateFromImage(referenceComp.EmitToArray()).GetReference();
 
@@ -1256,7 +1247,7 @@ public class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
+            var options = TestOptions.DebugDll.WithOutputKind(outputKind).WithOptimizationLevel(optimizationLevel);
             CompileAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
@@ -1291,10 +1282,7 @@ unsafe class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40(source, options: new CSharpCompilationOptions(
-                outputKind: outputKind,
-                optimizationLevel: OptimizationLevel.Release,
-                allowUnsafe: true));
+            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.UnsafeReleaseDll.WithOutputKind(outputKind));
 
             //Skipped because PeVerify fails to run with "The module  was expected to contain an assembly manifest."
             CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
@@ -1357,7 +1345,7 @@ class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            var options = TestOptions.DebugDll
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
@@ -1401,7 +1389,7 @@ class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            var options = TestOptions.DebugDll
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
@@ -1444,7 +1432,7 @@ public class Test<T>
     }
 }";
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            var options = TestOptions.DebugDll
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
@@ -1487,7 +1475,7 @@ class Test
     }
 }";
 
-            var referenceOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            var referenceOptions = TestOptions.DebugDll
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
             var reference = CreateCompilationWithMscorlib45(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
@@ -1527,8 +1515,7 @@ class Test
     }
 }";
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
@@ -1558,8 +1545,7 @@ public class Test<T>
     }
 }";
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var options = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
             CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
@@ -1589,8 +1575,7 @@ public class Test<T>
     }
 }";
 
-            var referenceOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithOptimizationLevel(optimizationLevel)
+            var referenceOptions = TestOptions.DebugDll.WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
             var reference = CreateCompilationWithMscorlib45(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
 
