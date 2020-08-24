@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
             }
 
+            if (source.Encoding is null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
+            }
+
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
 

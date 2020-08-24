@@ -793,7 +793,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return true;
             }
 
-            if (syntaxFacts.IsRightSideOfQualifiedName(node) || syntaxFacts.IsNameOfMemberAccessExpression(node))
+            if (syntaxFacts.IsRightSideOfQualifiedName(node) ||
+                syntaxFacts.IsNameOfSimpleMemberAccessExpression(node) ||
+                syntaxFacts.IsNameOfMemberBindingExpression(node))
             {
                 return syntaxFacts.IsLeftSideOfDot(node.Parent);
             }
