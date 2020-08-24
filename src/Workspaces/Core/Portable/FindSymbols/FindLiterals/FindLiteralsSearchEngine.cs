@@ -116,8 +116,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async Task ProcessDocumentWorkerAsync(Document document)
         {
-            var index = await ProjectSyntaxTreeIndex.GetIndexAsync(
+            var index = await SyntaxTreeIndex.GetIndexAsync(
                 document, _cancellationToken).ConfigureAwait(false);
+
+            //var index = await ProjectSyntaxTreeIndex.GetIndexAsync(
+            //    document, _cancellationToken).ConfigureAwait(false);
+
 
             if (_searchKind == SearchKind.StringLiterals)
             {

@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             // Check if we have any relevant global attributes in this document.
-            var info = await ProjectSyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            // var info = await ProjectSyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var info = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (!info.ContainsGlobalAttributes)
             {
                 return ImmutableArray<FinderLocation>.Empty;

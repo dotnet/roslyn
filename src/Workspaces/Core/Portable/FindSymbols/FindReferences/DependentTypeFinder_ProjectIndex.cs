@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var document in project.Documents)
                 {
-                    var syntaxTreeIndex = await ProjectSyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+                    // var syntaxTreeIndex = await ProjectSyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+                    var syntaxTreeIndex = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
                     foreach (var info in syntaxTreeIndex.DeclaredSymbolInfos)
                     {
                         switch (info.Kind)

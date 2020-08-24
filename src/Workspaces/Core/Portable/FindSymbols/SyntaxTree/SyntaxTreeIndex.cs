@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
     }
 
+#if false
+
     internal class ProjectSyntaxTreeIndex
     {
         private const string PersistenceName = "<ProjectSyntaxTreeIndex>";
@@ -246,4 +248,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
     }
+
+#endif
 }
