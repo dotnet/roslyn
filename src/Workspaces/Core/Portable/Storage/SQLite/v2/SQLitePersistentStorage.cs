@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         }
 
-        public void Initialize(Solution solution)
+        public void Initialize(Solution solutionOpt)
         {
             if (_shutdownTokenSource.IsCancellationRequested)
             {
@@ -334,7 +334,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, solution, fetchStringTable);
+            BulkPopulateIds(connection, solutionOpt, fetchStringTable);
 
             return;
 

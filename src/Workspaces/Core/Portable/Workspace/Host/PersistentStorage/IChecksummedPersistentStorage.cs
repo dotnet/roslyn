@@ -9,6 +9,23 @@ using Microsoft.CodeAnalysis.PersistentStorage;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
 {
+    internal readonly struct SolutionKey
+    {
+        public readonly SolutionId Id;
+        public readonly string FilePath;
+        public readonly bool IsPrimaryBranch;
+
+        public SolutionKey(SolutionId id, string filePath, bool isPrimaryBranch)
+        {
+            Id = id;
+            FilePath = filePath;
+            IsPrimaryBranch = isPrimaryBranch;
+        }
+
+        public static explicit operator SolutionKey(Solution solution)
+            => new SolutionKey(solution.Id, solution.FilePath, solution.BranchId == solution.Workspace.PrimaryBranchId);
+    }
+
     internal readonly struct ProjectKey
     {
         public readonly ProjectId Id;

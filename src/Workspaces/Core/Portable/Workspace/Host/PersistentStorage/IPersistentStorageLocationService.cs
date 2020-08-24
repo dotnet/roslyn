@@ -10,6 +10,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -18,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Host
     {
         bool IsSupported(Workspace workspace);
         string? TryGetStorageLocation(Solution solution);
+    }
+
+    internal interface IPersistentStorageLocationService2 : IPersistentStorageLocationService
+    {
+        string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey);
     }
 
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService)), Shared]

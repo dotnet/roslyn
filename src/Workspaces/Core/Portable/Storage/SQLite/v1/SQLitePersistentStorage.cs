@@ -242,14 +242,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
-        public void Initialize(Solution solution)
+        public void Initialize(Solution solutionOpt)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using var pooledConnection = GetPooledConnection();
             var connection = pooledConnection.Connection;
 
             // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
-            // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
+            // by combining writes at checkpoint, along with using sequential-only writes to populate the log.
             // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
             connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
 
@@ -300,7 +300,7 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, solution, fetchStringTable);
+            BulkPopulateIds(connection, solutionOpt, fetchStringTable);
         }
     }
 }
