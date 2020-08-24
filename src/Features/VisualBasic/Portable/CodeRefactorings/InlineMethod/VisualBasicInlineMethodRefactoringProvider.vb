@@ -56,10 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return symbol.GenerateTypeSyntax()
         End Function
 
-        Protected Overrides Function GenerateArrayInitializerExpression(arguments As ImmutableArray(Of SyntaxNode)) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
         Protected Overrides Function Parenthesize(expressionNode As ExpressionSyntax) As ExpressionSyntax
             Return expressionNode.Parenthesize()
         End Function

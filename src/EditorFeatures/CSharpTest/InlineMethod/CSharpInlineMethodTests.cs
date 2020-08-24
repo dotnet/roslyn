@@ -446,9 +446,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = {
-            1
-        };
+        int[] x = new int[] { 1 };
         System.Console.WriteLine(x.Length);
     }
 
@@ -508,8 +506,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = {
-        };
+        int[] x = new int[] { };
         System.Console.WriteLine(x.Length);
     }
     private void Callee(params int[] x)
@@ -539,14 +536,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = {
-            1,
-            2,
-            3,
-            4,
-            5,
-            6
-        };
+        int[] x = new int[] { 1, 2, 3, 4, 5, 6 };
         System.Console.WriteLine(x.Length);
     }
 
@@ -749,11 +739,7 @@ public class TestClass
 {
     private void Caller<U>()
     {
-        int[] i = {
-            1,
-            2,
-            3
-        };
+        int[] i = new int[] { 1, 2, 3 };
         System.Console.WriteLine(typeof(int).Name.Length + i.Length + typeof(U).Name.Length);
     }
     private void Callee<T, U>(params T[] i)

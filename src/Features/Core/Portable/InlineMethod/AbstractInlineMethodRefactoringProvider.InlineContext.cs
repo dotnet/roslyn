@@ -424,6 +424,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // Check has been done before to make sure there is only one child.
             var argumentExpressionOperation = argumentOperation.Children.Single();
             if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
+                && parameterSymbol.Type is IArrayTypeSymbol paramArrayParameter
                 && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
                 && argumentOperation.IsImplicit)
             {
@@ -434,9 +435,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // Collect each of these arguments and generate a new array for it.
                 // Note: it could be empty.
                 return syntaxGenerator.LocalDeclarationStatement(
-                    parameterSymbol.Type,
+                    paramArrayParameter,
                     name,
-                    GenerateArrayInitializerExpression(arrayCreationOperation.Initializer.ElementValues.SelectAsArray(op => op.Syntax)));
+                    syntaxGenerator.ArrayCreationExpression(GenerateTypeSyntax(paramArrayParameter.ElementType, allowVar: false), arrayCreationOperation.Initializer.ElementValues.SelectAsArray(op => op.Syntax)));
             }
             else
             {
