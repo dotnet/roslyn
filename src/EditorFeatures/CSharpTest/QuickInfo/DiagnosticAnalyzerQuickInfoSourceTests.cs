@@ -49,14 +49,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", @"Variable ist zugewiesen, der Wert wird jedoch niemals verwendet");
         }
 
+        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task WarningBeforeDisablePragmaIsNotConsidered()
+        {
+            await TestInMethodAsync(
+@"
+        var i1 = 0;
+#pragma warning disable CS0219$$
+        var i2 = 0;
+", @"Die Variable ""i2"" ist zugewiesen, ihr Wert wird aber nie verwendet.", TextSpan.FromBounds(88, 90));
+        }
+
+        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("#pragma warning disable $$CS0162", @"Unerreichbarer Code wurde entdeckt.", 80, 83)]
+        [InlineData("#pragma warning disable $$CS0162, CS0219", @"Unerreichbarer Code wurde entdeckt.", 88, 91)]
+        [InlineData("#pragma warning disable $$CS0219", @"Die Variable ""i"" ist zugewiesen, ihr Wert wird aber nie verwendet.", 84, 85)]
+        [InlineData("#pragma warning disable CS0162, $$CS0219", @"Die Variable ""i"" ist zugewiesen, ihr Wert wird aber nie verwendet.", 92, 93)]
+        [InlineData("#pragma warning $$disable CS0162, CS0219", @"Unerreichbarer Code wurde entdeckt.", 88, 91)]
+        [InlineData("#pragma warning $$disable CS0219, CS0162", @"Die Variable ""i"" ist zugewiesen, ihr Wert wird aber nie verwendet.", 92, 93)]
+        public async Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, string description, int relatedSpandStart, int relatedSpanEnd)
+        {
+            await TestInMethodAsync(
+@$"
+{pragma}
+        return;
+        var i = 0;
+", description, TextSpan.FromBounds(relatedSpandStart, relatedSpanEnd));
+        }
+
         protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
             var info = await GetQuickinfo(workspace, document, position);
             var description = info?.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
             Assert.Equal(expectedDescription, description.Text);
-            Assert.Collection(info.RelatedSpans,
-                relatedSpans.Select(expectedSpan => new Action<TextSpan>(actualSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
+            Assert.Collection(relatedSpans,
+                info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
         }
 
         private static async Task<QuickInfoItem> GetQuickinfo(TestWorkspace workspace, Document document, int position)
@@ -105,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 @"class C
 {" + code + "}", expectedDescription, relatedSpans.ToImmutableArray());
 
-        protected Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
+        protected static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
             => TestInClassAsync(
 @"void M()
 {" + code + "}", expectedDescription, relatedSpans);
