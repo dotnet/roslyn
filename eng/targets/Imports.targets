@@ -38,7 +38,7 @@
       We still check $(TargetFrameworks) for empty though, because for single-targeted builds we want to
       allow nullable warnings regardless of target framework.
     -->
-    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND  '$(TargetFrameworks)' != ''AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND  '$(TargetFrameworks)' != '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
 
     <!--
       Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
