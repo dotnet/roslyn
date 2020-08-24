@@ -421,14 +421,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_lazyInitializeTask == null)
                 {
                     // Set initializeTask to be a cancelled task.
-                    var tcs = new TaskCompletionSource<int>();
-                    tcs.SetCanceled();
-                    _lazyInitializeTask = tcs.Task;
+                    _lazyInitializeTask = Task.FromCanceled(new CancellationToken(canceled: true));
 
                     // Set primaryTask to be a cancelled task.
-                    tcs = new TaskCompletionSource<int>();
-                    tcs.SetCanceled();
-                    _lazyPrimaryTask = tcs.Task;
+                    _lazyPrimaryTask = Task.FromCanceled(new CancellationToken(canceled: true));
 
                     // Try to set the DiagnosticQueue to be complete.
                     this.DiagnosticQueue.TryComplete();
@@ -627,9 +623,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_lazyPrimaryTask == null)
                 {
                     // Set primaryTask to be a cancelled task.
-                    var tcs = new TaskCompletionSource<int>();
-                    tcs.SetCanceled();
-                    _lazyPrimaryTask = tcs.Task;
+                    _lazyPrimaryTask = Task.FromCanceled(new CancellationToken(canceled: true));
                 }
             }
         }
@@ -663,9 +657,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_lazyPrimaryTask == null)
                 {
                     // Set primaryTask to be a cancelled task.
-                    var tcs = new TaskCompletionSource<int>();
-                    tcs.SetCanceled();
-                    _lazyPrimaryTask = tcs.Task;
+                    _lazyPrimaryTask = Task.FromCanceled(new CancellationToken(canceled: true));
 
                     // Try to set the DiagnosticQueue to be complete.
                     this.DiagnosticQueue.TryComplete();
