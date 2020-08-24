@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        public ISyntaxClassifier? Classifier { get; }
+        public ISyntaxClassifier? Classifier => null;
 
         public DateAndTimeEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
