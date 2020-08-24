@@ -3729,7 +3729,7 @@ public record C : B {
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(47093, "https://github.com/dotnet/roslyn/issues/47093")]
         public void ToString_TopLevelRecord_Empty()
         {
             var src = @"
@@ -3741,7 +3741,7 @@ record C1;
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -3769,7 +3769,7 @@ record C1;
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       57 (0x39)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -3785,14 +3785,18 @@ record C1;
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  pop
-  IL_0026:  ldloc.0
-  IL_0027:  ldstr      "" }""
-  IL_002c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0031:  pop
-  IL_0032:  ldloc.0
-  IL_0033:  callvirt   ""string object.ToString()""
-  IL_0038:  ret
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
 }
 ");
         }
@@ -3812,7 +3816,7 @@ record C2 : C1
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -3840,7 +3844,7 @@ record C2 : C1
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       57 (0x39)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -3856,14 +3860,18 @@ record C2 : C1
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  pop
-  IL_0026:  ldloc.0
-  IL_0027:  ldstr      "" }""
-  IL_002c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0031:  pop
-  IL_0032:  ldloc.0
-  IL_0033:  callvirt   ""string object.ToString()""
-  IL_0038:  ret
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
 }
 ");
         }
@@ -3885,7 +3893,7 @@ record C2 : C1
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -3915,7 +3923,7 @@ record C2 : C1
 ");
             v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
 {
-  // Code size       57 (0x39)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init (System.Text.StringBuilder V_0)
   IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
@@ -3931,14 +3939,18 @@ record C2 : C1
   IL_001e:  ldarg.0
   IL_001f:  ldloc.0
   IL_0020:  callvirt   ""bool Base.PrintMembers(System.Text.StringBuilder)""
-  IL_0025:  pop
-  IL_0026:  ldloc.0
-  IL_0027:  ldstr      "" }""
-  IL_002c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0031:  pop
-  IL_0032:  ldloc.0
-  IL_0033:  callvirt   ""string object.ToString()""
-  IL_0038:  ret
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
 }
 ");
         }
@@ -4028,7 +4040,7 @@ sealed record C1;
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C1 {  }");
+            CompileAndVerify(comp, expectedOutput: "C1 { }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Private, print.DeclaredAccessibility);
@@ -5963,7 +5975,7 @@ record @base;
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "base {  }");
+            CompileAndVerify(comp, expectedOutput: "base { }");
         }
 
         [Fact]
