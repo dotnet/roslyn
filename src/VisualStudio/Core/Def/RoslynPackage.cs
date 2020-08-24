@@ -198,19 +198,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 await experiment.InitializeAsync().ConfigureAwait(true);
             }
-
-            // Load the designer attribute service and tell it to start watching the solution for
-            // designable files.
-            var designerAttributeService = this.ComponentModel.GetService<IVisualStudioDesignerAttributeService>();
-            designerAttributeService.Start(this.DisposalToken);
-
-            // Load the telemetry service and tell it to start watching the solution for project info.
-            var projectTelemetryService = this.ComponentModel.GetService<IVisualStudioProjectTelemetryService>();
-            projectTelemetryService.Start(this.DisposalToken);
-
-            // Load the todo comments service and tell it to start watching the solution for new comments
-            var todoCommentsService = this.ComponentModel.GetService<IVisualStudioTodoCommentsService>();
-            todoCommentsService.Start(this.DisposalToken);
         }
 
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)

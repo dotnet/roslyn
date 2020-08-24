@@ -2456,10 +2456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             EnterParameters();
 
-            // State changes to captured variables are recorded, as calls to local functions
-            // transition the state of captured variables if the variables have state changes
-            // across all branches leaving the local function
-
             var oldPending2 = SavePending();
 
             // If this is an iterator, there's an implicit branch before the first statement

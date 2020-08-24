@@ -485,8 +485,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Type? type;
                     try
                     {
-                        // TODO: Once we move to CoreCLR we should just call GetType(typeName, throwOnError: true, ignoreCase: false) directly.
-                        // For now we fall back to reflection shim in order to report good error message (type load exception).
                         type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
                     }
                     catch (Exception e)

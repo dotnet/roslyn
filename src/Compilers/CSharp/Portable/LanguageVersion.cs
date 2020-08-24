@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// Displays the version number in the format expected on the command-line (/langver flag).
-        /// For instance, "6", "7", "7.1", "latest".
+        /// For instance, "6", "7.0", "7.1", "latest".
         /// </summary>
         public static string ToDisplayString(this LanguageVersion version)
         {

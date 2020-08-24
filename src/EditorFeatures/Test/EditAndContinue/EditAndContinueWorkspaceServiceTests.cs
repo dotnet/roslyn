@@ -118,19 +118,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        private sealed class DesignTimeOnlyDocumentServiceProvider : IDocumentServiceProvider
-        {
-            private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
-            {
-                public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
-                public override bool DesignTimeOnly => true;
-            }
-
-            TService IDocumentServiceProvider.GetService<TService>()
-                => DesignTimeOnlyDocumentPropertiesService.Instance is TService documentProperties ?
-                    documentProperties : DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
-        }
-
         private (DebuggeeModuleInfo, Guid) EmitAndLoadLibraryToDebuggee(string source, string assemblyName = "", string sourceFilePath = "test1.cs", Encoding encoding = null)
         {
             var (debuggeeModuleInfo, moduleId) = EmitLibrary(source, assemblyName, sourceFilePath, encoding);
@@ -237,7 +224,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class C2 {}"), VersionStamp.Create(), "design-time-only.cs")),
                 filePath: "design-time-only.cs",
                 isGenerated: false,
-                documentServiceProvider: new DesignTimeOnlyDocumentServiceProvider());
+                designTimeOnly: true,
+                documentServiceProvider: null);
 
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path).AddDocument(documentInfo));
             _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
@@ -548,7 +536,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class D {}"), VersionStamp.Create(), "design-time-only.cs")),
                 filePath: "design-time-only.cs",
                 isGenerated: false,
-                documentServiceProvider: new DesignTimeOnlyDocumentServiceProvider());
+                designTimeOnly: true,
+                documentServiceProvider: null);
 
             var solution = workspace.CurrentSolution.AddDocument(documentInfo);
             workspace.ChangeSolution(solution);

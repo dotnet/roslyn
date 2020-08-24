@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -353,8 +354,26 @@ namespace Microsoft.CodeAnalysis
 
         private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false)
         {
-            var message = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
-            var diagnostic = Diagnostic.Create(provider, message, generator.GetType().Name);
+            var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
+
+            // ISSUE: Diagnostics don't currently allow descriptions with arguments, so we have to manually create the diagnostic description
+            // ISSUE: Exceptions also don't support IFormattable, so will always be in the current UI Culture.
+            // ISSUE: See https://github.com/dotnet/roslyn/issues/46939
+
+            var description = string.Format(provider.GetDescription(errorCode).ToString(CultureInfo.CurrentUICulture), e);
+
+            var descriptor = new DiagnosticDescriptor(
+                provider.GetIdForErrorCode(errorCode),
+                provider.GetTitle(errorCode),
+                provider.GetMessageFormat(errorCode),
+                description: description,
+                category: "Compiler",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                customTags: WellKnownDiagnosticTags.AnalyzerException);
+
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetType().Name, e.GetType().Name, e.Message);
+
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
         }

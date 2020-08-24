@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -70,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => expressionOrPattern switch
             {
                 ExpressionSyntax expression => expression.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
-#if !CODE_STYLE
                 PatternSyntax pattern => pattern.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
-#endif
                 var other => other,
             };
 
@@ -113,5 +112,55 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.TypeParameterList(
                     SyntaxFactory.SeparatedList(
                         typeParameterNames.Select(n => SyntaxFactory.TypeParameter(n))));
+
+        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
+            => refKind switch
+            {
+                RefKind.None => new SyntaxTokenList(),
+                RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
+                RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
+                // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
+                // ref kind syntax when generating for the return parameter vs other parameters.
+                // The return parameter must use ref readonly, like regular methods.
+                RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
+                RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
+                _ => throw ExceptionUtilities.UnexpectedValue(refKind),
+            };
+
+        #region Patterns
+
+        internal override bool SupportsPatterns(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
+        internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isKeyword, SyntaxNode pattern)
+            => SyntaxFactory.IsPatternExpression(
+                (ExpressionSyntax)expression,
+                isKeyword == default ? SyntaxFactory.Token(SyntaxKind.IsKeyword) : isKeyword,
+                (PatternSyntax)pattern);
+
+        internal override SyntaxNode ConstantPattern(SyntaxNode expression)
+            => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
+
+        internal override SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name)
+            => SyntaxFactory.DeclarationPattern(
+                type.GenerateTypeSyntax(),
+                SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
+
+        internal override SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right)
+            => SyntaxFactory.BinaryPattern(SyntaxKind.AndPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
+
+        internal override SyntaxNode NotPattern(SyntaxNode pattern)
+            => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), (PatternSyntax)Parenthesize(pattern));
+
+        internal override SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right)
+            => SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
+
+        internal override SyntaxNode ParenthesizedPattern(SyntaxNode pattern)
+            => Parenthesize(pattern);
+
+        internal override SyntaxNode TypePattern(SyntaxNode type)
+            => SyntaxFactory.TypePattern((TypeSyntax)type);
+
+        #endregion
     }
 }
