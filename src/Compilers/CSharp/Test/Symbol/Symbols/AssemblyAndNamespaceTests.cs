@@ -112,11 +112,11 @@ namespace N1 {
     }
 }
 ";
-            var comp1 = CSharpCompilation.Create(assemblyName: "Test", options: TestOptions.ReleaseExe,
+            var comp1 = CSharpCompilation.Create(assemblyName: "Test", options: TestOptions.DebugExe,
                             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text) }, references: new MetadataReference[] { });
             var compRef = new CSharpCompilationReference(comp1);
 
-            var comp = CSharpCompilation.Create(assemblyName: "Test1", options: TestOptions.ReleaseExe,
+            var comp = CSharpCompilation.Create(assemblyName: "Test1", options: TestOptions.DebugExe,
                             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1), SyntaxFactory.ParseSyntaxTree(text2) },
                             references: new MetadataReference[] { compRef });
 
