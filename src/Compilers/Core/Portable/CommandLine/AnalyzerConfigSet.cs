@@ -393,22 +393,22 @@ namespace Microsoft.CodeAnalysis
 
         private static void ParseSectionOptions(Section section, TreeOptions.Builder treeBuilder, AnalyzerOptions.Builder analyzerBuilder, ArrayBuilder<Diagnostic> diagnosticBuilder, string analyzerConfigPath, ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
         {
-            const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
-            const string DiagnosticOptionSuffix = ".severity";
+            const string diagnosticOptionPrefix = "dotnet_diagnostic.";
+            const string diagnosticOptionSuffix = ".severity";
 
             foreach (var (key, value) in section.Properties)
             {
                 // Keys are lowercased in editorconfig parsing
                 int diagIdLength = -1;
-                if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
-                    key.EndsWith(DiagnosticOptionSuffix, StringComparison.Ordinal))
+                if (key.StartsWith(diagnosticOptionPrefix, StringComparison.Ordinal) &&
+                    key.EndsWith(diagnosticOptionSuffix, StringComparison.Ordinal))
                 {
-                    diagIdLength = key.Length - (DiagnosticOptionPrefix.Length + DiagnosticOptionSuffix.Length);
+                    diagIdLength = key.Length - (diagnosticOptionPrefix.Length + diagnosticOptionSuffix.Length);
                 }
 
                 if (diagIdLength >= 0)
                 {
-                    ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(DiagnosticOptionPrefix.Length, diagIdLength);
+                    ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(diagnosticOptionPrefix.Length, diagIdLength);
                     // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
                     // lets us avoid an allocation if the id has already been added
                     if (!diagIdCache.TryGetValue(idSlice, out var diagId))

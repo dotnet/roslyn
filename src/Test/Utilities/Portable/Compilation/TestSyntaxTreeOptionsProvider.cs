@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using static Microsoft.CodeAnalysis.AnalyzerConfig;
 
 namespace Roslyn.Utilities
 {
@@ -30,7 +31,7 @@ namespace Roslyn.Utilities
             );
             if (globalOption.key is object)
             {
-                _globalOptions = new Dictionary<string, ReportDiagnostic>() { { globalOption.key, globalOption.diagnostic } };
+                _globalOptions = new Dictionary<string, ReportDiagnostic>(Section.PropertiesKeyComparer) { { globalOption.key, globalOption.diagnostic } };
             }
             _isGenerated = null;
         }

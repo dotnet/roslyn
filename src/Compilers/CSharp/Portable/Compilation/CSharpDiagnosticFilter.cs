@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (syntaxTreeOptions is object && syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, out report))
             {
-                // 4. Global analyzer config options
+                // 4. Global analyzer config level
                 isSpecified = true;
             }
             else

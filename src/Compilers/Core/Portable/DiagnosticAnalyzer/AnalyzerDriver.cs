@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var hasUnsuppressedDiagnostic = false;
                 foreach (var descriptor in descriptors)
                 {
-                    options.TryGetGlobalDiagnosticValue(descriptor.Id, out var configuredSeverity);
+                    _ = options.TryGetGlobalDiagnosticValue(descriptor.Id, out var configuredSeverity);
                     if (options.TryGetDiagnosticValue(tree, descriptor.Id, AnalyzerExecutor.CancellationToken, out var diagnosticSeverity))
                     {
                         configuredSeverity = diagnosticSeverity;
