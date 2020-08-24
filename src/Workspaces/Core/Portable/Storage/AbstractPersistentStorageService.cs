@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -226,6 +227,12 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadChecksumAsync(document, name, cancellationToken);
 
+            public Task<Checksum> ReadChecksumAsync(ProjectKey project, string name, CancellationToken cancellationToken)
+                => _storage.Target.ReadChecksumAsync(project, name, cancellationToken);
+
+            public Task<Checksum> ReadChecksumAsync(DocumentKey document, string name, CancellationToken cancellationToken)
+                => _storage.Target.ReadChecksumAsync(document, name, cancellationToken);
+
             public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);
 
@@ -242,6 +249,12 @@ namespace Microsoft.CodeAnalysis.Storage
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
+
+            public Task<Stream> ReadStreamAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
+
+            public Task<Stream> ReadStreamAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
             public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)

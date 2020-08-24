@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v1.Interop;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Project and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Project, string, Checksum, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(ProjectKey, Project?, string, Checksum?, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Document and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Document, string, Checksum, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(DocumentKey, Document?, string, Checksum?, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
