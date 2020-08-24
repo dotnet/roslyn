@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // for now, we use whatever solution we have currently. in future, we will add an ability to sync VS's current solution
                     // on demand from OOP side
                     // https://github.com/dotnet/roslyn/issues/37424
-                    var results = await SearchAsync(SolutionService.PrimaryWorkspace.CurrentSolution, args, cancellationToken).ConfigureAwait(false);
+                    var results = await SearchAsync(GetWorkspace().CurrentSolution, args, cancellationToken).ConfigureAwait(false);
                     return results.ToArray();
                 }
             }, cancellationToken);

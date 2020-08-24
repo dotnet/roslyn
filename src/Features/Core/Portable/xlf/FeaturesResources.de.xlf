@@ -993,7 +993,7 @@ Der $-Anker stimmt mit "\n", aber nicht mit "\r\n" überein (Kombination aus Wag
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">expression</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1263,7 +1263,7 @@ Der $-Anker stimmt mit "\n", aber nicht mit "\r\n" überein (Kombination aus Wag
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">Name</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1363,7 +1363,7 @@ Mehrere Zeichenbereiche können verkettet werden. Um beispielsweise den Bereich 
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">Nein</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1746,7 +1746,7 @@ Wenn das ECMAScript-konforme Verhalten angegeben wird, ist "\w" gleichbedeutend 
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">Ja</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2077,12 +2077,12 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">"{0}" ist hier nicht NULL.</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">"{0}" darf hier NULL sein.</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

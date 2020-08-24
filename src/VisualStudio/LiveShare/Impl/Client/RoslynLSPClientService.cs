@@ -121,14 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var intializeResult = await ActiveLanguageServerClient.RequestAsync(initializeRequest, new InitializeParams(), cancellationToken).ConfigureAwait(false);
-
-                var serverCapabilities = intializeResult?.Capabilities;
-                if (serverCapabilities != null && LanguageServicesUtils.TryParseJson<RoslynExperimentalCapabilities>(serverCapabilities?.Experimental, out var roslynExperimentalCapabilities))
-                {
-                    serverCapabilities.Experimental = roslynExperimentalCapabilities;
-                }
-
-                ServerCapabilities = serverCapabilities;
+                ServerCapabilities = intializeResult?.Capabilities;
             });
         }
     }

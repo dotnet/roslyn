@@ -360,9 +360,6 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
-#if !CODE_STYLE // TODO: Skipped tests in CodeStyle layer depend on new compiler API (IsNativeIntegerType) that is not available in CodeStyle layer.
-        // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task InNativeIntIntrinsicType()
@@ -414,7 +411,6 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
-#endif
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]

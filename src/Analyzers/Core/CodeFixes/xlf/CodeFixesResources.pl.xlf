@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
-        <target state="new">Fix all occurrences in</target>
+        <target state="translated">Popraw wszystkie wystąpienia w</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Suppress_or_Configure_issues">
         <source>Suppress or Configure issues</source>
-        <target state="new">Suppress or Configure issues</target>
+        <target state="translated">Problemy z pomijaniem lub konfigurowaniem</target>
         <note />
       </trans-unit>
       <trans-unit id="Update_suppression_format">

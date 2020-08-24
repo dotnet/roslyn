@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
         public ReportDiagnostic GeneralDiagnosticOption { get; protected set; }
 
         /// <summary>
-        /// Global warning level (from 0 to 4).
+        /// Global warning level (a non-negative integer).
         /// </summary>
         public int WarningLevel { get; protected set; }
 

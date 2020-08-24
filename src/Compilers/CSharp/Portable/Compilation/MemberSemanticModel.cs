@@ -1931,29 +1931,28 @@ done:
             var bindableRoot = GetBindableSyntaxNode(Root);
             using var upgradeableLock = _nodeMapLock.DisposableUpgradeableRead();
 
-            if (_guardedNodeMap.ContainsKey(bindableRoot)
-#if DEBUG
-                // In DEBUG mode, we don't want to increase test run times, so if
-                // nullable analysis isn't enabled and some node has already been bound
-                // we assume we've already done this test binding and just return
-                || (!Compilation.NullableSemanticAnalysisEnabled && _guardedNodeMap.Count > 0)
-#endif
-                )
+            // If there are already nodes in the map, then we've already done work here. Since
+            // EnsureNullabilityAnalysis is guaranteed to have run first, that means we've
+            // already bound the root node and we can just exit. We can't just assert that Root
+            // is in the map, as there are some models for which there is no BoundNode for the
+            // Root elements (such as fields, where the root is a VariableDeclarator but the
+            // first BoundNode corresponds to the underlying EqualsValueSyntax of the initializer)
+            if (_guardedNodeMap.Count > 0)
             {
+                Debug.Assert(!Compilation.NullableSemanticAnalysisEnabled ||
+                             _guardedNodeMap.ContainsKey(bindableRoot) ||
+                             _guardedNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax));
                 return;
             }
-
-            Debug.Assert(_guardedNodeMap.Count == 0);
 
             upgradeableLock.EnterWrite();
 
             NullableWalker.SnapshotManager snapshotManager;
             var remappedSymbols = _parentRemappedSymbolsOpt;
-            BoundNode boundRoot;
             Binder binder;
             DiagnosticBag diagnosticBag = getDiagnosticBag();
 
-            bind(bindableRoot, diagnosticBag, out binder, out boundRoot);
+            BoundNode boundRoot = bind(bindableRoot, diagnosticBag, out binder);
 
             if (IsSpeculativeSemanticModel)
             {
@@ -1974,10 +1973,10 @@ done:
                 rewriteAndCache(diagnosticBag);
             }
 
-            void bind(CSharpSyntaxNode root, DiagnosticBag diagnosticBag, out Binder binder, out BoundNode boundRoot)
+            BoundNode bind(CSharpSyntaxNode root, DiagnosticBag diagnosticBag, out Binder binder)
             {
                 binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
-                boundRoot = Bind(binder, root, diagnosticBag);
+                return Bind(binder, root, diagnosticBag);
             }
 
             void rewriteAndCache(DiagnosticBag diagnosticBag)

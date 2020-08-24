@@ -569,14 +569,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void AddSourceFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
             => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
+        /// <summary>
+        /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer)
+        /// </summary>
+        /// <param name="textContainer">The text container that contains this file.</param>
+        /// <param name="fullPath">The file path of the document.</param>
+        /// <param name="sourceCodeKind">The kind of the source code.</param>
+        /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
+        /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
+        /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
         public DocumentId AddSourceTextContainer(
             SourceTextContainer textContainer,
             string fullPath,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             ImmutableArray<string> folders = default,
+            bool designTimeOnly = false,
             IDocumentServiceProvider? documentServiceProvider = null)
         {
-            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, documentServiceProvider);
+            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
         }
 
         public bool ContainsSourceFile(string fullPath)
@@ -694,7 +704,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // In this case we substitute the file being generated from so we still have some path.
             if (string.IsNullOrEmpty(fileInfo.FilePath))
             {
-                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
+                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DesignTimeOnly, fileInfo.DocumentServiceProvider);
             }
 
             return fileInfo;
@@ -1222,7 +1232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider? documentServiceProvider)
+            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, bool designTimeOnly, IDocumentServiceProvider? documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -1239,6 +1249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     loader: textLoader,
                     filePath: fullPath,
                     isGenerated: false,
+                    designTimeOnly: designTimeOnly,
                     documentServiceProvider: documentServiceProvider);
 
                 lock (_project._gate)
@@ -1529,6 +1540,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     loader: fileInfo.TextLoader,
                                     document.FilePath,
                                     document.State.Attributes.IsGenerated,
+                                    document.State.Attributes.DesignTimeOnly,
                                     documentServiceProvider: fileInfo.DocumentServiceProvider);
 
                                 w.OnDocumentReloaded(documentInfo);
@@ -1640,7 +1652,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentId = DocumentId.CreateNewId(_project.Id, filePath);
 
                 var textLoader = fileInfo.TextLoader;
-                var documentServiceProvider = new DynamicFileDocumentServiceProvider(fileInfo.DocumentServiceProvider);
+                var documentServiceProvider = fileInfo.DocumentServiceProvider;
 
                 return DocumentInfo.Create(
                     documentId,
@@ -1650,31 +1662,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     loader: textLoader,
                     filePath: filePath,
                     isGenerated: false,
+                    designTimeOnly: true,
                     documentServiceProvider: documentServiceProvider);
-            }
-
-            private sealed class DynamicFileDocumentServiceProvider : IDocumentServiceProvider
-            {
-                private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
-                {
-                    public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
-                    public override bool DesignTimeOnly => true;
-                }
-
-                private readonly IDocumentServiceProvider _provider;
-
-                public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
-                    => _provider = provider;
-
-                TService IDocumentServiceProvider.GetService<TService>()
-                {
-                    if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
-                    {
-                        return documentPropertiesService;
-                    }
-
-                    return _provider.GetService<TService>();
-                }
             }
 
             private sealed class SourceTextLoader : TextLoader
