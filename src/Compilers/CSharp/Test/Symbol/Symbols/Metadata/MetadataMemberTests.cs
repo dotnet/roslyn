@@ -682,7 +682,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = TestOptions.ReleaseDll;
+            var options = TestOptions.DebugDll;
 
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
@@ -724,7 +724,7 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            options = TestOptions.ReleaseDll;
+            options = TestOptions.DebugDll;
             var compilation = CreateCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
@@ -764,16 +764,16 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MetadataImportOptions", "255").WithLocation(1, 1)
             };
 
-            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal);
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Internal);
             Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
             Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Public);
+            options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Public);
             Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
             options.VerifyErrors();
-            options = TestOptions.ReleaseDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue);
+            options = TestOptions.DebugDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue);
             Assert.Equal((MetadataImportOptions)byte.MaxValue, options.MetadataImportOptions);
             options.VerifyErrors(expectedDiagnostics);
 
@@ -787,7 +787,7 @@ public class C
 ";
             var compilation0 = CreateCompilation(source);
 
-            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
+            var compilation = CreateCompilation("", options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.Internal), references: new[] { compilation0.EmitToImageReference() });
             var c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
