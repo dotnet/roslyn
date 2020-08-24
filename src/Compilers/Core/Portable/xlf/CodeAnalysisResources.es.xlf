@@ -149,6 +149,11 @@
         <target state="translated">Si se especifican las anotaciones que aceptan valores NULL de los elementos de tupla, el número de anotaciones debe coincidir con la cardinalidad de la tupla.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeReferencesNetFramework">
+        <source>The type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
         <target state="translated">No se puede determinar la causa específica del error.</target>

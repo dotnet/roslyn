@@ -149,6 +149,11 @@
         <target state="translated">Demet öğelerine yönelik boş değer atanabilir ek açıklamalar belirtildiyse, ek açıklamaların sayısı demetin kardinalitesiyle eşleşmelidir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeReferencesNetFramework">
+        <source>The type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
         <target state="translated">Hatanın nedeni belirlenemiyor.</target>

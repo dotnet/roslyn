@@ -149,6 +149,11 @@
         <target state="translated">튜플 요소 nullable 주석이 지정된 경우, 주석 수는 튜플의 카디널리티와 일치해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeReferencesNetFramework">
+        <source>The type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
         <target state="translated">오류의 특정 원인을 확인할 수 없습니다.</target>

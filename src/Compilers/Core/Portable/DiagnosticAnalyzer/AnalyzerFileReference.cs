@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             FullPath = fullPath;
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
-            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages);
-            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages);
+            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
+            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages, allowNetFramework: false);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _generators.AddExtensions(builder, language);
         }
 
-        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeNameOpt = null)
+        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
             // unwrap:
             e = (e as TargetInvocationException) ?? e;
@@ -196,11 +196,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // remove all line breaks from the exception message
             string message = e.Message.Replace("\r", "").Replace("\n", "");
 
-            var errorCode = (typeNameOpt != null) ?
+            var errorCode = (typeName != null) ?
                 AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer :
                 AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer;
 
-            return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeNameOpt);
+            return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeName);
         }
 
         internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
@@ -311,15 +311,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly AnalyzerFileReference _reference;
             private readonly AttributePredicate _attributePredicate;
             private readonly AttributeLanguagesFunc _languagesFunc;
+            private readonly bool _allowNetFramework;
             private ImmutableArray<TExtension> _lazyAllExtensions;
             private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
             private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
-            internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
+            internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc, bool allowNetFramework)
             {
                 _reference = reference;
                 _attributePredicate = attributePredicate;
                 _languagesFunc = languagesFunc;
+                _allowNetFramework = allowNetFramework;
                 _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
@@ -495,6 +497,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     Debug.Assert(type != null);
+
+                    // check if this references net framework, and issue a diagnostic if we don't allow that
+                    if (!_allowNetFramework)
+                    {
+                        const string ExpectedPublicKey = "B7-7A-5C-56-19-34-E0-89";
+                        foreach (var reference in analyzerAssembly.GetReferencedAssemblies())
+                        {
+                            if (reference.Name?.Equals("mscorlib", StringComparison.OrdinalIgnoreCase) == true)
+                            {
+                                var publicKeyToken = reference.GetPublicKeyToken();
+                                if (publicKeyToken is object && BitConverter.ToString(publicKeyToken).Equals(ExpectedPublicKey, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(
+                                        AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
+                                        string.Format(CodeAnalysisResources.TypeReferencesNetFramework, typeName),
+                                        typeNameOpt: typeName));
+                                }
+                            }
+                        }
+                    }
 
                     TExtension? analyzer;
                     try

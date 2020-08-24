@@ -149,6 +149,11 @@
         <target state="translated">如果指定元組元素可為 Null 的註釋，註釋數目就必須符合元組的基數。</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeReferencesNetFramework">
+        <source>The type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
         <target state="translated">無法判斷失敗的具體原因。</target>

@@ -149,6 +149,11 @@
         <target state="translated">Jeśli określono adnotacje elementów krotki z możliwością ustawiania wartości null, liczba adnotacji musi zgadzać się z kardynalnością krotki.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeReferencesNetFramework">
+        <source>The type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
         <target state="translated">Nie można ustalić konkretnej przyczyny niepowodzenia.</target>

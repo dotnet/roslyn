@@ -149,6 +149,11 @@
         <target state="translated">Si des annotations de type Nullable pour des éléments de tuples sont spécifiées, le nombre d'annotations doit correspondre à la cardinalité du tuple.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeReferencesNetFramework">
+        <source>The type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
         <target state="translated">Impossible de déterminer la cause spécifique de l'échec.</target>

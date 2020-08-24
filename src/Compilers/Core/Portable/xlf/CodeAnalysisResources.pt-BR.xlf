@@ -149,6 +149,11 @@
         <target state="translated">Se as anotações anuláveis de elementos de tupla forem especificadas, o número de anotações deverá corresponder à cardinalidade da tupla.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeReferencesNetFramework">
+        <source>The type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
         <source>Unable to determine specific cause of the failure.</source>
         <target state="translated">Não é possível determinar a causa específica da falha.</target>

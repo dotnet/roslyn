@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators();
-            Assert.Equal(5, generators.Count());
+            Assert.Equal(5, generators.Length);
 
             var typeNames = generators.Select(g => g.GetType().FullName);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
@@ -265,6 +265,45 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.NotAGenerator", typeNames);
+        }
+
+        // can't load a coreclr targeting generator on net framework / mono
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGeneratorsCantTargetNetFramework()
+        {
+            var directory = Temp.CreateDirectory();
+
+            // core
+            var errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetCoreGenerator);
+            Assert.Empty(errors);
+
+            // netstandard
+            errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetStandardGenerator);
+            Assert.Empty(errors);
+
+            // framework
+            errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetFrameworkGenerator);
+            Assert.Equal(1, errors.Count);
+            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework, errors.First().ErrorCode);
+
+            List<AnalyzerLoadFailureEventArgs> loadGeneratorAndReturnAnyErrors(byte[] assembly)
+            {
+                var directory = Temp.CreateDirectory();
+
+                var generator = directory.CreateFile("generator.dll").WriteAllBytes(assembly);
+                AnalyzerFileReference reference = CreateAnalyzerFileReference(generator.Path);
+
+                List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+                void errorHandler(object? o, AnalyzerLoadFailureEventArgs e) => errors.Add(e);
+                reference.AnalyzerLoadFailed += errorHandler;
+
+                var builder = ImmutableArray.CreateBuilder<ISourceGenerator>();
+                reference.AddGenerators(builder, LanguageNames.CSharp);
+                var analyzers = builder.ToImmutable();
+                reference.AnalyzerLoadFailed -= errorHandler;
+
+                return errors;
+            }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]

@@ -78,6 +78,18 @@ namespace TestResources
         private static byte[] s_windowsStorage;
         public static byte[] WindowsStorage => ResourceLoader.GetOrCreateResource(ref s_windowsStorage, "ExpressionCompiler.Windows.Storage.winmd");
     }
+
+    public static class GeneratorTests
+    {
+        private static byte[] s_netCoreGenerator;
+        public static byte[] NetCoreGenerator => ResourceLoader.GetOrCreateResource(ref s_netCoreGenerator, "Generators.NetCoreGenerator.dll");
+
+        private static byte[] s_netFrameworkGenerator;
+        public static byte[] NetFrameworkGenerator => ResourceLoader.GetOrCreateResource(ref s_netFrameworkGenerator, "Generators.NetFrameworkGenerator.dll");
+
+        private static byte[] s_netStandardGenerator;
+        public static byte[] NetStandardGenerator => ResourceLoader.GetOrCreateResource(ref s_netStandardGenerator, "Generators.NetStandardGenerator.dll");
+    }
 }
 
 namespace TestResources.MetadataTests

@@ -711,4 +711,7 @@
     <value>The provided SourceText must have an explicit encoding set.</value>
     <comment>'SourceText' is not localizable.</comment>
   </data>
+  <data name="TypeReferencesNetFramework" xml:space="preserve">
+    <value>The type '{0}' references .NET Framework, which is not supported.</value>
+  </data>
 </root>

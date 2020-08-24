@@ -35,6 +35,12 @@
     <Content Include="DiagnosticTests\ErrTestMod02.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestMod02.netmodule" />
     <EmbeddedResource Include="Encoding\sjis.cs" />
+    <Content Include="Generators\NetCoreGenerator.cs" />
+    <EmbeddedResource Include="Generators\NetCoreGenerator.dll" />
+    <Content Include="Generators\NetFrameworkGenerator.cs" />
+    <EmbeddedResource Include="Generators\NetFrameworkGenerator.dll" />
+    <Content Include="Generators\NetStandardGenerator.cs" />
+    <EmbeddedResource Include="Generators\NetStandardGenerator.dll" />
     <Content Include="MetadataTests\InterfaceAndClass\CSClasses01.cs" />
     <EmbeddedResource Include="MetadataTests\InterfaceAndClass\CSClasses01.dll" />
     <Content Include="MetadataTests\InterfaceAndClass\CSInterfaces01.cs" />
