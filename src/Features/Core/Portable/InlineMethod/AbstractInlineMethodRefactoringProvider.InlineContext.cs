@@ -14,11 +14,10 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TMethodDeclarationSyntax, TStatementSyntax, TLocalDeclarationSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TMethodDeclarationSyntax, TStatementSyntax>
     {
         private readonly struct InlineMethodContext
         {
@@ -250,7 +249,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // After:
             // void Caller()
             // {
-            //     Callee<int>();
+            //     Print(typeof<int>);
             // }
             // void Callee<T>() => Print(typeof<int>);
             // 2. Literal replacement
@@ -267,11 +266,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // After:
             // void Caller()
             // {
-            //     Callee(20)
+            //     Bar(20, 10);
             // }
             // void Callee(int i, int j = 10)
             // {
-            //     Bar(20, 10);
+            //     Bar(i, j);
             // }
             // 3. Identifier
             // Example:
@@ -289,11 +288,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // void Caller()
             // {
             //     int a, b, c;
-            //     Callee(a, b)
+            //     Bar(a, b, out int c1);
             // }
             // void Callee(int i, int j = 10)
             // {
-            //     Bar(a, b, out int c1);
+            //     Bar(i, j, out int c);
             // }
             var replacementTable = ComputeReplacementTable(
                 calleeMethodSymbol,
@@ -495,10 +494,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             var editor = new SyntaxEditor(inlineExpression, syntaxGenerator);
 
-            foreach (var kvp in replacementTable)
+            foreach (var (symbol, syntaxNode) in replacementTable)
             {
                 var allReferences = await SymbolFinder
-                    .FindReferencesAsync(kvp.Key, document.Project.Solution, cancellationToken)
+                    .FindReferencesAsync(symbol, document.Project.Solution, cancellationToken)
                     .ConfigureAwait(false);
                 var allSyntaxNodesToReplace = allReferences
                     .SelectMany(reference => reference.Locations
@@ -509,9 +508,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 {
                     if (editor.OriginalRoot.Contains(nodeToReplace))
                     {
-                        var replacementNodeWithTrivia = kvp.Value
-                            .WithLeadingTrivia(nodeToReplace.GetLeadingTrivia())
-                            .WithTrailingTrivia(nodeToReplace.GetTrailingTrivia());
+                        var replacementNodeWithTrivia = syntaxNode.WithTriviaFrom(nodeToReplace);
                         editor.ReplaceNode(nodeToReplace, replacementNodeWithTrivia);
                     }
                 }

@@ -1706,7 +1706,6 @@ public class TestClass
     }
 }");
 
-
         [Fact]
         public Task TestInlineExpressionAsRightValueInRightAssociativeExpression()
             => TestVerifier.TestInRegularAndScript1Async(

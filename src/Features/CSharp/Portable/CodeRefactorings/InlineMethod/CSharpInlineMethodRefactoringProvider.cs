@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, MethodDeclarationSyntax, StatementSyntax, LocalDeclarationStatementSyntax>
+        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, MethodDeclarationSyntax, StatementSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

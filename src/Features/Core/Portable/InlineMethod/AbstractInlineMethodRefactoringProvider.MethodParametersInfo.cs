@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TMethodDeclarationSyntax, TStatementSyntax, TLocalDeclarationSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TMethodDeclarationSyntax, TStatementSyntax>
     {
         /// <summary>
         /// Information about the callee method parameters to compute <see cref="InlineMethodContext"/>.

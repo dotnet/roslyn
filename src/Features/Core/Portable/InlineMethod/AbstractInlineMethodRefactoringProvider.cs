@@ -21,14 +21,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             TInvocationSyntax,
             TExpressionSyntax,
             TMethodDeclarationSyntax,
-            TStatementSyntax,
-            TLocalDeclarationSyntax>
+            TStatementSyntax>
         : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationSyntax : TExpressionSyntax
         where TMethodDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
-        where TLocalDeclarationSyntax : TStatementSyntax
     {
         private readonly ISyntaxFacts _syntaxFacts;
         private readonly ISemanticFactsService _semanticFactsService;
