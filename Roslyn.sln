@@ -460,6 +460,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Code
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdeCoreBenchmarks", "src\Tools\IdeCoreBenchmarks\IdeCoreBenchmarks.csproj", "{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RoslynEx", "RoslynEx", "{FA7B53B4-F90B-415F-8D64-13F5523EF8A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynEx.Interface.TypeForwards", "src\RoslynEx\RoslynEx.Interface.TypeForwards\RoslynEx.Interface.TypeForwards.csproj", "{C832D674-0A77-4839-9667-5DFA47F2A2DB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynEx.Sdk", "src\RoslynEx\RoslynEx.Sdk\RoslynEx.Sdk.csproj", "{FDADE459-74F3-41C3-8311-C6ECD6EA450D}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RoslynEx.Shared", "src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.shproj", "{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -469,6 +477,7 @@ Global
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 5
@@ -504,6 +513,7 @@ Global
 		src\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems*{94faf461-2e74-4dbb-9813-6b2cde6f1880}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems*{99f594b1-3916-471d-a761-a6731fc50e9a}*SharedItemsImports = 13
+		src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems*{9ac4f471-ed46-4cd9-920f-e50bc6a65dd6}*SharedItemsImports = 13
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{9f9ccc78-7487-4127-9d46-db23e501f001}*SharedItemsImports = 13
 		src\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems*{a07abcf5-bc43-4ee9-8fd8-b2d77fd54d73}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{a07abcf5-bc43-4ee9-8fd8-b2d77fd54d73}*SharedItemsImports = 5
@@ -537,6 +547,7 @@ Global
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{edc68a0e-c68d-4a74-91b7-bf38ec909888}*SharedItemsImports = 5
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{edc68a0e-c68d-4a74-91b7-bf38ec909888}*SharedItemsImports = 5
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{fa0e905d-ec46-466d-b7b2-3b5557f9428c}*SharedItemsImports = 5
+		src\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems*{fdade459-74f3-41c3-8311-c6ecd6ea450d}*SharedItemsImports = 5
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1207,6 +1218,14 @@ Global
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C832D674-0A77-4839-9667-5DFA47F2A2DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C832D674-0A77-4839-9667-5DFA47F2A2DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C832D674-0A77-4839-9667-5DFA47F2A2DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C832D674-0A77-4839-9667-5DFA47F2A2DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDADE459-74F3-41C3-8311-C6ECD6EA450D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDADE459-74F3-41C3-8311-C6ECD6EA450D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDADE459-74F3-41C3-8311-C6ECD6EA450D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDADE459-74F3-41C3-8311-C6ECD6EA450D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1421,6 +1440,9 @@ Global
 		{B64766CD-1A1F-4C1B-B11F-C30F82B8E41E} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{2D5E2DE4-5DA8-41C1-A14F-49855DCCE9C5} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{CEA80C83-5848-4FF6-B4E8-CEEE9482E4AA} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{C832D674-0A77-4839-9667-5DFA47F2A2DB} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
+		{FDADE459-74F3-41C3-8311-C6ECD6EA450D} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
+		{9AC4F471-ED46-4CD9-920F-E50BC6A65DD6} = {FA7B53B4-F90B-415F-8D64-13F5523EF8A7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
