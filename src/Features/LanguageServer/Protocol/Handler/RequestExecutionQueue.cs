@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     /// <remarks>
     /// <para>
-    /// When a request comes in for some data the handler must be able to access a soluition state that is correct
+    /// When a request comes in for some data the handler must be able to access a solution state that is correct
     /// at the time of the request, that takes into account any text change requests that have come in  previously
     /// (via textDocument/didChange for example).
     /// </para>
@@ -37,11 +37,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
     /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
-    /// </para>
-    /// <para>
-    /// Exceptions in the handling of non-mutating requests are sent back to callers. Exceptions in the processing of
-    /// the queue will close the LSP connection so that the client can reconnect. Exceptions in the handling of mutating
-    /// requests will also close the LSP connection, as at that point the mutated solution is in an unknown state.
     /// </para>
     /// </remarks>
     internal partial class RequestExecutionQueue : IDisposable
