@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Storage
         IPersistentStorage IPersistentStorageService2.GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
             => this.GetStorage(workspace, solutionKey, solutionOpt: null, checkBranchId);
 
-        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Solution solution)
+        public IChecksummedPersistentStorage GetStorage(Solution solution)
             => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true);
 
-        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Solution solution, bool checkBranchId)
+        public IChecksummedPersistentStorage GetStorage(Solution solution, bool checkBranchId)
             => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId);
 
-        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
+        public IChecksummedPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
             => this.GetStorage(workspace, solutionKey, solutionOpt: null, checkBranchId);
 
         public IChecksummedPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, Solution? solutionOpt, bool checkBranchId)
