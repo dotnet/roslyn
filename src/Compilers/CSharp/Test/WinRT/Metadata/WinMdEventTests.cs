@@ -236,10 +236,7 @@ public partial class B : I
             _eventLibRef = CreateEmptyCompilation(
                 eventLibSrc,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
-                options:
-                    new CSharpCompilationOptions(
-                        OutputKind.WindowsRuntimeMetadata,
-                        allowUnsafe: true),
+                options: TestOptions.DebugWinMD.WithAllowUnsafe(true),
                 assemblyName: "EventLibrary").EmitToImageReference();
         }
 
@@ -311,7 +308,7 @@ class C
                     MscorlibRef_v4_0_30316_17626,
                     _eventLibRef,
                 },
-                options: new CSharpCompilationOptions(OutputKind.NetModule, allowUnsafe: true));
+                options: TestOptions.DebugModule.WithAllowUnsafe(true));
 
             var dynamicCommonRef = dynamicCommon.EmitToImageReference(expectedWarnings: new[]
             {
@@ -2912,7 +2909,7 @@ interface I
 
             foreach (OutputKind kind in Enum.GetValues(typeof(OutputKind)))
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs, new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll.WithOutputKind(kind));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
