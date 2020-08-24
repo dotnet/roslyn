@@ -3061,7 +3061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
+        Friend Shared Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
             Select Case declaration.Kind
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(declaration, PropertyBlockSyntax).Accessors
@@ -3713,46 +3713,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
             Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
         End Function
-#End Region
-
-#Region "Patterns"
-
-        Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
-            Return False
-        End Function
-
-        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, isToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function ConstantPattern(expression As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function NotPattern(pattern As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function OrPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function ParenthesizedPattern(pattern As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
 #End Region
 
     End Class

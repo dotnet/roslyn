@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -18,15 +19,17 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticBag _diagnostics;
 
-        internal SourceGeneratorContext(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
+        private readonly AdditionalSourcesCollection _additionalSources;
+
+        internal SourceGeneratorContext(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             AdditionalFiles = additionalTexts;
             AnalyzerConfigOptions = optionsProvider;
             SyntaxReceiver = syntaxReceiver;
             CancellationToken = cancellationToken;
-            AdditionalSources = new AdditionalSourcesCollection();
-            _diagnostics = diagnostics;
+            _additionalSources = new AdditionalSourcesCollection();
+            _diagnostics = new DiagnosticBag();
         }
 
         /// <summary>
@@ -59,14 +62,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal AdditionalSourcesCollection AdditionalSources { get; }
+        /// <summary>
+        /// Adds source code in the form of a <see cref="string"/> to the compilation.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="source">The source code to be add to the compilation</param>
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
 
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
-        public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
+        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation 
@@ -76,6 +84,9 @@ namespace Microsoft.CodeAnalysis
         /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
         /// </remarks>
         public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
+
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
+            => (_additionalSources.ToImmutableAndFree(), _diagnostics.ToReadOnlyAndFree());
     }
 
     /// <summary>

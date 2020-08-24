@@ -265,7 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
+            // https://github.com/dotnet/roslyn/issues/46424
+            // Bind and analyze preceding field initializers in order to give an accurate initial nullable state.
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
 #if DEBUG

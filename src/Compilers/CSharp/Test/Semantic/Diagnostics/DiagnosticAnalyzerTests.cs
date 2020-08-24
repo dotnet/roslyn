@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -2463,7 +2464,7 @@ internal class C : MyInterface
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (51,32): warning CS0067: The event 'C.MyEvent' is never used
                 //     public event Delegate<int> MyEvent;
@@ -3145,7 +3146,7 @@ class C
     int P2 { get; set; }
 }";
 
-            var compilation = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
@@ -3298,9 +3299,9 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify suppressed analyzer diagnostic and callback with suppression on second file.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress)));
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
@@ -3341,9 +3342,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3392,9 +3394,10 @@ class C
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
             // Verify same diagnostics and callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
-            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
-            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
-            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree2, (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress))
+            );
+            compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
             compilation.VerifyDiagnostics();
 
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.Analyze);
@@ -3743,6 +3746,39 @@ class C
 
                     return ImmutableArray<Diagnostic>.Empty;
                 }
+            }
+        }
+
+        [Fact]
+        public void TestSemanticModelProvider()
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"class C { }");
+            Compilation compilation = CreateCompilation(new[] { tree });
+
+            var semanticModelProvider = new MySemanticModelProvider();
+            compilation = compilation.WithSemanticModelProvider(semanticModelProvider);
+
+            // Verify semantic model provider is used by Compilation.GetSemanticModel API
+            var model = compilation.GetSemanticModel(tree);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+
+            // Verify semantic model provider is used by CSharpCompilation.GetSemanticModel API
+            model = ((CSharpCompilation)compilation).GetSemanticModel(tree, ignoreAccessibility: false);
+            semanticModelProvider.VerifyCachedModel(tree, model);
+        }
+
+        private sealed class MySemanticModelProvider : SemanticModelProvider
+        {
+            private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
+
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
+            {
+                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility));
+            }
+
+            public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)
+            {
+                Assert.Same(model, _cache[tree]);
             }
         }
     }

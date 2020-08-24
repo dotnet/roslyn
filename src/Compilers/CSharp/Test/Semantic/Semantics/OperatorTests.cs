@@ -7119,7 +7119,7 @@ public class RubyTime
         F<decimal?>();
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

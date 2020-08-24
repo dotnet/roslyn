@@ -185,10 +185,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
 #nullable enable
-        bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
 #nullable restore
-        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
+        /// <summary>
+        /// Gets the containing expression that is actually a language expression and not just typed
+        /// as an ExpressionSyntax for convenience. For example, NameSyntax nodes on the right side
+        /// of qualified names and member access expressions are not language expressions, yet the
+        /// containing qualified names or member access expressions are indeed expressions.
+        /// </summary>
+        SyntaxNode GetStandaloneExpression(SyntaxNode node);
+
+        /// <summary>
+        /// Call on the `.y` part of a `x?.y` to get the entire `x?.y` conditional access expression.  This also works
+        /// when there are multiple chained conditional accesses.  For example, calling this on '.y' or '.z' in
+        /// `x?.y?.z` will both return the full `x?.y?.z` node.  This can be used to effectively get 'out' of the RHS of
+        /// a conditional access, and commonly represents the full standalone expression that can be operated on
+        /// atomically.
+        /// </summary>
+        SyntaxNode GetRootConditionalAccessExpression(SyntaxNode node);
+
+        bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
 
         /// <summary>

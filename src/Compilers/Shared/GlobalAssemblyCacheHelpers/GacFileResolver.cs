@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// Returns true if GAC is available on the current platform.
         /// </summary>
-        public static bool IsAvailable => typeof(object).Assembly.GlobalAssemblyCache;
+        public static bool IsAvailable
+            // Since mscorlib may not be loaded from the GAC on Mono, also check if the platform is Mono which supports a GAC.
+            => typeof(object).Assembly.GlobalAssemblyCache || PlatformInformation.IsRunningOnMono;
 
         /// <summary>
         /// Architecture filter used when resolving assembly references.
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// Creates an instance of a <see cref="GacFileResolver"/>, if available on the platform (check <see cref="IsAvailable"/>).
         /// </summary>
         /// <param name="architectures">Supported architectures used to filter GAC assemblies.</param>
-        /// <param name="preferredCulture">A culture to use when choosing the best assembly from 
+        /// <param name="preferredCulture">A culture to use when choosing the best assembly from
         /// among the set filtered by <paramref name="architectures"/></param>
         /// <exception cref="PlatformNotSupportedException">The platform doesn't support GAC.</exception>
         public GacFileResolver(

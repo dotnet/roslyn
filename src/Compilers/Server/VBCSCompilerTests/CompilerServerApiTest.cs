@@ -44,17 +44,6 @@ class Hello
             return source.Task;
         }
 
-        private static IClientConnectionHost CreateClientConnectionHost(params Task<IClientConnection>[] connections)
-        {
-            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-            var index = 0;
-            host
-                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
-                .Returns((CancellationToken ct) => connections[index++]);
-
-            return host.Object;
-        }
-
         private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
         {
             var directory = Temp.CreateDirectory();
@@ -89,15 +78,6 @@ class Hello
                 await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
                 return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
             }
-        }
-
-        private static Mock<IClientConnectionHost> CreateNopClientConnectionHost()
-        {
-            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-            host
-                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
-                .Returns(new TaskCompletionSource<IClientConnection>().Task);
-            return host;
         }
 
         private static Task<T> FromException<T>(Exception ex)
@@ -140,42 +120,45 @@ class Hello
         {
             var pipeName = Guid.NewGuid().ToString("N");
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-            host
-                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
-                .Returns(() =>
+            var host = new TestableClientConnectionHost();
+            bool? wasServerMutexOpen = null;
+            host.Add(() =>
+            {
+                // Use a thread instead of Task to guarantee this code runs on a different
+                // thread and we can validate the mutex state. 
+                var tcs = new TaskCompletionSource<IClientConnection>();
+                var thread = new Thread(_ =>
                 {
-                    // Use a thread instead of Task to guarantee this code runs on a different
-                    // thread and we can validate the mutex state. 
-                    var source = new TaskCompletionSource<bool>();
-                    var thread = new Thread(_ =>
+                    wasServerMutexOpen = BuildServerConnection.WasServerMutexOpen(mutexName);
+
+                    var client = new TestableClientConnection()
                     {
-                        try
-                        {
-                            Assert.True(BuildServerConnection.WasServerMutexOpen(mutexName));
-                            source.SetResult(true);
-                        }
-                        catch (Exception ex)
-                        {
-                            source.SetException(ex);
-                            throw;
-                        }
-                    });
-
-                    // Synchronously wait here.  Don't returned a Task value because we need to 
-                    // ensure the above check completes before the server hits a timeout and 
-                    // releases the mutex. 
-                    thread.Start();
-                    source.Task.Wait();
-
-                    return new TaskCompletionSource<IClientConnection>().Task;
+                        ReadBuildRequestFunc = _ => Task.FromResult(ProtocolUtil.EmptyCSharpBuildRequest),
+                        WriteBuildResponseFunc = (r, _) => Task.CompletedTask,
+                    };
+                    tcs.SetResult(client);
                 });
+
+                thread.Start();
+                return tcs.Task;
+            });
+
+            host.Add(() =>
+            {
+                var client = new TestableClientConnection()
+                {
+                    ReadBuildRequestFunc = _ => Task.FromResult(BuildRequest.CreateShutdown()),
+                    WriteBuildResponseFunc = (r, _) => Task.CompletedTask,
+                };
+                return Task.FromResult<IClientConnection>(client);
+            });
 
             var result = BuildServerController.CreateAndRunServer(
                 pipeName,
-                clientConnectionHost: host.Object,
-                keepAlive: TimeSpan.FromSeconds(1));
+                clientConnectionHost: host,
+                keepAlive: TimeSpan.FromMilliseconds(-1));
             Assert.Equal(CommonCompiler.Succeeded, result);
+            Assert.True(wasServerMutexOpen);
         }
 
         [WorkItem(13995, "https://github.com/dotnet/roslyn/issues/13995")]

@@ -2725,7 +2725,7 @@ enum F { W, X = Z, Y, Z }
             var test = @"
 int x;
 ";
-            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (2,5): warning CS0168: The variable 'x' is declared but never used
                 // int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(2, 5)
@@ -2789,7 +2789,7 @@ namespace ns1
 delegate int D();
 D d = null;
 ";
-            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                     // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                     // D d = null;
                     Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = null;").WithLocation(3, 1),
@@ -2809,7 +2809,7 @@ D d = {;}
 ";
             // In this case, CS0116 is suppressed because of the syntax errors
 
-            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // D d = {;}
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = {;").WithLocation(3, 1),
@@ -6523,13 +6523,13 @@ public class Square
       object o2 = (1 == 1) ? aa : ii;   // CS8652
    }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (21,16): error CS0172: Type of conditional expression cannot be determined because 'Square.Circle' and 'Square' implicitly convert to one another
                 //       var o1 = (1 == 1) ? aa : ii;   // CS0172
                 Diagnostic(ErrorCode.ERR_AmbigQM, "(1 == 1) ? aa : ii").WithArguments("Square.Circle", "Square").WithLocation(21, 16),
-                // (22,19): error CS8652: The feature 'target-typed conditional expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (22,19): error CS8400: Feature 'target-typed conditional expression' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //       object o2 = (1 == 1) ? aa : ii;   // CS8652
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(1 == 1) ? aa : ii").WithArguments("target-typed conditional expression").WithLocation(22, 19)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(1 == 1) ? aa : ii").WithArguments("target-typed conditional expression", "9.0").WithLocation(22, 19)
                 );
         }
 
@@ -14442,9 +14442,9 @@ public class MyCollection
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is either static or not public.
+                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not a public instance or extension method.
                 //         foreach (int i in col)   // CS1579
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
                 // (45,27): error CS1579: foreach statement cannot operate on variables of type 'MyCollection' because 'MyCollection' does not contain a public definition for 'GetEnumerator'
                 //         foreach (int i in col)   // CS1579
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "col").WithArguments("MyCollection", "GetEnumerator"));
@@ -19524,8 +19524,8 @@ public class myTest : IEnumerable
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is either static or not public.
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
+                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is not a public instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
         }
 
         [Fact]

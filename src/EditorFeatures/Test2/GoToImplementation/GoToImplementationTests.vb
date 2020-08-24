@@ -526,5 +526,146 @@ public class [|Impl|] : IInterface
 
             Await TestAsync(workspace, host)
         End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateStringAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;string&gt; CreateStringAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;string&gt; [|CreateStringAsync|]()
+    {
+        return "Another hello world - async!";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting2(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateTupleAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;(string s, string t)&gt; CreateTupleAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;(string x, string y)&gt; [|CreateTupleAsync|]()
+    {
+        return default;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting3(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateNintAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;nint&gt; CreateNintAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;nint&gt; [|CreateNintAsync|]()
+    {
+        return default;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
     End Class
 End Namespace

@@ -211,6 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureModuleInitializers = MessageBase + 12784,
         IDS_FeatureTargetTypedConditional = MessageBase + 12785,
         IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12786,
+        IDS_FeatureExtensionGetEnumerator = MessageBase + 12787,
+        IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                // C# preview features.
+                // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
@@ -330,6 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureParenthesizedPattern:
                 case MessageID.IDS_FeatureTypePattern:
                 case MessageID.IDS_FeatureRelationalPattern:
+                case MessageID.IDS_FeatureExtensionGetEnumerator: // semantic check
+                case MessageID.IDS_FeatureExtensionGetAsyncEnumerator: // semantic check
                 case MessageID.IDS_FeatureNativeInt:
                 case MessageID.IDS_FeatureExtendedPartialMethods: // semantic check
                 case MessageID.IDS_TopLevelStatements:
@@ -340,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStaticAnonymousFunction: // syntax check
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
                 case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
-                    return LanguageVersion.Preview;
+                    return LanguageVersion.CSharp9;
 
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:

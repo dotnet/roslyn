@@ -32,6 +32,11 @@
         <target state="translated">放弃</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="new">Format document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">设定文档设置的格式(试验)</target>
@@ -62,6 +67,11 @@
         <target state="translated">命名空间外</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Pattern_matching_preferences_colon">
+        <source>Pattern matching preferences:</source>
+        <target state="new">Pattern matching preferences:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">在格式设置期间执行其他代码清理</target>
@@ -74,7 +84,12 @@
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
-        <target state="new">Prefer pattern matching</target>
+        <target state="translated">首选模式匹配</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
+        <source>Prefer pattern matching over mixed type check</source>
+        <target state="new">Prefer pattern matching over mixed type check</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">

@@ -127,11 +127,15 @@ my_option2 = my_val2")
 
             Dim comp = cmd.Compilation
             Dim tree = comp.SyntaxTrees.Single()
-            AssertEx.SetEqual({
-                KeyValuePairUtil.Create("bc42024", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress),
-                KeyValuePairUtil.Create("warning03", ReportDiagnostic.Suppress)
-                }, tree.DiagnosticOptions)
+            Dim syntaxTreeOptions = comp.Options.SyntaxTreeOptionsProvider
+            Dim report As ReportDiagnostic
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "BC42024", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning01", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.True(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning03", report))
+            Assert.Equal(ReportDiagnostic.Suppress, report)
+            Assert.False(syntaxTreeOptions.TryGetDiagnosticValue(tree, "warning02", report))
 
             Dim provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider
             Dim options = provider.GetOptions(tree)
@@ -2087,6 +2091,7 @@ End Module").Path
             InlineData("15.3", True, LanguageVersion.VisualBasic15_3),
             InlineData("15.5", True, LanguageVersion.VisualBasic15_5),
             InlineData("16", True, LanguageVersion.VisualBasic16),
+            InlineData("16.0", True, LanguageVersion.VisualBasic16),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -8789,6 +8794,61 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
+        Public Sub SkipAnalyzersParse()
+            Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/SKIPANALYZERS+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers-", "/skipanalyzers+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.SkipAnalyzers)
+
+            ParsedArgs = DefaultParse({"/skipanalyzers", "/skipanalyzers-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.False(ParsedArgs.SkipAnalyzers)
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")>
+        Public Sub SkipAnalyzersSemantics(skipAnalyzers As Boolean)
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+            Dim skipAnalyzersFlag = "/skipanalyzers" + If(skipAnalyzers, "+", "-")
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {skipAnalyzersFlag, "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, source})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            If skipAnalyzers Then
+                Assert.DoesNotContain(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+                Assert.DoesNotContain(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Else
+                Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+                Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            End If
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
         <WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")>
         Public Sub AnalyzerDiagnosticThrowsInGetMessage()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -9958,6 +10018,43 @@ End Class")
                 Assert.Empty(output)
             Else
                 Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'", output, StringComparison.Ordinal)
+            End If
+        End Sub
+
+        <WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")>
+        <CombinatorialData, Theory>
+        Public Sub TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(defaultSeverity As DiagnosticSeverity, isEnabledByDefault As Boolean)
+            ' This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped.
+            ' Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
+            '   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
+            '   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
+            Dim analyzerShouldBeSkipped = Not isEnabledByDefault OrElse
+                defaultSeverity = DiagnosticSeverity.Hidden OrElse
+                defaultSeverity = DiagnosticSeverity.Info
+
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes:=analyzerShouldBeSkipped)
+            Dim diagnosticId = analyzer.Descriptor.Id
+
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.cs").WriteAllText("
+Class C
+End Class")
+
+            ' Verify '/warnaserror-:DiagnosticId' behavior.
+            Dim args = {"/warnaserror+", $"/warnaserror-:{diagnosticId}", "/nologo", "/t:library", "/preferreduilang:en", src.Path}
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, args, analyzer)
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Dim expectedExitCode = If(Not analyzerShouldBeSkipped AndAlso defaultSeverity = DiagnosticSeverity.[Error], 1, 0)
+            Assert.Equal(expectedExitCode, exitCode)
+
+            Dim output = outWriter.ToString()
+            If analyzerShouldBeSkipped Then
+                Assert.Empty(output)
+            Else
+                Dim prefix = If(defaultSeverity = DiagnosticSeverity.Warning, "warning", "error")
+                Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", output)
             End If
         End Sub
 
