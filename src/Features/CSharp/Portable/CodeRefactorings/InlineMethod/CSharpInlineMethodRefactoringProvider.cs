@@ -81,11 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar)
             => symbol.GenerateTypeSyntax(allowVar);
 
-        //// TODO: Use the SyntaxGenerator array initialization when this
-        //// https://github.com/dotnet/roslyn/issues/46651 is resolved.
-        //protected override SyntaxNode GenerateArrayInitializerExpression(ImmutableArray<SyntaxNode> arguments)
-        //    => SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(arguments));
-
         protected override ExpressionSyntax Parenthesize(ExpressionSyntax expressionSyntax)
             => expressionSyntax.Parenthesize();
         protected override bool IsValidExpressionUnderStatementExpression(ExpressionSyntax expressionNode)
