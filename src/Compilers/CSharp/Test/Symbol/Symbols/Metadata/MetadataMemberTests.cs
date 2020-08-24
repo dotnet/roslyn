@@ -794,14 +794,14 @@ public class C
             Assert.Empty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            compilation = compilation.WithOptions(TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
             Assert.NotEmpty(c.GetMembers("P3"));
             CompileAndVerify(compilation);
 
-            compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue));
+            compilation = compilation.WithOptions(TestOptions.DebugDll.WithMetadataImportOptions((MetadataImportOptions)byte.MaxValue));
             c = compilation.GetTypeByMetadataName("C");
             Assert.NotEmpty(c.GetMembers("P1"));
             Assert.NotEmpty(c.GetMembers("P2"));
