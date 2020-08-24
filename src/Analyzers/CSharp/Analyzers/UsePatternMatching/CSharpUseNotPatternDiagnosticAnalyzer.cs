@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
 #if !CODE_STYLE // CODE_STYLE layer doesn't currently support generating 'not patterns'.  Do not bother analyzing.
             context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.LogicalNotExpression);
-#endif
         }
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
@@ -86,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 styleOption.Notification.Severity,
                 ImmutableArray.Create(notExpression.GetLocation()),
                 properties: null));
+#endif
         }
     }
 }
