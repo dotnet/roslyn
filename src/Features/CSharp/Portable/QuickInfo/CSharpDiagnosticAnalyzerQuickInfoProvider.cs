@@ -32,54 +32,65 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         {
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
+
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var pragmaWarningDiagnosticId = token.Parent switch
+            var (pragmaWarning, errorCode) = token.Parent switch
             {
-                PragmaWarningDirectiveTriviaSyntax pragmaWarning => pragmaWarning.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax,
-                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax _ } identifier => identifier,
-                _ => null,
+                PragmaWarningDirectiveTriviaSyntax directive when IsDisablePragma(directive)
+                    => (directive, directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax),
+                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax directive } identifier when IsDisablePragma(directive)
+                    => (directive, identifier),
+                _ => default,
             };
 
-            if (pragmaWarningDiagnosticId != null)
+            if (errorCode != null)
             {
                 // First look in the analyzer diagnostics of the document. By doing so we get detailed information about the actual
                 // diagnostic message and the code that is affected by the diagnostic id.
-                var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsAsync(document.Project.Solution, document.Project.Id, document.Id,
-                    includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                var supressedDiagnostic = diagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
-                if (supressedDiagnostic != null)
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (root != null)
                 {
-                    var relatedSpans = supressedDiagnostic.HasTextSpan
-                        ? new[] { supressedDiagnostic.GetTextSpan() }
-                        : Array.Empty<TextSpan>();
-                    return CreateQuickInfo(pragmaWarningDiagnosticId,
-                        supressedDiagnostic.Message ?? supressedDiagnostic.Title ?? supressedDiagnostic.Id,
-                        relatedSpans);
-                }
-                else
-                {
-                    // The diagnostic id from the pragma could not be found in the analyzer diagnostics of the document
-                    // We now try to find it in the SupportedDiagnostics of all referenced analyzers.
-                    var analyzerReferences = document.Project.AnalyzerReferences.Union(document.Project.Solution.AnalyzerReferences);
-                    var supportedDiagnostics = from r in analyzerReferences
-                                               from a in r.GetAnalyzersForAllLanguages()
-                                               from d in a.SupportedDiagnostics
-                                               select d;
-                    var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == pragmaWarningDiagnosticId.Identifier.ValueText);
-                    if (diagnosticDescriptor != null)
+                    var range = TextSpan.FromBounds(pragmaWarning.FullSpan.End, root.FullSpan.End);
+                    var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range,
+                        diagnosticIdOpt: errorCode.Identifier.ValueText,
+                        includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var supressedDiagnostic = diagnostics.FirstOrDefault();
+                    if (supressedDiagnostic != null)
                     {
-                        return CreateQuickInfo(pragmaWarningDiagnosticId, diagnosticDescriptor.Title.ToString());
+                        var relatedSpans = supressedDiagnostic.HasTextSpan
+                            ? new[] { supressedDiagnostic.GetTextSpan() }
+                            : Array.Empty<TextSpan>();
+                        return CreateQuickInfo(errorCode,
+                            supressedDiagnostic.Message ?? supressedDiagnostic.Title ?? supressedDiagnostic.Id,
+                            relatedSpans);
+                    }
+                    else
+                    {
+                        // The diagnostic id from the pragma could not be found in the analyzer diagnostics of the document
+                        // We now try to find it in the SupportedDiagnostics of all referenced analyzers.
+                        var analyzerReferences = document.Project.AnalyzerReferences.Union(document.Project.Solution.AnalyzerReferences);
+                        var supportedDiagnostics = from r in analyzerReferences
+                                                   from a in r.GetAnalyzersForAllLanguages()
+                                                   from d in a.SupportedDiagnostics
+                                                   select d;
+                        var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode.Identifier.ValueText);
+                        if (diagnosticDescriptor != null)
+                        {
+                            return CreateQuickInfo(errorCode, diagnosticDescriptor.Title.ToString());
+                        }
                     }
                 }
             }
 
             return null;
         }
+
+        private static bool IsDisablePragma(PragmaWarningDirectiveTriviaSyntax directive)
+            => directive.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
 
         private static QuickInfoItem CreateQuickInfo(IdentifierNameSyntax pragmaWarningDiagnosticId, string description,
             params TextSpan[] relatedSpans)
