@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
     internal sealed class AsyncQueue<TElement>
     {
-        private readonly TaskCompletionSource<bool> _whenCompleted = new TaskCompletionSource<bool>();
+        // Continuations run asynchronously to ensure user code does not execute within protected regions and lead to
+        // delays, deadlocks, and/or state corruption.
+        private readonly TaskCompletionSource<bool> _whenCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         // Note: All of the below fields are accessed in parallel and may only be accessed
         // when protected by lock (SyncObject)
@@ -94,10 +96,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 waiter = _waiters.Dequeue();
             }
 
-            // Invoke SetResult on a separate task, as this invocation could cause the underlying task to executing,
-            // which could be a long running operation that can potentially cause a deadlock if executed on the current thread.
-            Task.Run(() => waiter.SetResult(value));
-
+            Debug.Assert(waiter.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            waiter.SetResult(value);
             return true;
         }
 
@@ -177,26 +177,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _waiters = null;
             }
 
-            Task.Run(() =>
+            if (existingWaiters?.Count > 0)
             {
-                if (existingWaiters?.Count > 0)
+                // cancel waiters.
+                // NOTE: AsyncQueue has an invariant that 
+                //       the queue can either have waiters or items, not both
+                //       adding an item would "unwait" the waiters
+                //       the fact that we _had_ waiters at the time we completed the queue
+                //       guarantees that there is no items in the queue now or in the future, 
+                //       so it is safe to cancel waiters with no loss of diagnostics
+                Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
+                foreach (var tcs in existingWaiters)
                 {
-                    // cancel waiters.
-                    // NOTE: AsyncQueue has an invariant that 
-                    //       the queue can either have waiters or items, not both
-                    //       adding an item would "unwait" the waiters
-                    //       the fact that we _had_ waiters at the time we completed the queue
-                    //       guarantees that there is no items in the queue now or in the future, 
-                    //       so it is safe to cancel waiters with no loss of diagnostics
-                    Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
-                    foreach (var tcs in existingWaiters)
-                    {
-                        tcs.SetResult(default);
-                    }
+                    Debug.Assert(tcs.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+                    tcs.SetResult(default);
                 }
+            }
 
-                _whenCompleted.SetResult(true);
-            });
+            Debug.Assert(_whenCompleted.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            _whenCompleted.SetResult(true);
 
             return true;
         }
@@ -300,7 +299,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         _waiters = new Queue<TaskCompletionSource<Optional<TElement>>>();
                     }
 
-                    var waiter = new TaskCompletionSource<Optional<TElement>>();
+                    // Continuations run asynchronously to ensure user code does not execute within protected regions.
+                    var waiter = new TaskCompletionSource<Optional<TElement>>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _waiters.Enqueue(waiter);
                     return new ValueTask<Optional<TElement>>(waiter.Task);
                 }
