@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // builder.Append(<name>);
                     // builder.Append(" = ");
-                    // builder.Append((object)<value>);
+                    // builder.Append(<value>.ToString()); OR builder.Append(<value>.ToString());
                     // builder.Append(", "); // except for last member
 
                     var member = printableMembers[i];
@@ -171,10 +171,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _ => throw ExceptionUtilities.UnexpectedValue(member.Kind)
                     };
 
-                    block.Add(F.ExpressionStatement(
-                        F.Call(receiver: builder,
-                            F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
-                            F.Convert(F.SpecialType(SpecialType.System_Object), value))));
+                    Debug.Assert(value.Type is not null);
+                    if (value.Type.IsValueType)
+                    {
+                        block.Add(F.ExpressionStatement(
+                            F.Call(receiver: builder,
+                                F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString),
+                                F.Call(value, F.SpecialMethod(SpecialMember.System_Object__ToString)))));
+                    }
+                    else
+                    {
+                        block.Add(F.ExpressionStatement(
+                            F.Call(receiver: builder,
+                                F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
+                                F.Convert(F.SpecialType(SpecialType.System_Object), value))));
+                    }
 
                     if (i < printableMembers.Length - 1)
                     {

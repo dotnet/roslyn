@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // this.print(builder);
                 block.Add(F.ExpressionStatement(F.Call(F.This(), _printMethod, builderLocal)));
 
-                // builder.Append(" } ");
-                block.Add(makeAppendString(F, builderLocal, " } "));
+                // builder.Append(" }");
+                block.Add(makeAppendString(F, builderLocal, " }"));
 
                 // return builder.ToString();
                 block.Add(F.Return(F.Call(builderLocal, F.SpecialMethod(SpecialMember.System_Object__ToString))));
