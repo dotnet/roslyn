@@ -80,7 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                         var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode.Identifier.ValueText);
                         if (diagnosticDescriptor != null)
                         {
-                            return CreateQuickInfo(errorCode, diagnosticDescriptor.Title.ToString());
+                            var description =
+                                diagnosticDescriptor.Title.ToStringOrNull() ??
+                                diagnosticDescriptor.Description.ToStringOrNull() ??
+                                diagnosticDescriptor.MessageFormat.ToStringOrNull() ??
+                                diagnosticDescriptor.Id;
+
+                            return CreateQuickInfo(errorCode, description);
                         }
                     }
                 }
@@ -102,6 +108,20 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                         new TaggedText(TextTags.Text, description)
                     }.ToImmutableArray())
                 }.ToImmutableArray(), relatedSpans: relatedSpans.ToImmutableArray());
+        }
+    }
+
+    internal static class LocalizableStringExtensions
+    {
+        public static string? ToStringOrNull(this LocalizableString @this)
+        {
+            var result = @this.ToString();
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return null;
+            }
+
+            return result;
         }
     }
 }
