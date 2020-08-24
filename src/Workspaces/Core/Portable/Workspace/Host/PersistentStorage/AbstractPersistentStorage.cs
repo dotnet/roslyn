@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Host
             => ReadChecksumAsync(documentKey, documentOpt: null, name, cancellationToken);
 
         public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync((ProjectKey)project, name, cancellationToken);
+            => ReadChecksumAsync((ProjectKey)project, project, name, cancellationToken);
 
         public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync((DocumentKey)document, name, cancellationToken);
+            => ReadChecksumAsync((DocumentKey)document, document, name, cancellationToken);
 
         public abstract Task<Stream> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);
 
