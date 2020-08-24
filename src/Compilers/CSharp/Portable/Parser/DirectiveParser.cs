@@ -316,27 +316,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
 
                 string errorText = triviaBuilder.ToString();
-                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
 
-                if (isError)
+                const string versionMarker = "version:";
+                if (isError && errorText.Equals("version", StringComparison.Ordinal))
                 {
-                    if (errorText.Equals("version", StringComparison.Ordinal))
-                    {
-                        string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
-                        eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
-                            this.Options.SpecifiedLanguageVersion.ToDisplayString());
-                    }
-                    else
-                    {
-                        const string versionMarker = "version:";
-                        if (this.Options.LanguageVersion != LanguageVersion.Preview &&
-                            errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
-                            LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
-                        {
-                            ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
-                            eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
-                        }
-                    }
+                    string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+                    eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
+                        this.Options.SpecifiedLanguageVersion.ToDisplayString());
+                }
+                else if (isError && this.Options.LanguageVersion != LanguageVersion.Preview &&
+                         errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
+                         LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
+                {
+                    ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
+                    eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
+                }
+                else
+                {
+                    eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
                 }
             }
 
