@@ -235,7 +235,7 @@ public struct StructWithValue
                 delaySign: null,
                 platform: Platform.AnyCpu,
                 generalDiagnosticOption: ReportDiagnostic.Default,
-                warningLevel: 5,
+                warningLevel: 5, // Question: Do you want to use 9999 here instead of 5? or this is explicitly 5 for some reason?
                 specificDiagnosticOptions: null,
                 concurrentBuild: true,
                 deterministic: true,
