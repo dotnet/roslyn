@@ -450,6 +450,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     MarkValidatedLocations(operation.Value);
                 }
 
+                // Mark a location as validated on true path where user has performed an IsPattern check with not null on true path.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue &&
+                    GetNullAbstractValue(operation.Pattern) == NullAbstractValue.NotNull)
+                {
+                    MarkValidatedLocations(operation.Value);
+                }
+
                 return value;
             }
 
