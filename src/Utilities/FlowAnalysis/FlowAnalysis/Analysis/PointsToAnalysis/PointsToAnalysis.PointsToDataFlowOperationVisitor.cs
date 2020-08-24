@@ -187,6 +187,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
             }
 
+            protected override CopyAbstractValue GetCopyAbstractValue(IOperation operation)
+            {
+                if (DataFlowAnalysisContext.CopyAnalysisResult == null &&
+                    AnalysisEntityFactory.TryCreate(operation, out var entity) &&
+                    entity.CaptureId.HasValue &&
+                    AnalysisEntityFactory.TryGetCopyValueForFlowCapture(entity.CaptureId.Value.Id, out var copyValue) &&
+                    copyValue.Kind == CopyAbstractValueKind.KnownReferenceCopy)
+                {
+                    return copyValue;
+                }
+
+                return base.GetCopyAbstractValue(operation);
+            }
+
             private static void SetAbstractValueCore(PointsToAnalysisData pointsToAnalysisData, AnalysisEntity analysisEntity, PointsToAbstractValue value)
                 => pointsToAnalysisData.SetAbstractValue(analysisEntity, value);
 

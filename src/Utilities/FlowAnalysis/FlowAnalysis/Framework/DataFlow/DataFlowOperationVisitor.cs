@@ -1482,8 +1482,45 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             break;
 
                         default:
-                            Debug.Fail($"Unknown pattern kind '{isPatternOperation.Pattern.Kind}'");
-                            predicateValueKind = PredicateValueKind.Unknown;
+                            // TODO: Remove the below string based checks when we move to Microsoft.CodeAnalysis 3.7 or later.
+                            // TODO: File a tracking bug.
+                            var kindStr = isPatternOperation.Pattern.Kind.ToString();
+                            switch (kindStr)
+                            {
+                                case "NegatedPattern":
+                                    if (isPatternOperation.Pattern.Children.FirstOrDefault() is IPatternOperation negatedPattern)
+                                    {
+                                        if (negatedPattern is IConstantPatternOperation negatedConstantPattern)
+                                        {
+                                            predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, negatedConstantPattern.Value,
+                                                equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
+                                        }
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        goto default;
+                                    }
+
+                                case "RelationalPattern":
+                                    // For the true branch, set the pattern operation value to NotNull.
+                                    if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                                    {
+                                        predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Value, equals: false, targetAnalysisData: targetAnalysisData);
+                                    }
+                                    break;
+
+                                case "BinaryPattern":
+                                    // These high level patterns should not be present in the lowered CFG: https://github.com/dotnet/roslyn/issues/47068
+                                    predicateValueKind = PredicateValueKind.Unknown;
+                                    break;
+
+                                default:
+                                    Debug.Fail($"Unknown pattern kind '{isPatternOperation.Pattern.Kind}'");
+                                    predicateValueKind = PredicateValueKind.Unknown;
+                                    break;
+                            }
+
                             break;
                     }
 
