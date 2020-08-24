@@ -4219,6 +4219,48 @@ record C1
         }
 
         [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
+        {
+            var src = @"
+var c1 = new C1<int>() { field = 42 };
+System.Console.Write(c1.ToString());
+
+record C1<T> where T : struct
+{
+    public T field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     ""T C1<T>.field""
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002f:  pop
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ReferenceType()
         {
             var src = @"
