@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 // If this fails, try to find it in the SupportedDiagnostics of all referenced analyzers.
                 return
                     (await GetQuickInfoFromDiagnosticAnalyzerAsync(document, pragmaWarning, errorCode, cancellationToken).ConfigureAwait(false))
-                    ?? GetQuickInfoFromSupportedDiagnosticsOfAnayzers(document, errorCode);
+                    ?? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode);
             }
 
             return null;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return null;
         }
 
-        private static QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfAnayzers(Document document,
+        private static QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
             IdentifierNameSyntax errorCode)
         {
             var analyzerReferences = document.Project.AnalyzerReferences.Union(document.Project.Solution.AnalyzerReferences);
