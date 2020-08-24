@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// After:
             /// void Caller()
             /// {
-            ///     int x;
-            ///     x = 100;
+            ///     int x = 100;
             /// }
             /// void Callee(out int i) => i = 100;
             /// </summary>

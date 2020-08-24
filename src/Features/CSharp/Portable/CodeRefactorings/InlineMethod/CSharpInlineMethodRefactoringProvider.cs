@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -177,13 +176,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             return false;
         }
 
-        private bool IsVariableInitializerInLocalDeclarationSyntax(
+        private static bool IsVariableInitializerInLocalDeclarationSyntax(
             InvocationExpressionSyntax expressionSyntax,
             LocalDeclarationStatementSyntax statementSyntaxEnclosingCallee)
             => statementSyntaxEnclosingCallee.Declaration.Variables
                 .Any(variable => expressionSyntax.Equals(variable?.Initializer?.Value));
 
-        private LocalDeclarationStatementSyntax UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
+        private static LocalDeclarationStatementSyntax UseExplicitTypeAndReplaceInitializerForDeclarationSyntax(
             LocalDeclarationStatementSyntax localDeclarationSyntax,
             SyntaxGenerator syntaxGenerator,
             ITypeSymbol type,

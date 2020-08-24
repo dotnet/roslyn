@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
@@ -162,6 +163,28 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 methodParametersInfo.ParametersWithVariableDeclarationArgument,
                 cancellationToken);
 
+            // For this case, merge the inline content and the variable declaration
+            // Before:
+            // void Caller()
+            // {
+            //     Callee(out var x);
+            // }
+            // void Callee(out int i) => i = 100;
+            //
+            // After:
+            // void Caller()
+            // {
+            //     int x = 100;
+            // }
+            // void Callee(out int i) => i = 100;
+            var mergeInlineContentAndVariableDeclarationArgument = MergeInlineContentAndVariableDeclarationArgument(
+                calleeInvocationNode,
+                semanticModel,
+                methodParametersInfo.ParametersWithVariableDeclarationArgument
+                    .SelectAsArray(paramAndName => paramAndName.parameterSymbol),
+                rawInlineExpression,
+                cancellationToken);
+
             // Generate all the statements need to be put in the caller.
             // Use the parameter's name to generate declarations in caller might cause conflict in the caller,
             // so the rename table is needed to provide with a valid name.
@@ -209,7 +232,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var localDeclarationStatementsNeedInsert = GetLocalDeclarationStatementsNeedInsert(
                 syntaxGenerator,
                 methodParametersInfo.OperationsToGenerateFreshVariablesFor,
-                methodParametersInfo.ParametersWithVariableDeclarationArgument,
+                mergeInlineContentAndVariableDeclarationArgument
+                    ? ImmutableArray<(IParameterSymbol, string)>.Empty
+                    : methodParametersInfo.ParametersWithVariableDeclarationArgument,
                 renameTable);
 
             // Get a table which the key is the symbol needs replacement. Value is the replacement syntax node
@@ -287,6 +312,21 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             // Check if there is await expression. It is used later if the caller should be changed to async
             var containsAwaitExpression = ContainsAwaitExpression(rawInlineExpression, calleeMethodNode);
+
+            if (mergeInlineContentAndVariableDeclarationArgument)
+            {
+                var singleVariableDeclarationParameter =
+                    methodParametersInfo.ParametersWithVariableDeclarationArgument.Single().parameterSymbol;
+                var name = renameTable[singleVariableDeclarationParameter];
+                var rightHandSideValue = _syntaxFacts.GetRightHandSideOfAssignment(inlineExpression);
+                return new InlineMethodContext(
+                    localDeclarationStatementsNeedInsert,
+                    statementContainsCallee,
+                    syntaxGenerator
+                        .LocalDeclarationStatement(singleVariableDeclarationParameter.Type, name, rightHandSideValue),
+                    statementContainsCallee,
+                    containsAwaitExpression);
+            }
 
             if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
                 && !calleeMethodSymbol.ReturnsVoid
@@ -390,7 +430,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             var declarationsForVariableDeclarationArgumentQuery = parametersWithVariableDeclarationArgument
                 .Select(parameterAndName =>
-                    syntaxGenerator.LocalDeclarationStatement(parameterAndName.parameterSymbol.Type, parameterAndName.name));
+                    syntaxGenerator.LocalDeclarationStatement(parameterAndName.parameterSymbol.Type, renameTable.TryGetValue(parameterAndName.parameterSymbol, out var newName) ? newName : parameterAndName.name));
 
             return declarationsQuery.Concat(declarationsForVariableDeclarationArgumentQuery).ToImmutableArray();
         }
@@ -516,7 +556,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             ISemanticFactsService semanticFacts,
             SemanticModel semanticModel,
             SyntaxNode calleeInvocationNode,
-            SyntaxNode inlineSyntaxNode,
+            SyntaxNode inlineExpression,
             ImmutableDictionary<IParameterSymbol, string> identifierArguments,
             ImmutableArray<IParameterSymbol> parametersNeedGenerateDeclaration,
             ImmutableArray<(IParameterSymbol parameterSymbol, string variableName)> variableDeclarationArguments,
@@ -531,7 +571,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     renameTable[parameterSymbol] = semanticFacts
                         .GenerateUniqueLocalName(
                             semanticModel,
-                            inlineSyntaxNode,
+                            inlineExpression,
                             containerOpt: null,
                             variableName,
                             usedNames,
@@ -539,7 +579,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
             }
 
-            var existingSymbolInCalleeQuery = semanticModel.LookupSymbols(inlineSyntaxNode.Span.End)
+            var existingSymbolInCalleeQuery = semanticModel.LookupSymbols(inlineExpression.Span.End)
                 .Where(symbol => symbol.IsKind(SymbolKind.Local));
             foreach (var symbol in parametersNeedGenerateDeclaration.Concat(existingSymbolInCalleeQuery))
             {
@@ -555,6 +595,25 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             return renameTable.ToImmutableDictionary();
+        }
+
+        private bool MergeInlineContentAndVariableDeclarationArgument(
+            TInvocationSyntax calleeInvocationNode,
+            SemanticModel semanticModel,
+            ImmutableArray<IParameterSymbol> parametersWithVariableDeclarationArgument,
+            TExpressionSyntax inlineExpressionNode,
+            CancellationToken cancellationToken)
+        {
+            if (parametersWithVariableDeclarationArgument.Length == 1
+                && _syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
+                && semanticModel.GetOperation(inlineExpressionNode, cancellationToken) is ISimpleAssignmentOperation simpleAssignmentOperation
+                && simpleAssignmentOperation.Target is IParameterReferenceOperation parameterOperation
+                && parameterOperation.Parameter.Equals(parametersWithVariableDeclarationArgument[0]))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

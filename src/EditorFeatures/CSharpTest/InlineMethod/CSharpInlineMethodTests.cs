@@ -547,7 +547,7 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestInlineMethodWithVariableDeclaration()
+        public Task TestInlineMethodWithVariableDeclaration1()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
@@ -567,13 +567,86 @@ public class TestClass
 {
     private void Caller()
     {
-        int x;
-        x = 10;
+        int x = 10;
     }
 
     private void Callee(out int z)
     {
         z = 10;
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithVariableDeclaration2()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(out var x, out var y, out var z);
+    }
+
+    private void Callee(out int z, out int x, out int y)
+    {
+        z = x = y = 10;
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int x1;
+        int y1;
+        int z1;
+        x1 = y1 = z1 = 10;
+    }
+
+    private void Callee(out int z, out int x, out int y)
+    {
+        z = x = y = 10;
+    }
+}");
+
+        [Fact]
+        public Task TestInlineMethodWithVariableDeclaration3()
+            => TestVerifier.TestInRegularAndScript1Async(
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        Cal[||]lee(out var x);
+    }
+
+    private void Callee(out int z)
+    {
+        DoSometing(out z);
+    }
+
+    private void DoSometing(out int z)
+    {
+        z = 100;
+    }
+}",
+                @"
+public class TestClass
+{
+    private void Caller()
+    {
+        int x;
+        DoSometing(out x);
+    }
+
+    private void Callee(out int z)
+    {
+        DoSometing(out z);
+    }
+
+    private void DoSometing(out int z)
+    {
+        z = 100;
     }
 }");
 
