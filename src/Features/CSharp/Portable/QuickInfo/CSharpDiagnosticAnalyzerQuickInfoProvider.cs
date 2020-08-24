@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         private static bool IsDisablePragma(PragmaWarningDirectiveTriviaSyntax directive)
-        => directive.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
+            => directive.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
 
         private static QuickInfoItem CreateQuickInfo(IdentifierNameSyntax pragmaWarningDiagnosticId, string description,
             params TextSpan[] relatedSpans)
