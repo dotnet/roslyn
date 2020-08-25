@@ -3785,8 +3785,8 @@ End Module
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30615: 'End' statement cannot be used in class library projects.
-        End
-        ~~~
+        If True Then End Else Console.WriteLine("Test")
+                     ~~~
 </expected>)
         End Sub
 
