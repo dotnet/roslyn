@@ -4,7 +4,9 @@
 
 #nullable enable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -24,13 +26,21 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Key we use to look this up in the persistence store for a particular document.
         /// </summary>
-        public const string PersistenceName = "<ClassifiedSpans>";
+        private const string PersistenceName = "<ClassifiedSpans>";
 
         /// <summary>
         /// Our current persistence version.  If we ever change the on-disk format, this should be changed so that we
         /// skip over persisted data that we cannot read.
         /// </summary>
-        public const int ClassificationFormat = 2;
+        private const int ClassificationFormat = 2;
+
+        private const int MaxCachedDocumentCount = 8;
+
+        /// <summary>
+        /// Cache of the previously requested 
+        /// </summary>
+        private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData
+            = new LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)>();
 
         private static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
         {
@@ -42,10 +52,21 @@ namespace Microsoft.CodeAnalysis.Remote
             return textChecksum;
         }
 
-        public Task CacheSemanticClassificationsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public Task CacheSemanticClassificationsAsync(
+            PinnedSolutionInfo solutionInfo,
+            DocumentId documentId,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
+                // Once fully loaded, we can clear any of the cached information we stored during load.
+                if (isFullyLoaded)
+                {
+                    lock (_cachedData)
+                        _cachedData.Clear();
+                }
+
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
 
@@ -139,14 +160,73 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
-                await AddCachedSemanticClassificationsAsync(
+                await GetOrReadCachedSemanticClassificationsAsync(
                     documentKey.Rehydrate(), textSpan, checksum, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
                 return SerializableClassifiedSpans.Dehydrate(classifiedSpans);
             }, cancellationToken);
         }
 
-        private async Task AddCachedSemanticClassificationsAsync(
+        private async Task GetOrReadCachedSemanticClassificationsAsync(
+            DocumentKey documentKey,
+            TextSpan textSpan,
+            Checksum checksum,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
+            CancellationToken cancellationToken)
+        {
+            // See if we've loaded this into memory first.
+            if (TryGetFromInMemoryCache(documentKey, checksum, classifiedSpans))
+                return;
+
+            // Otherwise, attempt to read in classifications from persistence store.
+            await ReadCachedSemanticClassificationsAsync(
+                documentKey, textSpan, checksum, classifiedSpans, cancellationToken).ConfigureAwait(false);
+
+            UpdateInMemoryCache(documentKey, checksum, classifiedSpans.ToImmutable());
+        }
+
+        private bool TryGetFromInMemoryCache(DocumentKey documentKey, Checksum checksum, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        {
+            lock (_cachedData)
+            {
+                var data = _cachedData.FirstOrNull(d => d.id == documentKey.Id && d.checksum == checksum);
+                if (data != null)
+                {
+                    classifiedSpans.AddRange(data.Value.classifiedSpans);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void UpdateInMemoryCache(
+            DocumentKey documentKey,
+            Checksum checksum,
+            ImmutableArray<ClassifiedSpan> classifiedSpans)
+        {
+            lock (_cachedData)
+            {
+                // First, remove any existing info for this doc.
+                for (var currentNode = _cachedData.First; currentNode != null; currentNode = currentNode.Next)
+                {
+                    if (currentNode.Value.id == documentKey.Id)
+                    {
+                        _cachedData.Remove(currentNode);
+                        break;
+                    }
+                }
+
+                // Then place the cached information for this doc at the end.
+                _cachedData.AddLast((documentKey.Id, checksum, classifiedSpans));
+
+                // And ensure we don't cache too many docs.
+                if (_cachedData.Count > MaxCachedDocumentCount)
+                    _cachedData.RemoveFirst();
+            }
+        }
+
+        private async Task ReadCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
             TextSpan textSpan,
             Checksum checksum,

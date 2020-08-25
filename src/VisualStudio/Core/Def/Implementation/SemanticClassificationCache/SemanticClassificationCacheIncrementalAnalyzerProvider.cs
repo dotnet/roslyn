@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -51,11 +52,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                     return;
                 }
 
+                var statusService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
                 await client.RunRemoteAsync(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSemanticClassificationCacheService.CacheSemanticClassificationsAsync),
                     document.Project.Solution,
-                    arguments: new[] { document.Id },
+                    arguments: new object[] { document.Id, isFullyLoaded },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }

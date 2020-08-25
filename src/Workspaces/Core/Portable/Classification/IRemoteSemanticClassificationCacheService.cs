@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Classification
     internal interface IRemoteSemanticClassificationCacheService
     {
         Task CacheSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, bool isFullyLoaded, CancellationToken cancellationToken);
 
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref
