@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -100,7 +100,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // this service), then bail out immediately.
             var classificationService = document?.GetLanguageService<IClassificationService>();
             if (classificationService == null)
+            {
                 return Task.CompletedTask;
+            }
 
             return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
