@@ -3429,6 +3429,30 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [CombinatorialData]
+        public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // the double-quote inside the string should not affect this being classified as a regex.
+    private Regex myRegex = new Regex(@""^ """" $"";
+}",
+testHost,
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Class("Regex"),
+Class("Regex"),
+Regex.Anchor("^"),
+Regex.Text(@" """" "),
+Regex.Anchor("$"));
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)

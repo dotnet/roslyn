@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v1.Interop;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Project and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Project, string, Checksum, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(ProjectKey, Project?, string, Checksum?, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Document and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Document, string, Checksum, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(DocumentKey, Document?, string, Checksum?, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
@@ -241,14 +242,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
-        public void Initialize(Solution solution)
+        public void Initialize(Solution solutionOpt)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using var pooledConnection = GetPooledConnection();
             var connection = pooledConnection.Connection;
 
             // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
-            // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
+            // by combining writes at checkpoint, along with using sequential-only writes to populate the log.
             // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
             connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
 
@@ -299,7 +300,7 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, solution, fetchStringTable);
+            BulkPopulateIds(connection, solutionOpt, fetchStringTable);
         }
     }
 }

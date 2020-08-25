@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -1175,6 +1176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
+            // Disabling optimization to work around a JIT bug in .NET 5.
+            // See https://github.com/dotnet/roslyn/issues/46575
+            [MethodImpl(MethodImplOptions.NoOptimization)]
             get
             {
                 var explicitInterfaceImplementations = _lazyExplicitMethodImplementations;

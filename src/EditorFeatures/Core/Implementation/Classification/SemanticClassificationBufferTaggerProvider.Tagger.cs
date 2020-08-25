@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly SemanticClassificationBufferTaggerProvider _owner;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITaggerEventSource _eventSource;
-            private readonly SemanticClassifier _classifier;
 
             private TagSpanIntervalTree<IClassificationTag> _cachedTags_doNotAccessDirectly;
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
-                _classifier = new SemanticClassifier(owner.ThreadingContext, asyncListener);
 
                 const TaggerDelay Delay = TaggerDelay.Short;
                 _eventSource = TaggerEventSources.Compose(
@@ -177,14 +175,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return this.CachedTags.GetIntersectingTagSpans(spans);
             }
 
-            private Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan documentSpan, ClassificationTypeMap typeMap)
+            private static Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan documentSpan, ClassificationTypeMap typeMap)
             {
                 var document = documentSpan.Document;
 
                 var classificationService = document.GetLanguageService<IClassificationService>();
                 if (classificationService != null)
                 {
-                    return _classifier.ProduceTagsAsync(context, documentSpan, classificationService, typeMap);
+                    return SemanticClassificationUtilities.ProduceTagsAsync(context, documentSpan, classificationService, typeMap);
                 }
 
                 return Task.CompletedTask;

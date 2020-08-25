@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Serialization;
 using Nerdbank;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 pipeName,
                 (scopeId, checksums),
                 (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(
-                    writer, _services.GetRequiredService<IRemotableDataService>(), data.scopeId, data.checksums, cancellationToken),
+                    writer, _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage, _services.GetRequiredService<ISerializerService>(), data.scopeId, data.checksums, cancellationToken),
                 cancellationToken);
 
         /// <summary>
@@ -169,6 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteProjectTelemetryService, (s, p) => new RemoteProjectTelemetryService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteSemanticClassificationCacheService, (s, p) => new RemoteSemanticClassificationCacheService(s, p));
                 RegisterService(WellKnownServiceHubService.RemoteTodoCommentsService, (s, p) => new RemoteTodoCommentsService(s, p));
                 RegisterService(WellKnownServiceHubService.LanguageServer, (s, p) => new LanguageServer(s, p));
             }

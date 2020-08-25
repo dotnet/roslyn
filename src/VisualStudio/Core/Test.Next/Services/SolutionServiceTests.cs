@@ -296,7 +296,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestDocument()
         {
             var code = @"class Test { void Method() { } }";

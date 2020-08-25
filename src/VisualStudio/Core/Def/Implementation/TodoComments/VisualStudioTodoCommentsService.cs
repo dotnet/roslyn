@@ -8,7 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,14 +29,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
-    [Export(typeof(IVisualStudioTodoCommentsService))]
     [Export(typeof(IVsTypeScriptTodoCommentService))]
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTodoCommentsService
         : ForegroundThreadAffinitizedObject,
-          IVisualStudioTodoCommentsService,
           ITodoCommentsListener,
           ITodoListProvider,
-          IVsTypeScriptTodoCommentService
+          IVsTypeScriptTodoCommentService,
+          IEventListener<object>
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
@@ -70,16 +70,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
         }
 
-        void IVisualStudioTodoCommentsService.Start(CancellationToken cancellationToken)
-            => _ = StartAsync(cancellationToken);
+        void IEventListener<object>.StartListening(Workspace workspace, object _)
+        {
+            if (workspace is VisualStudioWorkspace)
+                _ = StartAsync();
+        }
 
-        private async Task StartAsync(CancellationToken cancellationToken)
+        private async Task StartAsync()
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
             {
-                await StartWorkerAsync(cancellationToken).ConfigureAwait(false);
+                await StartWorkerAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -92,8 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             }
         }
 
-        private async Task StartWorkerAsync(CancellationToken cancellationToken)
+        private async Task StartWorkerAsync()
         {
+            var cancellationToken = ThreadingContext.DisposalToken;
+
             _workQueueSource.SetResult(
                 new AsyncBatchingWorkQueue<DocumentAndComments>(
                     TimeSpan.FromSeconds(1),
