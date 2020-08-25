@@ -202,8 +202,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     else
                     {
-                        // Non mutating request are given the current solution state, but are otherwise fire-and-forget
-                        _ = work.CallbackAsync(context, cancellationToken);
+                        // Non mutating are fire-and-forget because they are by definition readonly. Any errors
+                        // will be sent back to the client but we can still capture errors in queue processing
+                        // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
+                        _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
                     }
                 }
             }
