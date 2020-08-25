@@ -297,7 +297,7 @@ function BuildSolution {
     $properties
 }
 
-InitializeDotNetCli $restore
+# InitializeDotNetCli $restore
 if [[ "$restore" == true ]]; then
   dotnet tool restore
 fi
