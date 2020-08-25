@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -44,8 +43,7 @@ namespace Roslyn.Utilities
             return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.GetHashCode(value));
         }
 
-        [return: MaybeNull]
-        public T TryGetTarget()
+        public T? TryGetTarget()
         {
             if (_weakReference is object)
                 return _weakReference.GetTarget();

@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Gets a workspace specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.
         /// </summary>
-        [return: MaybeNull]
-        public abstract TWorkspaceService GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
+        public abstract TWorkspaceService? GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
 
         /// <summary>
         /// Gets a workspace specific service provided by the host identified by the service type. 

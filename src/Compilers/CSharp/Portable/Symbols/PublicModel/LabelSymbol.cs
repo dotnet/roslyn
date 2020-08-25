@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -36,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             visitor.VisitLabel(this);
         }
 
-        [return: MaybeNull]
-        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        protected override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
+            where TResult : default
         {
             return visitor.VisitLabel(this);
         }
