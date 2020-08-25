@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 
             var analyzedTypes = await TryGetOldAndNewReturnTypeAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
             if (analyzedTypes == default ||
-                (isVoid(analyzedTypes.declarationToFix) && isVoid(analyzedTypes.fixedDeclaration)))
+                (IsVoid(analyzedTypes.declarationToFix) && IsVoid(analyzedTypes.fixedDeclaration)))
             {
                 return;
             }
