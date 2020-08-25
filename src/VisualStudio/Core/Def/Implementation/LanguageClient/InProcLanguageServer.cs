@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal class InProcLanguageServer
     {
         private readonly IDiagnosticService _diagnosticService;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
@@ -47,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             AbstractRequestHandlerProvider requestHandlerProvider,
             CodeAnalysis.Workspace workspace,
             IDiagnosticService diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider,
             string? clientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
@@ -61,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
+            _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
@@ -249,7 +253,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
 
                 // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
-                Task.Run(() => PublishDiagnosticsAsync(document));
+                var asyncToken = _listener.BeginAsyncOperation(nameof(PublishDiagnosticsAsync));
+                Task.Run(() => PublishDiagnosticsAsync(document))
+                    .CompletesAsyncOperation(asyncToken);
             }
         }
 
