@@ -10,13 +10,25 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    /// <summary>
+    /// Service that can retrieve semantic classifications for a document cached during a previous session. This is
+    /// intended to help populate semantic classifications for a host during the time while a solution is loading and
+    /// semantics may be incomplete or unavailable.
+    /// </summary>
     internal interface ISemanticClassificationCacheService : IWorkspaceService
     {
+        /// <summary>
+        /// Tries to get cached semantic classifications for the specified document and the specified <paramref
+        /// name="textSpan"/>.  Will return an empty array not able to.
+        /// </summary>
+        /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
+        /// classifications are only returned if they match the content the file currently has.</param>
         Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(
             DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken);
     }
