@@ -89,6 +89,9 @@ namespace TestResources
 
         private static byte[] s_netStandardGenerator;
         public static byte[] NetStandardGenerator => ResourceLoader.GetOrCreateResource(ref s_netStandardGenerator, "Generators.NetStandardGenerator.dll");
+
+        private static byte[] s_noTargetGenerator;
+        public static byte[] NoTargetGenerator => ResourceLoader.GetOrCreateResource(ref s_noTargetGenerator, "Generators.NoTargetGenerator.dll");
     }
 }
 

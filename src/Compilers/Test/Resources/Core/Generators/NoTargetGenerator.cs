@@ -6,12 +6,9 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Runtime.Versioning;
-
-[assembly: TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName = ".NET Framework 4.7.2")]
 
 [Generator]
-public class NetFrameworkGenerator : ISourceGenerator
+public class NoTargetGenerator : ISourceGenerator
 {
     public void Execute(SourceGeneratorContext context)
     {

@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -501,20 +502,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // check if this references net framework, and issue a diagnostic if we don't allow that
                     if (!_allowNetFramework)
                     {
-                        const string ExpectedPublicKey = "B7-7A-5C-56-19-34-E0-89";
-                        foreach (var reference in analyzerAssembly.GetReferencedAssemblies())
+                        var targetFrameworkAttribute = analyzerAssembly.GetCustomAttribute<TargetFrameworkAttribute>();
+                        if (targetFrameworkAttribute is object && targetFrameworkAttribute.FrameworkName.StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (reference.Name?.Equals("mscorlib", StringComparison.OrdinalIgnoreCase) == true)
-                            {
-                                var publicKeyToken = reference.GetPublicKeyToken();
-                                if (publicKeyToken is object && BitConverter.ToString(publicKeyToken).Equals(ExpectedPublicKey, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(
-                                        AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
-                                        string.Format(CodeAnalysisResources.TypeReferencesNetFramework, typeName),
-                                        typeNameOpt: typeName));
-                                }
-                            }
+                            _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(
+                                AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
+                                string.Format(CodeAnalysisResources.TypeReferencesNetFramework, typeName),
+                                typeNameOpt: typeName));
                         }
                     }
 

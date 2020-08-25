@@ -41,6 +41,8 @@
     <EmbeddedResource Include="Generators\NetFrameworkGenerator.dll" />
     <Content Include="Generators\NetStandardGenerator.cs" />
     <EmbeddedResource Include="Generators\NetStandardGenerator.dll" />
+    <Content Include="Generators\NoTargetGenerator.cs" />
+    <EmbeddedResource Include="Generators\NoTargetGenerator.dll" />
     <Content Include="MetadataTests\InterfaceAndClass\CSClasses01.cs" />
     <EmbeddedResource Include="MetadataTests\InterfaceAndClass\CSClasses01.dll" />
     <Content Include="MetadataTests\InterfaceAndClass\CSInterfaces01.cs" />

@@ -281,6 +281,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetStandardGenerator);
             Assert.Empty(errors);
 
+            // no target
+            errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NoTargetGenerator);
+            Assert.Empty(errors);
+
             // framework
             errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetFrameworkGenerator);
             Assert.Equal(1, errors.Count);
