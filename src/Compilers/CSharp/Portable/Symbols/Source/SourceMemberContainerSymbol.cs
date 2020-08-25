@@ -416,12 +416,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.Name == "record")
-            {
-                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, declaration.Declarations[0].NameLocation, this.Name);
-            }
+            ReportTypeNamedRecord(this.Name, this.DeclaringCompilation, diagnostics, declaration.Declarations[0].NameLocation);
 
             return result;
+        }
+
+        static internal void ReportTypeNamedRecord(string name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
+        {
+            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
+                compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
+            }
         }
 
         #endregion

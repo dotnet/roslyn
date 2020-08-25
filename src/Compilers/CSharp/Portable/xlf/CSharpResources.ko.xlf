@@ -2505,13 +2505,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
-        <source>A type should not be named 'record'.</source>
-        <target state="new">A type should not be named 'record'.</target>
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
-        <source>A type should not be named 'record'.</source>
-        <target state="new">A type should not be named 'record'.</target>
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">

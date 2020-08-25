@@ -519,6 +519,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(name, this.DeclaringCompilation, diagnostics, location);
+
                 var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
                 if ((object)tpEnclosing != null)
                 {

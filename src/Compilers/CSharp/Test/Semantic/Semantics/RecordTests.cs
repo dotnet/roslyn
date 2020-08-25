@@ -1980,7 +1980,7 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,7): error CS8860: A type should not be named 'record'.
+                // (2,7): error CS8860: Types and aliases should not be named 'record'.
                 // class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
@@ -2001,11 +2001,7 @@ class C
                 );
 
             comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (2,7): error CS8860: A type should not be named 'record'.
-                // class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
@@ -2016,7 +2012,7 @@ struct record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,8): warning CS8860: A type should not be named 'record'.
+                // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // struct record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
                 );
@@ -2030,9 +2026,149 @@ interface record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,11): warning CS8860: A type should not be named 'record'.
+                // (2,11): warning CS8860: Types and aliases should not be named 'record'.
                 // interface record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 11)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Enum()
+        {
+            var src = @"
+enum record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,6): warning CS8860: Types and aliases should not be named 'record'.
+                // enum record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 6)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Delegate()
+        {
+            var src = @"
+delegate void record();
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // delegate void record();
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Alias()
+        {
+            var src = @"
+using record = System.Console;
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using record = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using record = System.Console;").WithLocation(2, 1),
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
+                // using record = System.Console;
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Alias_Escaped()
+        {
+            var src = @"
+using @record = System.Console;
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using @record = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @record = System.Console;").WithLocation(2, 1),
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
+                // using @record = System.Console;
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "@record").WithArguments("record").WithLocation(2, 7)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter()
+        {
+            var src = @"
+class C<record> { } // 1
+class C2
+{
+    class Nested<record> { } // 2
+}
+class C3
+{
+    void Method<record>() { } // 3
+
+    void Method2()
+    {
+        void local<record>() // 4
+        {
+            local<record>();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,9): warning CS8860: Types and aliases should not be named 'record'.
+                // class C<record> { } // 1
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 9),
+                // (5,18): warning CS8860: Types and aliases should not be named 'record'.
+                //     class Nested<record> { } // 2
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 18),
+                // (9,17): warning CS8860: Types and aliases should not be named 'record'.
+                //     void Method<record>() { } // 3
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                // (13,20): warning CS8860: Types and aliases should not be named 'record'.
+                //         void local<record>() // 4
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(13, 20)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter_Escaped()
+        {
+            var src = @"
+class C<@record> { }
+class C2
+{
+    class Nested<@record> { } // 2
+}
+class C3
+{
+    void Method<@record>() { } // 3
+
+    void Method2()
+    {
+        void local<@record>() // 4
+        {
+            local<record>();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,9): warning CS8860: Types and aliases should not be named 'record'.
+                // class C<@record> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "@record").WithArguments("record").WithLocation(2, 9),
+                // (5,18): warning CS8860: Types and aliases should not be named 'record'.
+                //     class Nested<@record> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "@record").WithArguments("record").WithLocation(5, 18),
+                // (9,17): warning CS8860: Types and aliases should not be named 'record'.
+                //     void Method<@record>() { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "@record").WithArguments("record").WithLocation(9, 17),
+                // (13,20): warning CS8860: Types and aliases should not be named 'record'.
+                //         void local<@record>()
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "@record").WithArguments("record").WithLocation(13, 20)
                 );
         }
 
@@ -2044,7 +2180,7 @@ record record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,8): warning CS8860: A type should not be named 'record'.
+                // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // record record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
                 );
@@ -2058,7 +2194,7 @@ class @record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,7): warning CS8860: A type should not be named 'record'.
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class @record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "@record").WithArguments("record").WithLocation(2, 7)
                 );
@@ -2086,7 +2222,7 @@ class C
 }";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (2,7): warning CS8860: A type should not be named 'record'.
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
                 );
