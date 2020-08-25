@@ -297,7 +297,7 @@ class C
 {
     void M()
     {
-        return Console.WriteLine();
+        return Console.WriteLine()[||];
     }
 }");
         }
