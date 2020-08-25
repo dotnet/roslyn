@@ -60,7 +60,7 @@ end class")
 
         <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
-            Public Async Function TestOnByRefParameter() As Task
+        Public Async Function TestOnByRefParameter() As Task
             Await TestInRegularAndScript1Async(
 "
 class C
