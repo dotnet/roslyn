@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task<T> GetValueAsync<T>(Checksum checksum)
         {
             var data = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
+            Contract.ThrowIfNull(data.Value);
 
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
