@@ -434,6 +434,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             GetNextToken()
 
             Dim statement = SyntaxFactory.ElseStatement(elseKeyword)
+            If Not Context.IsLineIf AndAlso Not CurrentToken.IsEndOfLine Then
+                ReportSyntaxError(elseKeyword, ERRID.ERR_ExpectedEOS)
+            End If
 
             Return statement
         End Function
