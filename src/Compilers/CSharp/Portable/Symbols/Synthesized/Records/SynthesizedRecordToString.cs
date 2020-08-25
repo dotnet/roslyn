@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // builder.Append(" { ");
                 block.Add(makeAppendString(F, builderLocal, " { "));
 
-                // if (this.print(builder)) builder.Append(" ");
+                // if (this.PrintMembers(builder)) builder.Append(" ");
                 block.Add(F.If(F.Call(F.This(), _printMethod, builderLocal), makeAppendString(F, builderLocal, " ")));
 
                 // builder.Append("}");

@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var basePrintCall = F.Call(receiver: F.Base(ContainingType.BaseTypeNoUseSiteDiagnostics), printMethod, builder);
                     if (printableMembers.IsEmpty)
                     {
-                        // return base.print(builder);
+                        // return base.PrintMembers(builder);
                         F.CloseMethod(F.Return(basePrintCall));
                         return;
                     }
                     else
                     {
-                        // if (base.print(builder))
+                        // if (base.PrintMembers(builder))
                         //     builder.Append(", ")
                         block!.Add(F.If(basePrintCall, makeAppendString(F, builder, ", ")));
                     }
