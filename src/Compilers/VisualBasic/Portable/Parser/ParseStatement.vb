@@ -433,10 +433,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim elseKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            Dim statement = SyntaxFactory.ElseStatement(elseKeyword)
             If Not Context.IsLineIf AndAlso Not CurrentToken.IsEndOfLine Then
-                ReportSyntaxError(elseKeyword, ERRID.ERR_ExpectedEOS)
+                elseKeyword = ReportSyntaxError(elseKeyword, ERRID.ERR_ExpectedEOS)
             End If
+            Dim statement = SyntaxFactory.ElseStatement(elseKeyword)
 
             Return statement
         End Function
