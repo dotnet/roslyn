@@ -3765,6 +3765,33 @@ End Module
 
         <WorkItem(45158, "https://github.com/dotnet/roslyn/issues/45158")>
         <Fact>
+        Public Sub EndWithSingleLineIfWithDll()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+
+Module Module1
+    Public Sub Main()
+        If True Then End Else Console.WriteLine("Test")
+    End Sub
+End Module
+    ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30615: 'End' statement cannot be used in class library projects.
+        End
+        ~~~
+</expected>)
+        End Sub
+
+        <WorkItem(45158, "https://github.com/dotnet/roslyn/issues/45158")>
+        <Fact>
         Public Sub EndWithMultiLineIf()
             Dim source =
 <compilation>
