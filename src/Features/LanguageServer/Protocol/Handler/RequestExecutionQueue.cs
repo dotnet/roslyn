@@ -5,12 +5,9 @@
 #nullable enable
 
 using System;
-using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -41,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
     /// </remarks>
-    internal partial class RequestExecutionQueue : IDisposable
+    internal partial class RequestExecutionQueue
     {
         private readonly ILspSolutionProvider _solutionProvider;
         private AsyncQueue<QueueItem>? _queue;
@@ -69,7 +66,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public void Shutdown()
         {
-            _cancelSource?.Cancel();
+            if (_cancelSource != null)
+            {
+                _cancelSource.Cancel();
+                DrainQueue();
+            }
             _queue = null;
         }
 
@@ -154,9 +155,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Solution? lastMutatedSolution = null;
             var queueToken = _cancelSource.Token;
 
-            while (!queueToken.IsCancellationRequested)
+            try
             {
-                try
+                while (!queueToken.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
@@ -174,7 +175,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        var ranToCompletion = false;
+                        try
+                        {
+                            ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Since the cancellationToken passed to the callback is a linked source it could be cancelled
+                            // without the queue token being cancelled, but ranToCompletion will be false so no need to
+                            // do anything special here.
+                        }
 
                         // If the handling of the request failed, the exception will bubble back up to the caller, but we
                         // still need to react to it here by throwing away solution updates
@@ -185,21 +196,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         else
                         {
                             Errored?.Invoke(this, EventArgs.Empty);
+                            _cancelSource.Cancel();
+                            break;
                         }
                     }
                     else
                     {
-                        // Non mutating request get given the current solution state, but are otherwise fire-and-forget
+                        // Non mutating request are given the current solution state, but are otherwise fire-and-forget
                         _ = work.CallbackAsync(context, cancellationToken);
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception) when (FatalError.ReportWithoutCrash(e))
-                {
-                    Errored?.Invoke(this, EventArgs.Empty);
-                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+                Errored?.Invoke(this, EventArgs.Empty);
+                _cancelSource.Cancel();
+            }
+
+            if (queueToken.IsCancellationRequested)
+            {
+                DrainQueue();
+            }
+        }
+
+        private void DrainQueue()
+        {
+            Contract.ThrowIfNull(_queue, "Queue should not be draining when there isn't a queue to pull tasks from");
+            Contract.ThrowIfNull(_cancelSource, "Queue should not draing without a cancellation token source to stop it");
+
+            // Tell the queue not to accept any more items
+            _queue.Complete();
+
+            // Spin through the queue and pass in our cancelled token, so that the waiting tasks are cancelled.
+            // NOTE: This only really works because the first thing that CallbackAsync does is check for cancellation
+            // but generics make it annoying to store the TaskCompletionSource<TResult> on the QueueItem so this
+            // is the best we can do for now. Ideally we would manipulate the TaskCompletionSource directly here
+            // and just call SetCanceled
+            while (_queue.TryDequeue(out var item))
+            {
+                _ = item.CallbackAsync(default, _cancelSource.Token);
             }
         }
 
@@ -208,12 +243,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // TODO: Merge in changes to the solution that have been received from didChange LSP methods
             // https://github.com/dotnet/roslyn/issues/45427
             return mutatedSolution ?? solution;
-        }
-
-        public void Dispose()
-        {
-            _cancelSource?.Cancel();
-            _cancelSource?.Dispose();
         }
     }
 }
