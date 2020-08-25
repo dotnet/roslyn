@@ -49,23 +49,16 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// </summary>
             public SyntaxNode SyntaxNodeToReplace { get; }
 
-            /// <summary>
-            /// Indicate is <see cref="InlineSyntaxNode"/> has Await Expression.
-            /// </summary>
-            public bool ContainsAwaitExpression { get; }
-
             public InlineMethodContext(
                 ImmutableArray<SyntaxNode> statementsToInsertBeforeCallee,
                 SyntaxNode statementContainingCallee,
                 SyntaxNode inlineSyntaxNode,
-                SyntaxNode syntaxNodeToReplace,
-                bool containsAwaitExpression)
+                SyntaxNode syntaxNodeToReplace)
             {
                 StatementsToInsertBeforeCallee = statementsToInsertBeforeCallee;
                 StatementContainingCallee = statementContainingCallee;
                 InlineSyntaxNode = inlineSyntaxNode;
                 SyntaxNodeToReplace = syntaxNodeToReplace;
-                ContainsAwaitExpression = containsAwaitExpression;
             }
         }
 
@@ -73,7 +66,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             Document document,
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
-            TMethodDeclarationSyntax calleeMethodNode,
             TExpressionSyntax rawInlineExpression,
             TStatementSyntax statementContainsCallee,
             MethodParametersInfo methodParametersInfo,
@@ -309,9 +301,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                replacementTable,
                cancellationToken).ConfigureAwait(false);
 
-            // Check if there is await expression. It is used later if the caller should be changed to async
-            var containsAwaitExpression = ContainsAwaitExpression(rawInlineExpression, calleeMethodNode);
-
             if (mergeInlineContentAndVariableDeclarationArgument)
             {
                 var singleVariableDeclarationParameter =
@@ -323,8 +312,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     statementContainsCallee,
                     syntaxGenerator
                         .LocalDeclarationStatement(singleVariableDeclarationParameter.Type, name, rightHandSideValue),
-                    statementContainsCallee,
-                    containsAwaitExpression);
+                    statementContainsCallee);
             }
 
             if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
@@ -366,8 +354,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     statementContainsCallee,
                     syntaxGenerator
                         .LocalDeclarationStatement(calleeMethodSymbol.ReturnType, unusedLocalName.Text, inlineExpression),
-                    statementContainsCallee,
-                    containsAwaitExpression);
+                    statementContainsCallee);
             }
 
             // Handle the special cases for C# if the return type is delegate.
@@ -404,8 +391,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     localDeclarationStatementsNeedInsert,
                     statementContainsCallee,
                     inlineExpresionNode!,
-                    syntaxNodeToReplace!,
-                    containsAwaitExpression);
+                    syntaxNodeToReplace!);
             }
 
             return new InlineMethodContext(
@@ -414,8 +400,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 Parenthesize(inlineExpression)
                     // add the trivia of the calleeInvocationSyntaxNode to make sure the format is correct
                     .WithTriviaFrom(calleeInvocationNode),
-                calleeInvocationNode,
-                containsAwaitExpression);
+                calleeInvocationNode);
         }
 
         private ImmutableArray<SyntaxNode> GetLocalDeclarationStatementsNeedInsert(

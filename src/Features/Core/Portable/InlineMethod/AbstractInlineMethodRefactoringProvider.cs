@@ -283,7 +283,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 document,
                 calleeMethodInvocationNode,
                 calleeMethodSymbol,
-                calleeMethodNode,
                 inlineExpression,
                 statementContainsCallee,
                 methodParametersInfo,
