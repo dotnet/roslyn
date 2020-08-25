@@ -983,44 +983,6 @@ public class TestClass
 using System.Threading.Tasks;
 public class TestClass
 {
-    public int Caller()
-    {
-        var x = Cal[||]lee();
-        return 1;
-    }
-
-    private async Task<int> Callee()
-    {
-        return await Task.FromResult(await SomeCalculation());
-    }
-    
-    private async Task<int> SomeCalculation() => await Task.FromResult(10);
-}",
-                @"
-using System.Threading.Tasks;
-public class TestClass
-{
-    public async Task<int> Caller()
-    {
-        var x = Task.FromResult(await SomeCalculation());
-        return 1;
-    }
-
-    private async Task<int> Callee()
-    {
-        return await Task.FromResult(await SomeCalculation());
-    }
-    
-    private async Task<int> SomeCalculation() => await Task.FromResult(10);
-}");
-
-        [Fact]
-        public Task TestAwaitExpresssion5()
-            => TestVerifier.TestInRegularAndScript1Async(
-                @"
-using System.Threading.Tasks;
-public class TestClass
-{
     public void Caller()
     {
         var x = Cal[||]lee();

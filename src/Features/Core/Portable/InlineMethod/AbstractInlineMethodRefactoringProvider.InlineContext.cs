@@ -494,10 +494,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             var editor = new SyntaxEditor(inlineExpression, syntaxGenerator);
 
-            foreach (var (symbol, syntaxNode) in replacementTable)
+            foreach (var kvp in replacementTable)
             {
                 var allReferences = await SymbolFinder
-                    .FindReferencesAsync(symbol, document.Project.Solution, cancellationToken)
+                    .FindReferencesAsync(kvp.Key, document.Project.Solution, cancellationToken)
                     .ConfigureAwait(false);
                 var allSyntaxNodesToReplace = allReferences
                     .SelectMany(reference => reference.Locations
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 {
                     if (editor.OriginalRoot.Contains(nodeToReplace))
                     {
-                        var replacementNodeWithTrivia = syntaxNode.WithTriviaFrom(nodeToReplace);
+                        var replacementNodeWithTrivia = kvp.Value.WithTriviaFrom(nodeToReplace);
                         editor.ReplaceNode(nodeToReplace, replacementNodeWithTrivia);
                     }
                 }
