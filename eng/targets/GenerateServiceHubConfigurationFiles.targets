@@ -10,6 +10,7 @@
     <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
     <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService" />
     <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService" />
+    <ServiceHubService Include="roslynRemoteSemanticClassificationCacheService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSemanticClassificationCacheService" />
     <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
     <ServiceHubService Include="roslynRemoteTodoCommentsService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsService" />
     <ServiceHubService Include="roslynLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.LanguageServer" />

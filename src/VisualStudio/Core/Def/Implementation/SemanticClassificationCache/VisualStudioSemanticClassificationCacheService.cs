@@ -25,6 +25,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassificationCache
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+    [ExportWorkspaceService(typeof(ISemanticClassificationCacheService), ServiceLayer.Host)]
     internal class VisualStudioSemanticClassificationCacheService
         : ForegroundThreadAffinitizedObject, ISemanticClassificationCacheService, IEventListener<object>
     {
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
         {
             var connection = await _lazyConnection.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-            SerializableClassifiedSpans classifiedSpans = await connection.RunRemoteAsync<SerializableClassifiedSpans>(
+            var classifiedSpans = await connection.RunRemoteAsync<SerializableClassifiedSpans>(
                 nameof(IRemoteSemanticClassificationCacheService.GetCachedSemanticClassificationsAsync),
                 solution: null,
                 arguments: new object[] { documentKey.Dehydrate(), textSpan, checksum },

@@ -7,15 +7,15 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal interface ISemanticClassificationCacheService
+    internal interface ISemanticClassificationCacheService : IWorkspaceService
     {
         Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(
             DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken);
