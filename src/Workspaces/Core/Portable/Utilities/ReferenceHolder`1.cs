@@ -12,8 +12,7 @@ namespace Roslyn.Utilities
     internal readonly struct ReferenceHolder<T> : IEquatable<ReferenceHolder<T>>
         where T : class?
     {
-        [AllowNull, MaybeNull]
-        private readonly T _strongReference;
+        private readonly T? _strongReference;
         private readonly WeakReference<T>? _weakReference;
         private readonly int _hashCode;
 
