@@ -90,6 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
         public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
+            _queue.Initialize();
+
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
 
             var serverCapabilities = await _requestHandlerProvider.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName,
