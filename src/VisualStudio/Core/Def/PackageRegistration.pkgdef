@@ -13,3 +13,28 @@
 "CS"="CA719A03-D55C-48F9-85DE-D934346E7F70"
 "VB"="EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
 
+//
+// Registrations of brokered in-proc services (ProvideBrokeredServiceAttribute)
+//
+// The GUID is the Roslyn package GUID.
+//
+[$RootKey$\BrokeredServices\RoslynSolutionAssetProvider]
+@="6cf2e545-6109-4730-8883-cf43d7aec3e1"
+"audience"=dword:00000003
+
+//
+// Registrations of brokered services proffered by HubClient (ServiceHub).
+//
+// The GUID is HubClient package guid.
+//
+[$RootKey$\BrokeredServices\roslynRemoteTodoCommentsService]
+@="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
+"IsServiceHub"=dword:00000001
+"ServiceLocation"="$PackageFolder$"
+"audience"=dword:00000003
+
+[$RootKey$\BrokeredServices\roslynRemoteTodoCommentsService64]
+@="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
+"IsServiceHub"=dword:00000001
+"ServiceLocation"="$PackageFolder$"
+"audience"=dword:00000003

@@ -129,7 +129,7 @@
   -->
   <Target Name="GeneratePkgDef"          
           DependsOnTargets="$(GeneratePkgDefDependsOn);_SetGeneratePkgDefInputsOutputs"
-          Inputs="$(MSBuildAllProjects)"
+          Inputs="$(MSBuildAllProjects);@(PkgDefFileContent)"
           Outputs="$(_GeneratePkgDefOutputFile)">
     <ItemGroup>
       <_AssemblyDependencyEntry Include="@(PkgDefBindingRedirect)" Kind="BindingRedirect" />

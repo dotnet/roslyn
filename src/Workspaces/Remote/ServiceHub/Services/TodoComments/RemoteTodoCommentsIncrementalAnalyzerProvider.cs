@@ -5,6 +5,8 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -15,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal sealed class RemoteTodoCommentsIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly RemoteEndPoint _endPoint;
+        private readonly ITodoCommentsListener _callback;
 
-        public RemoteTodoCommentsIncrementalAnalyzerProvider(RemoteEndPoint endPoint)
+        public RemoteTodoCommentsIncrementalAnalyzerProvider(ITodoCommentsListener callback)
         {
-            _endPoint = endPoint;
+            _callback = callback;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteTodoCommentsIncrementalAnalyzer(_endPoint);
+            => new RemoteTodoCommentsIncrementalAnalyzer(_callback);
     }
 }

@@ -55,7 +55,28 @@ namespace Microsoft.CodeAnalysis.Remote
             WatsonTraceListener.Install();
         }
 
-        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IServiceBroker? serviceBroker, IEnumerable<JsonConverter>? jsonConverters)
+        protected ServiceBase(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
+        {
+            InstanceId = Interlocked.Add(ref s_instanceId, 1);
+
+            TestData = (RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData));
+            WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
+
+            Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
+            Log(TraceEventType.Information, "Service instance created");
+
+#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
+            ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
+#pragma warning restore
+
+            SolutionAssetSource = new SolutionAssetSource(ServiceBrokerClient);
+
+            // TODO:
+            EndPoint = null!;
+        }
+
+        // TODO: remove once all services transition to ISB
+        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
@@ -67,15 +88,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // invoke all calls incoming over the stream on this service instance:
             EndPoint = new RemoteEndPoint(stream, Logger, incomingCallTarget: this, jsonConverters);
-
-            // TODO: remove null once all services transition to ISB
-            ServiceBrokerClient = (serviceBroker != null) ? new ServiceBrokerClient(serviceBroker, null) : null;
-            SolutionAssetSource = (ServiceBrokerClient != null) ? new SolutionAssetSource(ServiceBrokerClient) : null;
-        }
-
-        protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
-            : this(serviceProvider, stream, serviceBroker: null, jsonConverters)
-        {
         }
 
         public void Dispose()

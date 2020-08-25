@@ -10,16 +10,38 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.ServiceHub.Framework;
+using Microsoft.ServiceHub.Framework.Services;
+using Nerdbank.Streams;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class RemoteTodoCommentsService : ServiceBase, IRemoteTodoCommentsService
     {
-        public RemoteTodoCommentsService(
-            Stream stream, IServiceProvider serviceProvider)
-            : base(serviceProvider, stream)
+        internal sealed class Factory : IServiceHubServiceFactory
         {
-            StartService();
+            public Task<object> CreateAsync(
+                Stream stream,
+                IServiceProvider hostProvidedServices,
+                ServiceActivationOptions serviceActivationOptions,
+                IServiceBroker serviceBroker,
+                AuthorizationServiceClient? authorizationServiceClient)
+            {
+                // Dispose the AuthorizationServiceClient since we won't be using it
+                authorizationServiceClient?.Dispose();
+
+                return Task.FromResult<object>(new RemoteTodoCommentsService(stream, hostProvidedServices, serviceBroker));
+            }
+        }
+
+        private readonly ITodoCommentsListener _callback;
+
+        public RemoteTodoCommentsService(Stream stream, IServiceProvider serviceProvider, IServiceBroker serviceBroker)
+            : base(serviceProvider, serviceBroker)
+        {
+            var descriptor = (IntPtr.Size == 4) ? ServiceDescriptors.RemoteTodoCommentsService32 : ServiceDescriptors.RemoteTodoCommentsService64;
+            _callback = descriptor.ConstructRpc<ITodoCommentsListener>(rpcTarget: this, stream.UsePipe());
         }
 
         public Task ComputeTodoCommentsAsync(CancellationToken cancellation)
@@ -27,9 +49,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(() =>
             {
                 var workspace = GetWorkspace();
-                var endpoint = this.EndPoint;
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(endpoint);
+                var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(_callback);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,

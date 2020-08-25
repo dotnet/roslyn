@@ -23,14 +23,6 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public event EventHandler<bool>? StatusChanged;
 
-        /// <summary>
-        /// Return an unique string per client.
-        /// 
-        /// one can use this to distinguish different clients that are connected to different RemoteHosts including
-        /// cases where 2 external process finding each others
-        /// </summary>
-        public abstract string ClientId { get; }
-
         protected void Started()
         {
             OnStatusChanged(started: true);
@@ -65,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return service.TryGetRemoteHostClientAsync(cancellationToken);
         }
+
+        public abstract ValueTask<RemoteServiceProxy<T>> GetProxyAsync<T>(WellKnownServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+            where T : class;
 
         public abstract Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken);
 

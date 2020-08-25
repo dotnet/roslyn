@@ -11,7 +11,7 @@
     <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService" />
     <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService" />
     <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
-    <ServiceHubService Include="roslynRemoteTodoCommentsService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsService" />
+    <ServiceHubService Include="roslynRemoteTodoCommentsService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsService+Factory" />
     <ServiceHubService Include="roslynLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.LanguageServer" />
   </ItemGroup>
 
@@ -47,7 +47,7 @@
   <Target Name="GenerateServiceHubConfigurationFiles"
           DependsOnTargets="CalculateServiceHubConfigurationFiles"
           BeforeTargets="CreateVsixContainer"
-          Inputs="$(MSBuildProjectFullPath)"
+          Inputs="$(MSBuildAllProjects)"
           Outputs="@(_JsonFile)">
 
     <WriteLinesToFile File="%(_JsonFile.Identity)" Lines="%(_JsonFile.Content)" Overwrite="true"/>

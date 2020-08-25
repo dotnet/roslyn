@@ -36,7 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
           ITodoCommentsListener,
           ITodoListProvider,
           IVsTypeScriptTodoCommentService,
-          IEventListener<object>
+          IEventListener<object>,
+          IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
@@ -45,10 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>>();
 
         /// <summary>
-        /// Our connections to the remote OOP server. Created on demand when we startup and then
+        /// Remote service proxy. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection? _connection;
+        private RemoteServiceProxy<IRemoteTodoCommentsService>? _lazyProxy;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -114,19 +115,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _connection = await client.CreateConnectionAsync(
+            var proxy = await client.GetProxyAsync<IRemoteTodoCommentsService>(
                 WellKnownServiceHubService.RemoteTodoCommentsService,
-                callbackTarget: this, cancellationToken).ConfigureAwait(false);
+                callbackTarget: this,
+                cancellationToken).ConfigureAwait(false);
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);
 
             // Now kick off scanning in the OOP process.
-            await _connection.RunRemoteAsync(
-                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
-                cancellationToken).ConfigureAwait(false);
+            await proxy.Service.ComputeTodoCommentsAsync(cancellationToken).ConfigureAwait(false);
+
+            _lazyProxy = proxy;
         }
 
         private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
@@ -236,6 +236,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             await ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
+        }
+
+        public void Dispose()
+        {
+            _lazyProxy?.Dispose();
         }
     }
 }

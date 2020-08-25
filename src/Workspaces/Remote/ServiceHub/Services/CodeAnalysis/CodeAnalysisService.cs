@@ -14,22 +14,6 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : ServiceBase
     {
-        internal sealed class ServiceFactory : IServiceHubServiceFactory
-        {
-            public Task<object> CreateAsync(
-                Stream stream,
-                IServiceProvider hostProvidedServices,
-                ServiceActivationOptions serviceActivationOptions,
-                IServiceBroker serviceBroker,
-                AuthorizationServiceClient authorizationServiceClient)
-            {
-                // Dispose the AuthorizationServiceClient since we won't be using it
-                authorizationServiceClient.Dispose();
-
-                return Task.FromResult<object>(new CodeAnalysisService(stream, hostProvidedServices));
-            }
-        }
-
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         public CodeAnalysisService(Stream stream, IServiceProvider serviceProvider)

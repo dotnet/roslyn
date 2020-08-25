@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -16,17 +17,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteEndPoint _endPoint;
+        private readonly ITodoCommentsListener _callback;
 
-        public RemoteTodoCommentsIncrementalAnalyzer(RemoteEndPoint endPoint)
-            => _endPoint = endPoint;
+        public RemoteTodoCommentsIncrementalAnalyzer(ITodoCommentsListener callback)
+            => _callback = callback;
 
         protected override Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
-        {
-            return _endPoint.InvokeAsync(
-                nameof(ITodoCommentsListener.ReportTodoCommentDataAsync),
-                new object[] { documentId, data },
-                cancellationToken);
-        }
+            => _callback.ReportTodoCommentDataAsync(documentId, data, cancellationToken);
     }
 }

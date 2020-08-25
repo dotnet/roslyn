@@ -4,47 +4,43 @@
 
 #nullable enable
 
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class SolutionAssetProvider : ISolutionAssetProvider
     {
-        internal static ServiceRpcDescriptor ServiceDescriptor { get; } = new ServiceJsonRpcDescriptor(
-            new ServiceMoniker(new RemoteServiceName("RoslynSolutionAssetProvider").ToString(isRemoteHost64Bit: true)),
-            clientInterface: null,
-            ServiceJsonRpcDescriptor.Formatters.MessagePack,
-            ServiceJsonRpcDescriptor.MessageDelimiters.BigEndianInt32LengthHeader);
+        public const string ServiceName = "RoslynSolutionAssetProvider";
 
-        private readonly SolutionAssetStorage _assetStorage;
-        private readonly ISerializerService _serializer;
+        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName);
+
+        private readonly HostWorkspaceServices _services;
 
         public SolutionAssetProvider(HostWorkspaceServices services)
         {
-            _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            _serializer = services.GetRequiredService<ISerializerService>();
+            _services = services;
         }
 
         public Task GetAssetsAsync(Stream outputStream, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             using var writer = new ObjectWriter(outputStream, leaveOpen: false, cancellationToken);
 
-            // Complete client RPC right away so it can start reading from the stream.
-            _ = Task.Run(() => RemoteHostAssetSerialization.WriteDataAsync(writer, _assetStorage, _serializer, scopeId, checksums, cancellationToken), cancellationToken);
+            var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+            var serializer = _services.GetRequiredService<ISerializerService>();
+
+            // Complete RPC right away so the client can start reading from the stream.
+            _ = Task.Run(() => RemoteHostAssetSerialization.WriteDataAsync(writer, assetStorage, serializer, scopeId, checksums, cancellationToken), cancellationToken);
 
             return Task.CompletedTask;
         }
 
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }

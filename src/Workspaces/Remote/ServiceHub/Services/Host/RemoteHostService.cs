@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API. Initializes ServiceHub process global state.
         /// </summary>
-        public void InitializeTelemetrySession(string host, string serializedSession, CancellationToken cancellationToken)
+        public void InitializeTelemetrySession(int hostProcessId, string serializedSession, CancellationToken cancellationToken)
         {
             RunService(() =>
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
                 {
-                    m["Host"] = host;
+                    m["Host"] = hostProcessId;
                     m["InstanceId"] = InstanceId;
                 }));
 
