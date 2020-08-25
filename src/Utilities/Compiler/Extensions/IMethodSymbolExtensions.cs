@@ -680,5 +680,18 @@ namespace Analyzer.Utilities.Extensions
             => methodSymbol.IsPropertyAccessor()
             && methodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol
             && propertySymbol.IsAutoProperty();
+
+        /// <summary>
+        /// Check if the given <paramref name="methodSymbol"/> is an implicitly generated method for top level statements.
+        /// </summary>
+        public static bool IsTopLevelStatementsEntryPointMethod([NotNullWhen(true)] this IMethodSymbol? methodSymbol)
+            => methodSymbol?.ContainingType.IsTopLevelStatementsEntryPointType() == true &&
+               methodSymbol.IsStatic &&
+               methodSymbol.Name switch
+               {
+                   "$Main" => true,
+                   "<$Main>$" => true,
+                   _ => false
+               };
     }
 }

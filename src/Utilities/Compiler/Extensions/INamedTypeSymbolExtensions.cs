@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -269,5 +270,16 @@ namespace Analyzer.Utilities.Extensions
 
             return knownTestAttributes.GetOrAdd(attributeClass, attributeClass.DerivesFrom(xunitFactAttribute));
         }
+
+        /// <summary>
+        /// Check if the given <paramref name="typeSymbol"/> is an implicitly generated type for top level statements.
+        /// </summary>
+        public static bool IsTopLevelStatementsEntryPointType([NotNullWhen(true)] this INamedTypeSymbol? typeSymbol)
+            => typeSymbol?.IsStatic == true && typeSymbol.Name switch
+            {
+                "$Program" => true,
+                "<Program>$" => true,
+                _ => false
+            };
     }
 }
