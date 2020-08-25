@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         /// <summary>
         /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
-        /// and so the only course of action is the shutdown the server so that the client re-connects and we can
+        /// and so the only course of action is to shutdown the server so that the client re-connects and we can
         /// start over again.
         /// </summary>
         /// <remarks>
