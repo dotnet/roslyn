@@ -147,13 +147,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             _insert_into_string_table_values_0 = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
             _select_star_from_string_table_where_0_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
 
-            // Create a queue to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS. The
-            // actual information in the queue isn't relevant, so we pass in an equality comparer to just keep it down
-            // to storing a single piece of data.
-            _flushQueue = new AsyncBatchingWorkQueue<bool>(
+            // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.
+            _flushQueue = new AsyncBatchingDelay(
                 TimeSpan.FromMilliseconds(FlushAllDelayMS),
                 FlushInMemoryDataToDiskIfNotShutdownAsync,
-                EqualityComparer<bool>.Default,
                 asyncListener: null,
                 _shutdownTokenSource.Token);
         }
