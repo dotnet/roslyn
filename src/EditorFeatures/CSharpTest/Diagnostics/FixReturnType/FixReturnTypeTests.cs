@@ -288,5 +288,18 @@ class C
     int M() => 1[||];
 }");
         }
+
+        [Fact]
+        public async Task ExpressionAndReturnTypeAreVoid()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        return Console.WriteLine();
+    }
+}");
+        }
     }
 }
