@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// If the host does not provide the service, this method throws <see cref="InvalidOperationException"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException">The host does not provide the service.</exception>
-        [return: NotNull]
         public TWorkspaceService GetRequiredService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
         {
             var service = GetService<TWorkspaceService>();

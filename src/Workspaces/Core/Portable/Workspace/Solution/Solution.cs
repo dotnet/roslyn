@@ -1774,7 +1774,7 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
-        private void CheckContainsProject([NotNull] ProjectId? projectId)
+        private void CheckContainsProject(ProjectId projectId)
         {
             if (projectId == null)
             {
@@ -1787,7 +1787,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -1813,7 +1813,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAdditionalDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsAdditionalDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CheckContainsAnalyzerConfigDocument([NotNull] DocumentId? documentId)
+        private void CheckContainsAnalyzerConfigDocument(DocumentId documentId)
         {
             if (documentId == null)
             {
