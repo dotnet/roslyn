@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,23 +25,47 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
 
         public static explicit operator SolutionKey(Solution solution)
             => new SolutionKey(solution.Id, solution.FilePath, solution.BranchId == solution.Workspace.PrimaryBranchId);
+
+        public SerializableSolutionKey Dehydrate()
+        {
+            return new SerializableSolutionKey
+            {
+                Id = Id,
+                FilePath = FilePath,
+                IsPrimaryBranch = IsPrimaryBranch,
+            };
+        }
     }
 
     internal readonly struct ProjectKey
     {
+        public readonly SolutionKey Solution;
+
         public readonly ProjectId Id;
         public readonly string FilePath;
         public readonly string Name;
 
-        public ProjectKey(ProjectId id, string filePath, string name)
+        public ProjectKey(SolutionKey solution, ProjectId id, string filePath, string name)
         {
+            Solution = solution;
             Id = id;
             FilePath = filePath;
             Name = name;
         }
 
         public static explicit operator ProjectKey(Project project)
-            => new ProjectKey(project.Id, project.FilePath, project.Name);
+            => new ProjectKey((SolutionKey)project.Solution, project.Id, project.FilePath, project.Name);
+
+        public SerializableProjectKey Dehydrate()
+        {
+            return new SerializableProjectKey
+            {
+                Solution = Solution.Dehydrate(),
+                Id = Id,
+                FilePath = FilePath,
+                Name = Name,
+            };
+        }
     }
 
     internal readonly struct DocumentKey
@@ -61,6 +86,49 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
 
         public static explicit operator DocumentKey(Document document)
             => new DocumentKey((ProjectKey)document.Project, document.Id, document.FilePath, document.Name);
+
+        public SerializableDocumentKey Dehydrate()
+        {
+            return new SerializableDocumentKey
+            {
+                Project = Project.Dehydrate(),
+                Id = Id,
+                FilePath = FilePath,
+                Name = Name,
+            };
+        }
+    }
+
+    internal class SerializableDocumentKey
+    {
+        public SerializableProjectKey Project;
+        public DocumentId Id;
+        public string FilePath;
+        public string Name;
+
+        public DocumentKey Rehydrate()
+            => new DocumentKey(Project.Rehydrate(), Id, FilePath, Name);
+    }
+
+    internal class SerializableProjectKey
+    {
+        public SerializableSolutionKey Solution;
+        public ProjectId Id;
+        public string FilePath;
+        public string Name;
+
+        public ProjectKey Rehydrate()
+            => new ProjectKey(Solution.Rehydrate(), Id, FilePath, Name);
+    }
+
+    internal class SerializableSolutionKey
+    {
+        public SolutionId Id;
+        public string FilePath;
+        public bool IsPrimaryBranch;
+
+        public SolutionKey Rehydrate()
+            => new SolutionKey(Id, FilePath, IsPrimaryBranch);
     }
 }
 
