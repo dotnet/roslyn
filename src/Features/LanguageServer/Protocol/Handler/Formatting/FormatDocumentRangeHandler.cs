@@ -14,12 +14,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
+    [ExportLspMethod(Methods.TextDocumentRangeFormattingName, mutatesSolutionState: false)]
     internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FormatDocumentRangeHandler()
         {
         }
 

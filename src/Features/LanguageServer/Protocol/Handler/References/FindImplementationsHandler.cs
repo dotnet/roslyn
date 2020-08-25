@@ -16,18 +16,18 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentImplementationName)]
-    internal class FindImplementationsHandler : AbstractRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    [ExportLspMethod(LSP.Methods.TextDocumentImplementationName, mutatesSolutionState: false)]
+    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindImplementationsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FindImplementationsHandler()
         {
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 

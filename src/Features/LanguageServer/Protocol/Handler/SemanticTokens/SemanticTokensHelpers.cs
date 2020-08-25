@@ -93,16 +93,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
         internal static async Task<int[]> ComputeSemanticTokensDataAsync(
-            LSP.TextDocumentIdentifier textDocument,
-            string? clientName,
-            ILspSolutionProvider solutionProvider,
+            Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
             CancellationToken cancellationToken)
         {
-            var document = solutionProvider.GetDocument(textDocument, clientName);
-            Contract.ThrowIfNull(document, "Document is null.");
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

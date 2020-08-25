@@ -8,23 +8,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspMethod(MethodName, mutatesSolutionState: true), PartNotDiscoverable]
-    internal class MutatingRequestHandler : AbstractRequestHandler<TestRequest, TestResponse>
+    internal class MutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(MutatingRequestHandler);
         private const int Delay = 100;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MutatingRequestHandler(ILspSolutionProvider solutionProvider)
-            : base(solutionProvider)
+        public MutatingRequestHandler()
         {
         }
 
-        public override async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
+
+        public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
             var response = new TestResponse
             {

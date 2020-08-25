@@ -17,18 +17,23 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    [ExportLspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
+    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider)
         {
+            _solutionProvider = solutionProvider;
         }
 
-        public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => null;
+
+        public Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = SolutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
             if (!documents.Any())
             {

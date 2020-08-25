@@ -22,18 +22,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// Handle a completion request.
     /// </summary>
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentCompletionName, StringConstants.XamlLanguageName)]
-    internal class CompletionHandler : AbstractRequestHandler<CompletionParams, CompletionItem[]>
+    [ExportLspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public CompletionHandler()
         {
         }
 
-        public override TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
 
-        public override async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
