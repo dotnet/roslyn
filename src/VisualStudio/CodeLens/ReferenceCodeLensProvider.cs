@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -23,7 +25,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {
@@ -43,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         // these string are never exposed to users but internally used to identify 
         // each provider/servicehub connections and etc
         private const string HubClientId = "ManagedLanguage.IDE.CodeLensOOP";
-        private const string RoslynCodeAnalysis = "roslynCodeAnalysis";
 
         private readonly HubClient _client;
 
@@ -80,22 +80,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 this,
                 _lazyCodeLensCallbackService.Value,
                 descriptor,
-                await GetConnectionAsync(cancellationToken).ConfigureAwait(false));
+                await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false));
 
             await dataPoint.TrackChangesAsync(cancellationToken).ConfigureAwait(false);
 
             return dataPoint;
         }
 
-        private async Task<Stream> GetConnectionAsync(CancellationToken cancellationToken)
+        private async Task<Stream?> TryGetConnectionAsync(CancellationToken cancellationToken)
         {
             // any exception from this will be caught by codelens engine and saved to log file and ignored.
             // this follows existing code lens behavior and user experience on failure is owned by codelens engine
             var hostGroupId = await _lazyCodeLensCallbackService.Value.InvokeAsync<string>(
-                this, nameof(ICodeLensContext.GetHostGroupIdAsync), arguments: null, cancellationToken).ConfigureAwait(false);
+                this, nameof(ICodeLensContext.TryGetHostGroupIdAsync), arguments: null, cancellationToken).ConfigureAwait(false);
+            var serviceName = await _lazyCodeLensCallbackService.Value.InvokeAsync<string>(
+                this, nameof(ICodeLensContext.TryGetServiceNameAsync), arguments: null, cancellationToken).ConfigureAwait(false);
+            if (hostGroupId is null || serviceName is null)
+            {
+                return null;
+            }
 
             var hostGroup = new HostGroup(hostGroupId);
-            var serviceDescriptor = new ServiceDescriptor(RoslynCodeAnalysis) { HostGroup = hostGroup };
+            var serviceDescriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
 
             return await _client.RequestServiceAsync(serviceDescriptor, cancellationToken).ConfigureAwait(false);
         }
@@ -119,34 +125,37 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             };
 
             private readonly ReferenceCodeLensProvider _owner;
-            private readonly RemoteEndPoint _endPoint;
+            private readonly RemoteEndPoint? _endPoint;
             private readonly ICodeLensCallbackService _callbackService;
 
             public DataPoint(
                 ReferenceCodeLensProvider owner,
                 ICodeLensCallbackService callbackService,
                 CodeLensDescriptor descriptor,
-                Stream stream)
+                Stream? stream)
             {
                 _owner = owner;
                 _callbackService = callbackService;
 
                 Descriptor = descriptor;
 
-                _endPoint = new RemoteEndPoint(stream, owner._client.Logger, new RoslynCallbackTarget(Invalidate));
-                _endPoint.StartListening();
+                if (stream is object)
+                {
+                    _endPoint = new RemoteEndPoint(stream, owner._client.Logger, new RoslynCallbackTarget(Invalidate));
+                    _endPoint.StartListening();
+                }
             }
 
             public void Dispose()
             {
-                _endPoint.Dispose();
+                _endPoint?.Dispose();
             }
 
-            public event AsyncEventHandler InvalidatedAsync;
+            public event AsyncEventHandler? InvalidatedAsync;
 
             public CodeLensDescriptor Descriptor { get; }
 
-            public async Task<CodeLensDataPointDescriptor> GetDataAsync(CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+            public async Task<CodeLensDataPointDescriptor?> GetDataAsync(CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
             {
                 var codeElementKind = GetCodeElementKindsString(Descriptor.Kind);
 
@@ -272,13 +281,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     return;
                 }
 
-                // this asks Roslyn OOP to start track workspace changes and call back Invalidate on this type when there is one.
-                // each data point owns 1 connection which is alive while data point is alive. and all communication is done through
-                // that connection
-                await _endPoint.InvokeAsync(
-                    nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync),
-                    new object[] { documentId },
-                    cancellationToken).ConfigureAwait(false);
+                if (_endPoint is object)
+                {
+                    // this asks Roslyn OOP to start track workspace changes and call back Invalidate on this type when there is one.
+                    // each data point owns 1 connection which is alive while data point is alive. and all communication is done through
+                    // that connection
+                    await _endPoint.InvokeAsync(
+                        nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync),
+                        new object[] { documentId },
+                        cancellationToken).ConfigureAwait(false);
+                }
             }
 
             private class RoslynCallbackTarget : IRemoteCodeLensDataPoint
