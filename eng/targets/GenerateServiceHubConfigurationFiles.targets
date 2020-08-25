@@ -1,19 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-  <!--
-    The inclusion of this file will cause *.servicehub.service.json files to be created. and these json files contain configuration for the servicehub on how it
-    should configure our services in servicehub process
-  -->
-  <ItemGroup>
-    <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
-    <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
-    <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService" />
-    <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService" />
-    <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
-    <ServiceHubService Include="roslynRemoteTodoCommentsService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsService+Factory" />
-    <ServiceHubService Include="roslynLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.LanguageServer" />
-  </ItemGroup>
+  <PropertyGroup>
+    <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
+  </PropertyGroup>
 
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateServiceHubConfigurationFiles</GetVsixSourceItemsDependsOn>

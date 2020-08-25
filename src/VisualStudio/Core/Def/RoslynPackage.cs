@@ -52,7 +52,6 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
-    [ProvideBrokeredService(SolutionAssetProvider.ServiceName, Audience = ServiceAudience.Local)]
     internal sealed class RoslynPackage : AbstractPackage
     {
         // The randomly-generated key name is used for serializing the ILSpy decompiler EULA preference to the .SUO
