@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
-    internal static class VisualStudioHelpers
+    internal static class VisualStudioDebuggerHelpers
     {
         public static bool TryAttachTo(int processId)
         {

@@ -55,12 +55,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             var client = await ServiceHubRemoteHostClient.CreateAsync(_services, cancellationToken).ConfigureAwait(false);
 
-            if (System.Diagnostics.Debugger.IsAttached)
+            // To disable autoattach behavior set "RoslynDisableOOPDebugAttach" as an environment variable to any value
+            if (System.Diagnostics.Debugger.IsAttached &&
+                Environment.GetEnvironmentVariable("RoslynDisableOOPDebugAttach") == null)
             {
                 var currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
                 if (currentProcessId != client.ProcessId)
                 {
-                    VisualStudioHelpers.AttachTo(client.ProcessId);
+                    VisualStudioDebuggerHelpers.AttachTo(client.ProcessId);
                 }
             }
 
