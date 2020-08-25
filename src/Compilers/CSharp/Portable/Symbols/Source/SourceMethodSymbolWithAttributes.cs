@@ -846,16 +846,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var returnTypeSyntax = SyntaxNode switch
+            var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
             {
-                MethodDeclarationSyntax m => m.ReturnType,
-                LocalFunctionStatementSyntax l => l.ReturnType,
-                _ => null
+                MethodDeclarationSyntax m => (m.ReturnType, m.TypeParameterList),
+                LocalFunctionStatementSyntax l => (l.ReturnType, l.TypeParameterList),
+                _ => default
             };
 
             if (returnTypeSyntax is null)
             {
+                // We already issued an error for these above. We don't immediately bail out so we can error on invalid
+                // calling convention types as well, but erroring on parameter or return types will likely just be noise.
+                Debug.Assert(MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction));
                 return;
+            }
+
+            // Methods decorated with `UnmanagedCallersOnly` are required to have all their parameters and return types
+            // be blittable. This means they must be fully unmanaged (not UnmanagedWithGenerics), and it means the method
+            // cannot have type parameters itself, even if those type parameters are constrained to unmanaged.
+
+            if (IsGenericMethod)
+            {
+                Debug.Assert(genericTypeParameters is not null);
+                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, genericTypeParameters.GetLocation());
             }
 
             checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
@@ -871,19 +884,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.ManagedKindNoUseSiteDiagnostics)
                 {
                     case ManagedKind.Unmanaged:
+                        // Note that this will let through some things that are technically unmanaged, but not
+                        // actually blittable. However, we don't have a formal concept of blittability in C#
+                        // itself, so checking for purely unmanaged types is the best we can do here.
                         return;
 
                     case ManagedKind.UnmanagedWithGenerics:
-                        // If the type has generics, do a check on the generic types. If they're constrained to be unmanaged,
-                        // then this is valid.
-                        Debug.Assert(type is NamedTypeSymbol { IsGenericType: true });
-                        if (((NamedTypeSymbol)type).TypeParameters.Any(parameter => parameter.ManagedKindNoUseSiteDiagnostics != ManagedKind.Unmanaged))
-                        {
-                            // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
-                            diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());
-                        }
-                        return;
-
                     case ManagedKind.Managed:
                         // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
                         diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());

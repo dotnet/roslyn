@@ -6471,6 +6471,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CannotUseManagedTypeInUnmanagedCallersOnly" xml:space="preserve">
     <value>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</value>
-    <comment>1 is the localized word for 'parameter' or 'return'</comment>
+    <comment>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodCannotBeGeneric" xml:space="preserve">
+    <value>Methods attributed with 'UnmanagedCallersOnly' cannot be generic.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
 </root>

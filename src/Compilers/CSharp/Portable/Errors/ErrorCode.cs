@@ -1893,6 +1893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnmanagedCallersOnlyRequiresStatic = 8892,
         ERR_InvalidUnmanagedCallersOnlyCallConv = 8893,
         ERR_CannotUseManagedTypeInUnmanagedCallersOnly = 8894,
+        ERR_UnmanagedCallersOnlyMethodCannotBeGeneric = 8895,
 
         #endregion diagnostics introduced for C# 9.0
 
