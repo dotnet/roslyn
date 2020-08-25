@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             var cancellationToken = context.CancellationToken;
 
             var analyzedTypes = await TryGetOldAndNewReturnTypeAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
-            if (analyzedTypes == default)
+            if (analyzedTypes == default ||
+                (isVoid(analyzedTypes.declarationToFix) && isVoid(analyzedTypes.fixedDeclaration)))
             {
                 return;
             }
@@ -58,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             context.RegisterCodeFix(
                new MyCodeAction(c => FixAsync(document, diagnostics.First(), c)),
                diagnostics);
+
+            static bool IsVoid(TypeSyntax typeSyntax) => typeSyntax is PredefinedTypeSyntax predefined && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword);
         }
 
         private static async Task<(TypeSyntax declarationToFix, TypeSyntax fixedDeclaration)> TryGetOldAndNewReturnTypeAsync(
