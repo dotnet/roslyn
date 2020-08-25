@@ -5,7 +5,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PersistentStorage;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -15,9 +16,8 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </summary>
     internal interface IRemoteSemanticClassificationCacheService
     {
-        /// <summary>
-        /// Called by a host to let an OOP server know that it should start caching semantic classifications for documents.
-        Task StartCachingSemanticClassificationsAsync(CancellationToken cancellation);
+        Task CacheSemanticClassificationsAsync(
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref

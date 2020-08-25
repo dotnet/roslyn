@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
         RemoteSymbolSearchUpdateEngine,
         RemoteDesignerAttributeService,
         RemoteProjectTelemetryService,
-        RemoteSemanticClassificationCacheService,
+        // RemoteSemanticClassificationCacheService,
         RemoteTodoCommentsService,
         LanguageServer,
         IntelliCode,

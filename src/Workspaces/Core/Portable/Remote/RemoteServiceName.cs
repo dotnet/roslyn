@@ -60,8 +60,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 (WellKnownServiceHubService.RemoteDesignerAttributeService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteDesignerAttributeService) + Suffix64,
                 (WellKnownServiceHubService.RemoteProjectTelemetryService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService),
                 (WellKnownServiceHubService.RemoteProjectTelemetryService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteProjectTelemetryService) + Suffix64,
-                (WellKnownServiceHubService.RemoteSemanticClassificationCacheService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteSemanticClassificationCacheService),
-                (WellKnownServiceHubService.RemoteSemanticClassificationCacheService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteSemanticClassificationCacheService) + Suffix64,
                 (WellKnownServiceHubService.RemoteTodoCommentsService, false) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService),
                 (WellKnownServiceHubService.RemoteTodoCommentsService, true) => Prefix + nameof(WellKnownServiceHubService.RemoteTodoCommentsService) + Suffix64,
                 (WellKnownServiceHubService.LanguageServer, false) => Prefix + nameof(WellKnownServiceHubService.LanguageServer),

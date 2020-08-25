@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -18,16 +19,83 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassificationCache
 {
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    [ExportWorkspaceService(typeof(ISemanticClassificationCacheService), ServiceLayer.Host)]
+    [ExportIncrementalAnalyzerProvider(nameof(SemanticClassificationCacheIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host }), Shared]
+    internal class SemanticClassificationCacheIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SemanticClassificationCacheIncrementalAnalyzerProvider()
+        {
+        }
+
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        {
+            if (workspace is not VisualStudioWorkspace)
+                return null;
+
+            return new SemanticClassificationCacheIncrementalAnalyzer(workspace);
+        }
+
+        private class SemanticClassificationCacheIncrementalAnalyzer : IncrementalAnalyzerBase
+        {
+            private readonly Workspace _workspace;
+            private readonly AsyncLazy<RemoteServiceConnection?> _lazyConnection;
+
+            public SemanticClassificationCacheIncrementalAnalyzer(Workspace workspace)
+            {
+                _workspace = workspace;
+                _lazyConnection = new AsyncLazy<RemoteServiceConnection?>(c => CreateConnectionAsync(c), cacheResult: true);
+            }
+
+            private async Task<RemoteServiceConnection?> CreateConnectionAsync(CancellationToken cancellationToken)
+            {
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    // We don't do anything if we fail to get the external process.  That's the case when something has gone
+                    // wrong, or the user is explicitly choosing to run inproc only.   In neither of those cases do we want
+                    // to bog down the VS process with the work to semantically classify all files.
+                    return null;
+                }
+
+                var connection = await client.CreateConnectionAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    callbackTarget: null, cancellationToken).ConfigureAwait(false);
+
+                return connection;
+            }
+
+            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            {
+                if (!document.IsOpen())
+                    return;
+
+                var statusService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+
+                var connection = await _lazyConnection.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                if (connection == null)
+                    return;
+
+                await connection.RunRemoteAsync(
+                    nameof(IRemoteSemanticClassificationCacheService.CacheSemanticClassificationsAsync),
+                    solution: document.Project.Solution,
+                    arguments: new[] { document.Id },
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
+    [ExportWorkspaceService(typeof(ISemanticClassificationCacheService), ServiceLayer.Host), Shared]
     internal class VisualStudioSemanticClassificationCacheService
-        : ForegroundThreadAffinitizedObject, ISemanticClassificationCacheService, IEventListener<object>
+        : ForegroundThreadAffinitizedObject, ISemanticClassificationCacheService
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -56,32 +124,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
             _lazyConnection = new AsyncLazy<RemoteServiceConnection?>(c => CreateConnectionAsync(c), cacheResult: true);
         }
 
-        void IEventListener<object>.StartListening(Workspace workspace, object _)
-        {
-            if (workspace is VisualStudioWorkspace)
-                _ = StartAsync();
-        }
-
-        private async Task StartAsync()
-        {
-            // Have to catch all exceptions coming through here as this is called from a
-            // fire-and-forget method and we want to make sure nothing leaks out.
-            try
-            {
-                var statusService = _workspace.Services.GetService<IWorkspaceStatusService>();
-                await statusService.WaitUntilFullyLoadedAsync(ThreadingContext.DisposalToken).ConfigureAwait(false);
-                await StartWorkerAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancellation is normal (during VS closing).  Just ignore.
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-            {
-                // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
-                // a BG service we don't want impacting the user experience.
-            }
-        }
+        //private async Task StartAsync()
+        //{
+        //    // Have to catch all exceptions coming through here as this is called from a
+        //    // fire-and-forget method and we want to make sure nothing leaks out.
+        //    try
+        //    {
+        //        var statusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+        //        await StartWorkerAsync().ConfigureAwait(false);
+        //    }
+        //    catch (OperationCanceledException)
+        //    {
+        //        // Cancellation is normal (during VS closing).  Just ignore.
+        //    }
+        //    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+        //    {
+        //        // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
+        //        // a BG service we don't want impacting the user experience.
+        //    }
+        //}
 
         private async Task<RemoteServiceConnection?> CreateConnectionAsync(CancellationToken cancellationToken)
         {
@@ -95,27 +156,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
             }
 
             var connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.RemoteSemanticClassificationCacheService,
+                WellKnownServiceHubService.CodeAnalysis,
                 callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
             return connection;
         }
 
-        private async Task StartWorkerAsync()
-        {
-            var cancellationToken = ThreadingContext.DisposalToken;
+        //private async Task StartWorkerAsync()
+        //{
+        //    var cancellationToken = ThreadingContext.DisposalToken;
 
-            var connection = await _lazyConnection.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-                return;
+        //    var connection = await _lazyConnection.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        //    if (connection == null)
+        //        return;
 
-            // Now kick off scanning in the OOP process.
-            await connection.RunRemoteAsync(
-                nameof(IRemoteSemanticClassificationCacheService.StartCachingSemanticClassificationsAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
-                cancellationToken).ConfigureAwait(false);
-        }
+        //    // Now kick off scanning in the OOP process.
+        //    await connection.RunRemoteAsync(
+        //        nameof(IRemoteSemanticClassificationCacheService.StartCachingSemanticClassificationsAsync),
+        //        solution: null,
+        //        arguments: Array.Empty<object>(),
+        //        cancellationToken).ConfigureAwait(false);
+        //}
 
         public async Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
