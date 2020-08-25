@@ -43,7 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         // these string are never exposed to users but internally used to identify 
         // each provider/servicehub connections and etc
         private const string HubClientId = "ManagedLanguage.IDE.CodeLensOOP";
-        private const string RoslynCodeAnalysis = "roslynCodeAnalysis";
+
+        // The name of the service module for roslyn code analysis. Looked up in
+        // <vs install>\common7\ServiceHub\Services\RoslynCodeAnalysisService
+        // as <name>.servicehub.service.json
+        private const string RoslynCodeAnalysis = "roslynCodeAnalysis64";
 
         private readonly HubClient _client;
 
