@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // builder.Append(<name>);
                     // builder.Append(" = ");
-                    // builder.Append((object)<value>); OR builder.Append(<value>.ToString());
+                    // builder.Append((object)<value>); OR builder.Append(<value>.ToString()); for value types
                     // builder.Append(", "); // except for last member
 
                     var member = printableMembers[i];
