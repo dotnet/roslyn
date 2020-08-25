@@ -75,9 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _clientCapabilities = new VSClientCapabilities();
 
             _queue = new RequestExecutionQueue(solutionProvider);
-            _queue.Errored += RequestExecutionQueue_Errored;
-
+            _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
             _requestHandlerProvider.InitializeRequestQueue(_queue);
+
         }
 
         public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
@@ -292,10 +292,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private void RequestExecutionQueue_Errored(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void RequestExecutionQueue_Errored(object sender, RequestShutdownEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            // log message and shut down
-            _jsonRpc.Dispose();
+            // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
+            // the worst outcome here is that guests don't get the log message. We still want to ensure the connection is closed though.
+            try
+            {
+                // log message and shut down
+
+                var message = new LogMessageParams()
+                {
+                    MessageType = MessageType.Error,
+                    Message = e.Message
+                };
+
+                await _jsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+            {
+            }
+
+            await ExitAsync(/* cancellationToken: */ default).ConfigureAwait(false);
         }
 
         /// <summary>

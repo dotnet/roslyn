@@ -37,20 +37,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
+    /// <para>
+    /// Exceptions in the handling of non-mutating requests are sent back to callers. Exceptions in the processing of
+    /// the queue will close the LSP connection so that the client can reconnect. Exceptions in the handling of mutating
+    /// requests will also close the LSP connection, as at that point the mutated solution is in an unknown state.
+    /// </para>
     /// </remarks>
     internal partial class RequestExecutionQueue
     {
         private readonly ILspSolutionProvider _solutionProvider;
+        // The queue and the cancellation token should both be null or non-null at all times
         private AsyncQueue<QueueItem>? _queue;
         private CancellationTokenSource? _cancelSource;
 
-        public event EventHandler? Errored;
+        /// <summary>
+        /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
+        /// and so the only course of action is the shutdown the server so that the client re-connects and we can
+        /// start over again.
+        /// </summary>
+        /// <remarks>
+        /// Once this event has been fired all currently active and pending work items in the queue will be cancelled.
+        /// </remarks>
+        public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _solutionProvider = solutionProvider;
         }
 
+        /// <summary>
+        /// Initializes the queue if its not already initialized and starts it processing messages
+        /// </summary>
         public void Initialize()
         {
             // If the queue is already running, do nothing because we don't want to run multiple or lose any queued messages
@@ -64,12 +81,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
+        /// <summary>
+        /// Shuts down the queue, stops accepting new messages, and cancels any in-progress or queued tasks
+        /// </summary>
         public void Shutdown()
         {
             if (_cancelSource != null)
             {
                 _cancelSource.Cancel();
                 DrainQueue();
+
+                _cancelSource = null;
             }
             _queue = null;
         }
@@ -195,8 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         }
                         else
                         {
-                            Errored?.Invoke(this, EventArgs.Empty);
-                            _cancelSource.Cancel();
+                            OnRequestServerShutdown($"An error occured processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
                             break;
                         }
                     }
@@ -211,12 +232,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                Errored?.Invoke(this, EventArgs.Empty);
-                _cancelSource.Cancel();
+                OnRequestServerShutdown($"Error occured processing queue: {e.Message}.");
             }
+        }
 
-            if (queueToken.IsCancellationRequested)
+        private void OnRequestServerShutdown(string message)
+        {
+            RequestServerShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
+
+            if (_cancelSource != null)
             {
+                _cancelSource.Cancel();
                 DrainQueue();
             }
         }
