@@ -39,7 +39,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Condition="$(DesignTimeBuild)" Include="DesignTimeBuildConditional.cs" />
+    <Compile Condition="$(ShouldUnsetParentConfigurationAndPlatform)" Include="ShouldUnsetParentConfigurationAndPlatformConditional.cs" />
     <Compile Include="CSharpClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CircularProjectReferences_CircularCSharpProject1 => GetText("CircularProjectReferences.CircularCSharpProject1.csproj");
                 public static string CircularProjectReferences_CircularCSharpProject2 => GetText("CircularProjectReferences.CircularCSharpProject2.csproj");
                 public static string CSharpProject => GetText("ProjectFiles.CSharp.CSharpProject.csproj");
-                public static string DesignTimeBuild => GetText("ProjectFiles.CSharp.DesignTimeBuild.csproj");
                 public static string DuplicateFile => GetText("ProjectFiles.CSharp.DuplicateFile.csproj");
                 public static string DuplicateReferences => GetText("ProjectFiles.CSharp.DuplicateReferences.csproj");
                 public static string DuplicatedGuidLibrary1 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary1.csproj");
@@ -150,6 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ProjectLoadErrorOnMissingDebugType => GetText("ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType.csproj");
                 public static string ProjectReference => GetText("ProjectFiles.CSharp.ProjectReference.csproj");
                 public static string ReferencesPortableProject => GetText("ProjectFiles.CSharp.ReferencesPortableProject.csproj");
+                public static string ShouldUnsetParentConfigurationAndPlatform => GetText("ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform.csproj");
                 public static string Wildcards => GetText("ProjectFiles.CSharp.Wildcards.csproj");
                 public static string WithoutCSharpTargetsImported => GetText("ProjectFiles.CSharp.WithoutCSharpTargetsImported.csproj");
                 public static string WithDiscoverEditorConfigFiles => GetText("ProjectFiles.CSharp.WithDiscoverEditorConfigFiles.csproj");
