@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// to one.  Conversion of this value to float produces the corresponding
         /// canonical NaN of the float type (IEEE Std 754-2008 section 6.2.3).
         /// </summary>
-        private static double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
+        private static readonly double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
 
         private sealed class ConstantValueBad : ConstantValue
         {

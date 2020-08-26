@@ -14,7 +14,7 @@ namespace Microsoft.DiaSymReader
 {
     internal sealed class SymUnmanagedWriterImpl : SymUnmanagedWriter
     {
-        private static object s_zeroInt32 = 0;
+        private static readonly object s_zeroInt32 = 0;
 
         private ISymUnmanagedWriter5 _symWriter;
         private readonly ComMemoryStream _pdbStream;

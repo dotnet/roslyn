@@ -15,7 +15,7 @@ namespace ObjectFormatterFixtures
     [DebuggerDisplay("IsHeld = {IsHeld}")]
     internal struct MockDesktopSpinLock
     {
-        private volatile int m_owner;
+        private readonly int m_owner;
 
         public MockDesktopSpinLock(bool enableThreadOwnerTracking)
         {
