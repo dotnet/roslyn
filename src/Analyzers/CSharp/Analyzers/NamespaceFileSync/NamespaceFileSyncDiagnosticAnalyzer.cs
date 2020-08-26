@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Namespace_must_match_folder_structure), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
-        private static readonly DiagnosticDescriptor s_insideDiagnosticDescriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId, s_localizableTitle, s_localizableInsideMessage);
+        private static readonly string s_rootnamespaceOption = "build_property.RootNamespace"; 
+        private static readonly string s_projectDirOption = "build_property.ProjectDir"; 
 
         public NamespaceFileSyncDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
@@ -34,30 +34,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
+#if !CODE_STYLE
             context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
+#endif
         }
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            //TODO: add <CompilerVisibleAttribute> to project file to request for RootNamespace property
-            //context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.rootNamespace", out string rootNamespace);
+            //TODO: is this needed in Code_Style? if so, GlobalOptions support needs to be added in the package.
+#if !CODE_STYLE
+            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(s_rootnamespaceOption, out var rootNamespace);
+            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(s_projectDirOption, out var projectDir);
 
-            var rootnamespace = "VB.Global";
-            var projectdir = @"C:\repos\ClassLibrary1\ClassLibrary1"; //to determine files sthat don't exist under this project
-
-            var namespaceDecl = context.Node as NamespaceDeclarationSyntax;
-            if (namespaceDecl == null ||
-                !IsFileAndNamespaceValid(namespaceDecl, rootnamespace, projectdir, out var targetNamespace) ||
-                !IsNamespaceSyncSupported(namespaceDecl, context.SemanticModel))
+            if (context.Node is NamespaceDeclarationSyntax namespaceDecl &&
+                IsFileAndNamespaceValid(namespaceDecl, rootNamespace, projectDir, out var targetNamespace) &&
+                IsNamespaceSyncSupported(namespaceDecl, context.SemanticModel))
             {
-                return;
+                ReportDiagnostics(context, this.Descriptor, namespaceDecl, ReportDiagnostic.Warn, targetNamespace);
             }
-
-            ReportDiagnostics(context, s_insideDiagnosticDescriptor, namespaceDecl, ReportDiagnostic.Warn, targetNamespace);
+#endif
         }
 
         private static bool IsNamespaceSyncSupported(NamespaceDeclarationSyntax namespaceDeclaration, SemanticModel semanticModel)
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 descriptor,
-                namespaceDeclaration.GetFirstToken().GetLocation(),
+                namespaceDeclaration.Name.GetLocation(),
                 reportDiagnostic,
                 additionalLocations: null,
                 properties: properties));
