@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly bool _logPerformanceInfo;
-        private readonly Action? _onAnalysisCanceled;
+        private readonly Action? _onAnalysisException;
 
         private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedAnalyzersInAnalysisScope;
 
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationWithAnalyzers? compilationWithAnalyzers,
             InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
             bool logPerformanceInfo,
-            Action? onAnalysisCanceled = null)
+            Action? onAnalysisException = null)
         {
             AnalysisScope = analysisScope;
             _compilationWithAnalyzers = compilationWithAnalyzers;
             _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
             _logPerformanceInfo = logPerformanceInfo;
-            _onAnalysisCanceled = onAnalysisCanceled;
+            _onAnalysisException = onAnalysisException;
 
             var compilationBasedAnalyzers = compilationWithAnalyzers?.Analyzers.ToImmutableHashSet();
             _compilationBasedAnalyzersInAnalysisScope = compilationBasedAnalyzers != null
@@ -156,9 +156,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
-            catch (OperationCanceledException)
+            catch (Exception)
             {
-                _onAnalysisCanceled?.Invoke();
+                _onAnalysisException?.Invoke();
                 throw;
             }
         }
