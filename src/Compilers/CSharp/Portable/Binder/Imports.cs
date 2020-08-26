@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_NoAliasHere, usingDirective.Alias.Name.Location);
                         }
 
-                        string identifierValueText = usingDirective.Alias.Name.Identifier.ValueText;
                         SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(usingDirective.Alias.Name.Identifier.Text, compilation, diagnostics, usingDirective.Alias.Name.Location);
 
+                        string identifierValueText = usingDirective.Alias.Name.Identifier.ValueText;
                         if (usingAliases != null && usingAliases.ContainsKey(identifierValueText))
                         {
                             // Suppress diagnostics if we're already broken.
