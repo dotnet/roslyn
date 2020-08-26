@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             public int GetHashCode(List<Section> obj) => Hash.CombineValues(obj);
         }
 
-        private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
+        private static readonly DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
                 "InvalidSeverityInAnalyzerConfig",
                 CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig_Title,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 
-        private readonly static DiagnosticDescriptor MultipleGlobalAnalyzerKeysDescriptor
+        private static readonly DiagnosticDescriptor MultipleGlobalAnalyzerKeysDescriptor
             = new DiagnosticDescriptor(
                 "MultipleGlobalAnalyzerKeys",
                 CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys_Title,
