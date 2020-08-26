@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     /// </summary>
     internal interface ICodeLensContext
     {
-        Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(CancellationToken cancellationToken);
+        Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(ImmutableArray<Guid> projectGuids, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get reference count of the given descriptor

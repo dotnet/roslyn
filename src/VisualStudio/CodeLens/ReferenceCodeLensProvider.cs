@@ -91,10 +91,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             {
                 await Task.Delay(TimeSpan.FromSeconds(1.5), _cancellationTokenSource.Token).ConfigureAwait(false);
 
+                ImmutableArray<Guid> keys;
+                lock (_dataPoints)
+                {
+                    keys = _dataPoints.Keys.ToImmutableArray();
+                }
+
                 var projectVersions = await _lazyCodeLensCallbackService.Value.InvokeAsync<ImmutableDictionary<Guid, string>>(
                     this,
                     nameof(ICodeLensContext.GetProjectVersionsAsync),
-                    Array.Empty<object>(),
+                    new object[] { keys },
                     _cancellationTokenSource.Token).ConfigureAwait(false);
 
                 lock (_dataPoints)

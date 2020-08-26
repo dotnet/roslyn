@@ -60,13 +60,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             _workspace = workspace;
         }
 
-        public async Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(ImmutableArray<Guid> projectGuids, CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<Guid, string>();
             foreach (var project in _workspace.CurrentSolution.Projects)
             {
+                var projectGuid = _workspace.GetProjectGuid(project.Id);
+                if (!projectGuids.Contains(projectGuid))
+                    continue;
+
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                builder[_workspace.GetProjectGuid(project.Id)] = projectVersion.ToString();
+                builder[projectGuid] = projectVersion.ToString();
             }
 
             return builder.ToImmutable();
