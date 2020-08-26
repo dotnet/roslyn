@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -34,8 +36,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            _lazyProxy ??= new RemoteEditAndContinueServiceProxy(document.Project.Solution.Workspace);
-            return _lazyProxy.GetDocumentDiagnosticsAsync(document, cancellationToken);
+            var workspace = document.Project.Solution.Workspace;
+            _lazyProxy ??= new RemoteEditAndContinueServiceProxy(workspace);
+
+            var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(async cancellationToken =>
+            {
+                var trackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+                return await trackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
+            });
+
+            return _lazyProxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken);
         }
     }
 }

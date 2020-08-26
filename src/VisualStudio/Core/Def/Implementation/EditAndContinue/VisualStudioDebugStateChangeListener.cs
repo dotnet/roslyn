@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 
@@ -85,7 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                await _proxy.StartDebuggingSessionAsync(cancellationToken).ConfigureAwait(false);
+                var solution = _proxy.Workspace.CurrentSolution;
+                await _proxy.StartDebuggingSessionAsync(solution, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

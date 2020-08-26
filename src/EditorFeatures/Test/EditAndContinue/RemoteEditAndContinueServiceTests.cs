@@ -140,7 +140,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 called = true;
             };
 
-            await proxy.StartDebuggingSessionAsync(CancellationToken.None).ConfigureAwait(false);
+            await proxy.StartDebuggingSessionAsync(localWorkspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
             Assert.True(called);
 
             // StartEditSession
@@ -206,13 +206,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 return true;
             };
 
-            Assert.True(await proxy.HasChangesAsync("test.cs", CancellationToken.None).ConfigureAwait(false));
+            Assert.True(await proxy.HasChangesAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, "test.cs", CancellationToken.None).ConfigureAwait(false));
 
             // EmitSolutionUpdate
 
             var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
-            mockEncService.EmitSolutionUpdateAsyncImpl = solution =>
+            mockEncService.EmitSolutionUpdateAsyncImpl = (solution, activeStatementSpanProvider) =>
             {
                 var project = solution.Projects.Single();
                 Assert.Equal("proj", project.Name);
@@ -236,7 +236,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 return (SolutionUpdateStatus.Ready, deltas, ImmutableArray.Create(documentDiagnostic, projectDiagnostic, solutionDiagnostic));
             };
 
-            var (status, deltas) = await proxy.EmitSolutionUpdateAsync(diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            var (status, deltas) = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Ready, status);
 
             Assert.Equal(1, emitDiagnosticsClearedCount);
@@ -289,7 +289,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // GetCurrentActiveStatementPosition
 
-            mockEncService.GetCurrentActiveStatementPositionAsyncImpl = (solution, instructionId) =>
+            mockEncService.GetCurrentActiveStatementPositionAsyncImpl = (solution, activeStatementSpanProvider, instructionId) =>
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
                 Assert.Equal(instructionId1, instructionId);
@@ -332,9 +332,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // GetDocumentActiveStatementSpans (default array)
 
-            mockEncService.GetDocumentActiveStatementSpansAsyncImpl = (document) => default;
+            mockEncService.GetAdjustedActiveStatementSpansAsyncImpl = (document, activeStatementSpanProvider) => null;
 
-            documentActiveSpans = await proxy.GetDocumentActiveStatementSpansAsync(document1, CancellationToken.None).ConfigureAwait(false);
+            documentActiveSpans = await proxy.GetAdjustedActiveStatementSpansAsync(document1, activeStatementSpanProvider, CancellationToken.None).ConfigureAwait(false);
             Assert.True(documentActiveSpans.IsDefault);
 
             // OnSourceFileUpdatedAsync

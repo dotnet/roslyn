@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
         public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansAsyncImpl;
-        public Func<Solution, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionAsyncImpl;
-        public Func<Document, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetDocumentActiveStatementSpansAsyncImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionAsyncImpl;
+        public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedActiveStatementSpansAsyncImpl;
         public Action<Solution>? StartDebuggingSessionImpl;
         public StartEditSession? StartEditSessionImpl;
         public EndSession? EndDebuggingSessionImpl;
         public EndSession? EndEditSessionImpl;
         public Func<Solution, string?, bool>? HasChangesAsyncImpl;
-        public Func<Solution, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateAsyncImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateAsyncImpl;
         public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionAsyncImpl;
         public Action<DocumentId>? OnSourceFileUpdatedImpl;
-        public Action CommitSolutionUpdateImpl;
-        public Action DiscardSolutionUpdateImpl;
+        public Action? CommitSolutionUpdateImpl;
+        public Action? DiscardSolutionUpdateImpl;
 
         public void CommitSolutionUpdate()
             => CommitSolutionUpdateImpl?.Invoke();
@@ -38,8 +38,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void DiscardSolutionUpdate()
             => DiscardSolutionUpdateImpl?.Invoke();
 
-        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
-            => Task.FromResult((EmitSolutionUpdateAsyncImpl ?? throw new NotImplementedException()).Invoke(solution));
+        public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)>
+            EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+            => Task.FromResult((EmitSolutionUpdateAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
 
         public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
@@ -56,15 +57,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
             => Task.FromResult((GetBaseActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(documentIds));
 
-        public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken)
-            => Task.FromResult((GetCurrentActiveStatementPositionAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, instructionId));
+        public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
+            => Task.FromResult((GetCurrentActiveStatementPositionAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider, instructionId));
 
-        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult((GetDocumentActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(document));
+        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+            => Task.FromResult((GetAdjustedActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
 
-        public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
 
-        public Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
+        public Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
             => Task.FromResult((HasChangesAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, sourceFilePath));
 
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)

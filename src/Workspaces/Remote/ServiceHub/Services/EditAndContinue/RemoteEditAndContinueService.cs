@@ -20,10 +20,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal sealed class RemoteEditAndContinueService : ServiceBase, IRemoteEditAndContinueService, IDebuggeeModuleMetadataProvider
     {
+        private readonly DocumentActiveStatementSpanProvider _documentActiveStatementSpanProvider;
+        private readonly SolutionActiveStatementSpanProvider _solutionActiveStatementSpanProvider;
+
         public RemoteEditAndContinueService(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
             StartService();
+
+            _documentActiveStatementSpanProvider = new DocumentActiveStatementSpanProvider(cancellationToken =>
+                EndPoint.InvokeAsync<ImmutableArray<TextSpan>>(
+                    nameof(IRemoteEditAndContinueService.IDocumentActiveStatementProviderCallback.GetSpansAsync),
+                    Array.Empty<object>(),
+                    cancellationToken));
+
+            _solutionActiveStatementSpanProvider = new SolutionActiveStatementSpanProvider((documentId, cancellationToken) =>
+                EndPoint.InvokeAsync<ImmutableArray<TextSpan>>(
+                    nameof(IRemoteEditAndContinueService.ISolutionActiveStatementProviderCallback.GetSpansAsync),
+                    new object[] { documentId },
+                    cancellationToken));
         }
 
         private IEditAndContinueWorkspaceService GetService()
@@ -115,7 +130,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
-                var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+
+                var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, _documentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
             }, cancellationToken);
         }
@@ -128,7 +144,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(async () =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                return await GetService().HasChangesAsync(solution, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                return await GetService().HasChangesAsync(solution, _solutionActiveStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -144,7 +160,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    var result = await service.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    var result = await service.EmitSolutionUpdateAsync(solution, _solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
                     return (result.Summary, result.Deltas.SelectAsArray(d => d.Serialize()), result.Diagnostics);
                 }
@@ -182,13 +198,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(() => GetService().GetBaseActiveStatementSpansAsync(documentIds, cancellationToken), cancellationToken);
         }
 
-        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>?> GetDocumentActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>?> GetAdjustedActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
-                var result = await GetService().GetDocumentActiveStatementSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                var result = await GetService().GetAdjustedActiveStatementSpansAsync(document, _documentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 return result.IsDefault ? (ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>?)null : result;
             }, cancellationToken);
         }
@@ -205,7 +221,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var instructionId = new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset);
-                return await GetService().GetCurrentActiveStatementPositionAsync(solution, instructionId, cancellationToken).ConfigureAwait(false);
+                return await GetService().GetCurrentActiveStatementPositionAsync(solution, _solutionActiveStatementSpanProvider, instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

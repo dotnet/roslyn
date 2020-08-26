@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Returns the active statements in the specified <paramref name="document"/> snapshot.
+        /// Returns adjusted active statements in the specified <paramref name="document"/> snapshot.
         /// </summary>
         /// <returns>
         /// <see langword="default"/> if called outside of an edit session, or active statements for the document can't be determined for some reason
         /// (e.g. the document has syntax errors or is out-of-sync).
         /// </returns>
-        Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(Document document, CancellationToken cancellationToken);
+        Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
     }
 }

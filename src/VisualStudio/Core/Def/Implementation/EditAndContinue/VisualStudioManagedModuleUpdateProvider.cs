@@ -12,8 +12,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
@@ -28,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     {
         private readonly RemoteEditAndContinueServiceProxy _proxy;
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
+        private readonly IActiveStatementTrackingService _activeStatementTrackingService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -37,7 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             _proxy = new RemoteEditAndContinueServiceProxy(workspace);
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
+            _activeStatementTrackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
         }
+
+        private SolutionActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
+            => new SolutionActiveStatementSpanProvider((documentId, cancellationToken) =>
+                _activeStatementTrackingService.GetSpansAsync(solution.GetRequiredDocument(documentId), cancellationToken));
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
@@ -46,7 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
-                return _proxy.HasChangesAsync(sourceFilePath, cancellationToken);
+                var solution = _proxy.Workspace.CurrentSolution;
+                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+                return _proxy.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -58,7 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
-                var (summary, deltas) = await _proxy.EmitSolutionUpdateAsync(_emitDiagnosticsUpdateSource, cancellationToken).ConfigureAwait(false);
+                var solution = _proxy.Workspace.CurrentSolution;
+                var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+                var (summary, deltas) = await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _emitDiagnosticsUpdateSource, cancellationToken).ConfigureAwait(false);
                 return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
