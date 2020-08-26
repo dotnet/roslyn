@@ -8059,36 +8059,36 @@ class C
                 // (9,20): error CS8894: Cannot use 'object' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
                 //     static void M2(object o) {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "object o").WithArguments("object", "parameter").WithLocation(9, 20),
+                // (11,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(11, 6),
                 // (12,12): error CS8894: Cannot use 'T' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     static T M3<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T").WithArguments("T", "return").WithLocation(12, 12),
-                // (12,16): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static T M3<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(12, 16),
-                // (15,19): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static void M4<T>(T t) {}
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(15, 19),
+                // (14,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(14, 6),
                 // (15,23): error CS8894: Cannot use 'T' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
                 //     static void M4<T>(T t) {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T t").WithArguments("T", "parameter").WithLocation(15, 23),
+                // (17,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(17, 6),
                 // (18,12): error CS8894: Cannot use 'T' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     static T M5<T>() where T : struct => throw null;
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T").WithArguments("T", "return").WithLocation(18, 12),
-                // (18,16): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static T M5<T>() where T : struct => throw null;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(18, 16),
-                // (21,19): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static void M6<T>(T t) where T : struct {}
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(21, 19),
+                // (20,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(20, 6),
                 // (21,23): error CS8894: Cannot use 'T' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
                 //     static void M6<T>(T t) where T : struct {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "T t").WithArguments("T", "parameter").WithLocation(21, 23),
-                // (24,16): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static T M7<T>() where T : unmanaged => throw null;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(24, 16),
-                // (27,19): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static void M8<T>(T t) where T : unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(27, 19)
+                // (23,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(23, 6),
+                // (26,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(26, 6)
             );
         }
 
@@ -8131,6 +8131,7 @@ class C
         public void UnmanagedCallersOnlyRequiresUnmanagedTypes_MethodWithGenericParameter()
         {
             var comp = CreateCompilation(new[] { @"
+#pragma warning disable CS8321 // Unused local function
 using System.Runtime.InteropServices;
 public struct S<T> where T : unmanaged
 {
@@ -8138,21 +8139,36 @@ public struct S<T> where T : unmanaged
 }
 class C
 {
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly] // 1
     static S<T> M1<T>() where T : unmanaged => throw null;
 
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly] // 2
     static void M2<T>(S<T> o) where T : unmanaged {}
+
+    static void M3<T>()
+    {
+        [UnmanagedCallersOnly]
+        static void local1() {}
+    }
+
+    static void M4()
+    {
+        [UnmanagedCallersOnly] // 3
+        static void local2<T>() {}
+    }
 }
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (10,19): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static S<T> M1<T>() where T : unmanaged => throw null;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(10, 19),
-                // (13,19): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot be generic.
-                //     static void M2<T>(S<T> o) where T : unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, "<T>").WithLocation(13, 19)
+                // (10,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 1
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(10, 6),
+                // (13,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 2
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(13, 6),
+                // (24,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 3
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(24, 10)
             );
         }
 
@@ -8167,51 +8183,69 @@ public struct S<T> where T : unmanaged
 }
 class C<T> where T : unmanaged
 {
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly] // 1
     static S<T> M1() => throw null;
 
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly] // 2
     static void M2(S<T> o) {}
 
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly] // 3
     static S<int> M3() => throw null;
 
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly] // 4
     static void M4(S<int> o) {}
 
     class C2
     {
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly] // 5
         static void M5() {}
     }
 
     struct S2
     {
-        [UnmanagedCallersOnly]
+        [UnmanagedCallersOnly] // 6
         static void M6() {}
     }
 }
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (9,6): error CS8896: Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.
+                // (9,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 1
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(9, 6),
+                // (12,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 2
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(12, 6),
+                // (15,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 3
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(15, 6),
+                // (18,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //     [UnmanagedCallersOnly] // 4
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(18, 6),
+                // (23,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 5
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(23, 10),
+                // (29,10): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
+                //         [UnmanagedCallersOnly] // 6
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(29, 10)
+            );
+        }
+        [Fact]
+        public void UnmanagedCallersOnlyRequiresUnmanagedTypes_TypeAndMethodWithGenericParameter()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+class C<T1>
+{
+    [UnmanagedCallersOnly]
+    static void M<T2>() {}
+}
+", UnmanagedCallersOnlyAttribute});
+
+            comp.VerifyDiagnostics(
+                // (5,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
                 //     [UnmanagedCallersOnly]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, "UnmanagedCallersOnly").WithLocation(9, 6),
-                // (12,6): error CS8896: Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.
-                //     [UnmanagedCallersOnly]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, "UnmanagedCallersOnly").WithLocation(12, 6),
-                // (15,6): error CS8896: Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.
-                //     [UnmanagedCallersOnly]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, "UnmanagedCallersOnly").WithLocation(15, 6),
-                // (18,6): error CS8896: Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.
-                //     [UnmanagedCallersOnly]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, "UnmanagedCallersOnly").WithLocation(18, 6),
-                // (23,10): error CS8896: Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.
-                //         [UnmanagedCallersOnly]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, "UnmanagedCallersOnly").WithLocation(23, 10),
-                // (29,10): error CS8896: Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.
-                //         [UnmanagedCallersOnly]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, "UnmanagedCallersOnly").WithLocation(29, 10)
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
         }
 

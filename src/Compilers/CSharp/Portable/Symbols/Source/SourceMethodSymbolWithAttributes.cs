@@ -861,22 +861,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (IsGenericMethod)
+            if (IsGenericMethod || ContainingType.IsGenericType)
             {
-                Debug.Assert(genericTypeParameters is not null);
-                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, genericTypeParameters.GetLocation());
-            }
-
-            var containingType = ContainingType;
-            while (containingType is not null)
-            {
-                if (containingType.IsGenericType)
-                {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, arguments.AttributeSyntaxOpt.Name.Location);
-                    break;
-                }
-
-                containingType = containingType.ContainingType;
+                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, arguments.AttributeSyntaxOpt.Name.Location);
             }
 
             checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);

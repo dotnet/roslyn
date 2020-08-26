@@ -922,14 +922,9 @@
         <target state="translated">"{0}": Eine Einschränkungsklasse kann nicht gleichzeitig mit einer unmanaged-Einschränkung angegeben werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnmanagedCallersOnlyMethodCannotBeGeneric">
-        <source>Methods attributed with 'UnmanagedCallersOnly' cannot be generic.</source>
-        <target state="new">Methods attributed with 'UnmanagedCallersOnly' cannot be generic.</target>
-        <note>UnmanagedCallersOnly is not localizable.</note>
-      </trans-unit>
-      <trans-unit id="ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType">
-        <source>Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.</source>
-        <target state="new">Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.</target>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric">
+        <source>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</source>
+        <target state="new">Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
