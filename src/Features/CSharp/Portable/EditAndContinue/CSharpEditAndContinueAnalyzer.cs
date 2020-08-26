@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         // Public for testing purposes
         public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
             : base(testFaultInjector)
+        {
+        }
 
         #region Syntax Analysis
 
