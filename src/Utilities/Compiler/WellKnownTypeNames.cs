@@ -222,6 +222,7 @@ namespace Analyzer.Utilities
         public const string SystemNumber = "System.Number";
         public const string SystemObject = "System.Object";
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
+        public const string SystemOperatingSystem = "System.OperatingSystem";
         public const string SystemOutOfMemoryException = "System.OutOfMemoryException";
         public const string SystemRandom = "System.Random";
         public const string SystemRange = "System.Range";
