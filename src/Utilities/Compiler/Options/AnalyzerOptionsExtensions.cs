@@ -30,6 +30,8 @@ namespace Analyzer.Utilities
                 case SymbolKind.Namespace when ((INamespaceSymbol)symbol).IsGlobalNamespace:
                     tree = null;
                     return false;
+                case SymbolKind.Parameter:
+                    return TryGetSyntaxTreeForOption(symbol.ContainingSymbol, out tree);
                 default:
                     tree = symbol.Locations[0].SourceTree;
                     return tree != null;
