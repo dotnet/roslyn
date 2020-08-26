@@ -290,6 +290,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(47089, "https://github.com/dotnet/roslyn/issues/47089")]
         public async Task ExpressionAndReturnTypeAreVoid()
         {
             await TestMissingInRegularAndScriptAsync(
