@@ -42,13 +42,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// the queue will close the LSP connection so that the client can reconnect. Exceptions in the handling of mutating
     /// requests will also close the LSP connection, as at that point the mutated solution is in an unknown state.
     /// </para>
+    /// <para>
+    /// After shutdown is called, or an error causes the closing of the connection, the queue will not accept any
+    /// more messages, and a new queue will need to be created.
+    /// </para>
     /// </remarks>
     internal partial class RequestExecutionQueue
     {
         private readonly ILspSolutionProvider _solutionProvider;
-        // The queue and the cancellation token should both be null or non-null at all times
-        private AsyncQueue<QueueItem>? _queue;
-        private CancellationTokenSource? _cancelSource;
+        private readonly AsyncQueue<QueueItem> _queue;
+        private readonly CancellationTokenSource _cancelSource;
 
         /// <summary>
         /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
@@ -63,37 +66,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
         {
             _solutionProvider = solutionProvider;
+            _queue = new AsyncQueue<QueueItem>();
+            _cancelSource = new CancellationTokenSource();
+
+            // Start the queue processing
+            _ = ProcessQueueAsync();
         }
 
         /// <summary>
-        /// Initializes the queue if its not already initialized and starts it processing messages
-        /// </summary>
-        public void Initialize()
-        {
-            // If the queue is already running, do nothing because we don't want to run multiple or lose any queued messages
-            if (_cancelSource == null || _cancelSource.IsCancellationRequested)
-            {
-                _queue = new AsyncQueue<QueueItem>();
-                _cancelSource = new CancellationTokenSource();
-
-                // Start the queue processing
-                _ = ProcessQueueAsync();
-            }
-        }
-
-        /// <summary>
-        /// Shuts down the queue, stops accepting new messages, and cancels any in-progress or queued tasks
+        /// Shuts down the queue, stops accepting new messages, and cancels any in-progress or queued tasks. Calling
+        /// this multiple times won't cause any issues.
         /// </summary>
         public void Shutdown()
         {
-            if (_cancelSource != null)
-            {
-                _cancelSource.Cancel();
-                DrainQueue();
-
-                _cancelSource = null;
-            }
-            _queue = null;
+            _cancelSource.Cancel();
+            DrainQueue();
         }
 
         /// <summary>
@@ -121,11 +108,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
 
-            // If the queue is not set up, we just fauly immediately
-            if (_queue == null)
+            // If the queue is not accepting any more items then we just fault immediately as this queue has been shut down.
+            if (_queue.IsCompleted)
             {
                 completion.SetException(new InvalidOperationException("Server has not been initialized, or was requested to shut down."));
-                return completion.Task;
             }
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
@@ -163,28 +149,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Tell the queue to ignore any mutations from this request
                     return false;
                 }, requestCancellationToken);
-            _queue.Enqueue(item);
+
+            var didEnqueue = _queue.TryEnqueue(item);
+
+            // If the queue got shut down while we were busy above, the enqueue will fail, so we just fault the task immediately.
+            // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
+            if (!didEnqueue)
+            {
+                completion.SetException(new InvalidOperationException("Server has not been initialized, or was requested to shut down."));
+            }
 
             return completion.Task;
         }
 
         private async Task ProcessQueueAsync()
         {
-            Contract.ThrowIfNull(_queue, "Queue should not be running when there isn't a queue to pull tasks from");
-            Contract.ThrowIfNull(_cancelSource, "Queue should not run without a cancellation token source to stop it");
-
             // Keep track of solution state modifications made by LSP requests
             Solution? lastMutatedSolution = null;
-            var queueToken = _cancelSource.Token;
 
             try
             {
-                while (!queueToken.IsCancellationRequested)
+                while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
-                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(queueToken, work.CancellationToken).Token;
+                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
                     // The "current" solution can be updated by non-LSP actions, so we need it, but we also need
                     // to merge in the changes from any mutations that have been applied to open documents
@@ -240,18 +230,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             RequestServerShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
 
-            if (_cancelSource != null)
-            {
-                _cancelSource.Cancel();
-                DrainQueue();
-            }
+            _cancelSource.Cancel();
+            DrainQueue();
         }
 
+        /// <summary>
+        /// Cancels all requests in the queue and stops the queue from accepting any more requests. After this method
+        /// is called this queue is essentially useless.
+        /// </summary>
         private void DrainQueue()
         {
-            Contract.ThrowIfNull(_queue, "Queue should not be draining when there isn't a queue to pull tasks from");
-            Contract.ThrowIfNull(_cancelSource, "Queue should not draing without a cancellation token source to stop it");
-
             // Tell the queue not to accept any more items
             _queue.Complete();
 
@@ -262,7 +250,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // and just call SetCanceled
             while (_queue.TryDequeue(out var item))
             {
-                _ = item.CallbackAsync(default, _cancelSource.Token);
+                _ = item.CallbackAsync(default, new CancellationToken(true));
             }
         }
 

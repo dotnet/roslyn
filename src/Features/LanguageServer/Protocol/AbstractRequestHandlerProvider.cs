@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return requestHandlerDictionary.ToImmutable();
         }
 
-        public void InitializeRequestQueue(RequestExecutionQueue queue)
+        public void SetRequestQueue(RequestExecutionQueue queue)
         {
             _queue = queue;
         }

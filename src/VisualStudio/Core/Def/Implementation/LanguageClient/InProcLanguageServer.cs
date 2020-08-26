@@ -38,12 +38,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         private readonly IDiagnosticService _diagnosticService;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly ILspSolutionProvider _solutionProvider;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly CodeAnalysis.Workspace _workspace;
-        private readonly RequestExecutionQueue _queue;
 
+        private RequestExecutionQueue _queue;
         private VSClientCapabilities _clientCapabilities;
         private bool _shuttingDown;
 
@@ -69,15 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _diagnosticService = diagnosticService;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
+            _solutionProvider = solutionProvider;
             _clientName = clientName;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
             _clientCapabilities = new VSClientCapabilities();
-
-            _queue = new RequestExecutionQueue(solutionProvider);
-            _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
-            _requestHandlerProvider.InitializeRequestQueue(_queue);
-
         }
 
         public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
@@ -90,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
         public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
-            _queue.Initialize();
+            InitializeRequestQueue();
 
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
 
@@ -128,7 +125,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _shuttingDown = true;
             _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
-            _queue.Shutdown();
 
             return Task.CompletedTask;
         }
@@ -137,6 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task ExitAsync(CancellationToken _)
         {
             Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
+
+            ShutdownRequestQueue();
 
             try
             {
@@ -290,6 +288,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Task.Run(() => PublishDiagnosticsAsync(document))
                     .CompletesAsyncOperation(asyncToken);
             }
+        }
+
+        /// <summary>
+        /// This should only be called from an LSP request message, as StreamJsonRpc will guarantee
+        /// no other requests will overlap.
+        /// </summary>
+        private void InitializeRequestQueue()
+        {
+            // The LSP specification assures that the initialize request is sent only once.
+            Contract.ThrowIfFalse(_queue != null, "LSP Initialize without first being shutdown.");
+
+            _queue = new RequestExecutionQueue(_solutionProvider);
+            _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+            _requestHandlerProvider.SetRequestQueue(_queue);
+        }
+
+        private void ShutdownRequestQueue()
+        {
+            _queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
+            // if the queue requested shutdown via its event, it will have already shut itself down, but this
+            // won't cause any problems calling it again
+            _queue.Shutdown();
+            _queue = null;
         }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods
