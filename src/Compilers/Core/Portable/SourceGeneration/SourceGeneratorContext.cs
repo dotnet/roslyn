@@ -21,9 +21,10 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal SourceGeneratorContext(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
+        internal SourceGeneratorContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
+            ParseOptions = parseOptions;
             AdditionalFiles = additionalTexts;
             AnalyzerConfigOptions = optionsProvider;
             SyntaxReceiver = syntaxReceiver;
@@ -41,6 +42,11 @@ namespace Microsoft.CodeAnalysis
         /// this compilation will contain errors.
         /// </remarks>
         public Compilation Compilation { get; }
+
+        /// <summary>
+        /// Get the <see cref="ParseOptions"/> that will be used to parse any added sources.
+        /// </summary>
+        public ParseOptions ParseOptions { get; }
 
         /// <summary>
         /// A set of additional non-code text files that can be used by generators.
