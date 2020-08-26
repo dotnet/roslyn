@@ -38,15 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-#if !CODE_STYLE
             context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
-#endif
         }
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             //TODO: is this needed in Code_Style? if so, GlobalOptions support needs to be added in the package.
-#if !CODE_STYLE
             context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(s_rootnamespaceOption, out var rootNamespace);
             context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(s_projectDirOption, out var projectDir);
 
@@ -56,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             {
                 ReportDiagnostics(context, this.Descriptor, namespaceDecl, ReportDiagnostic.Warn, targetNamespace);
             }
-#endif
         }
 
         private static bool IsNamespaceSyncSupported(NamespaceDeclarationSyntax namespaceDeclaration, SemanticModel semanticModel)
