@@ -37,24 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
             _workspace = workspace;
         }
 
-        private async Task<RemoteServiceConnection?> CreateConnectionAsync(CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                // We don't do anything if we fail to get the external process.  That's the case when something has gone
-                // wrong, or the user is explicitly choosing to run inproc only.   In neither of those cases do we want
-                // to bog down the VS process with the work to semantically classify all files.
-                return null;
-            }
-
-            var connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.CodeAnalysis,
-                callbackTarget: null, cancellationToken).ConfigureAwait(false);
-
-            return connection;
-        }
-
         public async Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
             TextSpan textSpan,
@@ -63,7 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
         {
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
+            {
+                // We don't do anything if we fail to get the external process.  That's the case when something has gone
+                // wrong, or the user is explicitly choosing to run inproc only.   In neither of those cases do we want
+                // to bog down the VS process with the work to semantically classify files.
                 return ImmutableArray<ClassifiedSpan>.Empty;
+            }
 
             var classifiedSpans = await client.RunRemoteAsync<SerializableClassifiedSpans>(
                 WellKnownServiceHubService.CodeAnalysis,
