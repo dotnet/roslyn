@@ -716,12 +716,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
             {
                 if (member is IMethodSymbol
-                    {
-                        DeclaredAccessibility: Accessibility.Public,
-                        IsStatic: false,
-                        Parameters: { Length: 0 },
-                        Arity: 0
-                    } method)
+                {
+                    DeclaredAccessibility: Accessibility.Public,
+                    IsStatic: false,
+                    Parameters: { Length: 0 },
+                    Arity: 0
+                } method)
                 {
                     if (candidate is object)
                     {
