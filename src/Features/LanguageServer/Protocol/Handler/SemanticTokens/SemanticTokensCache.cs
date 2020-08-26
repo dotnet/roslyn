@@ -62,9 +62,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             // Computes the mapping between a LSP token type and its respective index recognized by LSP.
             TokenTypeToIndex = new Dictionary<string, int>();
-            for (var i = 0; i < LSP.SemanticTokenTypes.AllTypes.Count; i++)
+            var index = 0;
+            foreach (var lspTokenType in LSP.SemanticTokenTypes.AllTypes)
             {
-                TokenTypeToIndex.Add(LSP.SemanticTokenTypes.AllTypes[i], i);
+                TokenTypeToIndex.Add(lspTokenType, index);
+                index++;
+            }
+
+            foreach (var roslynTokenType in SemanticTokensHelpers.RoslynCustomTokenTypes)
+            {
+                TokenTypeToIndex.Add(roslynTokenType, index);
+                index++;
             }
         }
 
