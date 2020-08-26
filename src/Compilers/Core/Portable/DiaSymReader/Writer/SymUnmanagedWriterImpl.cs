@@ -690,7 +690,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void GetSignature(out Guid guid, out uint stamp, out int age)
+        public override unsafe void GetSignature(out Guid guid, out uint stamp, out int age)
         {
             var symWriter = GetSymWriter();
 
