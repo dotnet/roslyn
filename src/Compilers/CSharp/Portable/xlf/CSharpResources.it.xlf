@@ -927,6 +927,11 @@
         <target state="new">Methods attributed with 'UnmanagedCallersOnly' cannot be generic.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType">
+        <source>Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.</source>
+        <target state="new">Methods attributed with 'UnmanagedCallersOnly' cannot be declared in a generic type.</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
         <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</target>

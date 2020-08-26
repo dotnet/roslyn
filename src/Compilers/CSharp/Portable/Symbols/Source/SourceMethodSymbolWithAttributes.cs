@@ -861,14 +861,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // Methods decorated with `UnmanagedCallersOnly` are required to have all their parameters and return types
-            // be blittable. This means they must be fully unmanaged (not UnmanagedWithGenerics), and it means the method
-            // cannot have type parameters itself, even if those type parameters are constrained to unmanaged.
-
             if (IsGenericMethod)
             {
                 Debug.Assert(genericTypeParameters is not null);
                 arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeGeneric, genericTypeParameters.GetLocation());
+            }
+
+            var containingType = ContainingType;
+            while (containingType is not null)
+            {
+                if (containingType.IsGenericType)
+                {
+                    arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodCannotBeInGenericType, arguments.AttributeSyntaxOpt.Name.Location);
+                    break;
+                }
+
+                containingType = containingType.ContainingType;
             }
 
             checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
@@ -884,12 +892,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.ManagedKindNoUseSiteDiagnostics)
                 {
                     case ManagedKind.Unmanaged:
+                    case ManagedKind.UnmanagedWithGenerics:
                         // Note that this will let through some things that are technically unmanaged, but not
-                        // actually blittable. However, we don't have a formal concept of blittability in C#
+                        // actually blittable. However, we don't have a formal concept of blittable in C#
                         // itself, so checking for purely unmanaged types is the best we can do here.
                         return;
 
-                    case ManagedKind.UnmanagedWithGenerics:
                     case ManagedKind.Managed:
                         // Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly.
                         diagnostics.Add(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, syntax.Location, type, (isParam ? MessageID.IDS_Parameter : MessageID.IDS_Return).Localize());
