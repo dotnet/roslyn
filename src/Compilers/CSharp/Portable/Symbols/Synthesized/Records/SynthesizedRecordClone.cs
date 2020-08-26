@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
             {
                 if (member is MethodSymbol
-                    {
-                        DeclaredAccessibility: Accessibility.Public,
-                        IsStatic: false,
-                        ParameterCount: 0,
-                        Arity: 0
-                    } method)
+                {
+                    DeclaredAccessibility: Accessibility.Public,
+                    IsStatic: false,
+                    ParameterCount: 0,
+                    Arity: 0
+                } method)
                 {
                     if (candidate is object)
                     {
