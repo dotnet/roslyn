@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [InlineData("#pragma warning disable $$CS0162, CS0219", 88, 91, (int)ErrorCode.WRN_UnreachableCode)]
         [InlineData("#pragma warning disable $$CS0219", 84, 85, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
         [InlineData("#pragma warning disable CS0162, $$CS0219", 92, 93, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
+        [InlineData("#pragma warning disable CS0162, CS0219$$", 92, 93, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
         [InlineData("#pragma warning $$disable CS0162, CS0219", 88, 91, (int)ErrorCode.WRN_UnreachableCode)]
         [InlineData("#pragma warning $$disable CS0219, CS0162", 92, 93, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
         public async Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, int relatedSpandStart, int relatedSpanEnd, int errorCode, params object[] args)

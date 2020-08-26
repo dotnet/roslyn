@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             var (pragmaWarning, errorCode) = token.Parent switch
             {
                 PragmaWarningDirectiveTriviaSyntax directive when directive.IsDisablePragma()
-                    => (directive, directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax),
+                    => (directive, token.IsKind(SyntaxKind.EndOfDirectiveToken)
+                        ? directive.ErrorCodes.LastOrDefault() as IdentifierNameSyntax
+                        : directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax),
                 IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax directive } identifier when directive.IsDisablePragma()
                     => (directive, identifier),
                 _ => default,
