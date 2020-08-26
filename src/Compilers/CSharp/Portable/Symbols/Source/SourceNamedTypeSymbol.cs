@@ -186,6 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var name = typeParameterNames[i];
                     var location = new SourceLocation(tp.Identifier);
                     var varianceKind = typeParameterVarianceKeywords[i];
+
+                    ReportTypeNamedRecord(tp.Identifier.Text, this.DeclaringCompilation, diagnostics, location);
+
                     if (name == null)
                     {
                         name = typeParameterNames[i] = tp.Identifier.ValueText;
@@ -199,8 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 goto next;
                             }
                         }
-
-                        ReportTypeNamedRecord(tp.Identifier.Text, this.DeclaringCompilation, diagnostics, location);
 
                         if (!ReferenceEquals(ContainingType, null))
                         {

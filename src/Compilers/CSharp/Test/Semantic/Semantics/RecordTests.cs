@@ -2157,6 +2157,74 @@ class C3
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter_Escaped_Partial()
+        {
+            var src = @"
+partial class C<@record> { }
+partial class C<record> { } // 1
+
+partial class D<record> { } // 2
+partial class D<@record> { }
+
+partial class D<record> { } // 3
+partial class D<record> { } // 4
+
+partial class E<@record> { }
+partial class E<@record> { }
+
+partial class C2
+{
+    partial class Nested<record> { } // 5
+    partial class Nested<@record> { }
+}
+partial class C3
+{
+    partial void Method<@record>();
+    partial void Method<record>() { } // 6
+
+    partial void Method2<@record>() { }
+    partial void Method2<record>(); // 7
+
+    partial void Method3<record>(); // 8
+    partial void Method3<@record>() { }
+
+    partial void Method4<record>() { } // 9
+    partial void Method4<@record>();
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class C<record> { } // 1
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 17),
+                // (5,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 2
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 17),
+                // (8,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 3
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(8, 17),
+                // (9,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 4
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                // (16,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial class Nested<record> { } // 5
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(16, 26),
+                // (22,25): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method<record>() { } // 6
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(22, 25),
+                // (25,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method2<record>(); // 7
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(25, 26),
+                // (27,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method3<record>(); // 8
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(27, 26),
+                // (30,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method4<record>() { } // 9
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(30, 26)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Record()
         {
             var src = @"
@@ -2171,6 +2239,24 @@ record record { }
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TwoParts()
+        {
+            var src = @"
+partial class record { }
+partial class record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15),
+                // (3,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Escaped()
         {
             var src = @"
@@ -2178,6 +2264,51 @@ class @record { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_MixedEscapedPartial()
+        {
+            var src = @"
+partial class @record { }
+partial class record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_MixedEscapedPartial_ReversedOrder()
+        {
+            var src = @"
+partial class record { }
+partial class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_BothEscapedPartial()
+        {
+            var src = @"
+partial class record { }
+partial class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                );
         }
 
         [Fact]

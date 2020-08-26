@@ -418,9 +418,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
             {
-                var location = declaration.Declarations[0].NameLocation;
-                var nameText = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start).ToString();
-                ReportTypeNamedRecord(nameText, this.DeclaringCompilation, diagnostics, location);
+                foreach (var decl in declaration.Declarations)
+                {
+                    var location = decl.NameLocation;
+                    var nameText = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start).ToString();
+                    ReportTypeNamedRecord(nameText, this.DeclaringCompilation, diagnostics, location);
+                }
             }
 
             return result;
