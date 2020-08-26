@@ -18,7 +18,7 @@ namespace Microsoft.DiaSymReader
     /// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
     /// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
     /// </summary>
-    internal unsafe sealed class ComMemoryStream : IUnsafeComStream
+    internal sealed unsafe class ComMemoryStream : IUnsafeComStream
     {
         // internal for testing
         internal const int STREAM_SEEK_SET = 0;
