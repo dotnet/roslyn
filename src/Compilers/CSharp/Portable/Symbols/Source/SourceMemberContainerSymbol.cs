@@ -416,7 +416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ReportTypeNamedRecord(this.Name, this.DeclaringCompilation, diagnostics, declaration.Declarations[0].NameLocation);
+            if (this.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            {
+                var location = declaration.Declarations[0].NameLocation;
+                var nameText = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start).ToString();
+                ReportTypeNamedRecord(nameText, this.DeclaringCompilation, diagnostics, location);
+            }
 
             return result;
         }

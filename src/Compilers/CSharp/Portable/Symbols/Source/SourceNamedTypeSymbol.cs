@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
 
-                        SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(name, this.DeclaringCompilation, diagnostics, location);
+                        ReportTypeNamedRecord(tp.Identifier.Text, this.DeclaringCompilation, diagnostics, location);
 
                         if (!ReferenceEquals(ContainingType, null))
                         {
