@@ -242,7 +242,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             //
             // We use JTF.Run here as our tag sources use JTF to quickly switch to the UI thread to report their initial
             // set of tags.  We need JTF.Run here to ensure we don't deadlock if we're waiting on them while they're
-            // doing that notification.
+            // doing that notification.  Specifically, the TagSource will report its first set of tags immediately to the 
+            // UI thread using a JTF.Run and a SwitchToMainThread call.  If we do not use JTF here, we will deadlock.
             this.ThreadingContext.JoinableTaskFactory.Run(() => ProduceTagsAsync(context, spanToTag, caretPosition));
         }
 
