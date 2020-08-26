@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly CSharpCompilationOptions DebugDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Debug);
         public static readonly CSharpCompilationOptions DebugExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Debug);
-        public static readonly CSharpCompilationOptions DebugWindowsRuntimeApp = CreateTestOptions(OutputKind.WindowsRuntimeApplication, OptimizationLevel.Debug);
 
         public static readonly CSharpCompilationOptions ReleaseWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions DebugWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Debug);
