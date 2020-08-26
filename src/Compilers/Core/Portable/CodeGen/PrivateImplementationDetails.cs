@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.MethodImplementation>();
 
-        virtual public IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
+        public virtual IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.IFieldDefinition>();
 
         public IEnumerable<Cci.IGenericTypeParameter> GenericParameters
