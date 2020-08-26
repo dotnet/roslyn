@@ -597,10 +597,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (CSharpSelectionResult.ShouldCallConfigureAwaitFalse())
                 {
                     if (AnalyzerResult.ReturnType.GetMembers().Any(x => x is IMethodSymbol
-                        {
-                            Name: nameof(Task.ConfigureAwait),
-                            Parameters: { Length: 1 } parameters
-                        } && parameters[0].Type.SpecialType == SpecialType.System_Boolean))
+                    {
+                        Name: nameof(Task.ConfigureAwait),
+                        Parameters: { Length: 1 } parameters
+                    } && parameters[0].Type.SpecialType == SpecialType.System_Boolean))
                     {
                         invocation = SyntaxFactory.InvocationExpression(
                             SyntaxFactory.MemberAccessExpression(
