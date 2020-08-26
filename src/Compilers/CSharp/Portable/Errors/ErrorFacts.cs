@@ -550,8 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static ErrorCode GetStaticClassParameterCode(bool isInInterface)
-            => isInInterface ? ErrorCode.WRN_ParameterIsStaticClass : ErrorCode.ERR_ParameterIsStaticClass;
+        internal static ErrorCode GetStaticClassParameterCode(bool useWarning)
+            => useWarning ? ErrorCode.WRN_ParameterIsStaticClass : ErrorCode.ERR_ParameterIsStaticClass;
 
         internal static ErrorCode GetStaticClassReturnCode(bool useWarning)
             => useWarning ? ErrorCode.WRN_ReturnTypeIsStaticClass : ErrorCode.ERR_ReturnTypeIsStaticClass;

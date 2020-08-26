@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var type = lambda.Data.ParameterTypeWithAnnotations(i);
                     if (type.HasType && type.IsStatic)
                     {
-                        Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(isInInterface: false), syntax, type.Type);
+                        Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type.Type);
                     }
                 }
             }
