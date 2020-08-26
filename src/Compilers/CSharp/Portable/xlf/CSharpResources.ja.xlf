@@ -2290,13 +2290,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
-        <target state="translated">'{1}' のパラメーター '{0}' 型における参照型の Null 許容性が、対象のデリゲート '{2}' と一致しません。</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">'{1}' のパラメーター '{0}' 型における参照型の Null 許容性が、対象のデリゲート '{2}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
-        <target state="translated">パラメーターの型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">パラメーターの型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -2340,13 +2340,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
-        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
-        <target state="translated">'{0}' 戻り値の型における参照型の Null 許容性が、対象のデリゲート '{1}' と一致しません。</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">'{0}' 戻り値の型における参照型の Null 許容性が、対象のデリゲート '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
-        <target state="translated">戻り値の型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
+        <source>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">戻り値の型における参照型の Null 許容性が、対象のデリゲートと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">

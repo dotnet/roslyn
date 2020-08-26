@@ -2288,13 +2288,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo de parâmetro '{0}' de '{1}' não corresponde ao delegado de destino '{2}'.</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de parâmetro '{0}' de '{1}' não corresponde ao delegado de destino '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo de parâmetro não corresponde ao delegado de destino.</target>
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de parâmetro não corresponde ao delegado de destino.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -2338,13 +2338,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
-        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo de retorno '{0}' não corresponde ao delegado de destino '{1}'.</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de retorno '{0}' não corresponde ao delegado de destino '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo de retorno não corresponde ao delegado de destino.</target>
+        <source>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">A anulabilidade de tipos de referência em tipo de retorno não corresponde ao delegado de destino.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
