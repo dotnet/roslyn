@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 {
                     // We don't do anything if we fail to get the external process.  That's the case when something has gone
                     // wrong, or the user is explicitly choosing to run inproc only.   In neither of those cases do we want
-                    // to bog down the VS process with the work to semantically classify all files.
+                    // to bog down the VS process with the work to semantically classify files.
                     return;
                 }
 
