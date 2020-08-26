@@ -2300,15 +2300,11 @@ partial class @record { }
         public void TypeNamedRecord_BothEscapedPartial()
         {
             var src = @"
-partial class record { }
+partial class @record { }
 partial class @record { }
 ";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
-                // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
