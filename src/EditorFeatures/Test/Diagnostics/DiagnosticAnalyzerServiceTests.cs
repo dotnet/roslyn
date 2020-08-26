@@ -865,7 +865,6 @@ class A
 
             var analyzer = new CancellationTestAnalyzer(actionKind);
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            var analyzers = analyzerReference.GetAnalyzersForAllLanguages();
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -949,7 +948,6 @@ class A
 
             var analyzer = new CancellationTestAnalyzer(actionKind);
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            var analyzers = analyzerReference.GetAnalyzersForAllLanguages();
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();
