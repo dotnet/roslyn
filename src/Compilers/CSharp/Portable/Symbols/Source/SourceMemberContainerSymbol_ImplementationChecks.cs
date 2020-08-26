@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var abstractMember in this.AbstractMembers)
             {
                 // Dev10 reports failure to implement properties/events in terms of the accessors
-                if (abstractMember.Kind == SymbolKind.Method)
+                if (abstractMember.Kind == SymbolKind.Method && abstractMember is not SynthesizedRecordOrdinaryMethod)
                 {
                     diagnostics.Add(ErrorCode.ERR_UnimplementedAbstractMethod, this.Locations[0], this, abstractMember);
                 }

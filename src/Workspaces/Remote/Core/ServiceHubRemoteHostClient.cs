@@ -219,7 +219,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                return Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+                return _services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName)
+                    ? SpecializedTasks.True
+                    : SpecializedTasks.False;
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {

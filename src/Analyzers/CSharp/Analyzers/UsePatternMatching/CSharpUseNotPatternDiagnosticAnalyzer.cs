@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-#if !CODE_STYLE // CODE_STYLE layer doesn't currently support generating 'not patterns'.  Do not bother analyzing.
             context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.LogicalNotExpression);
-#endif
         }
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)

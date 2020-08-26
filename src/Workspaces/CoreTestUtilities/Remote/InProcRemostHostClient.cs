@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         /// Remote API.
         /// </summary>
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => _services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName) ? SpecializedTasks.True : SpecializedTasks.False;
 
         public RemoteHostTestData TestData => _inprocServices.TestData;
 

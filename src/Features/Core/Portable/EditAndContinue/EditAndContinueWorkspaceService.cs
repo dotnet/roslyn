@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             if (editSession == null)
             {
-                return Task.FromResult(false);
+                return SpecializedTasks.False;
             }
 
             return editSession.HasChangesAsync(solution, sourceFilePath, cancellationToken);

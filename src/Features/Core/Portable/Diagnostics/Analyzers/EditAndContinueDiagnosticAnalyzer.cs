@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
             var encService = document.Project.Solution.Workspace.Services.GetService<IEditAndContinueWorkspaceService>();
-            return (encService != null) ? encService.GetDocumentDiagnosticsAsync(document, cancellationToken) : Task.FromResult(ImmutableArray<Diagnostic>.Empty);
+            return (encService != null) ? encService.GetDocumentDiagnosticsAsync(document, cancellationToken) : SpecializedTasks.EmptyImmutableArray<Diagnostic>();
         }
     }
 }
