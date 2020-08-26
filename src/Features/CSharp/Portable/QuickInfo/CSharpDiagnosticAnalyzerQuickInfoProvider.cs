@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range,
                     diagnosticIdOpt: errorCode.Identifier.ValueText,
                     includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var supressedDiagnostic = diagnostics.FirstOrDefault();
+                var supressedDiagnostic = diagnostics.OrderBy(d => d.DataLocation?.SourceSpan?.Start ?? int.MaxValue).FirstOrDefault();
                 if (supressedDiagnostic != null)
                 {
                     var relatedSpans = supressedDiagnostic.HasTextSpan

@@ -80,6 +80,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorMessage((ErrorCode)errorCode, args), TextSpan.FromBounds(relatedSpandStart, relatedSpanEnd));
         }
 
+        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ShowInfoAboutFirstOccurrenceInCode()
+        {
+            await TestInMethodAsync(
+@"
+#pragma warning disable CS0219$$
+        var i1 = 0;
+        var i2 = 0;
+        var i3 = 0;
+", GetFormattedErrorMessage(ErrorCode.WRN_UnreferencedVarAssg, "i1"), TextSpan.FromBounds(67, 69));
+        }
+
         protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
