@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -16,7 +17,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
@@ -61,35 +60,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             _workspace = workspace;
         }
 
-        public async Task<string?> TryGetHostGroupIdAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            var builder = ImmutableDictionary.CreateBuilder<Guid, string>();
+            foreach (var project in _workspace.CurrentSolution.Projects)
             {
-                return null;
+                var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+                builder[_workspace.GetProjectGuid(project.Id)] = projectVersion.ToString();
             }
 
-            return client.ClientId;
-        }
-
-        public Task<string?> TryGetServiceNameAsync(CancellationToken cancellationToken)
-        {
-            if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(_workspace.Services))
-                return SpecializedTasks.Null<string>();
-
-            var isRemoteHost64Bit = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace.Services);
-            return Task.FromResult<string?>(new RemoteServiceName(WellKnownServiceHubService.CodeAnalysis).ToString(isRemoteHost64Bit));
-        }
-
-        public List<Guid>? GetDocumentId(Guid projectGuid, string filePath, CancellationToken cancellationToken)
-        {
-            if (TryGetDocument(_workspace.CurrentSolution, projectGuid, filePath, out var document))
-            {
-                var documentId = document.Id;
-                return new List<Guid>(2) { documentId.ProjectId.Id, documentId.Id };
-            }
-
-            return null;
+            return builder.ToImmutable();
         }
 
         public async Task<ReferenceCount?> GetReferenceCountAsync(
