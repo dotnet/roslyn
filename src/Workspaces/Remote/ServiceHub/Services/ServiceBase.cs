@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly RemoteEndPoint EndPoint;
         protected readonly int InstanceId;
         protected readonly TraceSource Logger;
-        
+
         protected readonly RemoteWorkspaceManager WorkspaceManager;
 
         // test data are only available when running tests:
