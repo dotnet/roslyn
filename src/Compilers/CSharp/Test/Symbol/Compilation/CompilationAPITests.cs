@@ -1977,7 +1977,7 @@ public class TestClass
             c2 = c1.WithOptions(TestOptions.ReleaseDll);
             Assert.False(c1.ReferenceManagerEquals(c2));
 
-            c2 = c1.WithOptions(TestOptions.DebugDll.WithOutputKind(OutputKind.WindowsApplication));
+            c2 = c1.WithOptions(TestOptions.CreateTestOptions(OutputKind.WindowsApplication, OptimizationLevel.Debug));
             Assert.False(c1.ReferenceManagerEquals(c2));
 
             c2 = c1.WithOptions(TestOptions.DebugModule.WithAllowUnsafe(true));

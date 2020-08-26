@@ -7,15 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public static class TestOptions
     {
-        private const int MaxWarningLevel = 9999;
-
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
         public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
@@ -145,7 +142,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key1, value).Add(key2, value));
         }
 
-        private static CSharpCompilationOptions CreateTestOptions(OutputKind outputKind, OptimizationLevel optimizationLevel) => new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel, warningLevel: MaxWarningLevel);
+        /// <summary>
+        /// Create <see cref="CSharpCompilationOptions"/> with the maximum warning level.
+        /// </summary>
+        /// <param name="outputKind">The output kind of the created compilation options.</param>
+        /// <param name="optimizationLevel">The optimization level of the created compilation options.</param>
+        /// <param name="allowUnsafe">A boolean specifying whether to allow unsafe code. Defaults to false.</param>
+        /// <returns>A CSharpCompilationOptions with the specified <paramref name="outputKind"/>, <paramref name="optimizationLevel"/>, and <paramref name="allowUnsafe"/>.</returns>
+        internal static CSharpCompilationOptions CreateTestOptions(OutputKind outputKind, OptimizationLevel optimizationLevel, bool allowUnsafe = false)
+            => new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel, warningLevel: Diagnostic.MaxWarningLevel, allowUnsafe: allowUnsafe);
     }
 }
 

@@ -3426,7 +3426,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugWindowsRuntimeApp);
+            var compilation = CreateCompilation(source, options: TestOptions.CreateTestOptions(OutputKind.WindowsRuntimeApplication, OptimizationLevel.Debug));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits

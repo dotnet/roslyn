@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class AnalyzerConsistencyCheckerTests : TestBase
     {
-        private const int MaxWarningLevel = 9999;
-
         [Fact]
         public void MissingReference()
         {
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 name,
                 new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetStandard20.netstandard) },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: MaxWarningLevel));
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel));
             var compFile = directory.CreateFile(name);
             comp.Emit(compFile.Path);
 

@@ -2624,6 +2624,7 @@ class B
         public void ConsistentErrorMessageWhenProvidingNullKeyFile(CSharpParseOptions parseOptions)
         {
             var options = TestOptions.DebugDll;
+            Assert.Null(options.CryptoKeyFile);
             var compilation = CreateCompilation(string.Empty, options: options, parseOptions: parseOptions).VerifyDiagnostics();
 
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
@@ -2646,6 +2647,7 @@ class B
         public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign(CSharpParseOptions parseOptions)
         {
             var options = TestOptions.DebugDll.WithPublicSign(true);
+            Assert.Null(options.CryptoKeyFile);
             CreateCompilation(string.Empty, options: options, parseOptions: parseOptions).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));

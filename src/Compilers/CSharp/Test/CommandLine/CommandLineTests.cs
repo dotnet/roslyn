@@ -2481,8 +2481,7 @@ print Goodbye, World";
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            // TODO: I think the test is more clear with the old approach (explicitly creating CSharpCompilationOptions). What do you think?
-            Assert.Equal(TestOptions.DebugExe.OptimizationLevel, parsedArgs.CompilationOptions.OptimizationLevel);
+            Assert.Equal(new CSharpCompilationOptions(OutputKind.ConsoleApplication).OptimizationLevel, parsedArgs.CompilationOptions.OptimizationLevel);
 
             parsedArgs = DefaultParse(new[] { "/optimize-", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
