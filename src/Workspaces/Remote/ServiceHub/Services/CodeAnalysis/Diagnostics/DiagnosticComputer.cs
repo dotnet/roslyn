@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
                     reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch
             {
                 // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
                 s_compilationWithAnalyzersCache.Remove(_project);

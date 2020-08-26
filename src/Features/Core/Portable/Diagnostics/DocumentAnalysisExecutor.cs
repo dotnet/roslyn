@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
-            catch (Exception)
+            catch
             {
                 _onAnalysisException?.Invoke();
                 throw;
