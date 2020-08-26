@@ -928,6 +928,61 @@ class A
             Assert.Equal(CancellationTestAnalyzer.NonCanceledDiagnosticId, diagnostic.Id);
         }
 
+        [Theory, CombinatorialData]
+        internal async Task TestCancellationDuringDiagnosticComputation_OutOfProc(AnalyzerRegisterActionKind actionKind)
+        {
+            // This test verifies that we do no attempt to re-use CompilationWithAnalyzers instance in IDE OutOfProc diagnostic computation in presence of an OperationCanceledException during analysis.
+            // Attempting to do so has led to large number of reliability issues and flakiness in diagnostic computation, which we want to avoid.
+            // NOTE: Unfortunately, we cannot perform an end-to-end OutOfProc test, similar to the InProc test above because AnalyzerImageReference is not serializable.
+            //       So, we perform a very targeted test which directly uses the 'DiagnosticComputer' type that is used for all OutOfProc diagnostic computation.
+
+            var source = @"
+class A
+{
+    void M()
+    {
+        int x = 0;
+    }
+}";
+
+            using var workspace = TestWorkspace.CreateCSharp(source);
+
+            var analyzer = new CancellationTestAnalyzer(actionKind);
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var analyzers = analyzerReference.GetAnalyzersForAllLanguages();
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            var project = workspace.CurrentSolution.Projects.Single();
+            var document = project.Documents.Single();
+            var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
+
+            var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
+            var diagnosticComputer = new DiagnosticComputer(document.Id, project, span: null, kind, diagnosticAnalyzerInfoCache);
+            var analyzerIds = new[] { analyzer.GetAnalyzerId() };
+
+            // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
+            Assert.Empty(analyzer.CanceledCompilations);
+            try
+            {
+                _ = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
+                    logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
+            {
+            }
+
+            Assert.Single(analyzer.CanceledCompilations);
+
+            // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
+            var diagnosticsMap = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
+                logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
+            var builder = diagnosticsMap.AnalysisResult.Values.Single();
+            var diagnostic = kind == AnalysisKind.Syntax ? builder.SyntaxLocals.Values.Single().Single() : builder.SemanticLocals.Values.Single().Single();
+            Assert.Equal(CancellationTestAnalyzer.NonCanceledDiagnosticId, diagnostic.Id);
+        }
+
         internal enum AnalyzerRegisterActionKind
         {
             SyntaxTree,
