@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (nonCachedStateSets.Count > 0)
                 {
                     var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
-                    var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
+                    var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisCanceled: OnAnalysisCanceled);
                     foreach (var stateSet in nonCachedStateSets)
                     {
                         var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, cancellationToken).ConfigureAwait(false);
@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
             }
+
+            void OnAnalysisCanceled() => ClearCompilationsWithAnalyzersCache(document.Project);
         }
 
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)

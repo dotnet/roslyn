@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly bool _logPerformanceInfo;
+        private readonly Action? _onAnalysisCanceled;
 
         private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedAnalyzersInAnalysisScope;
 
@@ -39,12 +40,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentAnalysisScope analysisScope,
             CompilationWithAnalyzers? compilationWithAnalyzers,
             InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
-            bool logPerformanceInfo)
+            bool logPerformanceInfo,
+            Action? onAnalysisCanceled = null)
         {
             AnalysisScope = analysisScope;
             _compilationWithAnalyzers = compilationWithAnalyzers;
             _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
             _logPerformanceInfo = logPerformanceInfo;
+            _onAnalysisCanceled = onAnalysisCanceled;
 
             var compilationBasedAnalyzers = compilationWithAnalyzers?.Analyzers.ToImmutableHashSet();
             _compilationBasedAnalyzersInAnalysisScope = compilationBasedAnalyzers != null
@@ -147,9 +150,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             RoslynDebug.Assert(_compilationWithAnalyzers != null);
 
-            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
-                _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
-            return resultAndTelemetry.AnalysisResult;
+            try
+            {
+                var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
+                    _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+                return resultAndTelemetry.AnalysisResult;
+            }
+            catch (OperationCanceledException)
+            {
+                _onAnalysisCanceled?.Invoke();
+                throw;
+            }
         }
 
         private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
