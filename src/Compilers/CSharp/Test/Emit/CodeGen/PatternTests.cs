@@ -5416,7 +5416,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "0123233", options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(source, expectedOutput: "0123233", options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M", @"{
@@ -5475,6 +5475,82 @@ class Program
   IL_006f:  br.s       IL_0071
   IL_0071:  ldloc.1
   IL_0072:  ret
+}");
+        }
+
+        [Fact, WorkItem(46536, "https://github.com/dotnet/roslyn/issues/46536")]
+        public void MultiplePathsToNode_SwitchDispatch_05()
+        {
+            var source = @"
+using System;
+
+public enum EnumA { A, B, C }
+
+public enum EnumB { X, Y, Z }
+
+public class Class1
+{
+    public string Repro(EnumA a, EnumB b)
+        => (a, b) switch
+        {
+            (EnumA.A, EnumB.X) => ""AX"",
+            (_, EnumB.Y) => ""_Y"",
+            (EnumA.B, EnumB.X) => ""BZ"",
+            (_, EnumB.Z) => ""_Z"",
+            (_, _) => throw new ArgumentException()
+        };
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Class1.Repro", @"{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  brtrue.s   IL_0004
+  IL_0003:  nop
+  IL_0004:  ldarg.1
+  IL_0005:  brtrue.s   IL_001b
+  IL_0007:  ldarg.2
+  IL_0008:  switch    (
+        IL_002e,
+        IL_0036,
+        IL_0046)
+  IL_0019:  br.s       IL_004e
+  IL_001b:  ldarg.2
+  IL_001c:  ldc.i4.1
+  IL_001d:  beq.s      IL_0036
+  IL_001f:  ldarg.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  bne.un.s   IL_0028
+  IL_0023:  ldarg.2
+  IL_0024:  brfalse.s  IL_003e
+  IL_0026:  br.s       IL_0028
+  IL_0028:  ldarg.2
+  IL_0029:  ldc.i4.2
+  IL_002a:  beq.s      IL_0046
+  IL_002c:  br.s       IL_004e
+  IL_002e:  ldstr      ""AX""
+  IL_0033:  stloc.0
+  IL_0034:  br.s       IL_0054
+  IL_0036:  ldstr      ""_Y""
+  IL_003b:  stloc.0
+  IL_003c:  br.s       IL_0054
+  IL_003e:  ldstr      ""BZ""
+  IL_0043:  stloc.0
+  IL_0044:  br.s       IL_0054
+  IL_0046:  ldstr      ""_Z""
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  newobj     ""System.ArgumentException..ctor()""
+  IL_0053:  throw
+  IL_0054:  ldc.i4.1
+  IL_0055:  brtrue.s   IL_0058
+  IL_0057:  nop
+  IL_0058:  ldloc.0
+  IL_0059:  ret
 }");
         }
 
