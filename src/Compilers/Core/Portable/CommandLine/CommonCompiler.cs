@@ -966,10 +966,10 @@ namespace Microsoft.CodeAnalysis
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
                     bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesDirectory);
 
-                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToImmutableArray();
+                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
 
-                    var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Length) : null;
-                    var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Length);
+                    var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
+                    var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
                     try
                     {
                         foreach (var tree in generatedSyntaxTrees)
