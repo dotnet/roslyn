@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
         {
             var comp = CSharpTestBase.CreateCompilation(srcs, parseOptions: TestOptions.RegularPreview);
             var actualErrors = comp.GetDiagnostics();
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilationWithMscorlib(new List<string> { text }, refs, expectedErrorDesp);
         }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(List<string> srcs, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(List<string> srcs, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
             var synTrees = (from text in srcs
                             select SyntaxFactory.ParseSyntaxTree(text)).ToArray();
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(SyntaxTree[] trees, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(SyntaxTree[] trees, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilation(trees, refs.Concat(CSharpTestBase.MscorlibRef), expectedErrorDesp);
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilation(IEnumerable<SyntaxTree> synTrees, IEnumerable<MetadataReference> refs = null, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilation(IEnumerable<SyntaxTree> synTrees, IEnumerable<MetadataReference> refs = null, params ErrorDescription[] expectedErrorDesp)
         {
             var comp = CSharpCompilation.Create(assemblyName: "DiagnosticsTest", options: TestOptions.ReleaseDll, syntaxTrees: synTrees, references: refs);
             var actualErrors = comp.GetDiagnostics();

@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #endif
 
-        override internal string GetDebuggerDisplay()
+        internal override string GetDebuggerDisplay()
         {
             var builder = new StringBuilder();
             builder.Append('<');

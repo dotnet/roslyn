@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.RuntimeFeature",
         };
 
-        private readonly static Dictionary<string, SpecialType> s_nameToTypeIdMap;
+        private static readonly Dictionary<string, SpecialType> s_nameToTypeIdMap;
 
         private static readonly Microsoft.Cci.PrimitiveTypeCode[] s_typeIdToTypeCodeMap;
         private static readonly SpecialType[] s_typeCodeToTypeIdMap;

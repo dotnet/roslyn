@@ -163,7 +163,7 @@ namespace Microsoft.Cci
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);
 
-        public override abstract void Visit(CommonPEModuleBuilder module);
+        public abstract override void Visit(CommonPEModuleBuilder module);
 
         public override void Visit(IModuleReference moduleReference)
         {
@@ -175,7 +175,7 @@ namespace Microsoft.Cci
 
         protected abstract void RecordModuleReference(IModuleReference moduleReference);
 
-        public override abstract void Visit(IPlatformInvokeInformation platformInvokeInformation);
+        public abstract override void Visit(IPlatformInvokeInformation platformInvokeInformation);
 
         public override void Visit(INamespaceTypeReference namespaceTypeReference)
         {

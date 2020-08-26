@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(name) && name.IndexOf('\0') < 0;
         }
 
-        internal readonly static Version NullVersion = new Version(0, 0, 0, 0);
+        internal static readonly Version NullVersion = new Version(0, 0, 0, 0);
 
         private static bool IsValid(Version? value)
         {
