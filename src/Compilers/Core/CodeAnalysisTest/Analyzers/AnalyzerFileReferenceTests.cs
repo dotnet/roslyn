@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -304,20 +303,20 @@ using Microsoft.CodeAnalysis;
 {targetFrameworkAttributeText}
 
 [Generator]
-public class NetCoreGenerator : ISourceGenerator
+public class Generator : ISourceGenerator
 {{
             public void Execute(SourceGeneratorContext context) {{ }}
             public void Initialize(InitializationContext context) {{ }}
  }}";
 
-
                 var directory = Temp.CreateDirectory();
                 var generatorPath = Path.Combine(directory.Path, "generator.dll");
 
-                var compilation = CSharpTestBase.CreateCompilation(generatorSource,
-                                                                   options: TestOptions.DebugDll,
-                                                                   parseOptions: TestOptions.RegularPreview,
-                                                                   references: new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) });
+                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
+                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
+                                                           TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
+                                                           new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
                 compilation.VerifyDiagnostics();
                 var result = compilation.Emit(generatorPath);
                 Assert.True(result.Success);
