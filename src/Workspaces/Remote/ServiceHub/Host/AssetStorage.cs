@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assets.TryAdd(checksum, new Entry(value));
         }
 
-        public bool TryGetAsset<T>(Checksum checksum, [MaybeNull, NotNullWhen(true)] out T value)
+        public bool TryGetAsset<T>(Checksum checksum, [MaybeNullWhen(false)] out T value)
         {
             UpdateLastActivityTime();
 
