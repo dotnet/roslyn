@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         {
             var (pragmaWarning, errorCode) = token.Parent switch
             {
-                PragmaWarningDirectiveTriviaSyntax directive when IsDisablePragma(directive)
+                PragmaWarningDirectiveTriviaSyntax directive when directive.IsDisablePragma()
                     => (directive, directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax),
-                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax directive } identifier when IsDisablePragma(directive)
+                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax directive } identifier when directive.IsDisablePragma()
                     => (directive, identifier),
                 _ => default,
             };
@@ -111,9 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return null;
         }
 
-        private static bool IsDisablePragma(PragmaWarningDirectiveTriviaSyntax directive)
-            => directive.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
-
         private static QuickInfoItem CreateQuickInfo(IdentifierNameSyntax pragmaWarningDiagnosticId, string description,
             params TextSpan[] relatedSpans)
         {
@@ -127,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
     }
 
-    internal static class LocalizableStringExtensions
+    internal static class HelperExtensions
     {
         public static string? ToStringOrNull(this LocalizableString @this)
         {
@@ -139,5 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             return result;
         }
+
+        public static bool IsDisablePragma(this PragmaWarningDirectiveTriviaSyntax directive)
+            => directive.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
     }
 }
