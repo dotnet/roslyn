@@ -6,6 +6,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -54,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
 
                 var statusService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
                 var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                Debug.Assert(isFullyLoaded, "We should only be called by the incremental analyzer once the solution is fully loaded.");
 
                 await client.RunRemoteAsync(
                     WellKnownServiceHubService.CodeAnalysis,
