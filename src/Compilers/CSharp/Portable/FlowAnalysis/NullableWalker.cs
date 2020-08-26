@@ -2150,9 +2150,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
+            methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
+
             var methodParameters = methodSymbol.Parameters;
             var signatureParameters = (_useDelegateInvokeParameterTypes ? _delegateInvokeMethod! : methodSymbol).Parameters;
 
+            // save a state representing the possibility that parameter default values were not assigned to the parameters.
+            var parameterDefaultsNotAssignedState = State.Clone();
             for (int i = 0; i < methodParameters.Length; i++)
             {
                 var parameter = methodParameters[i];
@@ -2161,6 +2166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterType = i >= signatureParameters.Length ? parameter.TypeWithAnnotations : signatureParameters[i].TypeWithAnnotations;
                 EnterParameter(parameter, parameterType);
             }
+            Join(ref State, ref parameterDefaultsNotAssignedState);
         }
 
         private void EnterParameter(ParameterSymbol parameter, TypeWithAnnotations parameterType)
@@ -2181,6 +2187,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         valueSlot: -1,
                         isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
                 }
+            }
+
+            // If we have an initial state, then we're doing the second analysis stage on a constructor
+            // and we shouldn't report assignment warnings related to parameter default values
+            if (!_hasInitialState && parameter.IsOptional)
+            {
+                // When a parameter has a default value, we initialize its flow state by simulating an assignment of the default value to the parameter.
+                var syntax = parameter.GetNonNullSyntaxNode();
+                var rightSyntax = syntax is ParameterSyntax { Default: { Value: { } value } } ? value : syntax;
+                var right = GetDefaultParameterValue(rightSyntax, parameter);
+
+                // Note that at call sites that implicitly pass the default value, we also simulate an assignment of the default value to the parameter.
+                // At call sites we do not want to warn about incompatibility between the default value and the parameter, but at the declaration, we do.
+                right.ResetCompilerGenerated(newCompilerGenerated: false);
+
+                var fakeAssignment = new BoundAssignmentOperator(syntax, new BoundParameter(syntax, parameter), right, right.Type ?? parameter.Type);
+
+                var previous = _disableNullabilityAnalysis;
+                _disableNullabilityAnalysis = true;
+                VisitAssignmentOperator(fakeAssignment);
+                _disableNullabilityAnalysis = previous;
             }
         }
 
@@ -4997,11 +5024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var annotations = GetParameterAnnotations(parameter);
 
-                        _defaultValuesOpt ??= PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>.GetInstance();
-                        if (!_defaultValuesOpt.TryGetValue((syntax, parameter), out var argument))
-                        {
-                            _defaultValuesOpt[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
-                        }
+                        BoundExpression argument = GetDefaultParameterValue(syntax, parameter);
                         resultsBuilder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations));
                         argumentsBuilder.Add(argument);
                         argsToParamsBuilder?.Add(i);
@@ -5026,6 +5049,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddRange(arrayOpt);
                 return builder;
             }
+        }
+
+        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter)
+        {
+            _defaultValuesOpt ??= PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>.GetInstance();
+            if (!_defaultValuesOpt.TryGetValue((syntax, parameter), out var argument))
+            {
+                _defaultValuesOpt[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
+            }
+
+            return argument;
         }
 
         private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations)
