@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         {
             private ConstantValueBad() { }
 
-            public readonly static ConstantValueBad Instance = new ConstantValueBad();
+            public static readonly ConstantValueBad Instance = new ConstantValueBad();
 
             public override ConstantValueTypeDiscriminator Discriminator
             {
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis
         {
             private ConstantValueNull() { }
 
-            public readonly static ConstantValueNull Instance = new ConstantValueNull();
-            public readonly static ConstantValueNull Uninitialized = new ConstantValueNull();
+            public static readonly ConstantValueNull Instance = new ConstantValueNull();
+            public static readonly ConstantValueNull Uninitialized = new ConstantValueNull();
 
             public override ConstantValueTypeDiscriminator Discriminator
             {
