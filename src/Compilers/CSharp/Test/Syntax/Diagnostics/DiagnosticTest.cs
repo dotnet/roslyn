@@ -344,6 +344,7 @@ class X
                         case ErrorCode.WRN_UseDefViolationThis:
                         case ErrorCode.WRN_UseDefViolationOut:
                         case ErrorCode.WRN_UseDefViolation:
+                        case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -399,6 +400,7 @@ class X
                     ErrorCode.WRN_UseDefViolationThis,
                     ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.WRN_UseDefViolation,
+                    ErrorCode.WRN_SyncAndAsyncEntryPoints,
                     ErrorCode.WRN_RecordNamedDisallowed,
                 };
 

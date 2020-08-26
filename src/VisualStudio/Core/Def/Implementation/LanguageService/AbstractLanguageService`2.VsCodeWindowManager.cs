@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // for the local navbar implementation.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
                 var service = document?.Project?.Solution?.Workspace?.Services?.GetRequiredService<IWorkspaceContextService>();
-                if (service != null && service.IsCloudEnvironmentClient() && document.Project.Language != "TypeScript")
+                if (service != null && service.IsCloudEnvironmentClient() && document!.Project!.Language != "TypeScript")
                 {
                     // Remove the existing dropdown bar if it is ours.
                     if (IsOurDropdownBar(dropdownManager, out var _))

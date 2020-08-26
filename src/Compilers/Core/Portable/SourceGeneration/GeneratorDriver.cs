@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(generatorState.Info.Initialized);
 
                 // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);
+                var context = new SourceGeneratorContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);
                 try
                 {
                     generator.Execute(context);
