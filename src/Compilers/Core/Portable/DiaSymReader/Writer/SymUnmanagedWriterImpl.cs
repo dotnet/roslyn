@@ -583,7 +583,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void SetSourceServerData(byte[] data)
+        public override unsafe void SetSourceServerData(byte[] data)
         {
             if (data == null)
             {
@@ -610,7 +610,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public unsafe override void SetSourceLinkData(byte[] data)
+        public override unsafe void SetSourceLinkData(byte[] data)
         {
             if (data == null)
             {
