@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,8 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ShadowCopyAnalyzerAssemblyLoaderTests : TestBase
     {
-        private const int MaxWarningLevel = 9999;
-        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: MaxWarningLevel);
+        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
 
         [Fact, WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void LoadWithDependency()

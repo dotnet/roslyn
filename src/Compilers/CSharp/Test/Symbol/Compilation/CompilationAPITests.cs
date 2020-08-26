@@ -1977,7 +1977,7 @@ public class TestClass
             c2 = c1.WithOptions(TestOptions.ReleaseDll);
             Assert.False(c1.ReferenceManagerEquals(c2));
 
-            c2 = c1.WithOptions(new CSharpCompilationOptions(OutputKind.WindowsApplication)); // Do you want to introduce a new DebugWindowsApplication field in TestOptions?
+            c2 = c1.WithOptions(TestOptions.DebugDll.WithOutputKind(OutputKind.WindowsApplication));
             Assert.False(c1.ReferenceManagerEquals(c2));
 
             c2 = c1.WithOptions(TestOptions.DebugModule.WithAllowUnsafe(true));

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -18,8 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
     public class CompilationWithAnalyzersTests : TestBase
     {
-        private const int MaxWarningLevel = 9999;
-        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: MaxWarningLevel);
+        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
 
         [Fact]
         public void GetEffectiveDiagnostics_Errors()

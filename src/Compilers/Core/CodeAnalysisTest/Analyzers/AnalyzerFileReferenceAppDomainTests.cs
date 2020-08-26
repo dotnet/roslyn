@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -37,8 +38,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public class AnalyzerFileReferenceAppDomainTests : TestBase
     {
-        private const int MaxWarningLevel = 9999;
-
         [Fact]
         public void TestAnalyzerLoading_AppDomain()
         {
@@ -99,7 +98,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
-                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: MaxWarningLevel));
+                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel));
 
             var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
 
@@ -120,8 +119,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         private static Assembly OnResolve(object sender, ResolveEventArgs e)
         {
             Console.WriteLine($"Resolve in {AppDomain.CurrentDomain.Id} for {e.Name}");
-            return null; // Question: How nullable is enabled, and return type is `Assembly` not `Assembly?` without any CI build errors?
-            // I see there are no references to this method, should it be safely deleted?
+            return null;
         }
     }
 }

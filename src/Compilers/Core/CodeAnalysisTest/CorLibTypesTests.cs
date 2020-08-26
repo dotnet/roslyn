@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,8 +11,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class CorLibTypesAndConstantTests : TestBase
     {
-        private const int MaxWarningLevel = 9999;
-
         [Fact]
         public void IntegrityTest()
         {
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var comp = CSharp.CSharpCompilation.Create(
                 "c",
-                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: MaxWarningLevel),
+                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel),
                 references: new[] { TestMetadata.NetCoreApp31.SystemRuntime });
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
