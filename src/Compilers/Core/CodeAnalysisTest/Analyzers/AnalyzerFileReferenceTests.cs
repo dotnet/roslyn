@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -274,36 +276,59 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var directory = Temp.CreateDirectory();
 
             // core
-            var errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetCoreGenerator);
+            var errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETCoreApp,Version=v5.0");
             Assert.Empty(errors);
 
             // netstandard
-            errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetStandardGenerator);
+            errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETStandard,Version=v2.0");
             Assert.Empty(errors);
 
             // no target
-            errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NoTargetGenerator);
+            errors = buildAndLoadGeneratorAndReturnAnyErrors(targetFramework: null);
             Assert.Empty(errors);
 
             // framework
-            errors = loadGeneratorAndReturnAnyErrors(TestResources.GeneratorTests.NetFrameworkGenerator);
+            errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETFramework,Version=v4.7.2");
             Assert.Equal(1, errors.Count);
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework, errors.First().ErrorCode);
 
-            List<AnalyzerLoadFailureEventArgs> loadGeneratorAndReturnAnyErrors(byte[] assembly)
+            List<AnalyzerLoadFailureEventArgs> buildAndLoadGeneratorAndReturnAnyErrors(string? targetFramework)
             {
+                string targetFrameworkAttributeText = targetFramework is object
+                                                        ? $"[assembly: System.Runtime.Versioning.TargetFramework(\"{targetFramework}\")]"
+                                                        : string.Empty;
+
+                string generatorSource = $@"
+using Microsoft.CodeAnalysis;
+
+{targetFrameworkAttributeText}
+
+[Generator]
+public class NetCoreGenerator : ISourceGenerator
+{{
+            public void Execute(SourceGeneratorContext context) {{ }}
+            public void Initialize(InitializationContext context) {{ }}
+ }}";
+
+
                 var directory = Temp.CreateDirectory();
+                var generatorPath = Path.Combine(directory.Path, "generator.dll");
 
-                var generator = directory.CreateFile("generator.dll").WriteAllBytes(assembly);
-                AnalyzerFileReference reference = CreateAnalyzerFileReference(generator.Path);
+                var compilation = CSharpTestBase.CreateCompilation(generatorSource,
+                                                                   options: TestOptions.DebugDll,
+                                                                   parseOptions: TestOptions.RegularPreview,
+                                                                   references: new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) });
+                compilation.VerifyDiagnostics();
+                var result = compilation.Emit(generatorPath);
+                Assert.True(result.Success);
 
+                AnalyzerFileReference reference = CreateAnalyzerFileReference(generatorPath);
                 List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
                 void errorHandler(object? o, AnalyzerLoadFailureEventArgs e) => errors.Add(e);
                 reference.AnalyzerLoadFailed += errorHandler;
-
                 var builder = ImmutableArray.CreateBuilder<ISourceGenerator>();
                 reference.AddGenerators(builder, LanguageNames.CSharp);
-                var analyzers = builder.ToImmutable();
+                Assert.Single(builder);
                 reference.AnalyzerLoadFailed -= errorHandler;
 
                 return errors;

@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     Debug.Assert(type != null);
 
-                    // check if this references net framework, and issue a diagnostic if we don't allow that
+                    // check if this references net framework, and issue a diagnostic that this isn't supported
                     if (!_allowNetFramework)
                     {
                         var targetFrameworkAttribute = analyzerAssembly.GetCustomAttribute<TargetFrameworkAttribute>();
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(
                                 AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
-                                string.Format(CodeAnalysisResources.TypeReferencesNetFramework, typeName),
+                                string.Format(CodeAnalysisResources.AssemblyReferencesNetFramework, typeName),
                                 typeNameOpt: typeName));
                         }
                     }

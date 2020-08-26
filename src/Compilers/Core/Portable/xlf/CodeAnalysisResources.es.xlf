@@ -12,6 +12,11 @@
         <target state="translated">Se debe especificar un nombre de lenguaje para esta opción.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">No se permite cambiar la versión de una referencia de ensamblado durante la depuración: "{0}" cambió la versión a "{1}".</target>
@@ -147,11 +152,6 @@
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Si se especifican las anotaciones que aceptan valores NULL de los elementos de tupla, el número de anotaciones debe coincidir con la cardinalidad de la tupla.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeReferencesNetFramework">
-        <source>The type '{0}' references .NET Framework, which is not supported.</source>
-        <target state="new">The type '{0}' references .NET Framework, which is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
