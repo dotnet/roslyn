@@ -28,38 +28,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
             }
 
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new VisualStudioRemoteHostClientProvider(workspaceServices);
+            {
+                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices)
+                    || workspaceServices.Workspace is not VisualStudioWorkspace)
+                {
+                    // Run code in the current process
+                    return new DefaultRemoteHostClientProvider();
+                }
+
+                return new VisualStudioRemoteHostClientProvider(workspaceServices);
+            }
         }
 
         private readonly HostWorkspaceServices _services;
         private readonly AsyncLazy<RemoteHostClient> _lazyClient;
 
-        public VisualStudioRemoteHostClientProvider(HostWorkspaceServices services)
+        private VisualStudioRemoteHostClientProvider(HostWorkspaceServices services)
         {
             _services = services;
             _lazyClient = new AsyncLazy<RemoteHostClient>(CreateHostClientAsync, cacheResult: true);
         }
 
-        private async Task<RemoteHostClient> CreateHostClientAsync(CancellationToken cancellationToken)
-        {
-            var client = await ServiceHubRemoteHostClient.CreateAsync(_services, cancellationToken).ConfigureAwait(false);
-
-            var telemetrySessionSettings = _services.GetService<IWorkspaceTelemetryService>()?.SerializeCurrentSessionSettings();
-
-            // initialize the remote service
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteHost,
-                nameof(IRemoteHostService.InitializeTelemetrySession),
-                solution: null,
-                new object?[] { client.ClientId, telemetrySessionSettings },
-                callbackTarget: null,
-                cancellationToken).ConfigureAwait(false);
-
-            return client;
-        }
+        private Task<RemoteHostClient> CreateHostClientAsync(CancellationToken cancellationToken)
+            => ServiceHubRemoteHostClient.CreateAsync(_services, cancellationToken);
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => (_services.Workspace is VisualStudioWorkspace) ? _lazyClient.GetValueAsync(cancellationToken).AsNullable() : SpecializedTasks.Null<RemoteHostClient>();
+            => _lazyClient.GetValueAsync(cancellationToken).AsNullable();
     }
 }

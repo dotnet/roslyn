@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,12 +17,15 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
@@ -55,19 +61,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             _workspace = workspace;
         }
 
-        public async Task<string> GetHostGroupIdAsync(CancellationToken cancellationToken)
+        public async Task<string?> TryGetHostGroupIdAsync(CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                // exception is handled by code lens engine
-                throw new InvalidOperationException("remote host doesn't exist");
+                return null;
             }
 
             return client.ClientId;
         }
 
-        public List<Guid> GetDocumentId(Guid projectGuid, string filePath, CancellationToken cancellationToken)
+        public Task<string?> TryGetServiceNameAsync(CancellationToken cancellationToken)
+        {
+            if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(_workspace.Services))
+                return SpecializedTasks.Null<string>();
+
+            var isRemoteHost64Bit = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace.Services);
+            return Task.FromResult<string?>(new RemoteServiceName(WellKnownServiceHubService.CodeAnalysis).ToString(isRemoteHost64Bit));
+        }
+
+        public List<Guid>? GetDocumentId(Guid projectGuid, string filePath, CancellationToken cancellationToken)
         {
             if (TryGetDocument(_workspace.CurrentSolution, projectGuid, filePath, out var document))
             {
@@ -78,12 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             return null;
         }
 
-        public async Task<ReferenceCount> GetReferenceCountAsync(
+        public async Task<ReferenceCount?> GetReferenceCountAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             var (documentId, node) = await GetDocumentIdAndNodeAsync(
-                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+                solution, descriptor, descriptorContext.ApplicableSpan, cancellationToken).ConfigureAwait(false);
             if (documentId == null)
             {
                 return null;
@@ -91,50 +105,55 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
             var maxSearchResults = await GetMaxResultCapAsync(cancellationToken).ConfigureAwait(false);
 
-            var service = _workspace.Services.GetService<ICodeLensReferencesService>();
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
             return await service.GetReferenceCountAsync(solution, documentId, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(
+        public async Task<IEnumerable<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             var (documentId, node) = await GetDocumentIdAndNodeAsync(
-                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+                solution, descriptor, descriptorContext.ApplicableSpan, cancellationToken).ConfigureAwait(false);
             if (documentId == null)
             {
                 return null;
             }
 
-            var service = _workspace.Services.GetService<ICodeLensReferencesService>();
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
             return await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(
+        public async Task<IEnumerable<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             var (documentId, node) = await GetDocumentIdAndNodeAsync(
-                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+                solution, descriptor, descriptorContext.ApplicableSpan, cancellationToken).ConfigureAwait(false);
             if (documentId == null)
             {
                 return null;
             }
 
-            var service = _workspace.Services.GetService<ICodeLensReferencesService>();
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
             return await service.FindReferenceMethodsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<(DocumentId, SyntaxNode)> GetDocumentIdAndNodeAsync(
-            Solution solution, CodeLensDescriptor descriptor, Text.Span span, CancellationToken cancellationToken)
+        private async Task<(DocumentId?, SyntaxNode?)> GetDocumentIdAndNodeAsync(
+            Solution solution, CodeLensDescriptor descriptor, Span? span, CancellationToken cancellationToken)
         {
+            if (span is null)
+            {
+                return default;
+            }
+
             if (!TryGetDocument(solution, descriptor.ProjectGuid, descriptor.FilePath, out var document))
             {
                 return default;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = span.ToTextSpan();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = span.Value.ToTextSpan();
 
             // TODO: This check avoids ArgumentOutOfRangeException but it's not clear if this is the right solution
             // https://github.com/dotnet/roslyn/issues/44639
@@ -184,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
-        private bool TryGetDocument(Solution solution, Guid projectGuid, string filePath, out Document document)
+        private bool TryGetDocument(Solution solution, Guid projectGuid, string filePath, [NotNullWhen(true)] out Document? document)
         {
             document = null;
 

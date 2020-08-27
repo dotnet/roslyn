@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -62,17 +61,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private readonly HashSet<ISymbol> _partialSymbolsWithGeneratedSourceEvents;
-        private readonly CompilationData _compilationData;
+        private readonly CachingSemanticModelProvider _semanticModelProvider;
         private readonly CompilationOptions _compilationOptions;
 
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
-        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData, CompilationOptions compilationOptions)
+        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CachingSemanticModelProvider semanticModelProvider, CompilationOptions compilationOptions)
         {
             _gate = new SemaphoreSlim(initialCount: 1);
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
-            _compilationData = compilationData;
+            _semanticModelProvider = semanticModelProvider;
             _compilationOptions = compilationOptions;
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
@@ -108,7 +107,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzerStates[index];
         }
 
-        public async Task OnCompilationEventsGeneratedAsync(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)
+        public async Task OnCompilationEventsGeneratedAsync(
+            Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents,
+            AsyncQueue<CompilationEvent> eventQueue,
+            ImmutableArray<AdditionalText> additionalFiles,
+            AnalyzerDriver driver,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -116,7 +120,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 using (_gate.DisposableWait(cancellationToken))
                 {
-                    OnCompilationEventsGenerated_NoLock(compilationEvents);
+                    // Defer the call to 'getCompilationEvents' until we know cancellation is no longer possible
+                    OnCompilationEventsGenerated_NoLock(getCompilationEvents(eventQueue, additionalFiles));
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -215,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 case CompilationUnitCompletedEvent compilationUnitCompletedEvent:
                     // Add/remove compilation unit completed events.
-                    var tree = compilationUnitCompletedEvent.SemanticModel.SyntaxTree;
+                    var tree = compilationUnitCompletedEvent.CompilationUnit;
                     if (add)
                     {
                         AddPendingSourceEvent_NoLock(tree, compilationEvent);
@@ -228,21 +233,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     break;
 
                 case CompilationStartedEvent:
+                    compilationStartedOrCompletedEventCommon(compilationEvent, add);
+                    break;
+
                 case CompilationCompletedEvent:
-                    // Add/remove compilation events.
-                    if (add)
+                    compilationStartedOrCompletedEventCommon(compilationEvent, add);
+                    if (!add)
                     {
-                        _pendingNonSourceEvents.Add(compilationEvent);
-                    }
-                    else
-                    {
-                        _pendingNonSourceEvents.Remove(compilationEvent);
+                        _semanticModelProvider.ClearCache(compilationEvent.Compilation);
                     }
 
                     break;
 
                 default:
                     throw new InvalidOperationException("Unexpected compilation event of type " + compilationEvent.GetType().Name);
+            }
+
+            return;
+
+            void compilationStartedOrCompletedEventCommon(CompilationEvent compilationEvent, bool add)
+            {
+                Debug.Assert(compilationEvent is CompilationStartedEvent || compilationEvent is CompilationCompletedEvent);
+
+                if (add)
+                {
+                    _pendingNonSourceEvents.Add(compilationEvent);
+                }
+                else
+                {
+                    _pendingNonSourceEvents.Remove(compilationEvent);
+                }
             }
         }
 
@@ -252,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 currentEvents = new HashSet<CompilationEvent>();
                 _pendingSourceEvents[tree] = currentEvents;
-                _compilationData.RemoveCachedSemanticModel(tree);
+                _semanticModelProvider.ClearCache(tree, compilationEvent.Compilation);
             }
 
             currentEvents.Add(compilationEvent);
@@ -265,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (currentEvents.Remove(compilationEvent) && currentEvents.Count == 0)
                 {
                     _pendingSourceEvents.Remove(tree);
-                    _compilationData.RemoveCachedSemanticModel(tree);
+                    _semanticModelProvider.ClearCache(tree, compilationEvent.Compilation);
                 }
             }
         }

@@ -28,6 +28,8 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
+                    <CheckBox x:Name="Use_64bit_analysis_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"

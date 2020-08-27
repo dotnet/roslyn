@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     /// TODO - This can be removed once C# is using LSP for diagnostics.
     /// https://github.com/dotnet/roslyn/issues/42630
     /// </summary>
-    [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
     internal class RazorLanguageClient : AbstractLanguageServerClient
@@ -40,8 +41,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorLanguageClient(LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
-            IDiagnosticService diagnosticService)
-            : base(languageServerProtocol, workspace, diagnosticService, ClientName)
+            IDiagnosticService diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, ClientName)
         {
         }
     }

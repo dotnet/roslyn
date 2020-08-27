@@ -6,9 +6,11 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var firstToken = GetFirstTokenInSelection();
                 var lastToken = GetLastTokenInSelection();
-                return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                var scope = firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                if (scope == null)
+                    return null;
+
+                return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
             public override ITypeSymbol? GetContainingScopeType()

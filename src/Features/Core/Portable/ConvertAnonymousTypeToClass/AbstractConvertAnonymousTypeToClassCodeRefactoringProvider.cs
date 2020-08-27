@@ -170,7 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
             foreach (var identifier in identifiers)
             {
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(identifier))
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(identifier) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(identifier))
                 {
                     continue;
                 }

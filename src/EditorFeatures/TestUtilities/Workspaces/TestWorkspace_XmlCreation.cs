@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -74,15 +76,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static XAttribute CreateLanguageVersionAttribute(ParseOptions parseOptions)
         {
-            var csharpOptions = parseOptions as Microsoft.CodeAnalysis.CSharp.CSharpParseOptions;
-            var vbOptions = parseOptions as Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions;
+            var csharpOptions = parseOptions as CSharpParseOptions;
+            var vbOptions = parseOptions as VisualBasicParseOptions;
             if (csharpOptions != null)
             {
-                return new XAttribute(LanguageVersionAttributeName, csharpOptions.LanguageVersion);
+                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(csharpOptions.LanguageVersion));
             }
             else if (vbOptions != null)
             {
-                return new XAttribute(LanguageVersionAttributeName, vbOptions.LanguageVersion);
+                return new XAttribute(LanguageVersionAttributeName, CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(vbOptions.LanguageVersion));
             }
             else
             {

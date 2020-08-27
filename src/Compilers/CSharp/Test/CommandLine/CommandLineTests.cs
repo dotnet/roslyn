@@ -240,9 +240,9 @@ my_option2 = my_val2");
             var comp = cmd.Compilation;
             var tree = comp.SyntaxTrees.Single();
             var compilerTreeOptions = comp.Options.SyntaxTreeOptionsProvider;
-            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", out var severity));
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", CancellationToken.None, out var severity));
             Assert.Equal(ReportDiagnostic.Suppress, severity);
-            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", out severity));
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", CancellationToken.None, out severity));
             Assert.Equal(ReportDiagnostic.Suppress, severity);
 
             var analyzerOptions = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
@@ -1534,6 +1534,8 @@ class C
         [InlineData("7.3", LanguageVersion.CSharp7_3)]
         [InlineData("8", LanguageVersion.CSharp8)]
         [InlineData("8.0", LanguageVersion.CSharp8)]
+        [InlineData("9", LanguageVersion.CSharp9)]
+        [InlineData("9.0", LanguageVersion.CSharp9)]
         [InlineData("preview", LanguageVersion.Preview)]
         public void LangVersion_CanParseCorrectVersions(string value, LanguageVersion expectedVersion)
         {
@@ -1655,7 +1657,6 @@ class C
         {
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
-            // - update the IDE drop-down for selecting Language Version (in project-systems repo)
             // - update all the tests that call this canary
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
@@ -1709,10 +1710,11 @@ class C
             InlineData(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2),
             InlineData(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3),
             InlineData(LanguageVersion.CSharp8, LanguageVersion.CSharp8),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
-            InlineData(LanguageVersion.Preview, LanguageVersion.CSharp9),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.CSharp9),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp9, LanguageVersion.Default),
+            InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
@@ -7210,7 +7212,6 @@ public class C
 a.cs(1,7): error CS1001: Identifier expected
 a.cs(1,7): error CS1514: { expected
 a.cs(1,7): error CS1513: } expected
-a.cs(1,7): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
 a.cs(1,7): error CS8803: Top-level statements must precede namespace and type declarations.
 a.cs(1,7): error CS1525: Invalid expression term '??'
 a.cs(1,9): error CS1525: Invalid expression term '{'
@@ -12286,6 +12287,44 @@ generated_code = auto");
             {
                 Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'",
                     output, StringComparison.Ordinal);
+            }
+        }
+
+        [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
+        [CombinatorialData, Theory]
+        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
+        {
+            // This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped..
+            // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
+            //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
+            //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
+            var analyzerShouldBeSkipped = !isEnabledByDefault ||
+                defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info;
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes: analyzerShouldBeSkipped);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+
+            // Verify '/warnaserror-:DiagnosticId' behavior.
+            var args = new[] { "/warnaserror+", $"/warnaserror-:{diagnosticId}", "/nologo", "/t:library", "/preferreduilang:en", src.Path };
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            var expectedExitCode = !analyzerShouldBeSkipped && defaultSeverity == DiagnosticSeverity.Error ? 1 : 0;
+            Assert.Equal(expectedExitCode, exitCode);
+
+            var output = outWriter.ToString();
+            if (analyzerShouldBeSkipped)
+            {
+                Assert.Empty(output);
+            }
+            else
+            {
+                var prefix = defaultSeverity == DiagnosticSeverity.Warning ? "warning" : "error";
+                Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", output);
             }
         }
 

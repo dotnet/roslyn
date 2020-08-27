@@ -5511,10 +5511,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
-    <value>Non-nullable field is uninitialized. Consider declaring as nullable.</value>
+    <value>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</value>
   </data>
   <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
     <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
@@ -5613,16 +5613,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
-    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
+    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title" xml:space="preserve">
-    <value>Nullability of reference types in return type doesn't match the target delegate.</value>
+    <value>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</value>
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title" xml:space="preserve">
-    <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
+    <value>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
     <value>Cannot convert null literal to non-nullable reference type.</value>
@@ -6134,6 +6134,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeMustBePublic" xml:space="preserve">
     <value>Type '{0}' must be public to be used as a calling convention.</value>
   </data>
+  <data name="WRN_SyncAndAsyncEntryPoints" xml:space="preserve">
+    <value>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</value>
+  </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
   </data>
@@ -6201,16 +6204,28 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
-    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
-    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</value>
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="IDS_FeatureRecords" xml:space="preserve">
     <value>records</value>
@@ -6389,10 +6404,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses" xml:space="preserve">
     <value>'{0}': Target runtime doesn't support covariant types in overrides. Type must be '{2}' to match overridden member '{1}'</value>
   </data>
-  <data name="ERR_SealedGetHashCodeInRecord" xml:space="preserve">
+  <data name="ERR_SealedAPIInRecord" xml:space="preserve">
     <value>'{0}' cannot be sealed because containing record is not sealed.</value>
   </data>
-  <data name="ERR_DoesNotOverrideBaseEquals" xml:space="preserve">
+  <data name="ERR_DoesNotOverrideBaseMethod" xml:space="preserve">
     <value>'{0}' does not override expected method from '{1}'.</value>
   </data>
   <data name="WRN_ConstOutOfRangeChecked" xml:space="preserve">

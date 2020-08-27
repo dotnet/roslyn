@@ -7356,10 +7356,10 @@ class A : B : C
                 // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
-                // (3,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
                 // {
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"{
-}").WithArguments("top-level statements").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"{
+}").WithArguments("top-level statements", "9.0").WithLocation(3, 1),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // {
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
@@ -7554,13 +7554,13 @@ b { }";
         {
             UsingNode(
 @"class C<T> where T : default { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
                 useCSharp8 ?
                     new[]
                     {
-                        // (1,22): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (1,22): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         // class C<T> where T : default { }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(1, 22)
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22)
                     } :
                     Array.Empty<DiagnosticDescription>());
 
@@ -7670,16 +7670,16 @@ b { }";
 @"class C<T, U>
     where T : struct, default
     where U : default, class { }",
-                useCSharp8 ? TestOptions.Regular8 : TestOptions.RegularPreview,
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
                 useCSharp8 ?
                     new[]
                     {
-                        // (2,23): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         //     where T : struct, default
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(2, 23),
-                        // (3,15): error CS8652: The feature 'default type parameter constraints' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
+                        // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
                         //     where U : default, class { }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "default").WithArguments("default type parameter constraints").WithLocation(3, 15)
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15)
                     } :
                     Array.Empty<DiagnosticDescription>());
 

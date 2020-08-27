@@ -152,9 +152,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static bool SupportsEditAndContinue(Project project)
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 
-        internal static bool IsDesignTimeOnlyDocument(Document document)
-            => document.Services.GetService<DocumentPropertiesService>()?.DesignTimeOnly == true;
-
         public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             try
@@ -173,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
-                if (IsDesignTimeOnlyDocument(document) || !document.SupportsSyntaxTree)
+                if (document.State.Attributes.DesignTimeOnly || !document.SupportsSyntaxTree)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -368,7 +365,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             if (editSession == null)
             {
-                return Task.FromResult(false);
+                return SpecializedTasks.False;
             }
 
             return editSession.HasChangesAsync(solution, sourceFilePath, cancellationToken);

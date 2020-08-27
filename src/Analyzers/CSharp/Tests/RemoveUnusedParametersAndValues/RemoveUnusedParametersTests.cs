@@ -1367,8 +1367,7 @@ public sealed class C : IDisposable
 }", options);
         }
 
-#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch
-        // an editorconfig string representation for this invalid option fails.
+#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch an editorconfig string representation for this invalid option fails.
         [WorkItem(37326, "https://github.com/dotnet/roslyn/issues/37326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task RegressionTest_ShouldReportUnusedParameter_02()

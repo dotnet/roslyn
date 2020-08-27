@@ -132,6 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Conversions _conversions;
 
         /// <summary>
+        /// 'true' if non-nullable member warnings should be issued at return points.
+        /// One situation where this is 'false' is when we are analyzing field initializers and there is a constructor symbol in the type.
+        /// </summary>
+        private readonly bool _useConstructorExitWarnings;
+
+        /// <summary>
         /// If true, the parameter types and nullability from _delegateInvokeMethod is used for
         /// initial parameter state. If false, the signature of CurrentSymbol is used instead.
         /// </summary>
@@ -185,6 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// that would otherwise be taken.
         /// </summary>
         private readonly bool _isSpeculative;
+
+        /// <summary>
+        /// True if this walker was created using an initial state.
+        /// </summary>
+        private readonly bool _hasInitialState;
 
 #if DEBUG
         /// <summary>
@@ -358,6 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private NullableWalker(
             CSharpCompilation compilation,
             Symbol? symbol,
+            bool useConstructorExitWarnings,
             bool useDelegateInvokeParameterTypes,
             MethodSymbol? delegateInvokeMethodOpt,
             BoundNode node,
@@ -375,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethodOpt is object);
             _binder = binder;
             _conversions = (Conversions)conversions.WithNullability(true);
+            _useConstructorExitWarnings = useConstructorExitWarnings;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
             _delegateInvokeMethod = delegateInvokeMethodOpt;
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
@@ -384,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initialState != null)
             {
+                _hasInitialState = true;
                 var variableBySlot = initialState.VariableBySlot;
                 nextVariableSlot = variableBySlot.Length;
                 foreach (var (variable, slot) in initialState.VariableSlot)
@@ -397,6 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _variableTypes.Add(key, value);
                 }
                 this.State = initialState.VariableNullableStates.Clone();
+            }
+            else
+            {
+                _hasInitialState = false;
             }
         }
 
@@ -471,16 +489,107 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = _symbol as MethodSymbol;
                 if (method is object)
                 {
-                    do
+                    if (method.IsConstructor() && _useConstructorExitWarnings)
                     {
-                        foreach (var memberName in method.NotNullMembers)
+                        var thisSlot = 0;
+                        if (method.RequiresInstanceReceiver)
                         {
-                            enforceMemberNotNullOnMember(syntaxOpt, state, method, memberName);
+                            method.TryGetThisParameter(out var thisParameter);
+                            Debug.Assert(thisParameter is object);
+                            thisSlot = GetOrCreateSlot(thisParameter);
                         }
-
-                        method = method.OverriddenMethod;
+                        // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
+                        var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
+                        foreach (var member in method.ContainingType.GetMembersUnordered())
+                        {
+                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation);
+                        }
                     }
-                    while (method != null);
+                    else
+                    {
+                        do
+                        {
+                            foreach (var memberName in method.NotNullMembers)
+                            {
+                                enforceMemberNotNullOnMember(syntaxOpt, state, method, memberName);
+                            }
+
+                            method = method.OverriddenMethod;
+                        }
+                        while (method != null);
+                    }
+                }
+            }
+
+            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation)
+            {
+                var isStatic = !constructor.RequiresInstanceReceiver();
+                if (member.IsStatic != isStatic)
+                {
+                    return;
+                }
+
+                // This is not required for correctness, but in the case where the member has
+                // an initializer, we know we've assigned to the member and
+                // have given any applicable warnings about a bad value going in.
+                // Therefore we skip this check when the member has an initializer to reduce noise.
+                if (HasInitializer(member))
+                {
+                    return;
+                }
+
+                TypeWithAnnotations fieldType;
+                FieldSymbol? field;
+                Symbol symbol;
+                switch (member)
+                {
+                    case FieldSymbol f:
+                        fieldType = f.TypeWithAnnotations;
+                        field = f;
+                        symbol = (Symbol?)(f.AssociatedSymbol as PropertySymbol) ?? f;
+                        break;
+                    case EventSymbol e:
+                        fieldType = e.TypeWithAnnotations;
+                        field = e.AssociatedField;
+                        symbol = e;
+                        if (field is null)
+                        {
+                            return;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+                if (field.IsConst)
+                {
+                    return;
+                }
+                if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
+                {
+                    return;
+                }
+                if (!fieldType.NullableAnnotation.IsNotAnnotated())
+                {
+                    return;
+                }
+                var annotations = symbol.GetFlowAnalysisAnnotations();
+                if ((annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.AllowNull)) != 0)
+                {
+                    // We assume that if a member has MaybeNull or AllowNull then the user
+                    // does not care that we exit at a point where the member might be null.
+                    return;
+                }
+                var slot = GetOrCreateSlot(symbol, thisSlot);
+                if (slot < 0)
+                {
+                    return;
+                }
+
+                var memberState = state[slot];
+                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                if (memberState == badState)
+                {
+                    Diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, exitLocation ?? symbol.Locations.FirstOrNone(), symbol.Kind.Localize(), symbol.Name);
                 }
             }
 
@@ -535,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                     case SymbolKind.Property:
-                        if (getSlotForFieldOrProperty(member) is int memberSlot &&
+                        if (getSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
                             memberSlot > 0)
                         {
                             var parameterState = state[memberSlot];
@@ -556,17 +665,74 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void makeNotNullMembersMaybeNull()
             {
-                var method = _symbol as MethodSymbol;
-                if (method is object)
+                if (_symbol is MethodSymbol method)
                 {
-                    do
+                    if (method.IsConstructor())
                     {
-                        makeMembersMaybeNull(method, method.NotNullMembers);
-                        makeMembersMaybeNull(method, method.NotNullWhenTrueMembers);
-                        makeMembersMaybeNull(method, method.NotNullWhenFalseMembers);
-                        method = method.OverriddenMethod;
+                        if (needsDefaultInitialStateForMembers())
+                        {
+                            foreach (var member in method.ContainingType.GetMembersUnordered())
+                            {
+                                if (member.IsStatic != method.IsStatic)
+                                {
+                                    continue;
+                                }
+
+                                var memberToInitialize = member;
+                                switch (member)
+                                {
+                                    case PropertySymbol:
+                                        // skip any manually implemented properties.
+                                        continue;
+                                    case FieldSymbol { IsConst: true }:
+                                        continue;
+                                    case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
+                                        // We want to initialize auto-property state to the default state, but not computed properties.
+                                        memberToInitialize = prop;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
+                                if (memberSlot > 0)
+                                {
+                                    var type = memberToInitialize.GetTypeOrReturnType();
+                                    if (!type.NullableAnnotation.IsOblivious())
+                                    {
+                                        this.State[memberSlot] = type.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                                    }
+                                }
+                            }
+                        }
                     }
-                    while (method != null);
+                    else
+                    {
+                        do
+                        {
+                            makeMembersMaybeNull(method, method.NotNullMembers);
+                            makeMembersMaybeNull(method, method.NotNullWhenTrueMembers);
+                            makeMembersMaybeNull(method, method.NotNullWhenFalseMembers);
+                            method = method.OverriddenMethod;
+                        }
+                        while (method != null);
+                    }
+                }
+
+                bool needsDefaultInitialStateForMembers()
+                {
+                    if (_hasInitialState)
+                    {
+                        return false;
+                    }
+
+                    if (!method.HasThisConstructorInitializer() && (!method.ContainingType.IsValueType || method.IsStatic))
+                    {
+                        return true;
+                    }
+
+                    return methodMainNode is BoundConstructorMethodBody ctorBody
+                        && ctorBody.Initializer?.Expression.ExpressionSymbol is MethodSymbol delegatedCtor
+                        && delegatedCtor.IsDefaultValueTypeConstructor();
                 }
             }
 
@@ -583,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = method.ContainingType;
                 foreach (var member in type.GetMembers(memberName))
                 {
-                    if (getSlotForFieldOrProperty(member) is int memberSlot &&
+                    if (getSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
                         memberSlot > 0)
                     {
                         this.State[memberSlot] = NullableFlowState.MaybeNull;
@@ -689,10 +855,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            int getSlotForFieldOrProperty(Symbol member)
+            int getSlotForFieldOrPropertyOrEvent(Symbol member)
             {
                 if (member.Kind != SymbolKind.Field &&
-                    member.Kind != SymbolKind.Property)
+                    member.Kind != SymbolKind.Property &&
+                    member.Kind != SymbolKind.Event)
                 {
                     return -1;
                 }
@@ -728,34 +895,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Analyzes a method body if settings indicate we should, discarding the final nullable state.
+        /// </summary>
         internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             MethodSymbol method,
             BoundNode node,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool useConstructorExitWarnings,
+            VariableState? initialNullableState)
+        {
+            AnalyzeIfNeeded(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState: false, out _);
+        }
+
+        internal static void AnalyzeIfNeeded(
+            CSharpCompilation compilation,
+            MethodSymbol method,
+            BoundNode node,
+            DiagnosticBag diagnostics,
+            bool useConstructorExitWarnings,
+            VariableState? initialNullableState,
+            bool getFinalNullableState,
+            out VariableState? finalNullableState)
         {
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
 #if DEBUG
                 // Always run analysis in debug builds so that we can more reliably catch
                 // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-                diagnostics = new DiagnosticBag();
-#else
-                return;
+                // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
+                // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
+                // we don't want to introduce behavior differences between debug and release builds
+                Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
 #endif
+                finalNullableState = null;
+                return;
             }
 
-            Analyze(compilation, method, node, diagnostics);
+            Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, out finalNullableState);
         }
 
         internal static void Analyze(
             CSharpCompilation compilation,
             MethodSymbol method,
             BoundNode node,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool useConstructorExitWarnings,
+            VariableState? initialNullableState,
+            bool getFinalNullableState,
+            out VariableState? finalNullableState)
         {
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !method.IsScriptInitializer)
             {
+                finalNullableState = null;
                 return;
             }
             Debug.Assert(node.SyntaxTree is object);
@@ -769,12 +962,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder,
                 conversions,
                 diagnostics,
+                useConstructorExitWarnings,
                 useDelegateInvokeParameterTypes: false,
                 delegateInvokeMethodOpt: null,
-                initialState: null,
+                initialState: initialNullableState,
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                getFinalNullableState,
+                finalNullableState: out finalNullableState);
+        }
+
+        /// <summary>
+        /// Gets the "after initializers state" which should be used at the beginning of nullable analysis
+        /// of certain constructors. Only used for semantic model and debug verification.
+        /// </summary>
+        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol? symbol)
+        {
+            if (symbol is MethodSymbol method
+                && method.IncludeFieldInitializersInBody()
+                && method.ContainingType is SourceMemberContainerTypeSymbol containingType)
+            {
+                var unusedDiagnostics = DiagnosticBag.GetInstance();
+
+                Binder.ProcessedFieldInitializers initializers = default;
+                Binder.BindFieldInitializers(compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, unusedDiagnostics, ref initializers);
+                NullableWalker.AnalyzeIfNeeded(
+                    compilation,
+                    method,
+                    InitializerRewriter.RewriteConstructor(initializers.BoundInitializers, method),
+                    unusedDiagnostics,
+                    useConstructorExitWarnings: false,
+                    initialNullableState: null,
+                    getFinalNullableState: true,
+                    out var afterInitializersState);
+
+                unusedDiagnostics.Free();
+
+                return afterInitializersState;
+            }
+
+            return null;
         }
 
 #if DEBUG
@@ -791,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
-            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, diagnostics, createSnapshots);
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots);
         }
 #endif
 
@@ -804,13 +1032,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             BoundNode node,
             Binder binder,
+            VariableState? initialState,
             DiagnosticBag diagnostics,
             bool createSnapshots,
             out SnapshotManager? snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)> analyzedNullabilitiesMap;
-            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, diagnostics, createSnapshots);
+            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots);
             return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
         }
 
@@ -819,6 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             BoundNode node,
             Binder binder,
+            VariableState? initialState,
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
@@ -835,12 +1065,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder,
                 binder.Conversions,
                 diagnostics,
+                useConstructorExitWarnings: true,
                 useDelegateInvokeParameterTypes: false,
                 delegateInvokeMethodOpt: null,
-                initialState: null,
+                initialState,
                 analyzedNullabilities,
                 snapshotBuilder,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                getFinalNullableState: false,
+                out _);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var snapshotManager = snapshotBuilder?.ToManagerAndFree();
@@ -928,12 +1161,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder,
                 binder.Conversions,
                 diagnostics,
+                useConstructorExitWarnings: false,
                 useDelegateInvokeParameterTypes: false,
                 delegateInvokeMethodOpt: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                getFinalNullableState: false,
+                out _);
         }
 
         internal static void Analyze(
@@ -954,12 +1190,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambda.Binder,
                 conversions,
                 diagnostics,
+                useConstructorExitWarnings: false,
                 useDelegateInvokeParameterTypes: UseDelegateInvokeParameterTypes(lambda, delegateInvokeMethodOpt),
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
                 initialState,
                 analyzedNullabilityMapOpt,
                 snapshotBuilderOpt,
-                returnTypesOpt);
+                returnTypesOpt,
+                getFinalNullableState: false,
+                out _);
         }
 
         private static void Analyze(
@@ -969,16 +1208,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             Conversions conversions,
             DiagnosticBag diagnostics,
+            bool useConstructorExitWarnings,
             bool useDelegateInvokeParameterTypes,
             MethodSymbol? delegateInvokeMethodOpt,
             VariableState? initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
             SnapshotManager.Builder? snapshotBuilderOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt)
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
+            bool getFinalNullableState,
+            out VariableState? finalNullableState)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(compilation,
                                             symbol,
+                                            useConstructorExitWarnings,
                                             useDelegateInvokeParameterTypes,
                                             delegateInvokeMethodOpt,
                                             node,
@@ -989,9 +1232,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             analyzedNullabilityMapOpt,
                                             snapshotBuilderOpt);
 
+            finalNullableState = null;
             try
             {
                 Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+                if (getFinalNullableState)
+                {
+                    Debug.Assert(!walker.IsConditionalState);
+                    finalNullableState = walker.GetVariableState(walker.State);
+                }
             }
             finally
             {
@@ -2207,10 +2456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             EnterParameters();
 
-            // State changes to captured variables are recorded, as calls to local functions
-            // transition the state of captured variables if the variables have state changes
-            // across all branches leaving the local function
-
             var oldPending2 = SavePending();
 
             // If this is an iterator, there's an implicit branch before the first statement
@@ -2997,6 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var walker = new NullableWalker(compilation,
                                             symbol: null,
+                                            useConstructorExitWarnings: false,
                                             useDelegateInvokeParameterTypes: false,
                                             delegateInvokeMethodOpt: null,
                                             node,
@@ -6039,45 +6285,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportNullabilityMismatchWithTargetDelegate(Location location, TypeSymbol targetType, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool invokedAsExtensionMethod)
         {
-            Debug.Assert((object)sourceInvokeMethod != null);
-            Debug.Assert(sourceInvokeMethod.MethodKind != MethodKind.LambdaMethod);
+            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                compilation,
+                targetInvokeMethod,
+                sourceInvokeMethod,
+                Diagnostics,
+                reportBadDelegateReturn,
+                reportBadDelegateParameter,
+                extraArgument: (targetType, location),
+                invokedAsExtensionMethod: invokedAsExtensionMethod);
 
-            if (targetInvokeMethod is null)
+            void reportBadDelegateReturn(DiagnosticBag bag, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
-                return;
-            }
-
-            if (IsNullabilityMismatch(sourceInvokeMethod.ReturnTypeWithAnnotations, targetInvokeMethod.ReturnTypeWithAnnotations, requireIdentity: false))
-            {
-                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, location,
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, arg.location,
                     new FormattedSymbol(sourceInvokeMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                    targetType);
+                    arg.targetType);
             }
 
-            int methodOffset = invokedAsExtensionMethod ? 1 : 0;
-            int count = Math.Min(targetInvokeMethod.ParameterCount, sourceInvokeMethod.ParameterCount - methodOffset);
-            for (int i = 0; i < count; i++)
+            void reportBadDelegateParameter(DiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
-                var invokeParameter = targetInvokeMethod.Parameters[i];
-                var methodParameter = sourceInvokeMethod.Parameters[i + methodOffset];
-
-                var sourceParameter = invokeParameter;
-                var destinationParameter = methodParameter;
-
-                var invokeRefKind = invokeParameter.RefKind;
-                if (invokeRefKind == RefKind.Out)
-                {
-                    // out parameters have inverted variance
-                    (sourceParameter, destinationParameter) = (destinationParameter, sourceParameter);
-                }
-
-                if (IsNullabilityMismatch(sourceParameter.TypeWithAnnotations, destinationParameter.TypeWithAnnotations, requireIdentity: invokeRefKind == RefKind.Ref))
-                {
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
-                        GetParameterAsDiagnosticArgument(methodParameter),
-                        GetContainingSymbolAsDiagnosticArgument(methodParameter),
-                        targetType);
-                }
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, arg.location,
+                    GetParameterAsDiagnosticArgument(parameter),
+                    GetContainingSymbolAsDiagnosticArgument(parameter),
+                    arg.targetType);
             }
         }
 
@@ -7052,6 +7282,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var left = node.Left;
+            switch (left)
+            {
+                // when binding initializers, we treat assignments to auto-properties or field-like events as direct assignments to the underlying field.
+                // in order to track member state based on these initializers, we need to see the assignment in terms of the associated member
+                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty } } fieldAccess:
+                    left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, autoProperty, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
+                    break;
+                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: EventSymbol @event } } fieldAccess:
+                    left = new BoundEventAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, @event, isUsableAsField: true, LookupResultKind.Viable, @event.Type, fieldAccess.HasErrors);
+                    break;
+            }
+
             var right = node.Right;
             VisitLValue(left);
             // we may enter a conditional state for error scenarios on the LHS.
@@ -7152,10 +7394,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var annotations = expr switch
             {
-                BoundPropertyAccess property => getSetterAnnotations(property.PropertySymbol),
-                BoundIndexerAccess indexer => getSetterAnnotations(indexer.Indexer),
+                BoundPropertyAccess property => property.PropertySymbol.GetFlowAnalysisAnnotations(),
+                BoundIndexerAccess indexer => indexer.Indexer.GetFlowAnalysisAnnotations(),
                 BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
-                BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => getSetterAnnotations(prop),
+                BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => prop.GetFlowAnalysisAnnotations(),
                 BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
                 BoundParameter { ParameterSymbol: ParameterSymbol parameter }
                     => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
@@ -7167,36 +7409,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             static FlowAnalysisAnnotations getFieldAnnotations(FieldSymbol field)
             {
                 return field.AssociatedSymbol is PropertySymbol property ?
-                    getSetterAnnotations(property) :
+                    property.GetFlowAnalysisAnnotations() :
                     field.FlowAnalysisAnnotations;
-            }
-
-            static FlowAnalysisAnnotations getSetterAnnotations(PropertySymbol property)
-            {
-                var accessor = property.GetOwnOrInheritedSetMethod();
-                if (accessor is object)
-                {
-                    return accessor.Parameters.Last().FlowAnalysisAnnotations;
-                }
-                if (property is SourcePropertySymbolBase sourceProperty)
-                {
-                    return getPropertyAnnotations(sourceProperty);
-                }
-                return FlowAnalysisAnnotations.None;
-            }
-
-            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbolBase property)
-            {
-                var annotations = FlowAnalysisAnnotations.None;
-                if (property.HasAllowNull)
-                {
-                    annotations |= FlowAnalysisAnnotations.AllowNull;
-                }
-                if (property.HasDisallowNull)
-                {
-                    annotations |= FlowAnalysisAnnotations.DisallowNull;
-                }
-                return annotations;
             }
         }
 

@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compilation = (await project.GetCompilationAsync())!;
             var tree = compilation.SyntaxTrees.Single();
             var provider = compilation.Options.SyntaxTreeOptionsProvider!;
-            Assert.Throws<ArgumentException>(() => provider.TryGetDiagnosticValue(tree, "CA1234", out _));
+            Assert.Throws<ArgumentException>(() => provider.TryGetDiagnosticValue(tree, "CA1234", CancellationToken.None, out _));
         }
 
         [Fact]
@@ -2846,7 +2846,7 @@ public class C : A {
             Assert.NotEqual(originalCompilation.Options, newCompilation.Options);
 
             var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.True(provider.TryGetDiagnosticValue(newSyntaxTree, "CA1234", out var severity));
+            Assert.True(provider.TryGetDiagnosticValue(newSyntaxTree, "CA1234", CancellationToken.None, out var severity));
             Assert.Equal(ReportDiagnostic.Error, severity);
         }
 
@@ -2876,7 +2876,7 @@ public class C : A {
             var project = solution.GetProject(projectId);
 
             var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeAfterAddingEditorConfig, "CA1234", out var severity));
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeAfterAddingEditorConfig, "CA1234", CancellationToken.None, out var severity));
             Assert.Equal(ReportDiagnostic.Error, severity);
 
             solution = solution.RemoveAnalyzerConfigDocument(editorConfigDocumentId);
@@ -2885,7 +2885,7 @@ public class C : A {
             var syntaxTreeAfterRemovingEditorConfig = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
             provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.False(provider.TryGetDiagnosticValue(syntaxTreeAfterAddingEditorConfig, "CA1234", out _));
+            Assert.False(provider.TryGetDiagnosticValue(syntaxTreeAfterAddingEditorConfig, "CA1234", CancellationToken.None, out _));
 
             var finalCompilation = await project.GetCompilationAsync();
 
@@ -2917,7 +2917,8 @@ public class C : A {
 
             var project = solution.GetProject(projectId);
             var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA1234", out var severity));
+            Assert.Equal(provider, (await project.GetCompilationAsync()).Options.SyntaxTreeOptionsProvider);
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA1234", CancellationToken.None, out var severity));
             Assert.Equal(ReportDiagnostic.Error, severity);
 
             solution = solution.WithAnalyzerConfigDocumentTextLoader(
@@ -2929,7 +2930,8 @@ public class C : A {
 
             project = solution.GetProject(projectId);
             provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA6789", out severity));
+            Assert.Equal(provider, (await project.GetCompilationAsync()).Options.SyntaxTreeOptionsProvider);
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA6789", CancellationToken.None, out severity));
             Assert.Equal(ReportDiagnostic.Error, severity);
 
             var finalCompilation = await project.GetCompilationAsync();

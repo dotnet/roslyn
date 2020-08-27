@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly RemoteEndPoint EndPoint;
         protected readonly int InstanceId;
         protected readonly TraceSource Logger;
-        protected readonly AssetStorage AssetStorage;
+
+        protected readonly RemoteWorkspaceManager WorkspaceManager;
+
+        // test data are only available when running tests:
+        internal readonly RemoteHostTestData? TestData;
 
         static ServiceBase()
         {
@@ -47,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
-            // in unit test, service provider will return asset storage, otherwise, use the default one
-            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
+            TestData = (RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData));
+            WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
 
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Log(TraceEventType.Information, "Service instance created");
@@ -82,11 +86,15 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void Log(TraceEventType errorType, string message)
             => Logger.TraceEvent(errorType, 0, $"{DebugInstanceString}: {message}");
 
-        protected SolutionService CreateSolutionService(PinnedSolutionInfo solutionInfo)
-            => new SolutionService(SolutionService.CreateAssetProvider(solutionInfo, AssetStorage));
+        public RemoteWorkspace GetWorkspace()
+            => WorkspaceManager.GetWorkspace();
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-            => CreateSolutionService(solutionInfo).GetSolutionAsync(solutionInfo, cancellationToken);
+        {
+            var workspace = GetWorkspace();
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
+            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+        }
 
         internal Task<Solution> GetSolutionImplAsync(JObject solutionInfo, CancellationToken cancellationToken)
         {
@@ -94,12 +102,12 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance }, DateParseHandling = DateParseHandling.None });
             var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
 
-            return CreateSolutionService(pinnedSolutionInfo).GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
+            return GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
         }
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -113,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -127,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -141,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void RunService(Action call, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {

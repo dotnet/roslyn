@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _shutdownCancellationSource = new CancellationTokenSource();
 
-            // test data are only available when running tests:
-            var testDataProvider = (TestDataProvider)serviceProvider.GetService(typeof(TestDataProvider));
-            if (testDataProvider == null || !testDataProvider.IsInProc)
+            if (TestData == null || !TestData.IsInProc)
             {
                 // Set this process's priority BelowNormal.
                 // this should let us to freely try to use all resources possible without worrying about affecting
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RunService(() =>
             {
                 // initialize global asset storage
-                AssetStorage.Initialize(this);
+                WorkspaceManager.InitializeAssetSource(this);
 
                 if (uiCultureLCID != 0)
                 {
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             RunService(() =>
             {
-                var services = SolutionService.PrimaryWorkspace.Services;
+                var services = GetWorkspace().Services;
 
                 var telemetryService = (RemoteWorkspaceTelemetryService)services.GetRequiredService<IWorkspaceTelemetryService>();
                 var telemetrySession = new TelemetrySession(serializedSession);
@@ -274,8 +272,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    var solutionService = CreateSolutionService(solutionInfo);
-                    await solutionService.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    var workspace = GetWorkspace();
+                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
+                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -287,13 +286,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async () =>
             {
+                var workspace = GetWorkspace();
+
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, cancellationToken))
                 {
-                    var service = SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>();
-                    if (service == null)
-                    {
-                        return;
-                    }
+                    var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                     var text = await TryGetSourceTextAsync().ConfigureAwait(false);
                     if (text == null)
@@ -303,8 +300,8 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    var newText = new WrappedText(text.WithChanges(textChanges));
-                    var newChecksum = service.CreateChecksum(newText, cancellationToken);
+                    var newText = text.WithChanges(textChanges);
+                    var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
 
                     // save new text in the cache so that when asked, the data is most likely already there
                     //
@@ -315,21 +312,21 @@ namespace Microsoft.CodeAnalysis.Remote
                     //
                     // also, once the changes are picked up and put into Workspace, normal Workspace 
                     // caching logic will take care of the text
-                    AssetStorage.TryAddAsset(newChecksum, newText);
+                    WorkspaceManager.SolutionAssetCache.TryAddAsset(newChecksum, newText);
                 }
 
                 async Task<SourceText?> TryGetSourceTextAsync()
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
-                    if (AssetStorage.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
+                    if (WorkspaceManager.SolutionAssetCache.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
                     {
                         return sourceText;
                     }
 
                     // do slower one
                     // check whether existing solution has it
-                    var document = SolutionService.PrimaryWorkspace.CurrentSolution.GetDocument(documentId);
+                    var document = workspace.CurrentSolution.GetDocument(documentId);
                     if (document == null)
                     {
                         return null;
@@ -348,37 +345,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     return await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
-        }
-
-        /// <summary>
-        /// workaround until (https://github.com/dotnet/roslyn/issues/26305) is fixed.
-        /// 
-        /// this will always return whole file as changed.
-        /// </summary>
-        private class WrappedText : SourceText
-        {
-            private readonly SourceText _text;
-
-            public WrappedText(SourceText text)
-            {
-                _text = text;
-            }
-
-            public override char this[int position] => _text[position];
-            public override Encoding? Encoding => _text.Encoding;
-            public override int Length => _text.Length;
-            public override SourceText GetSubText(TextSpan span) => _text.GetSubText(span);
-            public override SourceText WithChanges(IEnumerable<TextChange> changes) => _text.WithChanges(changes);
-            public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
-                => _text.Write(writer, span, cancellationToken);
-            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-                => _text.CopyTo(sourceIndex, destination, destinationIndex, count);
-            public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
-                => ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), _text.Length));
-            public override int GetHashCode() => _text.GetHashCode();
-            public override bool Equals(object? obj) => _text.Equals(obj);
-            public override string ToString() => _text.ToString();
-            public override string ToString(TextSpan span) => _text.ToString(span);
         }
     }
 }

@@ -267,7 +267,7 @@
         <target state="new">'{0}' does not override expected property from '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DoesNotOverrideBaseEquals">
+      <trans-unit id="ERR_DoesNotOverrideBaseMethod">
         <source>'{0}' does not override expected method from '{1}'.</source>
         <target state="new">'{0}' does not override expected method from '{1}'.</target>
         <note />
@@ -757,7 +757,7 @@
         <target state="new">The target runtime doesn't support extensible or runtime-environment default calling conventions.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SealedGetHashCodeInRecord">
+      <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="new">'{0}' cannot be sealed because containing record is not sealed.</target>
         <note />
@@ -875,6 +875,11 @@
       <trans-unit id="ERR_TypeMustBePublic">
         <source>Type '{0}' must be public to be used as a calling convention.</source>
         <target state="new">Type '{0}' must be public to be used as a calling convention.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SyncAndAsyncEntryPoints">
+        <source>Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</source>
+        <target state="new">Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotFound">
@@ -2011,9 +2016,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
-        <note />
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="new">Generator threw the following exception:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -2021,9 +2033,16 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
-        <note />
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="new">Generator threw the following exception:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -2271,13 +2290,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе параметра "{0}" для "{1}" не совпадает с целевым делегатом "{2}".</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в типе параметра "{0}" для "{1}" не совпадает с целевым делегатом "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе параметра не совпадает с целевым делегатом.</target>
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в типе параметра не совпадает с целевым делегатом.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -2321,13 +2340,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
-        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в возвращаемом типе "{0}" не совпадает с целевым делегатом "{1}".</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}' (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в возвращаемом типе "{0}" не совпадает с целевым делегатом "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в возвращаемом типе не совпадает с целевым делегатом.</target>
+        <source>Nullability of reference types in return type doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="needs-review-translation">Допустимость значения NULL для ссылочных типов в возвращаемом типе не совпадает с целевым делегатом.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
@@ -2691,13 +2710,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Поле {0} "{1}", не допускающее значение NULL, не инициализировано. Попробуйте объявить {0} как допускающее значение NULL.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">Поле {0} "{1}", не допускающее значение NULL, не инициализировано. Попробуйте объявить {0} как допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="translated">Поле, не допускающее значение NULL, не инициализировано. Рекомендуется объявить его как допускающее значение NULL.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
+        <target state="needs-review-translation">Поле, не допускающее значение NULL, не инициализировано. Рекомендуется объявить его как допускающее значение NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">

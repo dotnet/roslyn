@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionOptions = documentOptions
                 .WithChangedOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude)
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false)
+                .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);

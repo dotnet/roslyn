@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         public Task<ImmutableArray<ActiveStatementTrackingSpan>> GetLatestSpansAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
-            => _session?.GetLatestSpansAsync(document, snapshot, cancellationToken) ?? Task.FromResult(ImmutableArray<ActiveStatementTrackingSpan>.Empty);
+            => _session?.GetLatestSpansAsync(document, snapshot, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<ActiveStatementTrackingSpan>();
 
         // internal for testing
         internal sealed class TrackingSession

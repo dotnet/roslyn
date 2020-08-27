@@ -361,7 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options.SourceReferenceResolver,
                     CSharp.MessageProvider.Instance,
                     isSubmission,
-                    state: null));
+                    state: null),
+                semanticModelProvider: null);
 
             if (syntaxTrees != null)
             {
@@ -383,8 +384,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReferenceManager? referenceManager,
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
+            SemanticModelProvider? semanticModelProvider,
             AsyncQueue<CompilationEvent>? eventQueue = null)
-            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), eventQueue)
+            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), semanticModelProvider, eventQueue)
         {
         }
 
@@ -400,8 +402,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             IReadOnlyDictionary<string, string> features,
+            SemanticModelProvider? semanticModelProvider,
             AsyncQueue<CompilationEvent>? eventQueue = null)
-            : base(assemblyName, references, features, isSubmission, eventQueue)
+            : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
@@ -494,7 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         private CSharpCompilation Update(
@@ -512,7 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager,
                 reuseReferenceManager,
-                syntaxAndDeclarations);
+                syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -534,7 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: assemblyName == this.AssemblyName,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -563,7 +569,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager: null,
                 reuseReferenceManager: false,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -602,7 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         options.SourceReferenceResolver,
                         _syntaxAndDeclarations.MessageProvider,
                         _syntaxAndDeclarations.IsSubmission,
-                        state: null));
+                        state: null),
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -633,7 +641,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isSubmission: info != null,
                 _referenceManager,
                 reuseReferenceManager,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
+        }
+
+        /// <summary>
+        /// Returns a new compilation with the given semantic model provider.
+        /// </summary>
+        internal override Compilation WithSemanticModelProvider(SemanticModelProvider? semanticModelProvider)
+        {
+            if (this.SemanticModelProvider == semanticModelProvider)
+            {
+                return this;
+            }
+
+            return new CSharpCompilation(
+                this.AssemblyName,
+                _options,
+                this.ExternalReferences,
+                this.PreviousSubmission,
+                this.SubmissionReturnType,
+                this.HostObjectType,
+                this.IsSubmission,
+                _referenceManager,
+                reuseReferenceManager: true,
+                _syntaxAndDeclarations,
+                semanticModelProvider);
         }
 
         /// <summary>
@@ -651,8 +684,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
-                syntaxAndDeclarations: _syntaxAndDeclarations,
-                eventQueue: eventQueue);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider,
+                eventQueue);
         }
 
         #endregion
@@ -1730,6 +1764,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0)
+                {
+                    var taskCandidates = taskEntryPoints.SelectAsArray(s => (Symbol)s.Candidate);
+                    var taskLocations = taskCandidates.SelectAsArray(s => s.Locations[0]);
+
+                    foreach (var candidate in taskCandidates)
+                    {
+                        // Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.
+                        var info = new CSDiagnosticInfo(
+                             ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                             args: new object[] { candidate, viableEntryPoints[0] },
+                             symbols: taskCandidates,
+                             additionalLocations: taskLocations);
+                        diagnostics.Add(new CSDiagnostic(info, candidate.Locations[0]));
+                    }
+                }
 
                 foreach (var (_, _, SpecificDiagnostics) in taskEntryPoints)
                 {
@@ -2085,8 +2135,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
-            return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
+            SemanticModel? model = null;
+            if (SemanticModelProvider != null)
+            {
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, ignoreAccessibility);
+                Debug.Assert(model != null);
+            }
+
+            return model ?? CreateSemanticModel(syntaxTree, ignoreAccessibility);
         }
+
+        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -2484,7 +2544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
-            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
+            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder, cancellationToken);
         }
 
         private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>>? locationFilterOpt = null)
@@ -2688,7 +2748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (/nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder);
+            FilterAndAppendAndFreeDiagnostics(result, ref builder, cancellationToken);
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
@@ -2816,7 +2876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 excludeDiagnostics = PooledHashSet<int>.GetInstance();
                 excludeDiagnostics.Add((int)ErrorCode.ERR_ConcreteMissingBody);
             }
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics);
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics, cancellationToken);
             excludeDiagnostics?.Free();
 
             // TODO (tomat): NoPIA:
@@ -2871,7 +2931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
                 }
 
-                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
+                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag, cancellationToken);
 
                 if (hasDeclarationErrors || hasMethodBodyError)
                 {
@@ -2925,7 +2985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken))
             {
                 return false;
             }
@@ -2938,7 +2998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
-            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics, cancellationToken);
         }
 
         private IEnumerable<string> AddedModulesResourceNames(DiagnosticBag diagnostics)
@@ -3001,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DiagnosticBag? runtimeMDVersionDiagnostics = DiagnosticBag.GetInstance();
             runtimeMDVersionDiagnostics.Add(ErrorCode.WRN_NoRuntimeMetadataVersion, NoLocation.Singleton);
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref runtimeMDVersionDiagnostics))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref runtimeMDVersionDiagnostics, CancellationToken.None))
             {
                 return null;
             }

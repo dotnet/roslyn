@@ -260,11 +260,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var symbolToMatch = symbolInfoToMatch.Symbol;
                 var symbolToMatchCompilation = model.Compilation;
 
-                if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation))
+                if (SymbolFinder.OriginalSymbolsMatch(solution, searchSymbol, symbolInfoToMatch.Symbol, cancellationToken))
                 {
                     return (matched: true, CandidateReason.None);
                 }
-                else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation)))
+                else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(solution, searchSymbol, s, cancellationToken)))
                 {
                     return (matched: true, symbolInfoToMatch.CandidateReason);
                 }
@@ -793,7 +793,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return true;
             }
 
-            if (syntaxFacts.IsRightSideOfQualifiedName(node) || syntaxFacts.IsNameOfMemberAccessExpression(node))
+            if (syntaxFacts.IsRightSideOfQualifiedName(node) ||
+                syntaxFacts.IsNameOfSimpleMemberAccessExpression(node) ||
+                syntaxFacts.IsNameOfMemberBindingExpression(node))
             {
                 return syntaxFacts.IsLeftSideOfDot(node.Parent);
             }
