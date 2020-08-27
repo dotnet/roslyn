@@ -5,18 +5,19 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     public abstract class SyntaxTreeOptionsProvider
     {
-        public abstract bool? IsGenerated(SyntaxTree tree);
+        public abstract bool? IsGenerated(SyntaxTree tree, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get diagnostic severity setting or a given diagnostic identifier in a given tree.
         /// </summary>
-        public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, out ReportDiagnostic severity);
+        public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
     }
 
     internal sealed class CompilerSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -60,10 +61,10 @@ namespace Microsoft.CodeAnalysis
             _options = builder.ToImmutableDictionary();
         }
 
-        public override bool? IsGenerated(SyntaxTree tree)
+        public override bool? IsGenerated(SyntaxTree tree, CancellationToken _)
             => _options.TryGetValue(tree, out var value) ? value.IsGenerated : null;
 
-        public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, out ReportDiagnostic severity)
+        public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {
             if (_options.TryGetValue(tree, out var value))
             {

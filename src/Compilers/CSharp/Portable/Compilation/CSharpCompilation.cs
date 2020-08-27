@@ -2544,7 +2544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
-            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
+            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder, cancellationToken);
         }
 
         private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>>? locationFilterOpt = null)
@@ -2748,7 +2748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (/nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder);
+            FilterAndAppendAndFreeDiagnostics(result, ref builder, cancellationToken);
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
@@ -2876,7 +2876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 excludeDiagnostics = PooledHashSet<int>.GetInstance();
                 excludeDiagnostics.Add((int)ErrorCode.ERR_ConcreteMissingBody);
             }
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics);
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics, cancellationToken);
             excludeDiagnostics?.Free();
 
             // TODO (tomat): NoPIA:
@@ -2931,7 +2931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
                 }
 
-                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
+                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag, cancellationToken);
 
                 if (hasDeclarationErrors || hasMethodBodyError)
                 {
@@ -2985,7 +2985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken))
             {
                 return false;
             }
@@ -2998,7 +2998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
-            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics, cancellationToken);
         }
 
         private IEnumerable<string> AddedModulesResourceNames(DiagnosticBag diagnostics)
@@ -3061,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DiagnosticBag? runtimeMDVersionDiagnostics = DiagnosticBag.GetInstance();
             runtimeMDVersionDiagnostics.Add(ErrorCode.WRN_NoRuntimeMetadataVersion, NoLocation.Singleton);
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref runtimeMDVersionDiagnostics))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref runtimeMDVersionDiagnostics, CancellationToken.None))
             {
                 return null;
             }
