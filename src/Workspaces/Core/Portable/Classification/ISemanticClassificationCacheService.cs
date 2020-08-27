@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref
-        /// name="textSpan"/>.  Will return an empty array not able to.
+        /// name="textSpan"/>.  Will return a <c>default</c> array not able to.  An empty array indicates that there
+        /// were cached classifications, but none that intersected the provided <paramref name="textSpan"/>.
         /// </summary>
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
@@ -43,6 +44,6 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
-            => SpecializedTasks.EmptyImmutableArray<ClassifiedSpan>();
+            => SpecializedTasks.Default<ImmutableArray<ClassifiedSpan>>();
     }
 }

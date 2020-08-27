@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PersistentStorage;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
-        Task<SerializableClassifiedSpans> GetCachedSemanticClassificationsAsync(
+        Task<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
             SerializableDocumentKey documentKey,
             TextSpan textSpan,
             Checksum checksum,

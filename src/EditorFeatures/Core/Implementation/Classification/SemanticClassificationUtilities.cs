@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
                 (DocumentKey)document, textSpan, checksum, cancellationToken).ConfigureAwait(false);
-            if (result.IsDefaultOrEmpty)
+            if (result.IsDefault)
                 return false;
 
             classifiedSpans.AddRange(result);
