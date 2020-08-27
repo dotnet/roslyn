@@ -581,7 +581,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way.
         ' It is not ReadOnly because it is initialized by a Shared Sub New of another instance of this class.
+#Disable Warning IDE0044 ' Add readonly modifier - Adding readonly generates compile error in the constructor.
         Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
+#Enable Warning IDE0044 ' Add readonly modifier
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()

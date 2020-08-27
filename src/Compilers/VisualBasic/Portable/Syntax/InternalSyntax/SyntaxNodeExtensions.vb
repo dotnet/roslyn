@@ -445,10 +445,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' as many consecutive tokens as possible into a SkippedTokens trivia node.
         Private Class SkippedTriviaBuilder
             ' Maintain the list of trivia that we're accumulating.
-            Private _triviaListBuilder As SyntaxListBuilder(Of GreenNode) = SyntaxListBuilder(Of GreenNode).Create()
+            Private ReadOnly _triviaListBuilder As SyntaxListBuilder(Of GreenNode) = SyntaxListBuilder(Of GreenNode).Create()
 
             ' Maintain a list of tokens we're accumulating to put into a SkippedNodes trivia.
-            Private _skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
+            Private ReadOnly _skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
 
             Private ReadOnly _preserveExistingDiagnostics As Boolean
             Private _addDiagnosticsToFirstTokenOnly As Boolean

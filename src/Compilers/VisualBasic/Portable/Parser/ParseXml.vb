@@ -2422,7 +2422,7 @@ TryResync:
 
     Friend Structure XmlContext
         Private ReadOnly _start As XmlElementStartTagSyntax
-        Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
+        Private ReadOnly _content As SyntaxListBuilder(Of XmlNodeSyntax)
         Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)
