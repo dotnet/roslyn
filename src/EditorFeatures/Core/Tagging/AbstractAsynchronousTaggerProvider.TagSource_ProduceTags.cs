@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -554,11 +555,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // If this is the initial set of tags, we fast-track a notification about whatever initial tags we
                     // computed.  This way the UI is updated quickly for that initial set, and we don't have to wait a
                     // potentially very long time as the foreground-thread-queue makes it way to our notification.
-                    this.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                    //
+                    // Do this in a fire and forget manner, but ensure we notify the test harness of this so that it
+                    // doesn't try to acquire tag results prior to this work finishing.
+                    var asyncToken = this._asyncListener.BeginAsyncOperation(nameof(ProcessNewTagTrees));
+                    Task.Run(async () =>
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
-                    });
+                    }).CompletesAsyncOperation(asyncToken);
                 }
                 else
                 {
