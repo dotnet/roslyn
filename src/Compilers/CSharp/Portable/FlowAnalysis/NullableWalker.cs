@@ -2191,16 +2191,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we have an initial state, then we're doing the second analysis stage on a constructor
             // and we shouldn't report assignment warnings related to parameter default values
-            if (!_hasInitialState && parameter.IsOptional)
+            if (parameter.IsOptional && !_hasInitialState)
             {
                 // When a parameter has a default value, we initialize its flow state by simulating an assignment of the default value to the parameter.
                 var syntax = parameter.GetNonNullSyntaxNode();
                 var rightSyntax = syntax is ParameterSyntax { Default: { Value: { } value } } ? value : syntax;
-                var right = GetDefaultParameterValue(rightSyntax, parameter);
-
-                // Note that at call sites that implicitly pass the default value, we also simulate an assignment of the default value to the parameter.
-                // At call sites we do not want to warn about incompatibility between the default value and the parameter, but at the declaration, we do.
-                right.ResetCompilerGenerated(newCompilerGenerated: false);
+                var right = GetDefaultParameterValue(rightSyntax, parameter, markCompilerGenerated: false);
 
                 var fakeAssignment = new BoundAssignmentOperator(syntax, new BoundParameter(syntax, parameter), right, right.Type ?? parameter.Type);
 
@@ -5024,7 +5020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var annotations = GetParameterAnnotations(parameter);
 
-                        BoundExpression argument = GetDefaultParameterValue(syntax, parameter);
+                        BoundExpression argument = GetDefaultParameterValue(syntax, parameter, markCompilerGenerated: true);
                         resultsBuilder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations));
                         argumentsBuilder.Add(argument);
                         argsToParamsBuilder?.Add(i);
@@ -5051,13 +5047,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter)
+        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, bool markCompilerGenerated)
         {
             _defaultValuesOpt ??= PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>.GetInstance();
             if (!_defaultValuesOpt.TryGetValue((syntax, parameter), out var argument))
             {
-                _defaultValuesOpt[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
+                argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
+                if (!markCompilerGenerated)
+                {
+                    argument.ResetCompilerGenerated(newCompilerGenerated: false);
+                }
+                _defaultValuesOpt[(syntax, parameter)] = argument;
             }
+            Debug.Assert(markCompilerGenerated == argument.WasCompilerGenerated);
 
             return argument;
         }
