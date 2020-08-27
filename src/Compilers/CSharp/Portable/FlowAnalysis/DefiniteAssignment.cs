@@ -20,7 +20,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -481,8 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
         {
             public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
-            public override bool Equals([AllowNull] Diagnostic x, [AllowNull] Diagnostic y) => x.Equals(y);
-            public override int GetHashCode([DisallowNull] Diagnostic obj) =>
+            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
+            public override int GetHashCode(Diagnostic obj) =>
                 Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
         }
 

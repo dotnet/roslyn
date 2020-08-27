@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
         private readonly IDisposable _dbOwnershipLock;
-        private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             string solutionFilePath,
             string databaseFile,
             IDisposable dbOwnershipLock,
-            IPersistentStorageFaultInjector faultInjectorOpt)
+            IPersistentStorageFaultInjector? faultInjectorOpt)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
             _dbOwnershipLock = dbOwnershipLock;
@@ -272,7 +274,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         }
 
-        public void Initialize(Solution solutionOpt)
+        public void Initialize(Solution? bulkLoadSnapshot)
         {
             if (_shutdownTokenSource.IsCancellationRequested)
             {
@@ -334,7 +336,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, solutionOpt, fetchStringTable);
+            BulkPopulateIds(connection, bulkLoadSnapshot, fetchStringTable);
 
             return;
 

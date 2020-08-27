@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
                 Return DetermineCascadedSymbolsAsync(
                     DirectCast(symbol, INamedTypeSymbol), project, cancellationToken)
             Else
-                Return Task.FromResult(ImmutableArray(Of ISymbol).Empty)
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
         End Function
 

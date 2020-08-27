@@ -240,9 +240,9 @@ my_option2 = my_val2");
             var comp = cmd.Compilation;
             var tree = comp.SyntaxTrees.Single();
             var compilerTreeOptions = comp.Options.SyntaxTreeOptionsProvider;
-            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", out var severity));
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", CancellationToken.None, out var severity));
             Assert.Equal(ReportDiagnostic.Suppress, severity);
-            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", out severity));
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", CancellationToken.None, out severity));
             Assert.Equal(ReportDiagnostic.Suppress, severity);
 
             var analyzerOptions = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;

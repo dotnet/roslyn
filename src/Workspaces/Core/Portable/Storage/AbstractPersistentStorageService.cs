@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// to delete the database and retry opening one more time.  If that fails again, the <see
         /// cref="NoOpPersistentStorage"/> instance will be used.
         /// </summary>
-        protected abstract IChecksummedPersistentStorage? TryOpenDatabase(SolutionKey solutionKey, Solution? solutionOpt, string workingFolderPath, string databaseFilePath);
+        protected abstract IChecksummedPersistentStorage? TryOpenDatabase(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Storage
             => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId);
 
         IPersistentStorage IPersistentStorageService2.GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
-            => this.GetStorage(workspace, solutionKey, solutionOpt: null, checkBranchId);
+            => this.GetStorage(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId);
 
         public IChecksummedPersistentStorage GetStorage(Solution solution)
             => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true);
@@ -60,19 +60,19 @@ namespace Microsoft.CodeAnalysis.Storage
             => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId);
 
         public IChecksummedPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
-            => this.GetStorage(workspace, solutionKey, solutionOpt: null, checkBranchId);
+            => this.GetStorage(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId);
 
-        public IChecksummedPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, Solution? solutionOpt, bool checkBranchId)
+        public IChecksummedPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, bool checkBranchId)
         {
             if (!DatabaseSupported(solutionKey, checkBranchId))
             {
                 return NoOpPersistentStorage.Instance;
             }
 
-            return GetStorageWorker(workspace, solutionKey, solutionOpt);
+            return GetStorageWorker(workspace, solutionKey, bulkLoadSnapshot);
         }
 
-        internal IChecksummedPersistentStorage GetStorageWorker(Workspace workspace, SolutionKey solutionKey, Solution? solutionOpt)
+        internal IChecksummedPersistentStorage GetStorageWorker(Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot)
         {
             lock (_lock)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage!);
                 }
 
-                var workingFolder = TryGetWorkingFolder(workspace, solutionKey, solutionOpt);
+                var workingFolder = TryGetWorkingFolder(workspace, solutionKey, bulkLoadSnapshot);
                 if (workingFolder == null)
                     return NoOpPersistentStorage.Instance;
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     _currentPersistentStorageSolutionId = null;
                 }
 
-                var storage = CreatePersistentStorage(solutionKey, solutionOpt, workingFolder);
+                var storage = CreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolder);
                 Contract.ThrowIfNull(storage);
 
                 // Create and cache a new storage instance associated with this particular solution.
@@ -118,17 +118,17 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private string? TryGetWorkingFolder(Workspace workspace, SolutionKey solutionKey, Solution? solutionOpt)
+        private string? TryGetWorkingFolder(Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot)
         {
             // First, see if we have the new API that just operates on a Workspace/Key.  If so, use that.
             if (_locationService is IPersistentStorageLocationService2 locationService2)
                 return locationService2.TryGetStorageLocation(workspace, solutionKey);
 
             // Otherwise, use the existing API.  However, that API only works if we have a full Solution to pass it.
-            if (solutionOpt == null)
+            if (bulkLoadSnapshot == null)
                 return null;
 
-            return _locationService.TryGetStorageLocation(solutionOpt);
+            return _locationService.TryGetStorageLocation(bulkLoadSnapshot);
         }
 
         private static bool DatabaseSupported(SolutionKey solution, bool checkBranchId)
@@ -147,26 +147,26 @@ namespace Microsoft.CodeAnalysis.Storage
             return true;
         }
 
-        private IChecksummedPersistentStorage CreatePersistentStorage(SolutionKey solutionKey, Solution? solutionOpt, string workingFolderPath)
+        private IChecksummedPersistentStorage CreatePersistentStorage(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            return TryCreatePersistentStorage(solutionKey, solutionOpt, workingFolderPath) ??
-                   TryCreatePersistentStorage(solutionKey, solutionOpt, workingFolderPath) ??
+            return TryCreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolderPath) ??
+                   TryCreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolderPath) ??
                    NoOpPersistentStorage.Instance;
         }
 
         private IChecksummedPersistentStorage? TryCreatePersistentStorage(
             SolutionKey solutionKey,
-            Solution? solutionOpt,
+            Solution? bulkLoadSnapshot,
             string workingFolderPath)
         {
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                return TryOpenDatabase(solutionKey, solutionOpt, workingFolderPath, databaseFilePath);
+                return TryOpenDatabase(solutionKey, bulkLoadSnapshot, workingFolderPath, databaseFilePath);
             }
             catch (Exception ex)
             {
