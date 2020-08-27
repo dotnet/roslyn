@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
 
         protected override void Accept(SymbolVisitor visitor) => visitor.VisitDiscard(this);
-        [return: MaybeNull]
-        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
+        protected override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor) where TResult : default => visitor.VisitDiscard(this);
     }
 }

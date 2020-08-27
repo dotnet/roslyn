@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal class InProcLanguageServer
     {
         private readonly IDiagnosticService _diagnosticService;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
@@ -47,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             AbstractRequestHandlerProvider requestHandlerProvider,
             CodeAnalysis.Workspace workspace,
             IDiagnosticService diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider,
             string? clientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
@@ -61,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
+            _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
 
@@ -231,35 +235,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             => _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
-            // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
-            // the worst outcome here is that guests may not see all diagnostics.
-            try
+            // LSP doesnt support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
+            if (e.DocumentId != null && e.Solution != null)
             {
-                // LSP doesnt support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
-                if (e.DocumentId != null && e.Solution != null)
+                var document = e.Solution.GetDocument(e.DocumentId);
+                if (document == null || document.FilePath == null)
                 {
-                    var document = e.Solution.GetDocument(e.DocumentId);
-                    if (document == null || document.FilePath == null)
-                    {
-                        return;
-                    }
-
-                    // Only publish document diagnostics for the languages this provider supports.
-                    if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
-                    {
-                        return;
-                    }
-
-                    // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
-                    await PublishDiagnosticsAsync(document).ConfigureAwait(false);
+                    return;
                 }
-            }
-            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
-            {
+
+                // Only publish document diagnostics for the languages this provider supports.
+                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
+                {
+                    return;
+                }
+
+                // LSP does not currently support publishing diagnostics incrememntally, so we re-publish all diagnostics.
+                var asyncToken = _listener.BeginAsyncOperation(nameof(PublishDiagnosticsAsync));
+                Task.Run(() => PublishDiagnosticsAsync(document))
+                    .CompletesAsyncOperation(asyncToken);
             }
         }
 

@@ -709,8 +709,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         return;
                     }
 
-                    string? newLine = null;
-                    newLine = originalVBErrorString.Substring(0, endParenthesisLocation) + "," + column + originalVBErrorString.Substring(endParenthesisLocation);
+                    string? newLine = originalVBErrorString.Substring(0, endParenthesisLocation) + "," + column + originalVBErrorString.Substring(endParenthesisLocation);
 
                     // Output all of the lines of the error, but with the modified first line as well.
                     Log.LogMessageFromText(newLine, originalVBError.MessageImportance);

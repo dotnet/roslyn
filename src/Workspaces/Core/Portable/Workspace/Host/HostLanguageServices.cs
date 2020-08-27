@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -28,14 +27,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// Gets a language specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.
         /// </summary>
-        [return: MaybeNull]
-        public abstract TLanguageService GetService<TLanguageService>() where TLanguageService : ILanguageService;
+        public abstract TLanguageService? GetService<TLanguageService>() where TLanguageService : ILanguageService;
 
         /// <summary>
         /// Gets a language specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns throws <see cref="InvalidOperationException"/>.
         /// </summary>
-        [return: NotNull]
         public TLanguageService GetRequiredService<TLanguageService>() where TLanguageService : ILanguageService
         {
             var service = GetService<TLanguageService>();
