@@ -65,6 +65,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
 
+        // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
+        // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
+        public static Completion.CompletionTriggerKind LSPToRoslynCompletionTriggerKind(LSP.CompletionTriggerKind triggerKind)
+            => triggerKind switch
+            {
+                LSP.CompletionTriggerKind.Invoked => Completion.CompletionTriggerKind.Invoke,
+                LSP.CompletionTriggerKind.TriggerCharacter => Completion.CompletionTriggerKind.Insertion,
+                _ => throw new ArgumentException($"LSP.CompletionTriggerKind {triggerKind} unexpected.")
+            };
+
         public static Uri GetUriFromFilePath(string? filePath)
         {
             if (filePath is null)

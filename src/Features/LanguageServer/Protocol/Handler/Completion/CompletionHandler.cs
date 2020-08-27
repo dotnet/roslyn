@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<LSP.CompletionItem>();
             }
 
-            // C# and VB share the same LSP language server, and thus by default share the same trigger characters.
+            // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // The '{' character, while a trigger character in VB, is not a trigger character in C#, so we must
             // handle it in a special case.
             if (request.Context.TriggerCharacter == "{")
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
             // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
             var triggerCharacter = char.Parse(request.Context.TriggerCharacter);
-            var triggerKind = GetTriggerKind(request.Context.TriggerKind);
+            var triggerKind = ProtocolConversions.LSPToRoslynCompletionTriggerKind(request.Context.TriggerKind);
             var completionTrigger = new CompletionTrigger(triggerKind, triggerCharacter);
 
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -87,25 +87,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
 
-            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, triggerCharacter, triggerKind)).ToArray();
+            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger)).ToArray();
 
             // local functions
             static LSP.CompletionItem CreateLSPCompletionItem(
                 LSP.CompletionParams request,
                 CompletionItem item,
                 bool useVSCompletionItem,
-                char triggerCharacter,
-                CompletionTriggerKind triggerKind)
+                CompletionTrigger completionTrigger)
             {
                 if (useVSCompletionItem)
                 {
-                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, triggerCharacter, triggerKind);
+                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, completionTrigger);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
                 else
                 {
-                    var roslynCompletionItem = CreateCompletionItem<RoslynCompletionItem>(request, item, triggerCharacter, triggerKind);
+                    var roslynCompletionItem = CreateCompletionItem<RoslynCompletionItem>(request, item, completionTrigger);
                     roslynCompletionItem.Tags = item.Tags.ToArray();
                     return roslynCompletionItem;
                 }
@@ -114,8 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static TCompletionItem CreateCompletionItem<TCompletionItem>(
                 LSP.CompletionParams request,
                 CompletionItem item,
-                char triggerCharacter,
-                CompletionTriggerKind triggerKind) where TCompletionItem : LSP.CompletionItem, new()
+                CompletionTrigger completionTrigger) where TCompletionItem : LSP.CompletionItem, new()
             {
                 var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
                 var completionItem = new TCompletionItem
@@ -130,18 +128,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         TextDocument = request.TextDocument,
                         Position = request.Position,
                         DisplayText = item.DisplayText,
-                        TriggerCharacter = triggerCharacter,
-                        TriggerKind = triggerKind // TO-DO: Can we pass in a Roslyn type here?
+                        CompletionTrigger = completionTrigger,
                     },
-                    Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection && triggerCharacter != '(',
+                    Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
+                    CommitCharacters = GetCommitCharacters(item)
                 };
-
-                // We only set the commit characters if they differ from the default.
-                var commitCharacters = GetCommitCharacters(item);
-                if (commitCharacters != null)
-                {
-                    completionItem.CommitCharacters = commitCharacters;
-                }
 
                 return completionItem;
             }
@@ -205,13 +196,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return LSP.CompletionItemKind.Text;
         }
-
-        private static CompletionTriggerKind GetTriggerKind(LSP.CompletionTriggerKind triggerKind)
-            => triggerKind switch
-            {
-                LSP.CompletionTriggerKind.Invoked => CompletionTriggerKind.Invoke,
-                LSP.CompletionTriggerKind.TriggerCharacter => CompletionTriggerKind.Insertion,
-                _ => throw new ArgumentException($"LSP.CompletionTriggerKind {triggerKind} unexpected.")
-            };
     }
 }
