@@ -2366,5 +2366,48 @@ public class TestClass
 ##
     private int Callee(int x) => x (op)= 1;
 ##}".Replace("(op)", op));
+
+        [Fact]
+        public Task TestNestedConditionalInvocationExpression()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+public class LinkedList
+{
+    public LinkedList Next { get; }
+}
+
+public class TestClass
+{
+    public void Caller()
+    {
+        var l = new LinkedList();
+        Cal[||]lee(l);
+    }
+
+    private string Callee(LinkedList l)
+    {
+        return l?.Next?.Next?.Next?.Next?.ToString();
+    }
+}
+", @"
+public class LinkedList
+{
+    public LinkedList Next { get; }
+}
+
+public class TestClass
+{
+    public void Caller()
+    {
+        var l = new LinkedList();
+        l?.Next?.Next?.Next?.Next?.ToString();
+    }
+##
+    private string Callee(LinkedList l)
+    {
+        return l?.Next?.Next?.Next?.Next?.ToString();
+    }
+##}
+");
+
     }
 }

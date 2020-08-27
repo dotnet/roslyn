@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return new InlineMethodContext(
                 localDeclarationStatementsNeedInsert,
                 statementContainsCallee,
-                Parenthesize(inlineExpression)
+                syntaxGenerator.AddParentheses(inlineExpression)
                     // add the trivia of the calleeInvocationSyntaxNode to make sure the format is correct
                     .WithTriviaFrom(calleeInvocationNode),
                 calleeInvocationNode);

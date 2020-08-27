@@ -55,10 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return symbol.GenerateTypeSyntax()
         End Function
 
-        Protected Overrides Function Parenthesize(expressionNode As ExpressionSyntax) As ExpressionSyntax
-            Return expressionNode.Parenthesize()
-        End Function
-
         Protected Overrides Function TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(calleeInvocationNode As InvocationExpressionSyntax, calleeMethodSymbol As IMethodSymbol, inlineExpressionNode As ExpressionSyntax, statementContainsCallee As StatementSyntax, syntaxGenerator As SyntaxGenerator, ByRef inlineSyntaxNode As SyntaxNode, ByRef syntaxNodeToReplace As SyntaxNode) As Boolean
             Return False
         End Function

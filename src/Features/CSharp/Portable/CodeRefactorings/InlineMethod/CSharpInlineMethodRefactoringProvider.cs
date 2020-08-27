@@ -54,10 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             {
                 // 2. If it is an Arrow Expression
                 var arrowExpressionNode = methodDeclarationSyntax.ExpressionBody;
-                if (arrowExpressionNode != null)
-                {
-                    return arrowExpressionNode.Expression;
-                }
+                return arrowExpressionNode?.Expression;
             }
 
             return null;
@@ -81,8 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         protected override SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar)
             => symbol.GenerateTypeSyntax(allowVar);
 
-        protected override ExpressionSyntax Parenthesize(ExpressionSyntax expressionSyntax)
-            => expressionSyntax.Parenthesize();
         protected override bool IsValidExpressionUnderStatementExpression(ExpressionSyntax expressionNode)
         {
             // C# Expression Statements defined in the language reference
@@ -101,9 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             //     | pre_decrement_expression
             //     | await_expression
             //     ;
-            var isNullConditionalInvocationExpression =
-                expressionNode is ConditionalAccessExpressionSyntax conditionalAccessExpressionSyntax
-                && conditionalAccessExpressionSyntax.WhenNotNull.IsKind(SyntaxKind.InvocationExpression);
+            var isNullConditionalInvocationExpression = IsNullConditionalInvocationExpression(expressionNode);
 
             return expressionNode.IsKind(SyntaxKind.InvocationExpression)
                    || isNullConditionalInvocationExpression
@@ -166,6 +159,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                     inlineExpressionNode.Parenthesize()).Parenthesize();
                 syntaxNodeToReplace = calleeInvocationNode;
                 return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsNullConditionalInvocationExpression(ExpressionSyntax expressionSyntax)
+        {
+            if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccessExpressionSyntax)
+            {
+                var whenNotNull = conditionalAccessExpressionSyntax.WhenNotNull;
+                return whenNotNull.IsKind(SyntaxKind.InvocationExpression) || IsNullConditionalInvocationExpression(whenNotNull);
             }
 
             return false;

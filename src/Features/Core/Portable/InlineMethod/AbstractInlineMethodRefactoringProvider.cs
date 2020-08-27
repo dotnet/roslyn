@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract TExpressionSyntax? GetInlineExpression(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
         protected abstract SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode);
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
-        protected abstract TExpressionSyntax Parenthesize(TExpressionSyntax expressionNode);
         protected abstract bool TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(
             TInvocationSyntax calleeInvocationNode,
             IMethodSymbol calleeMethodSymbol,
