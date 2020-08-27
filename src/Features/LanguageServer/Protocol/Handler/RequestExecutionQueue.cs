@@ -108,11 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Create a task completion source that will represent the processing of this request to the caller
             var completion = new TaskCompletionSource<TResponseType>();
 
-            // If the queue is not accepting any more items then we just fault immediately as this queue has been shut down.
-            if (_queue.IsCompleted)
-            {
-                completion.SetException(new InvalidOperationException("Server has not been initialized, or was requested to shut down."));
-            }
+            // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
             var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, textDocument,
@@ -152,11 +148,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var didEnqueue = _queue.TryEnqueue(item);
 
-            // If the queue got shut down while we were busy above, the enqueue will fail, so we just fault the task immediately.
+            // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                completion.SetException(new InvalidOperationException("Server has not been initialized, or was requested to shut down."));
+                completion.SetException(new InvalidOperationException("Server was requested to shut down."));
             }
 
             return completion.Task;
