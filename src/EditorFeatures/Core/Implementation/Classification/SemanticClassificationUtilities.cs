@@ -173,16 +173,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             List<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
+            // Note: we do this work in a Task.Run to ensure that nothing we do (sync or async) ends up causing blocking
+            // on the UI thread inside of IWorkspaceStatusService.  This is necessary as synchronous tagging will cause
+            // us to make an explicit .Wait call on the tagging tasks.  If this thread in any way ended up blocking on 
+            // the UI thread, we would deadlock.
             var fullyLoadedStateTask = s_workspaceToFullyLoadedStateTask.GetValue(
-                workspace, w =>
+                document.Project.Solution.Workspace,
+                w => Task.Run(async () =>
                 {
-                    var workspaceLoadedService = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                    return workspaceLoadedService.WaitUntilFullyLoadedAsync(CancellationToken.None);
-                });
+                    var workspaceLoadedService = w.Services.GetRequiredService<IWorkspaceStatusService>();
+                    await workspaceLoadedService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
+                }));
 
             // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
             // New code will not be semantically classified, but will eventually when the project fully loads.
+            //
+            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+            // fully loaded.
             var isFullyLoaded = fullyLoadedStateTask.IsCompleted;
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
