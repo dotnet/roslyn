@@ -43,8 +43,11 @@ void M()
         }
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
-                CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = GetRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(queue, LSP.Methods.TextDocumentFormattingName,
+                           CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri)
             => new LSP.DocumentFormattingParams()

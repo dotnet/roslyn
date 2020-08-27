@@ -97,8 +97,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
         }
 
         private static async Task<LSP.ActiveProjectContexts?> RunGetProjectContext(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.GetTextDocumentWithContextParams, LSP.ActiveProjectContexts?>(LSP.MSLSPMethods.ProjectContextsName,
-                CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);
+        {
+            var queue = GetRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.GetTextDocumentWithContextParams, LSP.ActiveProjectContexts?>(queue, LSP.MSLSPMethods.ProjectContextsName,
+                           CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);
+        }
 
         private static LSP.GetTextDocumentWithContextParams CreateGetProjectContextParams(Uri uri)
             => new LSP.GetTextDocumentWithContextParams()

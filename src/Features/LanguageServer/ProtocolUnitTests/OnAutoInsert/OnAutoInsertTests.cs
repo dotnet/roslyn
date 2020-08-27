@@ -204,9 +204,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         }
 
         private static async Task<LSP.DocumentOnAutoInsertResponseItem[]> RunOnAutoInsertAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
-            => await GetLanguageServer(solution)
-            .ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>(MSLSPMethods.OnAutoInsertName,
-                CreateDocumentOnAutoInsertParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = GetRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>(queue, MSLSPMethods.OnAutoInsertName,
+                           CreateDocumentOnAutoInsertParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static LSP.DocumentOnAutoInsertParams CreateDocumentOnAutoInsertParams(string characterTyped, LSP.Location locationTyped)
             => new LSP.DocumentOnAutoInsertParams()

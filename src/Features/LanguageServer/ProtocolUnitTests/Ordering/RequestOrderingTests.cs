@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             using var workspace = CreateTestWorkspace("class C { }", out _);
             var solution = workspace.CurrentSolution;
 
+            var queue = GetRequestQueue(solution);
             var languageServer = GetLanguageServer(solution);
             var clientCapabilities = new LSP.ClientCapabilities();
 
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             foreach (var request in requests)
             {
                 request.RequestOrder = order++;
-                waitables.Add(languageServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
+                waitables.Add(languageServer.ExecuteRequestAsync<TestRequest, TestResponse>(queue, request.MethodName, request, clientCapabilities, null, CancellationToken.None));
             }
 
             return waitables;

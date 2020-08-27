@@ -335,11 +335,14 @@ namespace Roslyn.Test.Utilities
         private protected static LanguageServerProtocol GetLanguageServer(Solution solution)
         {
             var workspace = (TestWorkspace)solution.Workspace;
-            var server = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+            return workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+        }
+
+        private protected static RequestExecutionQueue GetRequestQueue(Solution solution)
+        {
+            var workspace = (TestWorkspace)solution.Workspace;
             var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            var queue = new RequestExecutionQueue(solutionProvider);
-            server.SetRequestQueue(queue);
-            return server;
+            return new RequestExecutionQueue(solutionProvider);
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

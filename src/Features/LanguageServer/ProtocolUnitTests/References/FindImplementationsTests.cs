@@ -124,7 +124,10 @@ class {|implementation:C|} : A { }";
         }
 
         private static async Task<LSP.Location[]> RunFindImplementationAsync(Solution solution, LSP.Location caret)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentImplementationName,
-                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = GetRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(queue, LSP.Methods.TextDocumentImplementationName,
+                           CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
     }
 }

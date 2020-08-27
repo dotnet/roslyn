@@ -39,8 +39,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         }
 
         private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName,
-                completionItem, clientCapabilities, null, CancellationToken.None);
+        {
+            var queue = GetRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(queue, LSP.Methods.TextDocumentCompletionResolveName,
+                           completionItem, clientCapabilities, null, CancellationToken.None);
+        }
 
         private static LSP.VSCompletionItem CreateResolvedCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters,
             ClassifiedTextElement description, string detail, string documentation)

@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal abstract class AbstractRequestHandlerProvider
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
-        private RequestExecutionQueue? _queue;
 
         public AbstractRequestHandlerProvider(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string? languageName = null)
         {
@@ -37,15 +36,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return requestHandlerDictionary.ToImmutable();
         }
 
-        public void SetRequestQueue(RequestExecutionQueue queue)
-        {
-            _queue = queue;
-        }
-
-        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
+        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
             string? clientName, CancellationToken cancellationToken) where RequestType : class
         {
-            Contract.ThrowIfNull(_queue);
             Contract.ThrowIfNull(request);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
 
@@ -57,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var handler = (IRequestHandler<RequestType, ResponseType>?)handlerEntry.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return _queue.ExecuteAsync(mutatesSolutionState, handler, request, clientCapabilities, clientName, cancellationToken);
+            return queue.ExecuteAsync(mutatesSolutionState, handler, request, clientCapabilities, clientName, cancellationToken);
         }
     }
 }

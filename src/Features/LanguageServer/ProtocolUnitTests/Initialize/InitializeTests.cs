@@ -23,8 +23,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
         }
 
         private static async Task<LSP.InitializeResult> RunInitializeAsync(Solution solution, LSP.InitializeParams request)
-            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName,
-                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = GetRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(queue, LSP.Methods.InitializeName,
+                           request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static void AssertServerCapabilities(LSP.ServerCapabilities actual)
         {

@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         private static async Task<LSP.CompletionItem[]> RunGetCompletionsAsync(Solution solution, LSP.Location caret)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionItem[]>(LSP.Methods.TextDocumentCompletionName,
+            var queue = GetRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionItem[]>(queue, LSP.Methods.TextDocumentCompletionName,
                            CreateCompletionParams(caret), clientCapabilities, null, CancellationToken.None);
         }
     }

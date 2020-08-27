@@ -61,7 +61,8 @@ class A
 
         private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(Solution solution, LSP.Location caret)
         {
-            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
+            var queue = GetRequestQueue(solution);
+            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(queue, LSP.Methods.TextDocumentDocumentHighlightName,
                 CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
             Array.Sort(results, (h1, h2) =>
             {

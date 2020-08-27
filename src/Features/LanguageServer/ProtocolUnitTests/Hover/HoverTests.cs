@@ -190,8 +190,11 @@ $@"<Workspace>
         }
 
         private static async Task<LSP.VSHover> RunGetHoverAsync(Solution solution, LSP.Location caret, ProjectId projectContext = null)
-            => (LSP.VSHover)await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = GetRequestQueue(solution);
+            return (LSP.VSHover)await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(queue, LSP.Methods.TextDocumentHoverName,
+                           CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private void VerifyContent(LSP.VSHover result, string expectedContent)
         {
