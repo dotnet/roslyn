@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     {
         /// <summary>
         /// Mapping from workspaces to a task representing when they are fully loaded.  While this task is not complete,
-        /// the workspace is still loading.  Once complSemanticClassificationUtilitiesete the workspace is loaded.  We store the task around, instead
+        /// the workspace is still loading.  Once complete the workspace is loaded.  We store the task around, instead
         /// of just awaiting <see cref="IWorkspaceStatusService.IsFullyLoadedAsync"/> as actually awaiting that call
         /// takes non-neglible time (upwards of several hundred ms, to a second), whereas we can actually just use the
         /// status of the <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync"/> task to know when we have
