@@ -981,7 +981,24 @@ namespace Microsoft.CodeAnalysis
 
                 if (!transfomers.IsEmpty)
                 {
+                    var compilationBefore = compilation;
                     compilation = RunTransformers(compilation, transfomers, diagnostics);
+
+                    if (compilation != compilationBefore)
+                    {
+                        foreach (var tree in compilation.SyntaxTrees)
+                        {
+                            if (compilationBefore.ContainsSyntaxTree(tree))
+                                continue;
+
+                            // TODO: make the new path better reflect the old path?
+                            var newTree = tree.WithFilePath(Path.Combine(Guid.NewGuid().ToString(), Path.GetFileName(tree.FilePath)));
+
+                            compilation = compilation.ReplaceSyntaxTree(tree, newTree);
+
+                            embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(newTree.FilePath, newTree.GetText()));
+                        }
+                    }
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(

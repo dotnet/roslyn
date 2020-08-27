@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
-    <RoslynExToolsetVersion>3.8.0-poc.20421.1</RoslynExToolsetVersion>
+    <RoslynExToolsetVersion>3.8.0-poc.20427.4</RoslynExToolsetVersion>
   </PropertyGroup>
 
   <ItemGroup>
