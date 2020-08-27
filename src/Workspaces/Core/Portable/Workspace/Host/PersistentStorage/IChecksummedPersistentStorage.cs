@@ -7,63 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PersistentStorage;
 
-namespace Microsoft.CodeAnalysis.PersistentStorage
-{
-    internal readonly struct SolutionKey
-    {
-        public readonly SolutionId Id;
-        public readonly string FilePath;
-        public readonly bool IsPrimaryBranch;
-
-        public SolutionKey(SolutionId id, string filePath, bool isPrimaryBranch)
-        {
-            Id = id;
-            FilePath = filePath;
-            IsPrimaryBranch = isPrimaryBranch;
-        }
-
-        public static explicit operator SolutionKey(Solution solution)
-            => new SolutionKey(solution.Id, solution.FilePath, solution.BranchId == solution.Workspace.PrimaryBranchId);
-    }
-
-    internal readonly struct ProjectKey
-    {
-        public readonly ProjectId Id;
-        public readonly string FilePath;
-        public readonly string Name;
-
-        public ProjectKey(ProjectId id, string filePath, string name)
-        {
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-        }
-
-        public static explicit operator ProjectKey(Project project)
-            => new ProjectKey(project.Id, project.FilePath, project.Name);
-    }
-
-    internal readonly struct DocumentKey
-    {
-        public readonly ProjectKey Project;
-
-        public readonly DocumentId Id;
-        public readonly string FilePath;
-        public readonly string Name;
-
-        public DocumentKey(ProjectKey project, DocumentId id, string filePath, string name)
-        {
-            Project = project;
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-        }
-
-        public static explicit operator DocumentKey(Document document)
-            => new DocumentKey((ProjectKey)document.Project, document.Id, document.FilePath, document.Name);
-    }
-}
-
 namespace Microsoft.CodeAnalysis.Host
 {
     internal interface IChecksummedPersistentStorage : IPersistentStorage
