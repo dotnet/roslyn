@@ -222,7 +222,7 @@ namespace Roslyn.Test.Utilities
         protected static LSP.VSCompletionItem CreateCompletionItem(
             string text, LSP.CompletionItemKind kind, string[] tags,
             LSP.CompletionParams requestParameters, bool preselect = false,
-            string[] commitCharacters = null)
+            string[]? commitCharacters = null)
             => new LSP.VSCompletionItem()
             {
                 FilterText = text,
