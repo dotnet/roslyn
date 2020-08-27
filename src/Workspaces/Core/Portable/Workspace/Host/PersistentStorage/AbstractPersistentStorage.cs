@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Host
 
         public abstract Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken);
 
-        protected abstract Task<Checksum> ReadChecksumAsync(ProjectKey projectKey, Project? projectOpt, string name, CancellationToken cancellationToken);
-        protected abstract Task<Checksum> ReadChecksumAsync(DocumentKey documentKey, Document? documentOpt, string name, CancellationToken cancellationToken);
+        protected abstract Task<Checksum> ReadChecksumAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, CancellationToken cancellationToken);
+        protected abstract Task<Checksum> ReadChecksumAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, CancellationToken cancellationToken);
 
         public Task<Checksum> ReadChecksumAsync(ProjectKey projectKey, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync(projectKey, projectOpt: null, name, cancellationToken);
+            => ReadChecksumAsync(projectKey, bulkLoadSnapshot: null, name, cancellationToken);
 
         public Task<Checksum> ReadChecksumAsync(DocumentKey documentKey, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync(documentKey, documentOpt: null, name, cancellationToken);
+            => ReadChecksumAsync(documentKey, bulkLoadSnapshot: null, name, cancellationToken);
 
         public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
             => ReadChecksumAsync((ProjectKey)project, project, name, cancellationToken);
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Host
 
         public abstract Task<Stream> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);
 
-        protected abstract Task<Stream> ReadStreamAsync(ProjectKey projectKey, Project? projectOpt, string name, Checksum? checksum, CancellationToken cancellationToken);
-        protected abstract Task<Stream> ReadStreamAsync(DocumentKey documentKey, Document? documentOpt, string name, Checksum? checksum, CancellationToken cancellationToken);
+        protected abstract Task<Stream> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken);
+        protected abstract Task<Stream> ReadStreamAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken);
 
         public Task<Stream> ReadStreamAsync(ProjectKey projectKey, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(projectKey, projectOpt: null, name, checksum, cancellationToken);
+            => ReadStreamAsync(projectKey, bulkLoadSnapshot: null, name, checksum, cancellationToken);
 
         public Task<Stream> ReadStreamAsync(DocumentKey documentKey, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(documentKey, documentOpt: null, name, checksum, cancellationToken);
+            => ReadStreamAsync(documentKey, bulkLoadSnapshot: null, name, checksum, cancellationToken);
 
         public Task<Stream> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
             => ReadStreamAsync((ProjectKey)project, project, name, checksum, cancellationToken);
