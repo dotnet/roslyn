@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             static bool TryGetParameterSymbol(
                 SyntaxNode parameterNode,
                 SemanticModel semanticModel,
-                out IParameterSymbol parameter,
+                [NotNullWhen(true)] out IParameterSymbol? parameter,
                 CancellationToken cancellationToken)
             {
-                parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+                parameter = (IParameterSymbol?)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
 
                 return parameter != null && parameter.Name != "";
             }

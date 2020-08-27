@@ -2297,7 +2297,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 break;
                             }
 
-                            var newType = (INamedTypeSymbol)newModel.GetDeclaredSymbol(newTypeSyntax, cancellationToken);
+                            var newType = (INamedTypeSymbol)newModel.GetRequiredDeclaredSymbol(newTypeSyntax, cancellationToken);
                             var oldType = TryGetPartnerType(newTypeSyntax, editScript.Match, oldModel, cancellationToken);
 
                             // There has to be a matching old type syntax since the containing type hasn't been inserted.
@@ -2751,7 +2751,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             Debug.Assert(partner.SyntaxTree == partnerModel.SyntaxTree);
 
-            return (INamedTypeSymbol)partnerModel.GetDeclaredSymbol(partner, cancellationToken);
+            return (INamedTypeSymbol?)partnerModel.GetDeclaredSymbol(partner, cancellationToken);
         }
 
         private Func<SyntaxNode, SyntaxNode?> CreateSyntaxMapForEquivalentNodes(SyntaxNode oldRoot, SyntaxNode newRoot)
