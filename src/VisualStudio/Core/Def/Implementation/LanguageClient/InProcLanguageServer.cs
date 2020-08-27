@@ -126,6 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _shuttingDown = true;
             _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
 
+            ShutdownRequestQueue();
+
             return Task.CompletedTask;
         }
 
@@ -133,8 +135,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task ExitAsync(CancellationToken _)
         {
             Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
-
-            ShutdownRequestQueue();
 
             try
             {
@@ -336,6 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
 
             // The default here is the cancellation token, which these methods don't use, hence the discard name
+            await ShutdownAsync(_: default).ConfigureAwait(false);
             await ExitAsync(_: default).ConfigureAwait(false);
         }
 
