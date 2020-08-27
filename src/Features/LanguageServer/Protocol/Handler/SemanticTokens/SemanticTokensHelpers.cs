@@ -191,15 +191,67 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
+            UnprocessedSemanticToken? tokenToProcess = null;
+
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
             {
+                if (tokenToProcess.HasValue && tokenToProcess.Value._tokenSpanEnd <= classifiedSpans[currentClassifiedSpanIndex].TextSpan.End)
+                {
+                    tokenToProcess = null;
+                }
+
                 currentClassifiedSpanIndex = ComputeNextToken(
                     lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
                     currentClassifiedSpanIndex, tokenTypesToIndex,
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
-                    out var tokenType, out var tokenModifiers);
+                    out var tokenType, out var tokenModifiers, out var unprocessedToken);
 
                 data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
+
+                if (tokenToProcess == null)
+                {
+                    tokenToProcess = unprocessedToken;
+                }
+
+                // If we have an unprocessed token and its end is after the end of the current token but before the start of the next
+                // token, process it.
+                if (tokenToProcess.HasValue)
+                {
+                    var token = tokenToProcess.Value;
+
+                    // If the end of the unprocessed token exceeds the end of the current token, we can just ignore the unprocessed
+                    // token since other tokens will have already reported the relevant information.
+                    var classifiedTextSpan = classifiedSpans[currentClassifiedSpanIndex].TextSpan;
+                    if (currentClassifiedSpanIndex + 1 < classifiedSpans.Length &&
+                        token._tokenSpanEnd <= classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan.Start)
+                    {
+                        var textSpan = new TextSpan(classifiedTextSpan.End, token._tokenSpanEnd - classifiedTextSpan.End);
+
+                        // 1. Token line number delta, relative to the previous token
+                        var linePosition = lines.GetLinePositionSpan(textSpan).Start;
+                        var lineNumber = linePosition.Line;
+                        deltaLine = lineNumber - lastLineNumber;
+
+                        // 2. Start char
+                        var startCharacter = linePosition.Character;
+                        if (lastLineNumber == lineNumber)
+                        {
+                            startCharacterDelta = startCharacter - lastStartCharacter;
+                        }
+
+                        lastLineNumber = lineNumber;
+                        lastStartCharacter = startCharacter;
+
+                        data.AddRange(deltaLine, startCharacterDelta, textSpan.Length, token._tokenType, 0);
+
+                        tokenToProcess = null;
+                    }
+                }
+
+                if (tokenToProcess.HasValue)
+                {
+                    // do the same thing for end of the file case
+                }
             }
 
             return data.ToArray();
@@ -216,8 +268,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             out int startCharacterDeltaOut,
             out int tokenLengthOut,
             out int tokenTypeOut,
-            out int tokenModifiersOut)
+            out int tokenModifiersOut,
+            out UnprocessedSemanticToken? unprocessedToken)
         {
+            unprocessedToken = null;
+
             // Each semantic token is represented in LSP by five numbers:
             //     1. Token line number delta, relative to the previous token
             //     2. Token start character delta, relative to the previous token
@@ -226,7 +281,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             //     5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
 
             var classifiedSpan = classifiedSpans[currentClassifiedSpanIndex];
-            var linePosition = lines.GetLinePositionSpan(classifiedSpan.TextSpan).Start;
+            var originalTextSpan = classifiedSpan.TextSpan;
+            var linePosition = lines.GetLinePositionSpan(originalTextSpan).Start;
             var lineNumber = linePosition.Line;
             var startCharacter = linePosition.Character;
 
@@ -243,13 +299,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
 
             // 3. Token length
-            var tokenLength = classifiedSpan.TextSpan.Length;
+            var tokenLength = originalTextSpan.Length;
 
             // We currently only have one modifier (static). The logic below will need to change in the future if other
             // modifiers are added in the future.
             var modifierBits = TokenModifiers.None;
             var tokenTypeIndex = 0;
-            var originalTextSpan = classifiedSpan.TextSpan;
 
             // Classified spans with the same text span should be combined into one token.
             while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
@@ -261,7 +316,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     // from integer to LSP token types).
                     tokenTypeIndex = GetTokenTypeIndex(classificationType, tokenTypesToIndex);
 
-                    // If the token type is a verbatim string literal followed by a regex 
+                    // Note: There can be overlapping spans, e.g. in the case of strings with escape and/or regex characters.
+                    // If the current text spans overlaps with another span, we shorten the token and then generate the rest of it
+                    // later into a separate token.
+                    if (currentClassifiedSpanIndex + 1 < classifiedSpans.Length &&
+                        classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan.Start < originalTextSpan.Start + originalTextSpan.Length)
+                    {
+                        tokenLength = classifiedSpans[currentClassifiedSpanIndex + 1].TextSpan.Start - originalTextSpan.Start;
+                        unprocessedToken = new UnprocessedSemanticToken(originalTextSpan.End, tokenTypeIndex);
+                    }
                 }
                 else
                 {
@@ -297,6 +360,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(tokenTypeStr, "tokenTypeStr is null.");
             Contract.ThrowIfFalse(tokenTypesToIndex.TryGetValue(tokenTypeStr, out var tokenTypeIndex), "No matching token type index found.");
             return tokenTypeIndex;
+        }
+
+        private struct UnprocessedSemanticToken
+        {
+            internal int _tokenSpanEnd;
+            internal int _tokenType;
+
+            public UnprocessedSemanticToken(int tokenSpanEnd, int tokenType)
+            {
+                _tokenSpanEnd = tokenSpanEnd;
+                _tokenType = tokenType;
+            }
         }
     }
 }
