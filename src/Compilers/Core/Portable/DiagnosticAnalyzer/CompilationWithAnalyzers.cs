@@ -1287,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (diagnostic != null)
                 {
-                    var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
+                    var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic, CancellationToken.None);
                     if (effectiveDiagnostic != null)
                     {
                         yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
