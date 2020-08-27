@@ -228,8 +228,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             RequestServerShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
 
-            _cancelSource.Cancel();
-            DrainQueue();
+            Shutdown();
         }
 
         /// <summary>
