@@ -210,40 +210,7 @@ Public Class TestClass
         End Function
 
         <Fact>
-        Public Function TestInlineLambda1() As Task
-            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
-                "
-Imports System
-Public Class TestClass
-    Public Sub Caller(i As Integer, j As Integer)
-        Dim x = Call[||]ee(i, j)
-    End Sub
-
-    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
-        return Function()
-                   Return i * j
-               End Function
-    End Function
-End Class",
-                "
-Imports System
-Public Class TestClass
-    Public Sub Caller(i As Integer, j As Integer)
-        Dim x = Function()
-                   Return i * j
-               End Function
-    End Sub
-##
-    Private Function Callee(i As Integer, j As Integer) as Func(Of Integer)
-        return Function()
-                   Return i * j
-               End Function
-    End Function
-##End Class")
-        End Function
-
-        <Fact>
-        Public Function TestInlineLambda2() As Task
+        Public Function TestInlineLambda() As Task
             Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 "
 Imports System

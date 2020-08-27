@@ -904,7 +904,7 @@ public class TestClass
     public void Caller(bool x)
     {
         System.Console.WriteLine("""");
-        Func<Task> f = async () => await Task.Delay(100);
+        var f = (Func<Task>)(async () => await Task.Delay(100));
     }
 ##
     private Func<Task> Callee()
@@ -1441,52 +1441,6 @@ public class TestClass
     }
 ##
     private bool Callee(System.Exception e, int i) => i == 1;
-##
-    private int SomeInt() => 10;
-}");
-
-        [Fact]
-        public Task TestInlineMethodWithinUsingStatement()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
-public class TestClass2
-{
-    private class DisposeClass : System.IDisposable
-    {
-        public void Dispose()
-        {
-        }
-    }
-
-    private void Calller()
-    {
-        using (var x = Cal[||]lee(SomeInt()))
-        {
-        }
-    }
-
-    private System.IDisposable Callee(int i) => new DisposeClass();
-
-    private int SomeInt() => 10;
-}",
-                @"
-public class TestClass2
-{
-    private class DisposeClass : System.IDisposable
-    {
-        public void Dispose()
-        {
-        }
-    }
-
-    private void Calller()
-    {
-        int i = SomeInt();
-        using (var x = new DisposeClass())
-        {
-        }
-    }
-##
-    private System.IDisposable Callee(int i) => new DisposeClass();
 ##
     private int SomeInt() => 10;
 }");
@@ -2366,6 +2320,68 @@ public class TestClass
 ##
     private int Callee(int x) => x (op)= 1;
 ##}".Replace("(op)", op));
+
+        [Fact]
+        public Task TestInlineLambdaInsideInvocation()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee()();
+    }
+
+    private Func<int> Callee()
+    {
+        return () => 1;
+    }
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = ((Func<int>)(() => 1))();
+    }
+##
+    private Func<int> Callee()
+    {
+        return () => 1;
+    }
+##}
+");
+
+        [Fact]
+        public Task TestInlineTypeCast()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee();
+    }
+
+    private long Callee()
+    {
+        return 1;
+    }
+}
+", @"
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = (long)1;
+    }
+##
+    private long Callee()
+    {
+        return 1;
+    }
+##}
+");
 
         [Fact]
         public Task TestNestedConditionalInvocationExpression()

@@ -34,14 +34,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         protected abstract TExpressionSyntax? GetInlineExpression(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
         protected abstract SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode);
         protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
-        protected abstract bool TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(
-            TInvocationSyntax calleeInvocationNode,
-            IMethodSymbol calleeMethodSymbol,
-            TExpressionSyntax inlineExpressionNode,
-            TStatementSyntax statementContainsCallee,
-            SyntaxGenerator syntaxGenerator,
-            out SyntaxNode? inlineSyntaxNode,
-            out SyntaxNode? syntaxNodeToReplace);
 
         /// <summary>
         /// Check if <paramref name="expressionNode"/> could be used as an Expression in ExpressionStatement

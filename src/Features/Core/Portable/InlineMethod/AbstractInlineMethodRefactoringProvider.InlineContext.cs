@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     _semanticFactsService.GenerateUniqueLocalName(
                         semanticModel,
                         calleeInvocationNode,
-                        null,
+                        containerOpt: null,
                         TemporaryName,
                         renameTable.Values,
                         cancellationToken);
@@ -357,49 +357,45 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     statementContainsCallee);
             }
 
-            // Handle the special cases for C# if the return type is delegate.
-            // Case 1:
+            // Add type cast and parenthesis to the inline expression.
+            // It is required to cover cases like:
+            // Case 1 (parenthesis added):
+            // Before:
+            // void Caller() { var x = 3 * Callee(); }
+            // int Callee() { return 1 + 2; }
+            //
+            // After
+            // void Caller() { var x = 3 * (1 + 2); }
+            // int Callee() { return 1 + 2; }
+            //
+            // Case 2 (type cast)
             // Before:
             // void Caller() { var x = Callee(); }
-            // Action Callee() { return () => {}; }
+            // long Callee() { return 1 }
             //
-            // After inline it should be
-            // void Caller() { Action x = () => {};}
-            // Action Callee() { return () => {}; }
-            // because 'var' can't be used as the delegate type in local declaration syntax
-            // For VB, 'Dim' can be used for 'Sub' and 'Function'
+            // After
+            // void Caller() { var x = (long)1; }
+            // int Callee() { return 1; }
             //
-            // Case 2:
-            // Before:
-            // void Caller() { var x = Callee()(); }
-            // Func<int> Callee() { return () => 1; }
-            // After:
-            // void Caller() { var x = ((Func<int>)(() => 1))(); }
-            // Func<int> Callee() { return () => 1; }
-            // This is also not a problem for VB
-            if (calleeMethodSymbol.ReturnType.IsDelegateType()
-                && TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(
-                    calleeInvocationNode,
-                    calleeMethodSymbol,
-                    inlineExpression,
-                    statementContainsCallee,
-                    syntaxGenerator,
-                    out var inlineExpresionNode,
-                    out var syntaxNodeToReplace))
+            // Case 3 (type cast & additional parenthesis)
+            // // Before:
+            // // void Caller() { var x = Callee()(); }
+            // // Func<int> Callee() { return () => 1; }
+            // // After:
+            // // void Caller() { var x = ((Func<int>)(() => 1))(); }
+            // // Func<int> Callee() { return () => 1; }
+            if (!calleeMethodSymbol.ReturnsVoid)
             {
-                return new InlineMethodContext(
-                    localDeclarationStatementsNeedInsert,
-                    statementContainsCallee,
-                    inlineExpresionNode!,
-                    syntaxNodeToReplace!);
+                inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
+                    syntaxGenerator.CastExpression(
+                        GenerateTypeSyntax(calleeMethodSymbol.ReturnType, allowVar: false),
+                        syntaxGenerator.AddParentheses(inlineExpression)));
             }
 
             return new InlineMethodContext(
                 localDeclarationStatementsNeedInsert,
                 statementContainsCallee,
-                syntaxGenerator.AddParentheses(inlineExpression)
-                    // add the trivia of the calleeInvocationSyntaxNode to make sure the format is correct
-                    .WithTriviaFrom(calleeInvocationNode),
+                inlineExpression.WithTriviaFrom(calleeInvocationNode),
                 calleeInvocationNode);
         }
 

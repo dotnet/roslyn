@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineMethod
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
@@ -53,10 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
         Protected Overrides Function GenerateTypeSyntax(symbol As ITypeSymbol, allowVar As Boolean) As SyntaxNode
             Return symbol.GenerateTypeSyntax()
-        End Function
-
-        Protected Overrides Function TryGetInlineSyntaxNodeAndReplacementNodeForDelegate(calleeInvocationNode As InvocationExpressionSyntax, calleeMethodSymbol As IMethodSymbol, inlineExpressionNode As ExpressionSyntax, statementContainsCallee As StatementSyntax, syntaxGenerator As SyntaxGenerator, ByRef inlineSyntaxNode As SyntaxNode, ByRef syntaxNodeToReplace As SyntaxNode) As Boolean
-            Return False
         End Function
 
         Protected Overrides Function IsValidExpressionUnderStatementExpression(expressionNode As ExpressionSyntax) As Boolean
