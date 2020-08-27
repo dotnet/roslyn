@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
                 ' 3. Compilation level
                 isSpecified = True
-            ElseIf syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, report) Then
+            ElseIf syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, report) Then
                 ' 4. Global analyzer config level
                 isSpecified = True
             Else

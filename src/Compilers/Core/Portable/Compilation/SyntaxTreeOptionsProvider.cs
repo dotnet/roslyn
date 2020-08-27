@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get diagnostic severity set globally for a given diagnostic identifier
         /// </summary>
-        public abstract bool TryGetGlobalDiagnosticValue(string diagnosticId, out ReportDiagnostic severity);
+        public abstract bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
     }
 
     internal sealed class CompilerSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public override bool TryGetGlobalDiagnosticValue(string diagnosticId, out ReportDiagnostic severity)
+        public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
         {
             if (_globalOptions.TreeOptions is object)
             {

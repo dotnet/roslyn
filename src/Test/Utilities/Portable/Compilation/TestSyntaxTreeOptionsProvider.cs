@@ -82,7 +82,7 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        public override bool TryGetGlobalDiagnosticValue(string diagnosticId, out ReportDiagnostic severity)
+        public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
         {
             if (_globalOptions is object &&
                 _globalOptions.TryGetValue(diagnosticId, out severity))

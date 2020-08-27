@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 3. Compilation level
                 isSpecified = true;
             }
-            else if (syntaxTreeOptions is object && syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, out report))
+            else if (syntaxTreeOptions is object && syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, out report))
             {
                 // 4. Global analyzer config level
                 isSpecified = true;

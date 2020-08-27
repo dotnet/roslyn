@@ -2951,7 +2951,7 @@ public class C : A {
             solution = solution.AddDocument(sourceDocumentId, "Test.cs", "", filePath: @"Z:\Test.cs");
 
             var originalProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.False(originalProvider.TryGetGlobalDiagnosticValue("CA1234", out _));
+            Assert.False(originalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
 
             var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
             solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
@@ -2962,12 +2962,12 @@ public class C : A {
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From("is_global = true\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
             var newProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.True(newProvider.TryGetGlobalDiagnosticValue("CA1234", out var severity));
+            Assert.True(newProvider.TryGetGlobalDiagnosticValue("CA1234", default, out var severity));
             Assert.Equal(ReportDiagnostic.Error, severity);
 
             solution = solution.RemoveAnalyzerConfigDocument(editorConfigDocumentId);
             var finalProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
-            Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", out _));
+            Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
         }
 
         [Fact]
