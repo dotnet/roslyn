@@ -3209,6 +3209,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         VerifyTypeCharacterConsistency(asMemberAccess.Name, fieldAccessType.GetEnumUnderlyingTypeOrSelf, diagnostics)
                     End If
 
+                    Dim simpleName = TryCast(node, SimpleNameSyntax)
+                    If simpleName IsNot Nothing AndAlso Not fieldAccessType.IsErrorType() Then
+                        VerifyTypeCharacterConsistency(simpleName, fieldAccessType.GetEnumUnderlyingTypeOrSelf, diagnostics)
+                    End If
+
                     If receiver IsNot Nothing AndAlso receiver.IsPropertyOrXmlPropertyAccess() Then
                         receiver = MakeRValue(receiver, diagnostics)
                     End If
