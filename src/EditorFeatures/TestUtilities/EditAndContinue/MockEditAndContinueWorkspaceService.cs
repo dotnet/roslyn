@@ -18,19 +18,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansAsyncImpl;
-        public Func<Solution, SolutionActiveStatementSpanProvider, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionAsyncImpl;
-        public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedActiveStatementSpansAsyncImpl;
+        public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
+        public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedActiveStatementSpansImpl;
         public Action<Solution>? StartDebuggingSessionImpl;
         public StartEditSession? StartEditSessionImpl;
         public EndSession? EndDebuggingSessionImpl;
         public EndSession? EndEditSessionImpl;
-        public Func<Solution, string?, bool>? HasChangesAsyncImpl;
-        public Func<Solution, SolutionActiveStatementSpanProvider, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateAsyncImpl;
-        public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionAsyncImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, (SolutionUpdateStatus, ImmutableArray<Deltas>, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateImpl;
+        public Func<ActiveInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
         public Action<DocumentId>? OnSourceFileUpdatedImpl;
         public Action? CommitSolutionUpdateImpl;
         public Action? DiscardSolutionUpdateImpl;
+        public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<Diagnostic>>? GetDocumentDiagnosticsImpl;
 
         public void CommitSolutionUpdate()
             => CommitSolutionUpdateImpl?.Invoke();
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas, ImmutableArray<DiagnosticData> Diagnostics)>
             EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-            => Task.FromResult((EmitSolutionUpdateAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
+            => Task.FromResult((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
 
         public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
@@ -55,22 +56,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
-            => Task.FromResult((GetBaseActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(documentIds));
+            => Task.FromResult((GetBaseActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(documentIds));
 
         public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
-            => Task.FromResult((GetCurrentActiveStatementPositionAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider, instructionId));
+            => Task.FromResult((GetCurrentActiveStatementPositionImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider, instructionId));
 
         public Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-            => Task.FromResult((GetAdjustedActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
+            => Task.FromResult((GetAdjustedActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
 
         public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+            => Task.FromResult((GetDocumentDiagnosticsImpl ?? throw new NotImplementedException()).Invoke(document, activeStatementSpanProvider));
 
         public Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
-            => Task.FromResult((HasChangesAsyncImpl ?? throw new NotImplementedException()).Invoke(solution, sourceFilePath));
+            => Task.FromResult((HasChangesImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider, sourceFilePath));
 
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
-            => Task.FromResult((IsActiveStatementInExceptionRegionAsyncImpl ?? throw new NotImplementedException()).Invoke(instructionId));
+            => Task.FromResult((IsActiveStatementInExceptionRegionImpl ?? throw new NotImplementedException()).Invoke(instructionId));
 
         public void OnSourceFileUpdated(DocumentId documentId)
             => OnSourceFileUpdatedImpl?.Invoke(documentId);

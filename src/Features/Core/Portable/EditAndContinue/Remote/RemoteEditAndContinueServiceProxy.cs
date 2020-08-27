@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     nameof(IRemoteEditAndContinueService.EmitSolutionUpdateAsync),
                     solution,
                     Array.Empty<object>(),
-                    callbackTarget: null,
+                    callbackTarget: new SolutionActiveStatementProviderCallback(activeStatementSpanProvider),
                     cancellationToken).ConfigureAwait(false);
 
                 deltas = deltasData.SelectAsArray(d => d.Deserialize());

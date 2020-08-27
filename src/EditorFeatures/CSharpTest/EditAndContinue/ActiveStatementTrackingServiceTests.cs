@@ -156,7 +156,7 @@ class C
 
             var encService = new MockEditAndContinueWorkspaceService();
 
-            encService.GetBaseActiveStatementSpansAsyncImpl = documentIds => ImmutableArray.Create(ImmutableArray.Create(
+            encService.GetBaseActiveStatementSpansImpl = documentIds => ImmutableArray.Create(ImmutableArray.Create(
                 (span11, ActiveStatementFlags.IsNonLeafFrame),
                 (span12, ActiveStatementFlags.IsLeafFrame)));
 
