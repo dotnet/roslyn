@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
         private readonly IDisposable _dbOwnershipLock;
-        private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
             string solutionFilePath,
             string databaseFile,
             IDisposable dbOwnershipLock,
-            IPersistentStorageFaultInjector faultInjectorOpt)
+            IPersistentStorageFaultInjector? faultInjectorOpt)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
             _dbOwnershipLock = dbOwnershipLock;
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
-        public void Initialize(Solution solutionOpt)
+        public void Initialize(Solution? bulkLoadSnapshot)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using var pooledConnection = GetPooledConnection();
@@ -300,7 +302,7 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, solutionOpt, fetchStringTable);
+            BulkPopulateIds(connection, bulkLoadSnapshot, fetchStringTable);
         }
     }
 }

@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// to precompute all the information we'd need to put in the ID tables and perform it
         /// all at once per project.
         /// </remarks>
-        private void BulkPopulateIds(SqlConnection connection, Solution? solutionOpt, bool fetchStringTable)
+        private void BulkPopulateIds(SqlConnection connection, Solution? bulkLoadSnapshot, bool fetchStringTable)
         {
             // Can only bulk populate if we were given a snapshot we can walk to grab data from.
-            if (solutionOpt == null)
+            if (bulkLoadSnapshot == null)
                 return;
 
-            foreach (var project in solutionOpt.Projects)
+            foreach (var project in bulkLoadSnapshot.Projects)
                 BulkPopulateProjectIds(connection, project, fetchStringTable);
         }
 

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         }
 
         protected override IChecksummedPersistentStorage? TryOpenDatabase(
-            SolutionKey solutionKey, Solution? solutionOpt, string workingFolderPath, string databaseFilePath)
+            SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath)
         {
             if (!TryInitializeLibraries())
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
                 sqlStorage = new SQLitePersistentStorage(
                      workingFolderPath, solutionKey.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
 
-                sqlStorage.Initialize(solutionOpt);
+                sqlStorage.Initialize(bulkLoadSnapshot);
 
                 return sqlStorage;
             }
