@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
         {
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer? CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (workspace is not VisualStudioWorkspace)
                 return null;
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                     return;
                 }
 
-                var statusService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                var statusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
                 var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
                 Debug.Assert(isFullyLoaded, "We should only be called by the incremental analyzer once the solution is fully loaded.");
 
