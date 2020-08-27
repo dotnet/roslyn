@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected bool CanOfferRefactoring(
             SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts,
-            CancellationToken cancellationToken, [MaybeNullWhen(false)] out IBlockOperation? blockStatementOpt)
+            CancellationToken cancellationToken, out IBlockOperation? blockStatementOpt)
         {
             blockStatementOpt = null;
 
