@@ -15,21 +15,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
     {
         private class TestVerifier : CSharpCodeRefactoringVerifier<CSharpInlineMethodRefactoringProvider>.Test
         {
+            private const string Marker = "##";
             public static async Task TestInRegularAndScript1Async(
                 string initialMarkUp,
                 string expectedMarkUp,
                 bool keepInlinedMethod = true)
             {
-                var test = new TestVerifier { CodeActionIndex = keepInlinedMethod ? 0 : 1 };
-                test.TestState.Sources.Add(initialMarkUp);
-                test.FixedState.Sources.Add(expectedMarkUp);
+                var test = new TestVerifier
+                {
+                    CodeActionIndex = keepInlinedMethod ? 0 : 1,
+                    TestState =
+                    {
+                        Sources = { initialMarkUp }
+                    },
+                    FixedState =
+                    {
+                        Sources = { expectedMarkUp }
+                    }
+                };
+
                 await test.RunAsync().ConfigureAwait(false);
+            }
+
+            public static async Task TestBothKeepAndRemoveInlinedMethodAsync(
+                string initialMarkUp,
+                string expectedMarkUp)
+            {
+                var firstMarkerIndex = expectedMarkUp.IndexOf(Marker);
+                var secondMarkerIndex = expectedMarkUp.LastIndexOf(Marker);
+                if (firstMarkerIndex == -1 || secondMarkerIndex == -1 || firstMarkerIndex == secondMarkerIndex)
+                {
+                    Assert.True(false, "Can't find proper marks that contains inlined method.");
+                }
+
+                var firstPartitionBeforeMarkUp = expectedMarkUp.Substring(0, firstMarkerIndex);
+                var inlinedMethod = expectedMarkUp.Substring(firstMarkerIndex + 2, secondMarkerIndex - firstMarkerIndex - 2);
+                var lastPartitionAfterMarkup = expectedMarkUp.Substring(secondMarkerIndex + 2);
+
+                await TestInRegularAndScript1Async(
+                    initialMarkUp,
+                    string.Concat(
+                        firstPartitionBeforeMarkUp,
+                        inlinedMethod,
+                        lastPartitionAfterMarkup),
+                    keepInlinedMethod: true).ConfigureAwait(false);
+
+                await TestInRegularAndScript1Async(
+                    initialMarkUp,
+                    string.Concat(
+                        firstPartitionBeforeMarkUp,
+                        lastPartitionAfterMarkup),
+                    keepInlinedMethod: false).ConfigureAwait(false);
             }
         }
 
         [Fact]
         public Task TestInlineInvocationExpressionForExpressionStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Collections.Generic;
 public class TestClass
@@ -54,41 +96,16 @@ public class TestClass
         var h = new HashSet<int>();
         h.Add(i);
     }
-
+##
     private bool Callee(int i, HashSet<int> set)
     {
         return set.Add(i);
     }
-}");
-
-        [Fact]
-        public Task TestRemoveTheInlinedMethod()
-            => TestVerifier.TestInRegularAndScript1Async(
-                @"
-public class TestClass
-{
-    private void Caller(int i, int j)
-    {
-        Ca[||]llee(i, j);
-    }
-
-    private void Callee(int i, int j)
-    {
-        System.Console.WriteLine(i + j);
-    }
-}",
-                @"
-public class TestClass
-{
-    private void Caller(int i, int j)
-    {
-        System.Console.WriteLine(i + j);
-    }
-}", keepInlinedMethod: false);
+##}");
 
         [Fact]
         public Task TestInlineMethodWithSingleStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -109,16 +126,16 @@ public class TestClass
     {
         System.Console.WriteLine(i + j);
     }
-
+##
     private void Callee(int i, int j)
     {
         System.Console.WriteLine(i + j);
     }
-}");
+##}");
 
         [Fact]
         public Task TestExtractArrowExpressionBody()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Caller(int i, int j)
@@ -136,14 +153,14 @@ public class TestClass
     {
         System.Console.WriteLine(i + j);
     }
-
+##
     private void Callee(int i, int j)
         => System.Console.WriteLine(i + j);
-}");
+##}");
 
         [Fact]
         public Task TestExtractExpressionBody()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -162,14 +179,14 @@ public class TestClass
     {
         var x = i + j;
     }
-
+##
     private int Callee(int i, int j)
         => i + j;
-}");
+##}");
 
         [Fact]
         public Task TestDefaultValueReplacementForExpressionStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -190,16 +207,16 @@ public class TestClass
     {
         System.Console.WriteLine(false ? 1 : (null ?? ""Hello"").Length);
     }
-
+##
     private void Callee(int i = 1, string c = null, bool y = false)
     {
         System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
     }
-}");
+##}");
 
         [Fact]
         public Task TestDefaultValueReplacementForArrowExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -218,14 +235,14 @@ public class TestClass
     {
         System.Console.WriteLine(false ? 0 : (null ?? ""Hello"").Length);
     }
-
+##
     private void Callee(int i = default, string c = default, bool y = false) =>
         System.Console.WriteLine(y ? i : (c ?? ""Hello"").Length);
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithLiteralValue()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -244,14 +261,14 @@ public class TestClass
     {
         System.Console.WriteLine(1 + (int)'y' + (true ? 1 : ""Hello"".Length));
     }
-
+##
     private void Callee(int i, char c, bool x, string y) =>
         System.Console.WriteLine(i + (int)c + (x ? 1 : y.Length));
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithIdentifierReplacement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -272,16 +289,16 @@ public class TestClass
     {
         System.Console.WriteLine(10 + m + (""Hello"" ?? """"));
     }
-
+##
     private void Callee(int i, int j = 100, string k = null)
     {
         System.Console.WriteLine(i + j + (k ?? """"));
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithMethodExtraction()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -309,12 +326,12 @@ public class TestClass
         float s2 = SomeCaculation(r2);
         System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
     }
-
+##
     private void Callee(float s1, float s2)
     {
         System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
     }
-
+##
     public float SomeCaculation(float r)
     {
         return r * r * 3.14f;
@@ -323,7 +340,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineMethodWithMethodExtractionAndRename()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -351,12 +368,12 @@ public class TestClass
         float s21 = SomeCaculation(s2);
         System.Console.WriteLine(""This is s1"" + s11 + ""This is s2"" + s21);
     }
-
+##
     private void Callee(float s1, float s2)
     {
         System.Console.WriteLine(""This is s1"" + s1 + ""This is s2"" + s2);
     }
-
+##
     public float SomeCaculation(float r)
     {
         return r * r * 3.14f;
@@ -365,7 +382,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineParamsArrayWithArrayImplicitInitializerExpression()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -387,16 +404,16 @@ public class TestClass
         int[] x = new int[] {1, 2, 3, 4, 5, 6};
         System.Console.WriteLine(x.Length);
     }
-
+##
     private void Callee(params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineParamsArrayWithArrayInitializerExpression()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -418,16 +435,16 @@ public class TestClass
         int[] x = new int[6] {1, 2, 3, 4, 5, 6};
         System.Console.WriteLine(x.Length);
     }
-
+##
     private void Callee(params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineParamsArrayWithOneElement()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -449,16 +466,16 @@ public class TestClass
         int[] x = new int[] { 1 };
         System.Console.WriteLine(x.Length);
     }
-
+##
     private void Callee(params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineParamsArrayMethodWithIdentifier()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Caller()
@@ -480,15 +497,15 @@ public class TestClass
         var i = new int[] {1, 2, 3, 4, 5};
         System.Console.WriteLine(i.Length);
     }
-
+##
     private void Callee(params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
-}");
+##}");
         [Fact]
         public Task TestInlineMethodWithNoElementInParamsArray()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                     @"
 public class TestClass
 {
@@ -496,6 +513,7 @@ public class TestClass
     {
         Cal[||]lee();
     }
+
     private void Callee(params int[] x)
     {
         System.Console.WriteLine(x.Length);
@@ -509,15 +527,16 @@ public class TestClass
         int[] x = new int[] { };
         System.Console.WriteLine(x.Length);
     }
+##
     private void Callee(params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithParamsArray()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -539,16 +558,16 @@ public class TestClass
         int[] x = new int[] { 1, 2, 3, 4, 5, 6 };
         System.Console.WriteLine(x.Length);
     }
-
+##
     private void Callee(string z, params int[] x)
     {
         System.Console.WriteLine(x.Length);
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration1()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -569,16 +588,16 @@ public class TestClass
     {
         int x = 10;
     }
-
+##
     private void Callee(out int z)
     {
         z = 10;
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration2()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -602,16 +621,16 @@ public class TestClass
         int z1;
         x1 = y1 = z1 = 10;
     }
-
+##
     private void Callee(out int z, out int x, out int y)
     {
         z = x = y = 10;
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithVariableDeclaration3()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -638,12 +657,12 @@ public class TestClass
         int x;
         DoSometing(out x);
     }
-
+##
     private void Callee(out int z)
     {
         DoSometing(out z);
     }
-
+##
     private void DoSometing(out int z)
     {
         z = 100;
@@ -651,7 +670,7 @@ public class TestClass
 }");
 
         [Fact]
-        public Task TestInlineMethodAsArgument()
+        public Task TestInlineCalleeSelf()
             => TestVerifier.TestInRegularAndScript1Async(
                 @"
 public class TestClass
@@ -690,7 +709,7 @@ public class TestClass
     {
         int t = C[||]allee(x ? Callee(1) : Callee(2));
     }
-    
+
     private int Callee(int i)
     {
         return i + 1;
@@ -704,7 +723,7 @@ public class TestClass
         int i = x ? Callee(1) : Callee(2);
         int t = i + 1;
     }
-    
+
     private int Callee(int i)
     {
         return i + 1;
@@ -713,7 +732,7 @@ public class TestClass
 
         [Fact]
         public Task TestInlineExpressionWithoutAssignedToVariable()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     public void Caller(int j)
@@ -732,16 +751,16 @@ public class TestClass
     {
         int temp = j + 1;
     }
-
+##
     private int Callee(int i)
     {
         return i + 1;
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithNullCoalescingExpression()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     public void Caller(int? i)
@@ -761,16 +780,16 @@ public class TestClass
         int i1 = i ?? 1;
         var t = i1 + 1;
     }
-
+##
     private int Callee(int i)
     {
         return i + 1;
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineSimpleLambdaExpression()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     public System.Func<int, int, int> Caller()
@@ -786,13 +805,13 @@ public class TestClass
     {
         return (i, j) => i + j;
     }
-
+##
     private System.Func<int, int, int> Callee() => (i, j) => i + j;
-}");
+##}");
 
         [Fact]
         public Task TestInlineMethodWithGenericsArguments()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System;
 public class TestClass
@@ -801,6 +820,7 @@ public class TestClass
     {
         Ca[||]llee<int, U>(1, 2, 3);
     }
+
     private void Callee<T, U>(params T[] i)
     {
         System.Console.WriteLine(typeof(T).Name.Length + i.Length + typeof(U).Name.Length);
@@ -815,15 +835,16 @@ public class TestClass
         int[] i = new int[] { 1, 2, 3 };
         System.Console.WriteLine(typeof(int).Name.Length + i.Length + typeof(U).Name.Length);
     }
+##
     private void Callee<T, U>(params T[] i)
     {
         System.Console.WriteLine(typeof(T).Name.Length + i.Length + typeof(U).Name.Length);
     }
-}");
+##}");
 
         [Fact]
         public Task TestAwaitExpressionInMethod()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -849,16 +870,16 @@ public class TestClass
         int j = x ? 1 : 2;
         return Task.FromResult(10 + j);
     }
-
+##
     private async Task<int> Callee(int i, int j)
     {
         return await Task.FromResult(i + j);
     }
-}");
+##}");
 
         [Fact]
         public Task TestAwaitExpressionInMethod2()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 using System;
@@ -885,16 +906,16 @@ public class TestClass
         System.Console.WriteLine("""");
         Func<Task> f = async () => await Task.Delay(100);
     }
-
+##
     private Func<Task> Callee()
     {
         return async () => await Task.Delay(100);
     }
-}");
+##}");
 
         [Fact]
         public Task TestAwaitExpresssion1()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -917,16 +938,16 @@ public class TestClass
     {
         return Task.CompletedTask;
     }
-
+##
     private async Task Callee()
     {
         await Task.CompletedTask;
     }
-}");
+##}");
 
         [Fact]
         public Task TestAwaitExpresssion2()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -946,13 +967,13 @@ public class TestClass
     {
         await Task.CompletedTask.ConfigureAwait(false);
     }
-
+##
     private async Task Callee() => await Task.CompletedTask;
-}");
+##}");
 
         [Fact]
         public Task TestAwaitExpresssion3()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -972,13 +993,13 @@ public class TestClass
     {
         return Task.FromResult(1);
     }
-
+##
     private async Task<int> Callee() => await Task.FromResult(1);
-}");
+##}");
 
         [Fact]
         public Task TestAwaitExpresssion4()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -992,7 +1013,7 @@ public class TestClass
     {
         return await Task.FromResult(await SomeCalculation());
     }
-    
+
     private async Task<int> SomeCalculation() => await Task.FromResult(10);
 }",
                 @"
@@ -1003,18 +1024,18 @@ public class TestClass
     {
         var x = Task.FromResult(await SomeCalculation());
     }
-
+##
     private async Task<int> Callee()
     {
         return await Task.FromResult(await SomeCalculation());
     }
-    
+##
     private async Task<int> SomeCalculation() => await Task.FromResult(10);
 }");
 
         [Fact]
         public Task TestAwaitExpressionInLambda()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System;
 using System.Threading.Tasks;
@@ -1047,16 +1068,16 @@ public class TestClass
             return Task.FromResult(10);
         };
     }
-
+##
     private async Task<int> Callee()
     {
         return await Task.FromResult(10);
     }
-}");
+##}");
 
         [Fact]
         public Task TestAwaitExpressionInLocalMethod()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -1088,15 +1109,15 @@ public class TestClass
             return Task.FromResult(10 + j);
         }
     }
-
+##
     private async Task<int> Callee(int i, int j)
     {
         return await Task.FromResult(i + j);
     }
-}");
+##}");
         [Fact]
         public Task TestInlineMethodForLambda()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System;
 public class TestClass
@@ -1117,14 +1138,14 @@ public class TestClass
     {
         ((Func<int, int>)(i => 1))(10);
     }
-
+##
     private Func<int, int> Callee()
         => i => 1;
-}");
+##}");
 
         [Fact]
         public Task TestInlineWithinDoStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1152,18 +1173,18 @@ public class TestClass
         {
         } while(i + 1 == 1);
     }
-
+##
     private int Callee(int i)
     {
         return i + 1;
     }
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineWithinForStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1191,18 +1212,18 @@ public class TestClass
         {
         }
     }
-
+##
     private int Callee(int i)
     {
         return i + 1;
     }
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineWithinIfStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1230,18 +1251,18 @@ public class TestClass
         {
         }
     }
-
+##
     private int Callee(int i)
     {
         return i + 1;
     }
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineWithinLockStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1269,18 +1290,18 @@ public class TestClass
         {
         }
     }
-
+##
     private string Callee(int i)
     {
         return ""Hello"" + i;
     }
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineWithinReturnStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1304,18 +1325,18 @@ public class TestClass
         int i = SomeInt();
         return ""Hello"" + i;
     }
-
+##
     private string Callee(int i)
     {
         return ""Hello"" + i;
     }
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineMethodWithinThrowStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1339,18 +1360,18 @@ public class TestClass
         int i = SomeInt();
         throw new System.Exception(i + 20 + """");
     }
-
+##
     private int Callee(int i)
     {
         return i + 20;
     }
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineWithinWhileStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1376,18 +1397,18 @@ public class TestClass
         while (i + 1 == 1)
         {}
     }
-
+##
     private int Callee(int i)
     {
         return i + 1;
     }
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineMethodWithinTryStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
             @"
 public class TestClass
 {
@@ -1418,15 +1439,15 @@ public class TestClass
         {
         }
     }
-
+##
     private bool Callee(System.Exception e, int i) => i == 1;
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineMethodWithinUsingStatement()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass2
 {
     private class DisposeClass : System.IDisposable
@@ -1464,15 +1485,15 @@ public class TestClass2
         {
         }
     }
-
+##
     private System.IDisposable Callee(int i) => new DisposeClass();
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineMethodWithinYieldReturnStatement()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass2
 {
@@ -1480,7 +1501,7 @@ public class TestClass2
     {
         yield return 1;
         yield return Cal[||]lee(SomeInt());
-        yield return Callee(SomeInt());
+        yield return 3;
     }
 
     private int Callee(int i) => i + 10;
@@ -1495,17 +1516,17 @@ public class TestClass2
         yield return 1;
         int i = SomeInt();
         yield return i + 10;
-        yield return Callee(SomeInt());
+        yield return 3;
     }
-
+##
     private int Callee(int i) => i + 10;
-
+##
     private int SomeInt() => 10;
 }");
 
         [Fact]
         public Task TestInlineExtensionMethod1()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 static class Program
 {
@@ -1528,48 +1549,16 @@ static class Program
         var value = 0;
         int temp = value + 1;
     }
-
+##
     private static int GetNext(this int i)
     {
         return i + 1;
     }
-}");
-
-        [Fact]
-        public Task TestNestedInline()
-            => TestVerifier.TestInRegularAndScript1Async(
-                @"
-static class Program
-{
-    public static void Caller()
-    {
-        int i = 0;
-        int j = 0;
-        Mulitple(A[||]dd(i, j), Add(j, i));
-    }
-
-    private static int Mulitple(int a, int b) => a * b;
-
-    private static int Add(int a, int b) => a + b;
-}",
-                @"
-static class Program
-{
-    public static void Caller()
-    {
-        int i = 0;
-        int j = 0;
-        Mulitple(i + j, Add(j, i));
-    }
-
-    private static int Mulitple(int a, int b) => a * b;
-
-    private static int Add(int a, int b) => a + b;
-}");
+##}");
 
         [Fact]
         public Task TestInlineExtensionMethod2()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 static class Program
 {
@@ -1590,16 +1579,16 @@ static class Program
     {
         var x = 0 + 1;
     }
-
+##
     private static int GetNext(this int i)
     {
         return i + 1;
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineExtensionMethod3()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 static class Program
 {
@@ -1625,16 +1614,16 @@ static class Program
     }
 
     private static int GetInt() => 10;
-
+##
     private static int GetNext(this int i)
     {
         return i + 1;
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineExpressionAsLeftValueInLeftAssociativeExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1661,16 +1650,16 @@ public class TestClass
             return 1 + 2 - 1;
         }
     }
-
+##
     private int Callee(int i, int j)
     {
         return i + j;
     }
-}");
+##}");
 
         [Fact]
         public Task TestInlineExpressionAsRightValueInRightAssociativeExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1697,16 +1686,16 @@ public class TestClass
             return 1 - (1 + 2);
         }
     }
-
+##
     private int Callee(int i, int j)
     {
         return i + j;
     }
-}");
+##}");
 
         [Fact]
         public Task TestAddExpressionWithMultiply()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1733,16 +1722,16 @@ public class TestClass
             return (1 + 2) * 2;
         }
     }
-
+##
     private int Callee(int i, int j)
     {
         return i + j;
     }
-}");
+##}");
 
         [Fact]
         public Task TestIsExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1763,16 +1752,16 @@ public class TestClass
     {
         return (i == j) is int;
     }
-
+##
     private bool Callee(int i, int j)
     {
         return i == j;
     }
-}");
+##}");
 
         [Fact]
         public Task TestUnaryPlusOperator()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1793,16 +1782,16 @@ public class TestClass
     {
         return +(1 + 2);
     }
-
+##
     private int Callee()
     {
         return 1 + 2;
     }
-}");
+##}");
 
         [Fact]
         public Task TestLogicalNotExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1823,16 +1812,16 @@ public class TestClass
     {
         return !(i == j);
     }
-
+##
     private bool Callee(int i, int j)
     {
         return i == j;
     }
-}");
+##}");
 
         [Fact]
         public Task TestBitWiseNotExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1853,16 +1842,16 @@ public class TestClass
     {
         return ~(i | j);
     }
-
+##
     private int Callee(int i, int j)
     {
         return i | j;
     }
-}");
+##}");
 
         [Fact]
         public Task TestCastExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1883,16 +1872,16 @@ public class TestClass
     {
         return (char)(i + j);
     }
-
+##
     private int Callee(int i, int j)
     {
         return i + j;
     }
-}");
+##}");
 
         [Fact]
         public Task TestIsPatternExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1917,16 +1906,16 @@ public class TestClass
         {
         }
     }
-
+##
     private int Callee()
     {
         return 1 | 2;
     }
-}");
+##}");
 
         [Fact]
         public Task TestAsExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1947,16 +1936,16 @@ public class TestClass
     {
         var x = (f ? ""Hello"" : ""World"") as string;
     }
-
+##
     private object Callee(bool f)
     {
         return f ? ""Hello"" : ""World"";
     }
-}");
+##}");
 
         [Fact]
         public Task TestCoalesceExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -1977,16 +1966,16 @@ public class TestClass
     {
         return 1 + (c ?? 1);
     }
-
+##
     private int Callee(int? c)
     {
         return c ?? 1;
     }
-}");
+##}");
 
         [Fact]
         public Task TestCoalesceExpressionAsRightValue()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2007,16 +1996,16 @@ public class TestClass
     {
         return c ?? null ?? ""Hello"";
     }
-
+##
     private string Callee(string c2)
     {
         return c2 ?? ""Hello"";
     }
-}");
+##}");
 
         [Fact]
         public Task TestSimpleMemberAccessExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2034,13 +2023,13 @@ public class TestClass
     {
         var x = (""H"" + ""L"").Length;
     }
-
+##
     private string Callee() => ""H"" + ""L"";
-}");
+##}");
 
         [Fact]
         public Task TestElementAccessExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2058,13 +2047,13 @@ public class TestClass
     {
         var x = (""H"" + ""L"")[0];
     }
-
+##
     private string Callee() => ""H"" + ""L"";
-}");
+##}");
 
         [Fact]
         public Task TestSwitchExpression()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Calller()
@@ -2091,20 +2080,20 @@ public class TestClass
             _ => 3
         };
     }
-
+##
     private int Callee() => 1 + 2;
-}");
+##}");
 
         [Fact]
         public Task TestConditionalExpressionSyntax()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Calller(int x)
     {
         var z = true;
         var z1 = false;
-        var y = z ? Callee(x) : z1 ? 1 : Ca[||]llee(x);
+        var y = z ? 3 : z1 ? 1 : Ca[||]llee(x);
     }
 
     private int Callee(int x) => x = 1;
@@ -2116,15 +2105,15 @@ public class TestClass
     {
         var z = true;
         var z1 = false;
-        var y = z ? Callee(x) : z1 ? 1 : (x = 1);
+        var y = z ? 3 : z1 ? 1 : (x = 1);
     }
-
+##
     private int Callee(int x) => x = 1;
-}");
+##}");
 
         [Fact]
         public Task TestSuppressNullableWarningExpression()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 #nullable enable
 public class TestClass
 {
@@ -2143,13 +2132,13 @@ public class TestClass
     {
         return (x = 1)!;
     }
-
+##
     private object Callee(int x) => x = 1;
-}");
+##}");
 
         [Fact]
         public Task TestSimpleAssignmentExpression()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private int Calller(int x)
@@ -2166,15 +2155,15 @@ public class TestClass
     {
         return (x = 1) + 1;
     }
-
+##
     private int Callee(int x) => x = 1;
-}");
+##}");
 
         [Theory]
         [InlineData("++")]
         [InlineData("--")]
         public Task TestPreExpression(string op)
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2197,16 +2186,16 @@ public class TestClass
         int i = 1;
         (op)i;
     }
-
+##
     private int Callee(int i)
     {
         return (op)i;
     }
-}".Replace("(op)", op));
+##}".Replace("(op)", op));
 
         [Fact]
         public Task TestAwaitExpressionWithFireAndForgot()
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 using System.Threading.Tasks;
 public class TestClass
 {
@@ -2227,17 +2216,17 @@ public class TestClass
     {
         Task.Delay(100);
     }
-    private async Task Callee()
+##    private async Task Callee()
     {
         await Task.Delay(100);
     }
-}");
+##}");
 
         [Theory]
         [InlineData("++")]
         [InlineData("--")]
         public Task TestPostExpression(string op)
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2260,16 +2249,16 @@ public class TestClass
         int i = 1;
         i(op);
     }
-
+##
     private int Callee(int i)
     {
         return i(op);
     }
-}".Replace("(op)", op));
+##}".Replace("(op)", op));
 
         [Fact]
         public Task TestObjectCreationExpression()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2277,6 +2266,7 @@ public class TestClass
     {
         Call[||]ee();
     }
+
     private object Callee()
     {
         return new object();
@@ -2289,14 +2279,15 @@ public class TestClass
     {
         new object();
     }
+##
     private object Callee()
     {
         return new object();
     }
-}");
+##}");
         [Fact]
         public Task TestConditionalInvocationExpression2()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2314,13 +2305,13 @@ public class TestClass
     {
         (""Hello"" + ""World"")?.ToCharArray();
     }
-
+##
     private string Callee() => ""Hello"" + ""World"";
-}");
+##}");
 
         [Fact]
         public Task TestConditionalInvocationExpression1()
-            => TestVerifier.TestInRegularAndScript1Async(
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 public class TestClass
 {
@@ -2338,9 +2329,9 @@ public class TestClass
     {
         (""Hello"" + ""World"")?.ToCharArray();
     }
-
+##
     private char[] Callee() => (""Hello"" + ""World"")?.ToCharArray();
-}");
+##}");
 
         [Theory]
         [InlineData("+")]
@@ -2355,7 +2346,7 @@ public class TestClass
         [InlineData(">>")]
         [InlineData("<<")]
         public Task TestAssignmentExpression(string op)
-            => TestVerifier.TestInRegularAndScript1Async(@"
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
 public class TestClass
 {
     private void Calller(int x)
@@ -2372,8 +2363,8 @@ public class TestClass
     {
         x (op)= 1;
     }
-
+##
     private int Callee(int x) => x (op)= 1;
-}".Replace("(op)", op));
+##}".Replace("(op)", op));
     }
 }
