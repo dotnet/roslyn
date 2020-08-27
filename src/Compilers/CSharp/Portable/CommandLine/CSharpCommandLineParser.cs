@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var unquoted = RemoveQuotesAndSlashes(value);
 
-                        if (string.IsNullOrEmpty(unquoted))
+                        if (RoslynString.IsNullOrEmpty(unquoted))
                         {
                             AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                         }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case "langversion":
                         value = RemoveQuotesAndSlashes(value);
-                        if (string.IsNullOrEmpty(value))
+                        if (RoslynString.IsNullOrEmpty(value))
                         {
                             AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
                         }
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "d":
                         case "define":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
                                 continue;
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "checksumalgorithm":
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                                 continue;
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "instrument":
                             value = RemoveQuotesAndSlashes(value);
-                            if (string.IsNullOrEmpty(value))
+                            if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                             }
