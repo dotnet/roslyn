@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public Task<LSP.InitializeResult> HandleRequestAsync(LSP.InitializeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
-            var triggerCharacters = _completionProviders.SelectMany(lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
+            var triggerCharacters = _completionProviders.SelectMany(
+                lz => CompletionHandler.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
             return Task.FromResult(new LSP.InitializeResult
             {
@@ -71,16 +72,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                 }
             });
-        }
-
-        private static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
-        {
-            if (provider is LSPCompletionProvider lspProvider)
-            {
-                return lspProvider.TriggerCharacters;
-            }
-
-            return ImmutableHashSet<char>.Empty;
         }
     }
 }

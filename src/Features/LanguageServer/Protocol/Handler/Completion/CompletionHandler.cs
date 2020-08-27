@@ -5,17 +5,17 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -28,10 +28,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
     {
+        private readonly string[] _csTriggerCharacters;
+        private readonly string[] _vbTriggerCharacters;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public CompletionHandler(
+            ILspSolutionProvider solutionProvider,
+            [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
+            : base(solutionProvider)
         {
+            var csCompletionProviders = completionProviders?.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).ToImmutableArray();
+            var vbCompletionProviders = completionProviders?.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).ToImmutableArray();
+
+            _csTriggerCharacters = csCompletionProviders.HasValue ? csCompletionProviders.Value.SelectMany(
+                lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray() : Array.Empty<string>();
+            _vbTriggerCharacters = vbCompletionProviders.HasValue ? vbCompletionProviders.Value.SelectMany(
+                lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray() : Array.Empty<string>();
         }
 
         public override async Task<LSP.CompletionItem[]> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
@@ -43,15 +56,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
-            // The '{' character, while a trigger character in VB, is not a trigger character in C#, so we must
-            // handle it in a special case.
-            if (request.Context.TriggerCharacter == "{")
+            // We need to ensure the trigger character is valid in the document's language. For example, the '{'
+            // character, while a trigger character in VB, is not a trigger character in C#.
+            if (request.Context.TriggerKind != LSP.CompletionTriggerKind.Invoked && !char.IsLetterOrDigit(char.Parse(request.Context.TriggerCharacter)) &&
+                ((document.Project.Language == LanguageNames.CSharp && !_csTriggerCharacters.Contains(request.Context.TriggerCharacter)) ||
+                (document.Project.Language == LanguageNames.VisualBasic && !_vbTriggerCharacters.Contains(request.Context.TriggerCharacter))))
             {
-                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                if (syntaxRoot.Language == LanguageNames.CSharp)
-                {
-                    return Array.Empty<LSP.CompletionItem>();
-                }
+                return Array.Empty<LSP.CompletionItem>();
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -104,8 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
-                    var roslynCompletionItem = CreateCompletionItem<RoslynCompletionItem>(request, item, completionTrigger);
-                    roslynCompletionItem.Tags = item.Tags.ToArray();
+                    var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(request, item, completionTrigger);
                     return roslynCompletionItem;
                 }
             }
@@ -182,6 +192,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 return commitCharacters.Select(c => c.ToString()).ToArray();
             }
+        }
+
+        internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
+        {
+            if (provider is LSPCompletionProvider lspProvider)
+            {
+                return lspProvider.TriggerCharacters;
+            }
+
+            return ImmutableHashSet<char>.Empty;
         }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)
