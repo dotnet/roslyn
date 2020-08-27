@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
 
 #elif NETCOREAPP
 
-        private static readonly PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
+        private const PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
 
         // Validation is handled by CurrentUserOnly
         internal static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream) => true;
