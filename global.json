@@ -7,7 +7,7 @@
   "tools": {
     "dotnet": "5.0.100-preview.8.20417.9",
     "vs": {
-      "version": "16.8"
+      "version": "16.9"
     },
     "xcopy-msbuild": "16.8.0-preview2.1"
   },
