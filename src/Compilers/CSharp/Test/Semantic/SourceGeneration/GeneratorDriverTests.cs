@@ -499,8 +499,8 @@ class C { }
 
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify(
-                    // warning CS8784: Generator 'CallbackGenerator' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.
-                    Diagnostic(ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                    // warning CS8784: Generator 'CallbackGenerator' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was 'InvalidOperationException' with message 'init error'
+                    Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "InvalidOperationException", "init error").WithLocation(1, 1)
                 );
         }
 
@@ -546,8 +546,8 @@ class C { }
 
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify(
-                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
-                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was 'InvalidOperationException' with message 'generate error'
+                 Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "InvalidOperationException", "generate error").WithLocation(1, 1)
                 );
         }
 
@@ -575,8 +575,8 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             generatorDiagnostics.Verify(
-                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
-                 Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                 // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was 'InvalidOperationException' with message 'generate error'
+                 Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "InvalidOperationException", "generate error").WithLocation(1, 1)
                 );
         }
 
@@ -613,9 +613,34 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(5, 12)
                 );
             generatorDiagnostics.Verify(
-                // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.
-                Diagnostic(ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator").WithLocation(1, 1)
+                // warning CS8785: Generator 'CallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was 'InvalidOperationException' with message 'generate error'
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "InvalidOperationException", "generate error").WithLocation(1, 1)
                 );
+        }
+
+        [Fact]
+        public void Error_During_Generation_Has_Exception_In_Description()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new InvalidOperationException("generate error");
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception);
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+
+
+            Assert.EndsWith(exception.ToString() + "'.", generatorDiagnostics.Single().Descriptor.Description.ToString());
         }
 
         [Fact]
@@ -902,6 +927,52 @@ class C
                );
             Assert.Same(oldDriver, driver);
         }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        public void Adding_A_Source_Text_Without_Encoding_Fails_Generation()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => { sgc.AddSource("a", SourceText.From("")); });
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out _, out var outputDiagnostics);
+
+            Assert.Single(outputDiagnostics);
+            outputDiagnostics.Verify(
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The provided SourceText must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void ParseOptions_Are_Passed_To_Generator()
+        {
+            var source = @"
+class C 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            ParseOptions? passedOptions = null;
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { },
+                onExecute: (e) => { passedOptions = e.ParseOptions; }
+                );
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out _, out _);
+
+            Assert.Same(parseOptions, passedOptions);
+        }
     }
 }
-

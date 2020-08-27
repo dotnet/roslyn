@@ -198,7 +198,7 @@ End Class
             VerifySyntax(Of AttributeListSyntax)(Generator.Attribute(GetAttributeData("
 Imports System
 Public Class MyAttribute
-  Inherits Attribute 
+  Inherits Attribute
   Public Property Value As Integer
 End Class
 ", "<MyAttribute(Value := 123)>")), "<Global.MyAttribute(Value:=123)>")
@@ -1747,7 +1747,7 @@ End Property")
     End Set
 End Property")
 
-            ' convert private method to public 
+            ' convert private method to public
             Dim pim = Generator.AsPrivateInterfaceImplementation(
                     Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t")),
                     Generator.IdentifierName("i"))
@@ -2202,10 +2202,10 @@ Class C
   Custom Event MyEvent As MyDelegate
       AddHandler(ByVal value As MyDelegate)
       End AddHandler
- 
+
       RemoveHandler(ByVal value As MyDelegate)
       End RemoveHandler
- 
+
       RaiseEvent(ByVal message As String)
       End RaiseEvent
   End Event
@@ -3434,7 +3434,7 @@ Public Class C
     Public Shared Z, Y, Z As Integer
 End Class")
 
-            ' Removing 
+            ' Removing
             VerifySyntax(Of ClassBlockSyntax)(
                 Generator.RemoveNode(declC, declX),
 "' Comment

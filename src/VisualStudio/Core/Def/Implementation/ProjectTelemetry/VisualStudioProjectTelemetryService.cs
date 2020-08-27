@@ -6,12 +6,13 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
@@ -23,9 +24,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
 {
-    [Export(typeof(IVisualStudioProjectTelemetryService))]
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioProjectTelemetryService
-        : ForegroundThreadAffinitizedObject, IVisualStudioProjectTelemetryService, IProjectTelemetryListener
+        : ForegroundThreadAffinitizedObject, IProjectTelemetryListener, IEventListener<object>
     {
         private const string EventPrefix = "VS/Compilers/Compilation/";
         private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
@@ -53,23 +54,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private AsyncBatchingWorkQueue<ProjectTelemetryData>? _workQueue;
+        private readonly AsyncBatchingWorkQueue<ProjectTelemetryData>? _workQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioProjectTelemetryService(VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext) : base(threadingContext)
-            => _workspace = workspace;
+        public VisualStudioProjectTelemetryService(
+            VisualStudioWorkspaceImpl workspace,
+            IThreadingContext threadingContext) : base(threadingContext)
+        {
+            _workspace = workspace;
 
-        void IVisualStudioProjectTelemetryService.Start(CancellationToken cancellationToken)
-            => _ = StartAsync(cancellationToken);
+            _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryData>(
+                TimeSpan.FromSeconds(1),
+                NotifyTelemetryServiceAsync,
+                threadingContext.DisposalToken);
+        }
 
-        private async Task StartAsync(CancellationToken cancellationToken)
+        void IEventListener<object>.StartListening(Workspace workspace, object _)
+        {
+            if (workspace is VisualStudioWorkspace)
+                _ = StartAsync();
+        }
+
+        private async Task StartAsync()
         {
             // Have to catch all exceptions coming through here as this is called from a
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
             {
-                await StartWorkerAsync(cancellationToken).ConfigureAwait(false);
+                await StartWorkerAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -82,12 +95,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             }
         }
 
-        private async Task StartWorkerAsync(CancellationToken cancellationToken)
+        private async Task StartWorkerAsync()
         {
-            _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryData>(
-                TimeSpan.FromSeconds(1),
-                NotifyTelemetryServiceAsync,
-                cancellationToken);
+            var cancellationToken = ThreadingContext.DisposalToken;
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)

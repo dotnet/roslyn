@@ -993,7 +993,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="translated">wyrażenie</target>
+        <target state="new">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1263,7 +1263,7 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="translated">nazwa</target>
+        <target state="new">name</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1363,7 +1363,7 @@ Można połączyć dwa lub więcej zakresów znaków. Na przykład aby określi�
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="translated">nie</target>
+        <target state="new">no</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1746,7 +1746,7 @@ Jeśli określono zachowanie zgodne ze standardem ECMAScript, element \w jest r�
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="translated">tak</target>
+        <target state="new">yes</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2077,12 +2077,12 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="translated">Element „{0}” nie ma wartości null w tym miejscu.</target>
+        <target state="new">'{0}' is not null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="translated">Element „{0}” może mieć wartość null w tym miejscu.</target>
+        <target state="new">'{0}' may be null here.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">

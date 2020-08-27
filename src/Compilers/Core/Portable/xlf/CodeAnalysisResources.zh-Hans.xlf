@@ -41,7 +41,7 @@
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
-        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <target state="translated">其他文件不属于基础 "CompilationWithAnalyzers"。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -113,6 +113,11 @@
         <source>Only a single {0} can be registered per generator.</source>
         <target state="translated">每个生成器仅可注册一个 {0}。</target>
         <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The provided SourceText must have an explicit encoding set.</source>
+        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>

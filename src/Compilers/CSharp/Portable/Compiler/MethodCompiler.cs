@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!hasStaticConstructor &&
                 processedStaticInitializers.BoundInitializers.IsDefaultOrEmpty &&
                 _compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
-                containingType is { IsImplicitlyDeclared: false, TypeKind: TypeKind.Class or TypeKind.Struct })
+                containingType is { IsImplicitlyDeclared: false, TypeKind: TypeKind.Class or TypeKind.Struct or TypeKind.Interface })
             {
                 NullableWalker.AnalyzeIfNeeded(
                     this._compilation,

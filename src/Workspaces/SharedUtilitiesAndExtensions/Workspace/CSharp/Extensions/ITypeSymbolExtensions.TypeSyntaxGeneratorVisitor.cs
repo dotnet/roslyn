@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-#if !CODE_STYLE
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-#endif
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -113,20 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, out TypeSyntax syntax)
             {
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                 if (symbol.IsNativeIntegerType)
                 {
                     syntax = SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
                     return true;
                 }
-#endif
 
                 syntax = null;
                 return false;
             }
-
-#if !CODE_STYLE
 
 #nullable enable
             public override TypeSyntax VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
@@ -138,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (symbol.Signature.CallingConvention != System.Reflection.Metadata.SignatureCallingConvention.Default
                     && symbol.Signature.CallingConvention != System.Reflection.Metadata.SignatureCallingConvention.VarArgs)
                 {
-                    IEnumerable<FunctionPointerUnmanagedCallingConventionSyntax>? conventionsList = symbol.Signature.CallingConvention switch
+                    var conventionsList = symbol.Signature.CallingConvention switch
                     {
                         System.Reflection.Metadata.SignatureCallingConvention.CDecl => new[] { GetConventionForString("Cdecl") },
                         System.Reflection.Metadata.SignatureCallingConvention.StdCall => new[] { GetConventionForString("Stdcall") },
@@ -163,18 +156,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier(identifier));
                 }
 
-                var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind)))
+                var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind)))
                     .Concat(SpecializedCollections.SingletonEnumerable((
                         Type: symbol.Signature.ReturnType,
-                        RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
+                        RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
                     .SelectAsArray(t => SyntaxFactory.FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
                 return AddInformationTo(
                     SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
             }
 #nullable restore
-
-#endif
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
             {

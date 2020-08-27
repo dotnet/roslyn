@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -297,6 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
             var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
+            Contract.ThrowIfNull(rootToFormat);
             var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
 
             // Apply file header preferences

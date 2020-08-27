@@ -688,23 +688,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     Func<ImmutableArray<CompilationEvent>> getPendingEvents = () => _analysisState.GetPendingEvents(analysisScope.Analyzers, model.SyntaxTree, cancellationToken);
 
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Compute the analyzer diagnostics for the given analysis scope.
-                    // We need to loop till symbol analysis is complete for any partial symbols being processed for other tree diagnostic requests.
-                    do
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
+                    (ImmutableArray<CompilationEvent> compilationEvents, bool hasSymbolStartActions) = await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getPendingEvents, taskToken, cancellationToken).ConfigureAwait(false);
 
-                        (ImmutableArray<CompilationEvent> compilationEvents, bool hasSymbolStartActions) = await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getPendingEvents, taskToken, cancellationToken).ConfigureAwait(false);
-                        if (hasSymbolStartActions && forceCompletePartialTrees)
-                        {
-                            await processPartialSymbolLocationsAsync(compilationEvents, analysisScope).ConfigureAwait(false);
-                        }
-                    } while (_analysisOptions.ConcurrentAnalysis && _analysisState.HasPendingSymbolAnalysis(pendingAnalysisScope, cancellationToken));
-
-                    if (_analysisOptions.ConcurrentAnalysis)
+                    // If required, force compute diagnostics for partial symbol locations.
+                    if (hasSymbolStartActions && forceCompletePartialTrees)
                     {
-                        // Wait for all active tree tasks as they might still be reporting diagnostics for partial symbols defined in this tree.
-                        await WaitForActiveAnalysisTasksAsync(waitForTreeTasks: true, waitForCompilationOrNonConcurrentTask: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        await processPartialSymbolLocationsAsync(compilationEvents, analysisScope).ConfigureAwait(false);
                     }
                 }
             }
@@ -909,8 +901,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     driver = await GetAnalyzerDriverAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var compilationEvents = dequeueGeneratedCompilationEvents();
-                    await _analysisState.OnCompilationEventsGeneratedAsync(compilationEvents, driver, cancellationToken).ConfigureAwait(false);
+                    Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents =
+                        (eventQueue, additionalFiles) => dequeueGeneratedCompilationEvents(eventQueue, additionalFiles);
+                    var additionalFiles = _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
+                    await _analysisState.OnCompilationEventsGeneratedAsync(getCompilationEvents, _compilation.EventQueue, additionalFiles, driver, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -918,16 +912,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            ImmutableArray<CompilationEvent> dequeueGeneratedCompilationEvents()
+            static ImmutableArray<CompilationEvent> dequeueGeneratedCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, ImmutableArray<AdditionalText> additionalFiles)
             {
                 var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
 
-                while (_compilation.EventQueue.TryDequeue(out CompilationEvent compilationEvent))
+                while (eventQueue.TryDequeue(out CompilationEvent compilationEvent))
                 {
                     if (compilationEvent is CompilationStartedEvent compilationStartedEvent &&
-                        _analysisOptions.Options?.AdditionalFiles.Length > 0)
+                        !additionalFiles.IsEmpty)
                     {
-                        compilationEvent = compilationStartedEvent.WithAdditionalFiles(_analysisOptions.Options.AdditionalFiles);
+                        compilationEvent = compilationStartedEvent.WithAdditionalFiles(additionalFiles);
                     }
 
                     builder.Add(compilationEvent);
@@ -1293,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (diagnostic != null)
                 {
-                    var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
+                    var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic, CancellationToken.None);
                     if (effectiveDiagnostic != null)
                     {
                         yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);

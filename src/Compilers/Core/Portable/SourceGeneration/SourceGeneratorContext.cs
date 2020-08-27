@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -20,9 +21,10 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal SourceGeneratorContext(Compilation compilation, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
+        internal SourceGeneratorContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
+            ParseOptions = parseOptions;
             AdditionalFiles = additionalTexts;
             AnalyzerConfigOptions = optionsProvider;
             SyntaxReceiver = syntaxReceiver;
@@ -40,6 +42,11 @@ namespace Microsoft.CodeAnalysis
         /// this compilation will contain errors.
         /// </remarks>
         public Compilation Compilation { get; }
+
+        /// <summary>
+        /// Get the <see cref="ParseOptions"/> that will be used to parse any added sources.
+        /// </summary>
+        public ParseOptions ParseOptions { get; }
 
         /// <summary>
         /// A set of additional non-code text files that can be used by generators.
@@ -60,6 +67,13 @@ namespace Microsoft.CodeAnalysis
         /// A <see cref="CancellationToken"/> that can be checked to see if the generation should be cancelled.
         /// </summary>
         public CancellationToken CancellationToken { get; }
+
+        /// <summary>
+        /// Adds source code in the form of a <see cref="string"/> to the compilation.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="source">The source code to be add to the compilation</param>
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
 
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation

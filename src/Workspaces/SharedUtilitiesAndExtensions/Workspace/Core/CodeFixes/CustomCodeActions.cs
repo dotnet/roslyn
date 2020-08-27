@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public sealed override string EquivalenceKey { get; }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-                => Task.FromResult<Document>(null);
+                => SpecializedTasks.Null<Document>();
         }
 
         internal class DocumentChangeAction : SimpleCodeAction

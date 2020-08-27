@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         {
             public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
 
-            public bool Equals([AllowNull] List<Section> x, [AllowNull] List<Section> y)
+            public bool Equals(List<Section>? x, List<Section>? y)
             {
                 if (x is null || y is null)
                 {
