@@ -438,5 +438,32 @@ Public Class TestClass
     End Function
 ##End Class", diagnnoticResultsWhenKeepInlinedMethod:=diagnostic, diagnnoticResultsWhenRemoveInlinedMethod:=diagnostic)
         End Function
+
+        <Fact>
+        Public Function TestThrowStatement() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller()
+        Ca[||]llee()
+    End Sub
+
+    Private Function Callee() As Integer
+        Throw New Exception()
+    End Function
+End Class",
+                "
+Imports System
+Public Class TestClass
+    Public Sub Caller()
+        Throw New Exception()
+    End Sub
+##
+    Private Function Callee() As Integer
+        Throw New Exception()
+    End Function
+##End Class")
+        End Function
     End Class
 End Namespace

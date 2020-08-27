@@ -28,21 +28,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         where TMethodDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
     {
-        private readonly ISyntaxFacts _syntaxFacts;
-        private readonly ISemanticFactsService _semanticFactsService;
-
-        protected abstract TExpressionSyntax? GetInlineExpression(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
-        protected abstract SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode);
-        protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
-
-        /// <summary>
-        /// Check if <paramref name="expressionNode"/> could be used as an Expression in ExpressionStatement
-        /// </summary>
-        protected abstract bool IsValidExpressionUnderStatementExpression(TExpressionSyntax expressionNode);
-
         /// <summary>
         /// A preferred name used to generated a declaration when the
-        /// inline method has a return value but is not assigned to a variable.
+        /// inline method's body is not a valid expresion in ExpressionStatement
         /// Example:
         /// void Caller()
         /// {
@@ -61,8 +49,23 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// {
         ///     return 1;
         /// };
+        /// '1' is not a valid expression in ExpressionStatement so a declaration is needed to be generated.
         /// </summary>
         private const string TemporaryName = "temp";
+
+        private readonly ISyntaxFacts _syntaxFacts;
+        private readonly ISemanticFactsService _semanticFactsService;
+
+        protected abstract TExpressionSyntax? GetInlineExpression(TMethodDeclarationSyntax calleeMethodDeclarationSyntaxNode);
+        protected abstract SyntaxNode? GetEnclosingMethodLikeNode(SyntaxNode syntaxNode);
+        protected abstract SyntaxNode GenerateTypeSyntax(ITypeSymbol symbol, bool allowVar);
+
+        /// <summary>
+        /// Check if <paramref name="expressionNode"/> could be used as an Expression in ExpressionStatement
+        /// </summary>
+        protected abstract bool IsValidExpressionUnderStatementExpression(TExpressionSyntax expressionNode);
+
+        protected abstract bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode);
 
         protected AbstractInlineMethodRefactoringProvider(
             ISyntaxFacts syntaxFacts,
@@ -94,7 +97,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-
             var symbolDeclarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
             var calleeMethodDeclarationSyntaxReferences = symbolDeclarationService.GetDeclarations(calleeMethodSymbol);
             if (calleeMethodDeclarationSyntaxReferences.Length != 1)
@@ -111,9 +113,15 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var inlineExpression = GetInlineExpression(calleeMethodNode);
+            if (inlineExpression == null)
+            {
+                return;
+            }
+
+            // Special case 1: AwaitExpression
             if (_syntaxFacts.IsAwaitExpression(inlineExpression))
             {
-                // This will make sure there is no duplicate 'await'
+                // 1. If Caller & callee both have 'await' make sure there is no duplicate 'await'
                 // Example:
                 // Before:
                 // async Task Caller() => await Callee();
@@ -123,56 +131,63 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // async Task Callee() => await Task.CompletedTask;
                 // The original inline expression in callee will be 'await Task.CompletedTask'
                 // The caller just need 'Task.CompletedTask' without the 'await'
+                //
+                // 2. If Caller doesn't have await but callee has.
+                // Example:
+                // Before:
+                // void Caller() { Callee().Wait();}
+                // async Task Callee() => await DoAsync();
+                // After:
+                // void Caller() { DoAsync().Wait(); }
+                // async Task Callee() => await DoAsync();
+                // What caller is expecting is an expression returns 'Task', which doesn't include the 'await'
                 inlineExpression = _syntaxFacts.GetExpressionOfAwaitExpression(inlineExpression) as TExpressionSyntax;
             }
-
-            if (inlineExpression == null)
+            // Special case 2: ThrowStatement & ThrowExpresion
+            else if (_syntaxFacts.IsThrowStatement(inlineExpression.Parent) || _syntaxFacts.IsThrowExpression(inlineExpression))
             {
-                return;
+                // If this is a throw statement, then it should be valid for
+                // 1. If it is invoked as ExpressionStatement
+                // Example:
+                // Before:
+                // void Caller() { Callee(); }
+                // void Callee() { throw new Exception();}
+                // After:
+                // void Caller() { throw new Exception(); }
+                // void Callee() { throw new Exception();}
+                // 2. If it is invoked in a place allow throw expression
+                // Example:
+                // Before:
+                // void Caller(bool flag) { var x = flag ? Callee() : 1; }
+                // int Callee() { throw new Exception();}
+                // After:
+                // void Caller() { var x = flag ? throw new Exception() : 1; }
+                // int Callee() { throw new Exception();}
+                // Note here throw statement is changed to throw expression after inlining
+                // If this is a throw expression, the check is the same
+                // 1. If it is invoked as ExpressionStatement
+                // Example:
+                // Before:
+                // void Caller() { Callee(); }
+                // void Callee() => throw new Exception();
+                // After:
+                // void Caller() { throw new Exception(); }
+                // void Callee() => throw new Exception();
+                // Note here throw expression is converted to throw statement
+                // 2. If it is invoked in a place allow throw expression
+                // Example:
+                // Before:
+                // void Caller(bool flag) { var x = flag ? Callee() : 1; }
+                // int Callee() => throw new Exception();
+                // After:
+                // void Caller() { var x = flag ? throw new Exception() : 1; }
+                // int Callee() => throw new Exception();
+                if (!CanBeReplacedByThrowExpression(calleeMethodInvocationNode)
+                    && !_syntaxFacts.IsExpressionStatement(calleeMethodInvocationNode.Parent))
+                {
+                    return;
+                }
             }
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            // var callerDeclarationNode = _syntaxFacts.GetContainingMemberDeclaration(root, calleeMethodInvocationNode.SpanStart)
-            //     ?? GetEnclosingMethodLikeNode(calleeMethodNode);
-            // if (callerDeclarationNode == null)
-            // {
-            //     return;
-            // }
-            //
-            // var callerSymbol = semanticModel.GetDeclaredSymbol(callerDeclarationNode, cancellationToken)
-            //     ?? semanticModel.GetSymbolInfo(callerDeclarationNode, cancellationToken).GetAnySymbol();
-            // if (callerSymbol == null)
-            // {
-            //     return;
-            // }
-            //
-            // var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodNode);
-            // if (containsAwaitExpression)
-            // {
-            //     // If there is nested 'await', check if the caller is a method, and its return type
-            //     // is void or AwaitableType because after move the 'await' to the caller it must be async
-            //     // Example that shouldn't offer refactoring:
-            //     // int Caller()
-            //     // {
-            //     //    var x = Callee();
-            //     //    return 1;
-            //     // }
-            //     // async Task Callee() => await Task.Delay(await Task.FromResult(100));
-            //     // Example that should offer refactoring (because it is safe to change the caller to async):
-            //     // void Caller()
-            //     // {
-            //     //    var x = Callee();
-            //     // }
-            //     // async Task Callee() => await Task.Delay(await Task.FromResult(100));
-            //     var canInlineAwaitExpression = callerSymbol is IMethodSymbol callerMethodSymbol
-            //            && (callerMethodSymbol.IsAsync ||
-            //                callerMethodSymbol.ReturnsVoid ||
-            //                calleeMethodSymbol.IsAwaitableNonDynamic(semanticModel, callerDeclarationNode.SpanStart));
-            //     if (!canInlineAwaitExpression)
-            //     {
-            //         return;
-            //     }
-            // }
 
             var statementContainsCallee = calleeMethodInvocationNode.GetAncestor<TStatementSyntax>();
             if (statementContainsCallee == null)

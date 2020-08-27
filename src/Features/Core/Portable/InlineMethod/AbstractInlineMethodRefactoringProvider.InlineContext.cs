@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 syntaxGenerator,
                 renameTable);
 
-            var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodNode);
+            var containsAwaitExpression = ContainsAwaitExpression(rawInlineExpression, calleeMethodNode);
 
             // Do the replacement work within the callee's body so that it can be inserted to the caller later.
             inlineExpression = await ReplaceAllSyntaxNodesForSymbolAsync(
@@ -321,9 +322,57 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     localDeclarationStatementsNeedInsert,
                     statementContainsCallee,
                     syntaxGenerator
-                        .LocalDeclarationStatement(singleVariableDeclarationParameter.Type, name, rightHandSideValue),
+                        .LocalDeclarationStatement(singleVariableDeclarationParameter.Type, name, rightHandSideValue)
+                        .WithTriviaFrom(statementContainsCallee),
                     statementContainsCallee,
                     containsAwaitExpression);
+            }
+
+            if (_syntaxFacts.IsThrowStatement(rawInlineExpression.Parent))
+            {
+                if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
+                {
+                    return new InlineMethodContext(
+                        localDeclarationStatementsNeedInsert,
+                        statementContainsCallee,
+                        syntaxGenerator.ThrowStatement(inlineExpression).WithTriviaFrom(statementContainsCallee),
+                        statementContainsCallee,
+                        containsAwaitExpression);
+                }
+
+                if (CanBeReplacedByThrowExpression(calleeInvocationNode))
+                {
+                    return new InlineMethodContext(
+                        localDeclarationStatementsNeedInsert,
+                        statementContainsCallee,
+                        syntaxGenerator.ThrowExpression(inlineExpression).WithTriviaFrom(calleeInvocationNode),
+                        calleeInvocationNode,
+                        containsAwaitExpression);
+                }
+            }
+
+            var isThrowExpression = _syntaxFacts.IsThrowExpression(inlineExpression);
+            if (isThrowExpression)
+            {
+                // Example:
+                // Before:
+                // void Caller() { Callee(); }
+                // void Callee() => throw new Exception();
+                // After:
+                // void Caller() { throw new Exception(); }
+                // void Callee() => throw new Exception();
+                // Throw expression is converted to throw statement
+                if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent))
+                {
+                    return new InlineMethodContext(
+                        localDeclarationStatementsNeedInsert,
+                        statementContainsCallee,
+                        syntaxGenerator.ThrowStatement(
+                            _syntaxFacts.GetExpressionOfThrowExpression(inlineExpression))
+                            .WithTriviaFrom(statementContainsCallee),
+                        statementContainsCallee,
+                        containsAwaitExpression);
+                }
             }
 
             if (_syntaxFacts.IsExpressionStatement(calleeInvocationNode.Parent)
@@ -396,7 +445,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // // After:
             // // void Caller() { var x = ((Func<int>)(() => 1))(); }
             // // Func<int> Callee() { return () => 1; }
-            if (!calleeMethodSymbol.ReturnsVoid)
+            if (!calleeMethodSymbol.ReturnsVoid && !isThrowExpression)
             {
                 inlineExpression = (TExpressionSyntax)syntaxGenerator.AddParentheses(
                     syntaxGenerator.CastExpression(
@@ -488,10 +537,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             var editor = new SyntaxEditor(inlineExpression, syntaxGenerator);
 
-            foreach (var kvp in replacementTable)
+            foreach (var (symbol, syntaxNode) in replacementTable)
             {
                 var allReferences = await SymbolFinder
-                    .FindReferencesAsync(kvp.Key, document.Project.Solution, cancellationToken)
+                    .FindReferencesAsync(symbol, document.Project.Solution, cancellationToken)
                     .ConfigureAwait(false);
                 var allSyntaxNodesToReplace = allReferences
                     .SelectMany(reference => reference.Locations
@@ -502,7 +551,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 {
                     if (editor.OriginalRoot.Contains(nodeToReplace))
                     {
-                        var replacementNodeWithTrivia = kvp.Value.WithTriviaFrom(nodeToReplace);
+                        var replacementNodeWithTrivia = syntaxNode.WithTriviaFrom(nodeToReplace);
                         editor.ReplaceNode(nodeToReplace, replacementNodeWithTrivia);
                     }
                 }

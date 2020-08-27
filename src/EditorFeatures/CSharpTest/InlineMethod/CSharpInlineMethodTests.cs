@@ -2478,5 +2478,120 @@ public class TestClass
 ##}
 ");
 
+        [Fact]
+        public Task TestThrowStatement()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        Call[||]ee();
+    }
+
+    private string Callee()
+    {
+        throw new Exception();
+    }
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        throw new Exception();
+    }
+##
+    private string Callee()
+    {
+        throw new Exception();
+    }
+##}
+");
+
+        [Fact]
+        public Task TestThrowExpressionToThrowStatement()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        Call[||]ee();
+    }
+
+    private string Callee() => throw new Exception();
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller()
+    {
+        throw new Exception();
+    }
+##
+    private string Callee() => throw new Exception();
+##}
+");
+
+        [Fact]
+        public Task TestThrowExpression()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        var x = a ? Call[||]ee() : ""Hello"";
+    }
+
+    private string Callee() => throw new Exception();
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        var x = a ? throw new Exception() : ""Hello"";
+    }
+##
+    private string Callee() => throw new Exception();
+##}
+");
+
+        [Fact]
+        public Task TestThrowStatementToThrowExpression()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+using System;
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        var x = a ? Call[||]ee() : ""Hello"";
+    }
+
+    private string Callee()
+    {
+        throw new Exception();
+    }
+}
+", @"
+using System;
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        var x = a ? throw new Exception() : ""Hello"";
+    }
+##
+    private string Callee()
+    {
+        throw new Exception();
+    }
+##}
+");
     }
 }

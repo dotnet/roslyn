@@ -35,6 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 If expressionStatement IsNot Nothing Then
                     Return expressionStatement.Expression
                 End If
+
+                Dim throwStatement = TryCast(singleStatement, ThrowStatementSyntax)
+                If throwStatement IsNot Nothing Then
+                    Return throwStatement.Expression
+                End If
             End If
             Return Nothing
         End Function
@@ -56,6 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
         Protected Overrides Function IsValidExpressionUnderStatementExpression(expressionNode As ExpressionSyntax) As Boolean
             Return expressionNode.IsKind(SyntaxKind.AwaitExpression) OrElse expressionNode.IsKind(SyntaxKind.InvocationExpression)
+        End Function
+
+        Protected Overrides Function CanBeReplacedByThrowExpression(syntaxNode As SyntaxNode) As Boolean
+            ' Throw Expression doesn't exist in VB
+            Return False
         End Function
     End Class
 End Namespace

@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             {
                 var parent = node.Parent;
 
-                // If this node is on the left side of a member access expression, don't ascend 
+                // If this node is on the left side of a member access expression, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is MemberAccessExpressionSyntax memberAccess)
                 {
@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
 
-                // If this node is on the left side of a qualified name, don't ascend 
+                // If this node is on the left side of a qualified name, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is QualifiedNameSyntax qualifiedName)
                 {
@@ -1026,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
 
-                // If this node is on the left side of a alias-qualified name, don't ascend 
+                // If this node is on the left side of a alias-qualified name, don't ascend
                 // further or we'll end up binding to something else.
                 if (parent is AliasQualifiedNameSyntax aliasQualifiedName)
                 {
@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             //    type-declaration
             switch (node.Kind())
             {
-                // Because fields declarations can define multiple symbols "public int a, b;" 
+                // Because fields declarations can define multiple symbols "public int a, b;"
                 // We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
                 case SyntaxKind.VariableDeclarator:
                     return node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) ||
@@ -2140,5 +2140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return ((CSharpSyntaxNode)node).Kind() == SyntaxKind.ImplicitObjectCreationExpression;
 #endif
         }
+
+        public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression)
+            => ((ThrowExpressionSyntax)throwExpression).Expression;
+
+        public bool IsThrowStatement(SyntaxNode node) => node?.IsKind(SyntaxKind.ThrowStatement) == true;
     }
 }

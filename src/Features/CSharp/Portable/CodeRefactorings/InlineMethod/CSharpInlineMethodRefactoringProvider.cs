@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                         // Refactoring won't be provided for this case.
                         ReturnStatementSyntax returnStatementSyntax => returnStatementSyntax.Expression,
                         ExpressionStatementSyntax expressionStatementSyntax => expressionStatementSyntax.Expression,
+                        ThrowStatementSyntax throwStatementSyntax => throwStatementSyntax.Expression,
                         _ => null
                     };
                 }
@@ -106,6 +107,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
                    || expressionNode.IsKind(SyntaxKind.PostIncrementExpression)
                    || expressionNode.IsKind(SyntaxKind.PostDecrementExpression)
                    || expressionNode.IsKind(SyntaxKind.AwaitExpression);
+        }
+
+        protected override bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode)
+        {
+            // C# Throw Expression definition from language reference:
+            // 'A throw expression is permitted in only the following syntactic contexts:
+            // As the second or third operand of a ternary conditional operator ?:
+            // As the second operand of a null coalescing operator ??
+            // As the body of an expression-bodied lambda or method.'
+            var parent = syntaxNode.Parent;
+            if (parent is ConditionalExpressionSyntax conditionalExpressionSyntax)
+            {
+                return syntaxNode.Equals(conditionalExpressionSyntax.WhenTrue)
+                    || syntaxNode.Equals(conditionalExpressionSyntax.WhenFalse);
+            }
+
+            if (parent is BinaryExpressionSyntax binaryExpressionSyntax && binaryExpressionSyntax.IsKind(SyntaxKind.CoalesceExpression))
+            {
+                return syntaxNode.Equals(binaryExpressionSyntax.Right);
+            }
+
+            if (parent is ArrowExpressionClauseSyntax)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool IsNullConditionalInvocationExpression(ExpressionSyntax expressionSyntax)
