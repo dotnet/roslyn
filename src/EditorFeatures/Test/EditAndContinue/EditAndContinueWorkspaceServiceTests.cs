@@ -51,15 +51,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private readonly MockDebuggeeModuleMetadataProvider _loadedModulesProvider;
 
-        static EditAndContinueWorkspaceServiceTests()
-        {
-            s_defaultCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                typeof(TestActiveStatementSpanTrackerFactory),
-                typeof(CSharpEditAndContinueAnalyzer.Factory));
-
-            s_defaultExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_defaultCatalog);
-        }
-
         public EditAndContinueWorkspaceServiceTests()
         {
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());

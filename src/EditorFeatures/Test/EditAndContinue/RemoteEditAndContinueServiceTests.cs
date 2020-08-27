@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -22,23 +21,12 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Host;
-using System.Composition;
-using Roslyn.Test.Utilities.Remote;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.Composition;
-using System.Composition.Hosting;
-using System.Collections.Generic;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 {
@@ -83,7 +71,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEncServiceFactory) };
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace).ConfigureAwait(false);
-                var remoteWorkspace = client.GetRemoteWorkspace();
+                var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
                 mockEncService = (MockEditAndContinueWorkspaceService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
             }
 

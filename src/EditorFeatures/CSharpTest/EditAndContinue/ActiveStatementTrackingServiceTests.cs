@@ -160,7 +160,7 @@ class C
                 (span11, ActiveStatementFlags.IsNonLeafFrame),
                 (span12, ActiveStatementFlags.IsLeafFrame)));
 
-            encService.GetAdjustedDocumentActiveStatementSpansAsyncImpl = document => ImmutableArray.Create(
+            encService.GetAdjustedActiveStatementSpansImpl = (_, _) => ImmutableArray.Create(
                 (span21, ActiveStatementFlags.IsNonLeafFrame),
                 (span22, ActiveStatementFlags.IsLeafFrame));
 
@@ -208,7 +208,7 @@ class C
             }
 
             // we are not able to determine active statements in a document:
-            encService.GetAdjustedDocumentActiveStatementSpansAsyncImpl = document => default;
+            encService.GetAdjustedActiveStatementSpansImpl = (_, _) => default;
 
             var spans3 = await trackingSession.GetAdjustedTrackingSpansAsync(document, snapshot, CancellationToken.None).ConfigureAwait(false);
             AssertEx.Equal(new[]
