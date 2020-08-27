@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
@@ -10,17 +11,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)>
     Public Class VisualBasicInlineMethodTests
         Private Class TestVerifier
-            Inherits VisualBasicCodeRefactoringVerifier(Of VisualbasicInlineMethodRefactoringProvider).Test
+            Inherits VisualBasicCodeRefactoringVerifier(Of VisualBasicInlineMethodRefactoringProvider).Test
             Private Const Marker As String = "##"
 
-            Public Shared Async Function TestInRegularAndScript1Async(initialMarkUp As String, expectedMarkUp As String, Optional keepInlinedMethod As Boolean = True) As Task
-                Dim test As New TestVerifier() With {.CodeActionIndex = If(keepInlinedMethod, 0, 1)}
+            Public Shared Async Function TestInRegularAndScript1Async(
+                 initialMarkUp As String,
+                 expectedMarkUp As String,
+                 Optional diagnnoticResults As List(Of DiagnosticResult) = Nothing,
+                 Optional keepInlinedMethod As Boolean = True) As Task
+                Dim test As New TestVerifier() With {.CodeActionIndex = If(keepInlinedMethod, 0, 1), .CodeActionValidationMode = CodeActionValidationMode.None}
                 test.TestState.Sources.Add(initialMarkUp)
                 test.FixedState.Sources.Add(expectedMarkUp)
+                If diagnnoticResults IsNot Nothing Then
+                    test.FixedState.ExpectedDiagnostics.AddRange(diagnnoticResults)
+                End If
                 Await test.RunAsync().ConfigureAwait(False)
             End Function
 
-            Public Shared Async Function TestBothKeepAndRemoveInlinedMethodAsync(initialMarkUp As String, expectedMarkUp As String) As Task
+            Public Shared Async Function TestBothKeepAndRemoveInlinedMethodAsync(
+                initialMarkUp As String,
+                expectedMarkUp As String,
+                Optional diagnnoticResultsWhenKeepInlinedMethod As List(Of DiagnosticResult) = Nothing,
+                Optional diagnnoticResultsWhenRemoveInlinedMethod As List(Of DiagnosticResult) = Nothing) As Task
                 Dim firstMarkerIndex = expectedMarkUp.IndexOf(Marker)
                 Dim secondMarkerIndex = expectedMarkUp.LastIndexOf(Marker)
                 If firstMarkerIndex = -1 OrElse secondMarkerIndex = 1 OrElse firstMarkerIndex = secondMarkerIndex Then
@@ -33,10 +45,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
 
                 Await TestInRegularAndScript1Async(initialMarkUp,
                     String.Concat(firstPartitionBeforeMarkUp, inlinedMethod, lastPartitionAfterMarkup),
+                    diagnnoticResultsWhenKeepInlinedMethod,
                     keepInlinedMethod:=True).ConfigureAwait(False)
 
                 Await TestInRegularAndScript1Async(initialMarkUp,
                     String.Concat(firstPartitionBeforeMarkUp, lastPartitionAfterMarkup),
+                    diagnnoticResultsWhenRemoveInlinedMethod,
                     keepInlinedMethod:=False).ConfigureAwait(False)
             End Function
         End Class
@@ -360,6 +374,69 @@ Public Class TestClass
         Return Await Task.FromResult(1)
     End Function
 ##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineAwaitExpression4() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Imports System.Threading.Tasks
+Public Class TestClass
+    Public Function Caller() As Task
+        Dim x = Ca[||]llee()
+    End Function
+
+    Private Async Function Callee() As Task(Of Integer)
+        Return Await Task.FromResult(Await Task.FromResult(100))
+    End Function
+End Class",
+                "
+Imports System.Threading.Tasks
+Public Class TestClass
+    Public Async Function Caller() As Task
+        Dim x = Task.FromResult(Await Task.FromResult(100))
+    End Function
+##
+    Private Async Function Callee() As Task(Of Integer)
+        Return Await Task.FromResult(Await Task.FromResult(100))
+    End Function
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineAwaitExpression5() As Task
+            Dim diagnostic = New List(Of DiagnosticResult) From
+                {
+                    DiagnosticResult.CompilerError("BC32050").WithSpan(5, 22, 5, 32).WithArguments("TResult", "Public Shared Overloads Function FromResult(Of TResult)(result As TResult) As System.Threading.Tasks.Task(Of TResult)"),
+                    DiagnosticResult.CompilerError("BC37057").WithSpan(5, 33, 5, 38).WithArguments("Integer"),
+                    DiagnosticResult.CompilerError("BC32017").WithSpan(5, 39, 5, 58).WithMessage("Comma, ')', or a valid expression continuation expected.")
+                }
+
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                "
+Imports System.Threading.Tasks
+Public Class TestClass
+    Public Function Caller() As Integer
+        Dim x = Ca[||]llee()
+        Return 1
+    End Function
+
+    Private Async Function Callee() As Task(Of Integer)
+        Return Await Task.FromResult(Await Task.FromResult(100))
+    End Function
+End Class",
+                "
+Imports System.Threading.Tasks
+Public Class TestClass
+    Public Function Caller() As Integer
+        Dim x = Task.FromResult(Await Task.FromResult(100))
+        Return 1
+    End Function
+##
+    Private Async Function Callee() As Task(Of Integer)
+        Return Await Task.FromResult(Await Task.FromResult(100))
+    End Function
+##End Class", diagnnoticResultsWhenKeepInlinedMethod:=diagnostic, diagnnoticResultsWhenRemoveInlinedMethod:=diagnostic)
         End Function
     End Class
 End Namespace

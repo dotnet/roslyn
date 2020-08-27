@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// </summary>
         private const string TemporaryName = "temp";
 
-        protected AbstractInlineMethodRefactoringProvider(ISyntaxFacts syntaxFacts, ISemanticFactsService semanticFactsService)
+        protected AbstractInlineMethodRefactoringProvider(
+            ISyntaxFacts syntaxFacts,
+            ISemanticFactsService semanticFactsService)
         {
             _syntaxFacts = syntaxFacts;
             _semanticFactsService = semanticFactsService;
@@ -92,18 +94,16 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var calleeMethodDeclarationSyntaxReferences = calleeMethodSymbol.DeclaringSyntaxReferences;
+
+            var symbolDeclarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+            var calleeMethodDeclarationSyntaxReferences = symbolDeclarationService.GetDeclarations(calleeMethodSymbol);
             if (calleeMethodDeclarationSyntaxReferences.Length != 1)
             {
                 return;
             }
 
             var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
-            // For C# it will return MethodDeclarationSyntax,
-            // For VB it will return MethodStatementSyntax, and what it is expecting is MethodBlockSyntax
-            var calleeMethodDeclarationOrStatementNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            var calleeMethodNode = calleeMethodDeclarationOrStatementNode as TMethodDeclarationSyntax
-                ?? calleeMethodDeclarationOrStatementNode.Parent as TMethodDeclarationSyntax;
+            var calleeMethodNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) as TMethodDeclarationSyntax;
 
             if (calleeMethodNode == null)
             {
@@ -132,47 +132,47 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var callerDeclarationNode = _syntaxFacts.GetContainingMemberDeclaration(root, calleeMethodInvocationNode.SpanStart)
-                ?? GetEnclosingMethodLikeNode(calleeMethodNode);
-            if (callerDeclarationNode == null)
-            {
-                return;
-            }
-
-            var callerSymbol = semanticModel.GetDeclaredSymbol(callerDeclarationNode, cancellationToken)
-                ?? semanticModel.GetSymbolInfo(callerDeclarationNode, cancellationToken).GetAnySymbol();
-            if (callerSymbol == null)
-            {
-                return;
-            }
-
-            var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodNode);
-            if (containsAwaitExpression)
-            {
-                // If there is nested 'await', check if the caller is a method, and its return type
-                // is void or AwaitableType because after move the 'await' to the caller it must be async
-                // Example that shouldn't offer refactoring:
-                // int Caller()
-                // {
-                //    var x = Callee();
-                //    return 1;
-                // }
-                // async Task Callee() => await Task.Delay(await Task.FromResult(100));
-                // Example that should offer refactoring (because it is safe to change the caller to async):
-                // void Caller()
-                // {
-                //    var x = Callee();
-                // }
-                // async Task Callee() => await Task.Delay(await Task.FromResult(100));
-                var canInlineAwaitExpression = callerSymbol is IMethodSymbol callerMethodSymbol
-                       && (callerMethodSymbol.IsAsync ||
-                           callerMethodSymbol.ReturnsVoid ||
-                           calleeMethodSymbol.IsAwaitableNonDynamic(semanticModel, callerDeclarationNode.SpanStart));
-                if (!canInlineAwaitExpression)
-                {
-                    return;
-                }
-            }
+            // var callerDeclarationNode = _syntaxFacts.GetContainingMemberDeclaration(root, calleeMethodInvocationNode.SpanStart)
+            //     ?? GetEnclosingMethodLikeNode(calleeMethodNode);
+            // if (callerDeclarationNode == null)
+            // {
+            //     return;
+            // }
+            //
+            // var callerSymbol = semanticModel.GetDeclaredSymbol(callerDeclarationNode, cancellationToken)
+            //     ?? semanticModel.GetSymbolInfo(callerDeclarationNode, cancellationToken).GetAnySymbol();
+            // if (callerSymbol == null)
+            // {
+            //     return;
+            // }
+            //
+            // var containsAwaitExpression = ContainsAwaitExpression(inlineExpression, calleeMethodNode);
+            // if (containsAwaitExpression)
+            // {
+            //     // If there is nested 'await', check if the caller is a method, and its return type
+            //     // is void or AwaitableType because after move the 'await' to the caller it must be async
+            //     // Example that shouldn't offer refactoring:
+            //     // int Caller()
+            //     // {
+            //     //    var x = Callee();
+            //     //    return 1;
+            //     // }
+            //     // async Task Callee() => await Task.Delay(await Task.FromResult(100));
+            //     // Example that should offer refactoring (because it is safe to change the caller to async):
+            //     // void Caller()
+            //     // {
+            //     //    var x = Callee();
+            //     // }
+            //     // async Task Callee() => await Task.Delay(await Task.FromResult(100));
+            //     var canInlineAwaitExpression = callerSymbol is IMethodSymbol callerMethodSymbol
+            //            && (callerMethodSymbol.IsAsync ||
+            //                callerMethodSymbol.ReturnsVoid ||
+            //                calleeMethodSymbol.IsAwaitableNonDynamic(semanticModel, callerDeclarationNode.SpanStart));
+            //     if (!canInlineAwaitExpression)
+            //     {
+            //         return;
+            //     }
+            // }
 
             var statementContainsCallee = calleeMethodInvocationNode.GetAncestor<TStatementSyntax>();
             if (statementContainsCallee == null)
@@ -192,9 +192,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 calleeMethodSymbol,
                 calleeMethodNode,
                 inlineExpression,
-                callerDeclarationNode,
-                callerSymbol,
-                containsAwaitExpression,
                 statementContainsCallee,
                 invocationOperation);
 
@@ -212,9 +209,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodNode,
             TExpressionSyntax inlineExpression,
-            SyntaxNode callerDeclarationNode,
-            ISymbol callerSymbol,
-            bool containsAwaitExpression,
             TStatementSyntax statementContainsCallee,
             IInvocationOperation invocationOperation)
         {
@@ -227,9 +221,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         calleeMethodSymbol,
                         calleeMethodNode,
                         inlineExpression,
-                        callerDeclarationNode,
-                        callerSymbol,
-                        containsAwaitExpression,
                         statementContainsCallee,
                         invocationOperation,
                         removeCalleeDeclarationNode: false,
@@ -244,9 +235,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         calleeMethodSymbol,
                         calleeMethodNode,
                         inlineExpression,
-                        callerDeclarationNode,
-                        callerSymbol,
-                        containsAwaitExpression,
                         statementContainsCallee,
                         invocationOperation,
                         removeCalleeDeclarationNode: true,
@@ -261,9 +249,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             IMethodSymbol calleeMethodSymbol,
             TMethodDeclarationSyntax calleeMethodNode,
             TExpressionSyntax inlineExpression,
-            SyntaxNode callerDeclarationNode,
-            ISymbol callerSymbol,
-            bool containsAwaitExpression,
             TStatementSyntax statementContainsCallee,
             IInvocationOperation invocationOperation,
             bool removeCalleeDeclarationNode,
@@ -272,6 +257,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var methodParametersInfo = await MethodParametersInfo.GetMethodParametersInfoAsync(_syntaxFacts, document, invocationOperation, cancellationToken).ConfigureAwait(false);
             var inlineContext = await GetInlineMethodContextAsync(
                 document,
+                calleeMethodNode,
                 calleeMethodInvocationNode,
                 calleeMethodSymbol,
                 inlineExpression,
@@ -280,24 +266,22 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 cancellationToken).ConfigureAwait(false);
             return await ChangeSolutionAsync(
                 document,
+                calleeMethodInvocationNode,
                 calleeMethodNode,
-                callerDeclarationNode,
-                callerSymbol,
-                containsAwaitExpression,
                 inlineContext,
                 removeCalleeDeclarationNode,
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> ChangeSolutionAsync(Document document,
+        private async Task<Solution> ChangeSolutionAsync(
+            Document document,
+            TInvocationSyntax calleeMethodInvocationNode,
             TMethodDeclarationSyntax calleeMethodNode,
-            SyntaxNode callerDeclarationNode,
-            ISymbol callerSymbol,
-            bool containsAwaitExpression,
             InlineMethodContext inlineMethodContext,
             bool removeCalleeDeclarationNode,
             CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
             var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
@@ -314,16 +298,24 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             var inlineSyntaxNode = inlineMethodContext.InlineSyntaxNode;
             documentEditor.ReplaceNode(syntaxNodeToReplace, inlineSyntaxNode);
 
-            // If the inline content has 'await' expression, then make sure the caller is converted to 'async' method
-            if (containsAwaitExpression)
+            // If the inline content has 'await' expression, then make sure the caller is change to 'async' method
+            // if its return type is awaitable. In all other cases, do nothing.
+            if (inlineMethodContext.ContainsAwaitExpression)
             {
-                // If the inlineExpresion contains await Expression, check has been done to make sure
-                // the caller is Method
-                var callerMethodSymbol = (IMethodSymbol)callerSymbol;
-                if (!callerMethodSymbol.IsAsync)
+                var callerMethodSymbol = GetContainingMethodSymbol(calleeMethodInvocationNode, semanticModel, cancellationToken);
+                if (callerMethodSymbol?.IsAsync == false)
                 {
-                    var declarationModifiers = DeclarationModifiers.From(callerSymbol).WithAsync(true);
-                    documentEditor.SetModifiers(callerDeclarationNode, declarationModifiers);
+                    var symbolDeclarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+                    var callerMethodReferences = symbolDeclarationService.GetDeclarations(callerMethodSymbol);
+                    if (callerMethodReferences.Length == 1)
+                    {
+                        var callerMethodNode = await callerMethodReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                        if (callerMethodSymbol.ReturnsVoid || callerMethodSymbol.IsAwaitableNonDynamic(semanticModel, callerMethodNode.SpanStart))
+                        {
+                            var declarationModifiers = DeclarationModifiers.From(callerMethodSymbol).WithAsync(true);
+                            documentEditor.SetModifiers(callerMethodNode, declarationModifiers);
+                        }
+                    }
                 }
             }
 
@@ -338,6 +330,22 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             return solutionEditor.GetChangedSolution();
+        }
+
+        private static IMethodSymbol? GetContainingMethodSymbol(
+            TInvocationSyntax calleeMethodInvocationNode,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            for (SyntaxNode node = calleeMethodInvocationNode; node != null; node = node.Parent)
+            {
+                if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is IMethodSymbol containingMethodSymbol)
+                {
+                    return containingMethodSymbol;
+                }
+            }
+
+            return null;
         }
 
         private class MySolutionChangeAction : CodeAction.SolutionChangeAction

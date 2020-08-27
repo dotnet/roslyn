@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
@@ -19,8 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
             public static async Task TestInRegularAndScript1Async(
                 string initialMarkUp,
                 string expectedMarkUp,
+                List<DiagnosticResult> diagnosticResults = null,
                 bool keepInlinedMethod = true)
             {
+                diagnosticResults ??= new List<DiagnosticResult>();
                 var test = new TestVerifier
                 {
                     CodeActionIndex = keepInlinedMethod ? 0 : 1,
@@ -30,16 +34,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     },
                     FixedState =
                     {
-                        Sources = { expectedMarkUp }
-                    }
+                        Sources = { expectedMarkUp },
+                    },
                 };
-
+                test.FixedState.ExpectedDiagnostics.AddRange(diagnosticResults);
                 await test.RunAsync().ConfigureAwait(false);
             }
 
             public static async Task TestBothKeepAndRemoveInlinedMethodAsync(
                 string initialMarkUp,
-                string expectedMarkUp)
+                string expectedMarkUp,
+                List<DiagnosticResult> diagnosticResultsWhenKeepInlinedMethod = null,
+                List<DiagnosticResult> diagnosticResultsWhenRemoveInlinedMethod = null)
             {
                 var firstMarkerIndex = expectedMarkUp.IndexOf(Marker);
                 var secondMarkerIndex = expectedMarkUp.LastIndexOf(Marker);
@@ -58,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                         firstPartitionBeforeMarkUp,
                         inlinedMethod,
                         lastPartitionAfterMarkup),
+                    diagnosticResultsWhenKeepInlinedMethod,
                     keepInlinedMethod: true).ConfigureAwait(false);
 
                 await TestInRegularAndScript1Async(
@@ -65,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     string.Concat(
                         firstPartitionBeforeMarkUp,
                         lastPartitionAfterMarkup),
+                    diagnosticResultsWhenRemoveInlinedMethod,
                     keepInlinedMethod: false).ConfigureAwait(false);
             }
         }
@@ -998,8 +1006,8 @@ public class TestClass
 ##}");
 
         [Fact]
-        public Task TestAwaitExpresssion4()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+        public Task TestAwaitExpresssion4() =>
+            TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
                 @"
 using System.Threading.Tasks;
 public class TestClass
@@ -1032,6 +1040,51 @@ public class TestClass
 ##
     private async Task<int> SomeCalculation() => await Task.FromResult(10);
 }");
+
+        [Fact]
+        public Task TestAwaitExpresssion5()
+        {
+            var diagnostic = new List<DiagnosticResult>()
+            {
+                // Await can't be used in non-async method.
+                DiagnosticResult.CompilerError("CS4032").WithSpan(7, 33, 7, 56).WithArguments("int")
+            };
+            return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                           @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public int Caller()
+    {
+        var x = Cal[||]lee();
+        return 1;
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }
+
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}",
+                           @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public int Caller()
+    {
+        var x = Task.FromResult(await SomeCalculation());
+        return 1;
+    }
+##
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(await SomeCalculation());
+    }
+##
+    private async Task<int> SomeCalculation() => await Task.FromResult(10);
+}", diagnosticResultsWhenKeepInlinedMethod: diagnostic, diagnosticResultsWhenRemoveInlinedMethod: diagnostic);
+        }
 
         [Fact]
         public Task TestAwaitExpressionInLambda()

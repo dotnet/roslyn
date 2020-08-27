@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInlineMethodRefactoringProvider() : base(CSharpSyntaxFacts.Instance, CSharpSemanticFactsService.Instance)
+        public CSharpInlineMethodRefactoringProvider()
+            : base(CSharpSyntaxFacts.Instance, CSharpSemanticFactsService.Instance)
         {
         }
 
