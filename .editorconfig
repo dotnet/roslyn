@@ -154,9 +154,6 @@ dotnet_diagnostic.IDE0035.severity = warning
 # IDE0036: Order modifiers
 dotnet_diagnostic.IDE0036.severity = warning
 
-# IDE0040: Add accessibility modifiers
-dotnet_diagnostic.IDE0040.severity = warning
-
 # IDE0043: Format string contains invalid placeholder
 dotnet_diagnostic.IDE0043.severity = warning
 
@@ -246,6 +243,9 @@ dotnet_diagnostic.RS0005.severity = none
 csharp_prefer_braces = when_multiline:warning
 # NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
 dotnet_diagnostic.IDE0011.severity = warning
+
+# IDE0040: Add accessibility modifiers
+dotnet_diagnostic.IDE0040.severity = warning
 
 # CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
 # IDE0051: Remove unused private member
