@@ -32,12 +32,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Our current persistence version.  If we ever change the on-disk format, this should be changed so that we
         /// skip over persisted data that we cannot read.
         /// </summary>
-        private const int ClassificationFormat = 2;
+        private const int ClassificationFormat = 3;
 
         private const int MaxCachedDocumentCount = 8;
 
         /// <summary>
-        /// Cache of the previously requested 
+        /// Cache of the previously requested classified spans for a particular document.  We use this so that during
+        /// loading, if we're asking about the same documents multiple times by the classification service, we can just
+        /// return what we have already loaded and not go back to the persistence store to read/decode.
+        /// <para/>
+        /// This can be read and updated from different threads.  To keep things safe, we use thsi object itself
+        /// as the lock that is taken to serialize access.
         /// </summary>
         private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData
             = new LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)>();
@@ -143,13 +148,22 @@ namespace Microsoft.CodeAnalysis.Remote
             foreach (var type in classificationTypes)
                 writer.WriteString(type);
 
-            // Now emit each classified span as a triple of it's type, start, length.
+            // Now emit each classified span as a triple of it's start, length, type.
+            //
+            // In general, the latter two will all be a single byte as tokens tend to be short and we don't have many
+            // classification types.
+            //
+            // We do need to store the start (as opposed to a delta) as we may have multiple items starting at teh same
+            // position and we cannot encode a negative delta.
             writer.WriteInt32(classifiedSpans.Count);
             foreach (var classifiedSpan in classifiedSpans)
             {
-                writer.WriteInt32(seenClassificationTypes[classifiedSpan.ClassificationType]);
-                writer.WriteInt32(classifiedSpan.TextSpan.Start);
-                writer.WriteInt32(classifiedSpan.TextSpan.Length);
+                checked
+                {
+                    writer.WriteInt32(classifiedSpan.TextSpan.Start);
+                    writer.WriteCompressedUInt((uint)classifiedSpan.TextSpan.Length);
+                    writer.WriteCompressedUInt((uint)seenClassificationTypes[classifiedSpan.ClassificationType]);
+                }
             }
         }
 
@@ -271,13 +285,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 for (var i = 0; i < classifiedSpanCount; i++)
                 {
-                    var typeIndex = reader.ReadInt32();
-                    var start = reader.ReadInt32();
-                    var length = reader.ReadInt32();
+                    checked
+                    {
+                        var start = reader.ReadInt32();
+                        var length = (int)reader.ReadCompressedUInt();
+                        var typeIndex = (int)reader.ReadCompressedUInt();
 
-                    var classification = classificationTypes[typeIndex];
-                    var classifiedSpan = new TextSpan(start, length);
-                    classifiedSpans.Add(new ClassifiedSpan(classification, classifiedSpan));
+                        classifiedSpans.Add(new ClassifiedSpan(classificationTypes[typeIndex], new TextSpan(start, length)));
+                    }
                 }
 
                 return classifiedSpans.ToImmutable();
