@@ -51,10 +51,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return Array.Empty<CompletionItem>();
             }
 
-            return completionResult.Completions.Select(c => CreateCompletionItem(c, document, text, request.Position)).ToArray();
+            return completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray();
         }
 
-        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, TextDocument document, SourceText text, Position position)
+        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
         {
             TextEdit? textEdit = null;
 
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Kind = GetItemKind(xamlCompletion.Kind),
                 Description = xamlCompletion.Description,
                 Icon = xamlCompletion.Icon,
-                Data = new CompletionResolveData { ProjectGuid = document.Project.Id.Id, DocumentGuid = document.Id.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
+                Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
         }
 
