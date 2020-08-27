@@ -334,7 +334,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
             }
 
-            await ExitAsync(/* cancellationToken: */ default).ConfigureAwait(false);
+
+            // The default here is the cancellation token, which these methods don't use, hence the discard name
+            await ExitAsync(_: default).ConfigureAwait(false);
         }
 
         /// <summary>
