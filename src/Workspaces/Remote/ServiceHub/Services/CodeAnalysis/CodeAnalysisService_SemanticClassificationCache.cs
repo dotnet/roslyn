@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // In general, the latter two will all be a single byte as tokens tend to be short and we don't have many
             // classification types.
             //
-            // We do need to store the start (as opposed to a delta) as we may have multiple items starting at teh same
+            // We do need to store the start (as opposed to a delta) as we may have multiple items starting at the same
             // position and we cannot encode a negative delta.
             writer.WriteInt32(classifiedSpans.Count);
             foreach (var classifiedSpan in classifiedSpans)
