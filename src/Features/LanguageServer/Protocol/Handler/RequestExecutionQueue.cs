@@ -177,11 +177,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var (document, solution) = _solutionProvider.GetDocumentAndSolution(work.TextDocument, work.ClientName);
                     solution = MergeChanges(solution, lastMutatedSolution);
 
-                    Solution? mutatedSolution = null;
-                    var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
-
                     if (work.MutatesSolutionState)
                     {
+                        Solution? mutatedSolution = null;
+                        var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, s => mutatedSolution = s);
+
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         var ranToCompletion = false;
                         try
@@ -209,6 +209,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     else
                     {
+                        var context = new RequestContext(solution, work.ClientCapabilities, work.ClientName, document, null);
+
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                         // will be sent back to the client but we can still capture errors in queue processing
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
