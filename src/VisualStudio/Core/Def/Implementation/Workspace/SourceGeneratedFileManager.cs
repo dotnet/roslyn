@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
@@ -37,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 
@@ -60,7 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ITextDocumentFactoryService textDocumentFactoryService,
-            VisualStudioWorkspace visualStudioWorkspace)
+            VisualStudioWorkspace visualStudioWorkspace,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
@@ -69,6 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _visualStudioWorkspace = visualStudioWorkspace;
 
             Directory.CreateDirectory(_temporaryDirectory);
+
+            _listener = listenerProvider.GetListener(FeatureAttribute.SourceGenerators);
 
             // The IVsRunningDocumentTable is a free-threaded VS service that allows fetching of the service and advising events
             // to be done without implicitly marshalling to the UI thread.
@@ -243,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _batchingWorkQueue = new AsyncBatchingDelay(
                     TimeSpan.FromSeconds(1),
                     UpdateBufferContentsAsync,
-                    asyncListener: null,
+                    asyncListener: _fileManager._listener,
                     _cancellationTokenSource.Token);
             }
 
@@ -350,6 +355,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     // We'll start this work asynchronously to figure out if we need to change; if the file is closed the cancellationToken
                     // is triggered and this will no-op.
+                    var asyncToken = _fileManager._listener.BeginAsyncOperation(nameof(OpenSourceGeneratedFile) + "." + nameof(OnWorkspaceChanged));
+
                     Task.Run(async () =>
                     {
                         if (await oldProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false) !=
@@ -357,7 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         {
                             _batchingWorkQueue.RequeueWork();
                         }
-                    }, _cancellationTokenSource.Token);
+                    }, _cancellationTokenSource.Token).CompletesAsyncOperation(asyncToken);
                 }
             }
 
