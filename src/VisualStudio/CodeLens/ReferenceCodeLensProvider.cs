@@ -85,6 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             return Task.FromResult<IAsyncCodeLensDataPoint>(dataPoint);
         }
 
+        // The current CodeLens OOP design does not allow us to register an event handler for WorkspaceChanged events
+        // which occur in devenv.exe. We instead poll for changes to the projects, and invalidate data points when
+        // changes are detected.
+        //
+        // This behavior is expected to change when CodeLens is rewritten using LSP.
         private async Task PollForUpdatesAsync()
         {
             while (true)
