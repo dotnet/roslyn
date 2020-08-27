@@ -8272,7 +8272,7 @@ class C<T1>
     [UnmanagedCallersOnly]
     static void M<T2>() {}
 }
-", UnmanagedCallersOnlyAttribute});
+", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
                 // (5,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
