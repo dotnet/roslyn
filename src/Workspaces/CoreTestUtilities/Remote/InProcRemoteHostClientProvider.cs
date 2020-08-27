@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         {
             private readonly Lazy<RemoteWorkspace> _lazyWorkspace;
 
-            public WorkspaceManager(Type[]? additionalRemoteParts)
+            public WorkspaceManager(SolutionAssetCache assetStorage, Type[]? additionalRemoteParts)
+                : base(assetStorage)
             {
                 _lazyWorkspace = new Lazy<RemoteWorkspace>(
                     () => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.AddParts(additionalRemoteParts).GetHostServices(), WorkspaceKind.RemoteWorkspace));
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private readonly HostWorkspaceServices _services;
         private readonly AsyncLazy<RemoteHostClient> _lazyClient;
 
-        public AssetStorage? RemoteAssetStorage { get; }
+        public SolutionAssetCache? RemoteAssetStorage { get; }
         public Type[]? AdditionalRemoteParts { get; }
 
         public InProcRemoteHostClientProvider(HostWorkspaceServices services)
@@ -58,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 cancellationToken => InProcRemoteHostClient.CreateAsync(
                     _services,
                     new RemoteHostTestData(
-                        RemoteAssetStorage ?? new AssetStorage(),
-                        new WorkspaceManager(AdditionalRemoteParts),
+                        new WorkspaceManager(RemoteAssetStorage ?? new SolutionAssetCache(), AdditionalRemoteParts),
                         isInProc: true)),
                 cacheResult: true);
         }
