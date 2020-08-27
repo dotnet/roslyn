@@ -1709,7 +1709,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (value == null ||
-                value.WasCompilerGenerated ||
+                // This prevents us from giving undesired warnings for synthesized arguments for optional parameters,
+                // but allows us to give warnings for synthesized assignments to record properties and for parameter default values at the declaration site.
+                (value.WasCompilerGenerated && assignmentKind == AssignmentKind.Argument) ||
                 !ShouldReportNullableAssignment(targetType, valueType.State))
             {
                 return;
@@ -2150,6 +2152,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (methodSymbol is SynthesizedRecordConstructor)
+            {
+                if (_hasInitialState)
+                {
+                    // A record primary constructor's parameters are entered
+                    // before analyzing initializers, so we skip parameters
+                    // on the second pass over the primary constructor body.
+                    // (this will matter more when we support a user-defined body on the record primary constructor.)
+                    return;
+                }
+            }
+            else if (methodSymbol.IsConstructor())
+            {
+                if (!_hasInitialState)
+                {
+                    // For most constructors, we only enter parameters after analyzing initializers.
+                    return;
+                }
+            }
+
             // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
             methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
 
@@ -2187,23 +2209,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         valueSlot: -1,
                         isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
                 }
-            }
 
-            // If we have an initial state, then we're doing the second analysis stage on a constructor
-            // and we shouldn't report assignment warnings related to parameter default values
-            if (parameter.IsOptional && !_hasInitialState)
-            {
-                // When a parameter has a default value, we initialize its flow state by simulating an assignment of the default value to the parameter.
-                var syntax = parameter.GetNonNullSyntaxNode();
-                var rightSyntax = syntax is ParameterSyntax { Default: { Value: { } value } } ? value : syntax;
-                var right = GetDefaultParameterValue(rightSyntax, parameter, markCompilerGenerated: false);
+                if (parameter.IsOptional)
+                {
+                    // When a parameter has a default value, we initialize its flow state by simulating an assignment of the default value to the parameter.
+                    var syntax = parameter.GetNonNullSyntaxNode();
+                    var rightSyntax = syntax is ParameterSyntax { Default: { Value: { } value } } ? value : syntax;
+                    var right = GetDefaultParameterValue(rightSyntax, parameter);
 
-                var fakeAssignment = new BoundAssignmentOperator(syntax, new BoundParameter(syntax, parameter), right, right.Type ?? parameter.Type);
+                    var parameterAnnotations = GetParameterAnnotations(parameter);
+                    var parameterLValueType = ApplyLValueAnnotations(parameterType, parameterAnnotations);
 
-                var previous = _disableNullabilityAnalysis;
-                _disableNullabilityAnalysis = true;
-                VisitAssignmentOperator(fakeAssignment);
-                _disableNullabilityAnalysis = previous;
+                    var previous = _disableNullabilityAnalysis;
+                    _disableNullabilityAnalysis = true;
+                    VisitOptionalImplicitConversion(right, parameterLValueType, useLegacyWarnings: true, trackMembers: true, assignmentKind: AssignmentKind.Assignment);
+                    _disableNullabilityAnalysis = previous;
+
+                    // If the LHS has annotations, we perform an additional check for nullable value types
+                    CheckDisallowedNullAssignment(ResultType, parameterAnnotations, right.Syntax.Location);
+                    TrackNullableStateForAssignment(right, parameterType, slot, ResultType, MakeSlot(right));
+                }
             }
         }
 
@@ -5020,7 +5045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var annotations = GetParameterAnnotations(parameter);
 
-                        BoundExpression argument = GetDefaultParameterValue(syntax, parameter, markCompilerGenerated: true);
+                        BoundExpression argument = GetDefaultParameterValue(syntax, parameter);
                         resultsBuilder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations));
                         argumentsBuilder.Add(argument);
                         argsToParamsBuilder?.Add(i);
@@ -5047,19 +5072,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, bool markCompilerGenerated)
+        private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter)
         {
             _defaultValuesOpt ??= PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>.GetInstance();
             if (!_defaultValuesOpt.TryGetValue((syntax, parameter), out var argument))
             {
-                argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
-                if (!markCompilerGenerated)
-                {
-                    argument.ResetCompilerGenerated(newCompilerGenerated: false);
-                }
-                _defaultValuesOpt[(syntax, parameter)] = argument;
+                _defaultValuesOpt[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
             }
-            Debug.Assert(markCompilerGenerated == argument.WasCompilerGenerated);
 
             return argument;
         }
