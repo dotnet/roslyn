@@ -14,7 +14,7 @@
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
 
-      <_JsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
         <Content>
           <![CDATA[{
   "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
@@ -30,7 +30,7 @@
 }
 ]]>
         </Content>
-      </_JsonFile>
+      </ServiceHubServiceJsonFile>
     </ItemGroup>
   </Target>
 
@@ -38,13 +38,13 @@
           DependsOnTargets="CalculateServiceHubConfigurationFiles"
           BeforeTargets="CreateVsixContainer"
           Inputs="$(MSBuildAllProjects)"
-          Outputs="@(_JsonFile)">
+          Outputs="@(ServiceHubServiceJsonFile)">
 
-    <WriteLinesToFile File="%(_JsonFile.Identity)" Lines="%(_JsonFile.Content)" Overwrite="true"/>
+    <WriteLinesToFile File="%(ServiceHubServiceJsonFile.Identity)" Lines="%(ServiceHubServiceJsonFile.Content)" Overwrite="true"/>
 
     <ItemGroup>
-      <FileWrites Include="@(_JsonFile->'%(Identity)')"/>
-      <VSIXSourceItem Include="@(_JsonFile->'%(Identity)')" />
+      <FileWrites Include="@(ServiceHubServiceJsonFile->'%(Identity)')"/>
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" />
     </ItemGroup>
   </Target>
 </Project>

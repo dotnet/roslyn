@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!--
+    Roslyn ServiceHub services.
+    
+    Used to generate 
+    1) {service-name}.servicehub.service.json files included in Roslyn setup VSIX and in ServiceHub install directory.
+    2) ServiceHub brokered service registrations in pkgdef file.
+  -->
+  <ItemGroup>
+    <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
+    <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
+    <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService" />
+    <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService" />
+    <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
+    <ServiceHubService Include="roslynRemoteTodoCommentsService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteTodoCommentsService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="roslynLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.LanguageServer" />
+  </ItemGroup>
+  
+  <!--
+    Roslyn in-proc brokered services.
+  -->
+  <ItemGroup>
+    <InProcService Include="RoslynSolutionAssetProvider" />
+  </ItemGroup>
+</Project>
