@@ -2061,6 +2061,16 @@ delegate void record();
         }
 
         [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Delegate_Escaped()
+        {
+            var src = @"
+delegate void @record();
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord_Alias()
         {
             var src = @"

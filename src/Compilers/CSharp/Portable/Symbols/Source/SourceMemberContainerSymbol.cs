@@ -418,18 +418,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
             {
-                foreach (var decl in declaration.Declarations)
+                foreach (var syntaxRef in SyntaxReferences)
                 {
-                    var location = decl.NameLocation;
-                    var nameText = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start).ToString();
-                    ReportTypeNamedRecord(nameText, this.DeclaringCompilation, diagnostics, location);
+                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
+                    {
+                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                        _ => null
+                    };
+
+                    ReportTypeNamedRecord(identifier?.Text, this.DeclaringCompilation, diagnostics, identifier?.GetLocation() ?? Location.None);
                 }
             }
 
             return result;
         }
 
-        static internal void ReportTypeNamedRecord(string name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
+        static internal void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
         {
             if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
                 compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
