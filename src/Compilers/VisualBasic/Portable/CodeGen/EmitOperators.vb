@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
 
         Private Sub EmitUnaryOperatorExpression(expression As BoundUnaryOperator, used As Boolean)
             Debug.Assert((expression.OperatorKind And Not UnaryOperatorKind.IntrinsicOpMask) = 0 AndAlso expression.OperatorKind <> 0)

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Binder
+    Partial Friend Class Binder
         Private Function BindObjectCreationExpression(
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
