@@ -7,7 +7,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Global.Analyzer.Utilities.Extensions
 
+#Disable Warning IDE1006 ' Naming Styles - False positive (missing prefix 'I')
     Friend Module SyntaxNodeExtensions
+#Enable Warning IDE1006 ' Naming Styles
 
         <Extension>
         Public Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
