@@ -16,7 +16,7 @@ pr:
 - demos/*
 
 stages:
-- stage: Build
+- stage: PreBuild
   jobs:
   - job: CheckShouldRunCI
     steps:
