@@ -20,7 +20,7 @@ stages:
   jobs:
   - job: CheckShouldRunCI
     steps:
-    - powershell: . "eng/should-run-ci.ps1"
+    - powershell: . "eng/should-run-ci.ps1"; Write-Host "##vso[task.setvariable variable=ShouldRunCI]$_ShouldRunCI"
 
 - stage: Build
   condition: eq(variables.ShouldRunCI, true)
