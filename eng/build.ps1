@@ -642,6 +642,10 @@ try {
   Push-Location $RepoRoot
 
   if ($ci) {
+    if (-not (ShouldRunCI)) {
+      exit 0
+    }
+
     List-Processes
     Prepare-TempDir
     EnablePreviewSdks
