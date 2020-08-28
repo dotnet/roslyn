@@ -1259,7 +1259,7 @@ partial class Class
     {
         get
         {
-            for (var name = from name in ""string"" orderby name select name; name != null; ) ;                     // 1931
+            for (var name = from name in ""string"" orderby name select name; name != null; ) ;                     // 1931 TODO: There is an extra WRN_PrecedenceInversion
             for (IEnumerable name = null; name == from name in ""string"" orderby name select name; ) ;             // 1931
             for (IEnumerable name = null; name == null; name = from name in ""string"" orderby name select name ) ; // 1931
                 return string.Empty;
