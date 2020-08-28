@@ -113,11 +113,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             }
 
             var inlineExpression = GetInlineExpression(calleeMethodNode);
-            if (inlineExpression == null)
-            {
-                return;
-            }
-
             // Special case 1: AwaitExpression
             if (_syntaxFacts.IsAwaitExpression(inlineExpression))
             {
@@ -143,8 +138,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 // What caller is expecting is an expression returns 'Task', which doesn't include the 'await'
                 inlineExpression = _syntaxFacts.GetExpressionOfAwaitExpression(inlineExpression) as TExpressionSyntax;
             }
+
+            if (inlineExpression == null)
+            {
+                return;
+            }
+
             // Special case 2: ThrowStatement & ThrowExpresion
-            else if (_syntaxFacts.IsThrowStatement(inlineExpression.Parent) || _syntaxFacts.IsThrowExpression(inlineExpression))
+            if (_syntaxFacts.IsThrowStatement(inlineExpression.Parent) || _syntaxFacts.IsThrowExpression(inlineExpression))
             {
                 // If this is a throw statement, then it should be valid for
                 // 1. If it is invoked as ExpressionStatement
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             bool removeCalleeDeclarationNode,
             CancellationToken cancellationToken)
         {
-            var methodParametersInfo = await MethodParametersInfo.GetMethodParametersInfoAsync(_syntaxFacts, document, invocationOperation, cancellationToken).ConfigureAwait(false);
+            var methodParametersInfo = await GetMethodParametersInfoAsync(document, calleeMethodNode, invocationOperation, cancellationToken).ConfigureAwait(false);
             var inlineContext = await GetInlineMethodContextAsync(
                 document,
                 calleeMethodNode,
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> ChangeSolutionAsync(
+        private static async Task<Solution> ChangeSolutionAsync(
             Document document,
             TInvocationSyntax calleeMethodInvocationNode,
             TMethodDeclarationSyntax calleeMethodNode,
@@ -352,7 +353,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            for (SyntaxNode node = calleeMethodInvocationNode; node != null; node = node.Parent)
+            for (SyntaxNode? node = calleeMethodInvocationNode; node != null; node = node.Parent)
             {
                 if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is IMethodSymbol containingMethodSymbol)
                 {

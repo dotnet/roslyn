@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                     {
                         Sources = { expectedMarkUp },
                     },
+                    CodeActionValidationMode = CodeActionValidationMode.None
                 };
                 test.FixedState.ExpectedDiagnostics.AddRange(diagnosticResults);
                 await test.RunAsync().ConfigureAwait(false);
@@ -330,56 +331,12 @@ public class TestClass
 {
     private void Caller(float r1, float r2)
     {
-        float s1 = SomeCaculation(r1);
-        float s2 = SomeCaculation(r2);
-        System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
+        System.Console.WriteLine(""This is s1"" + SomeCaculation(r1) + ""This is S2"" + SomeCaculation(r2));
     }
 ##
     private void Callee(float s1, float s2)
     {
         System.Console.WriteLine(""This is s1"" + s1 + ""This is S2"" + s2);
-    }
-##
-    public float SomeCaculation(float r)
-    {
-        return r * r * 3.14f;
-    }
-}");
-
-        [Fact]
-        public Task TestInlineMethodWithMethodExtractionAndRename()
-            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
-                @"
-public class TestClass
-{
-    private void Caller(float s1, float s2)
-    {
-        Ca[||]llee(SomeCaculation(s1), SomeCaculation(s2));
-    }
-
-    private void Callee(float s1, float s2)
-    {
-        System.Console.WriteLine(""This is s1"" + s1 + ""This is s2"" + s2);
-    }
-
-    public float SomeCaculation(float r)
-    {
-        return r * r * 3.14f;
-    }
-}",
-                @"
-public class TestClass
-{
-    private void Caller(float s1, float s2)
-    {
-        float s11 = SomeCaculation(s1);
-        float s21 = SomeCaculation(s2);
-        System.Console.WriteLine(""This is s1"" + s11 + ""This is s2"" + s21);
-    }
-##
-    private void Callee(float s1, float s2)
-    {
-        System.Console.WriteLine(""This is s1"" + s1 + ""This is s2"" + s2);
     }
 ##
     public float SomeCaculation(float r)
@@ -409,8 +366,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = new int[] {1, 2, 3, 4, 5, 6};
-        System.Console.WriteLine(x.Length);
+        System.Console.WriteLine((new int[] {1, 2, 3, 4, 5, 6}).Length);
     }
 ##
     private void Callee(params int[] x)
@@ -440,8 +396,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = new int[6] {1, 2, 3, 4, 5, 6};
-        System.Console.WriteLine(x.Length);
+        System.Console.WriteLine((new int[6] {1, 2, 3, 4, 5, 6}).Length);
     }
 ##
     private void Callee(params int[] x)
@@ -471,8 +426,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = new int[] { 1 };
-        System.Console.WriteLine(x.Length);
+        System.Console.WriteLine((new int[] { 1 }).Length);
     }
 ##
     private void Callee(params int[] x)
@@ -532,8 +486,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = new int[] { };
-        System.Console.WriteLine(x.Length);
+        System.Console.WriteLine((new int[] { }).Length);
     }
 ##
     private void Callee(params int[] x)
@@ -563,8 +516,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int[] x = new int[] { 1, 2, 3, 4, 5, 6 };
-        System.Console.WriteLine(x.Length);
+        System.Console.WriteLine((new int[] { 1, 2, 3, 4, 5, 6 }).Length);
     }
 ##
     private void Callee(string z, params int[] x)
@@ -698,8 +650,7 @@ public class TestClass
 {
     public TestClass()
     {
-        int j = Callee1(Callee1(10));
-        var x = Callee1(1 + 2 + j);
+        var x = Callee1(1 + 2 + Callee1(Callee1(10)));
     }
 
     private int Callee1(int j)
@@ -728,8 +679,7 @@ public class TestClass
 {
     public void Caller(bool x)
     {
-        int i = x ? Callee(1) : Callee(2);
-        int t = i + 1;
+        int t = (x ? Callee(1) : Callee(2)) + 1;
     }
 
     private int Callee(int i)
@@ -785,8 +735,7 @@ public class TestClass
 {
     public void Caller(int? i)
     {
-        int i1 = i ?? 1;
-        var t = i1 + 1;
+        var t = (i ?? 1) + 1;
     }
 ##
     private int Callee(int i)
@@ -840,8 +789,7 @@ public class TestClass
 {
     private void Caller<U>()
     {
-        int[] i = new int[] { 1, 2, 3 };
-        System.Console.WriteLine(typeof(int).Name.Length + i.Length + typeof(U).Name.Length);
+        System.Console.WriteLine(typeof(int).Name.Length + (new int[] { 1, 2, 3 }).Length + typeof(U).Name.Length);
     }
 ##
     private void Callee<T, U>(params T[] i)
@@ -875,8 +823,7 @@ public class TestClass
     public Task<int> Caller(bool x)
     {
         System.Console.WriteLine("""");
-        int j = x ? 1 : 2;
-        return Task.FromResult(10 + j);
+        return Task.FromResult(10 + (x ? 1 : 2));
     }
 ##
     private async Task<int> Callee(int i, int j)
@@ -1158,8 +1105,7 @@ public class TestClass
         Task<int> Caller(bool x)
         {
             System.Console.WriteLine("""");
-            int j = x ? 1 : 2;
-            return Task.FromResult(10 + j);
+            return Task.FromResult(10 + (x ? 1 : 2));
         }
     }
 ##
@@ -1221,10 +1167,9 @@ public class TestClass
 {
     private void Caller()
     {
-        int i = SomeInt();
         do
         {
-        } while(i + 1 == 1);
+        } while(SomeInt() + 1 == 1);
     }
 ##
     private int Callee(int i)
@@ -1260,8 +1205,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int i1 = SomeInt();
-        for (int i = i1 + 1; i < 10; i++)
+        for (int i = SomeInt() + 1; i < 10; i++)
         {
         }
     }
@@ -1299,8 +1243,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int i = SomeInt();
-        if (i + 1 == 1)
+        if (SomeInt() + 1 == 1)
         {
         }
     }
@@ -1338,8 +1281,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int i = SomeInt();
-        lock (""Hello"" + i)
+        lock (""Hello"" + SomeInt())
         {
         }
     }
@@ -1375,8 +1317,7 @@ public class TestClass
 {
     private string Caller()
     {
-        int i = SomeInt();
-        return ""Hello"" + i;
+        return ""Hello"" + SomeInt();
     }
 ##
     private string Callee(int i)
@@ -1410,8 +1351,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int i = SomeInt();
-        throw new System.Exception(i + 20 + """");
+        throw new System.Exception(SomeInt() + 20 + """");
     }
 ##
     private int Callee(int i)
@@ -1446,8 +1386,7 @@ public class TestClass
 {
     private void Caller()
     {
-        int i = SomeInt();
-        while (i + 1 == 1)
+        while (SomeInt() + 1 == 1)
         {}
     }
 ##
@@ -1484,11 +1423,10 @@ public class TestClass
 {
     private void Calller()
     {
-        int i = SomeInt();
         try
         {
         }
-        catch (System.Exception e) when (i == 1)
+        catch (System.Exception e) when (SomeInt() == 1)
         {
         }
     }
@@ -1521,8 +1459,7 @@ public class TestClass2
     private System.Collections.Generic.IEnumerable<int> Calller()
     {
         yield return 1;
-        int i = SomeInt();
-        yield return i + 10;
+        yield return SomeInt() + 10;
         yield return 3;
     }
 ##
@@ -1616,8 +1553,7 @@ static class Program
 {
     static void Main(string[] args)
     {
-        int i = GetInt();
-        int temp = i + 1;
+        int temp = GetInt() + 1;
     }
 
     private static int GetInt() => 10;

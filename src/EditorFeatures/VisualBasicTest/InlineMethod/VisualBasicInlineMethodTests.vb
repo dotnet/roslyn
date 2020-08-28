@@ -276,9 +276,7 @@ End Class",
                 "
 Public Class TestClass
     Public Sub Caller(i As Integer, j As Integer)
-        Dim i1 As Integer = Cal(i, j)
-        Dim j1 As Integer = Cal(i, j)
-        Dim x = i1 * j1
+        Dim x = Cal(i, j) * Cal(i, j)
     End Sub
 ##
     Private Function Callee(i As Integer, j As Integer) as Integer

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 calleeInvocationNode,
                 inlineExpression,
                 methodParametersInfo.ParametersWithIdentifierArgument,
-                methodParametersInfo.OperationsToGenerateFreshVariablesFor.SelectAsArray(operation => operation.Parameter),
+                methodParametersInfo.ParametersToGenerateFreshVariablesFor.SelectAsArray(parameterAndArgument => parameterAndArgument.parameterSymbol),
                 methodParametersInfo.ParametersWithVariableDeclarationArgument,
                 cancellationToken);
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             var localDeclarationStatementsNeedInsert = GetLocalDeclarationStatementsNeedInsert(
                 syntaxGenerator,
-                methodParametersInfo.OperationsToGenerateFreshVariablesFor,
+                methodParametersInfo.ParametersToGenerateFreshVariablesFor,
                 mergeInlineContentAndVariableDeclarationArgument
                     ? ImmutableArray<(IParameterSymbol, string)>.Empty
                     : methodParametersInfo.ParametersWithVariableDeclarationArgument,
@@ -297,8 +297,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             // }
             var replacementTable = ComputeReplacementTable(
                 calleeMethodSymbol,
-                methodParametersInfo.ParametersWithLiteralArgument,
-                methodParametersInfo.ParametersWithDefaultValue,
+                methodParametersInfo.ParametersToReplace,
                 syntaxGenerator,
                 renameTable);
 
@@ -340,6 +339,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         containsAwaitExpression);
                 }
 
+                // Example:
+                // Before:
+                // void Caller() => Callee()
+                // void Callee() { throw new Exception(); }
+                // After:
+                // void Caller() => throw new Exception();
+                // void Callee() { throw new Exception(); }
+                // Throw expression is converted to throw statement
                 if (CanBeReplacedByThrowExpression(calleeInvocationNode))
                 {
                     return new InlineMethodContext(
@@ -463,16 +470,18 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
         private ImmutableArray<SyntaxNode> GetLocalDeclarationStatementsNeedInsert(
             SyntaxGenerator syntaxGenerator,
-            ImmutableArray<IArgumentOperation> operationsToGenerateFreshVariablesFor,
+            ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax expression)> parametersToGenerateFreshVariablesFor,
             ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
             ImmutableDictionary<ISymbol, string> renameTable)
         {
-            var declarationsQuery = operationsToGenerateFreshVariablesFor
+            var declarationsQuery = parametersToGenerateFreshVariablesFor
                 .Select(parameterAndArguments => CreateLocalDeclarationStatement(syntaxGenerator, renameTable, parameterAndArguments));
 
             var declarationsForVariableDeclarationArgumentQuery = parametersWithVariableDeclarationArgument
                 .Select(parameterAndName =>
-                    syntaxGenerator.LocalDeclarationStatement(parameterAndName.parameterSymbol.Type, renameTable.TryGetValue(parameterAndName.parameterSymbol, out var newName) ? newName : parameterAndName.name));
+                    syntaxGenerator.LocalDeclarationStatement(
+                        parameterAndName.parameterSymbol.Type,
+                        renameTable.TryGetValue(parameterAndName.parameterSymbol, out var newName) ? newName : parameterAndName.name));
 
             return declarationsQuery.Concat(declarationsForVariableDeclarationArgumentQuery).ToImmutableArray();
         }
@@ -496,36 +505,14 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             return false;
         }
 
-        private SyntaxNode CreateLocalDeclarationStatement(
+        private static SyntaxNode CreateLocalDeclarationStatement(
             SyntaxGenerator syntaxGenerator,
             ImmutableDictionary<ISymbol, string> renameTable,
-            IArgumentOperation argumentOperation)
+            (IParameterSymbol parameterSymbol, TExpressionSyntax expression) parameterAndExpression)
         {
-            var parameterSymbol = argumentOperation.Parameter;
+            var (parameterSymbol, expression) = parameterAndExpression;
             var name = renameTable.TryGetValue(parameterSymbol, out var newName) ? newName : parameterSymbol.Name;
-            // Check has been done before to make sure there is only one child.
-            var argumentExpressionOperation = argumentOperation.Children.Single();
-            if (argumentOperation.ArgumentKind == ArgumentKind.ParamArray
-                && parameterSymbol.Type is IArrayTypeSymbol paramArrayParameter
-                && argumentExpressionOperation is IArrayCreationOperation arrayCreationOperation
-                && argumentOperation.IsImplicit)
-            {
-                // if this argument is a param array & the array creation operation is implicitly generated,
-                // it means it is in this format:
-                // void caller() { Callee(1, 2, 3); }
-                // void Callee(params int[] x) { }
-                // Collect each of these arguments and generate a new array for it.
-                // Note: it could be empty.
-                return syntaxGenerator.LocalDeclarationStatement(
-                    paramArrayParameter,
-                    name,
-                    syntaxGenerator.ArrayCreationExpression(GenerateTypeSyntax(paramArrayParameter.ElementType, allowVar: false), arrayCreationOperation.Initializer.ElementValues.SelectAsArray(op => op.Syntax)));
-            }
-            else
-            {
-                // In all the other cases, one parameter should only maps to one arguments.
-                return syntaxGenerator.LocalDeclarationStatement(parameterSymbol.Type, name, argumentExpressionOperation.Syntax);
-            }
+            return syntaxGenerator.LocalDeclarationStatement(parameterSymbol.Type, name, expression);
         }
 
         private static async Task<TExpressionSyntax> ReplaceAllSyntaxNodesForSymbolAsync(
@@ -567,7 +554,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private ImmutableDictionary<ISymbol, SyntaxNode> ComputeReplacementTable(
             IMethodSymbol calleeMethodSymbol,
             ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersWithLiteralArgument,
-            ImmutableArray<IParameterSymbol> parametersWithDefaultValue,
             SyntaxGenerator syntaxGenerator,
             ImmutableDictionary<ISymbol, string> renameTable)
         {
@@ -575,9 +561,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .Zip(calleeMethodSymbol.TypeArguments,
                     (parameter, argument) => (parameter: (ISymbol)parameter,
                         syntaxNode: GenerateTypeSyntax(argument, allowVar: true)));
-            var defaultValueReplacementQuery = parametersWithDefaultValue
-                .Select(symbol => (parameter: (ISymbol)symbol,
-                    syntaxNode: syntaxGenerator.LiteralExpression(symbol.ExplicitDefaultValue)));
             var literalArgumentReplacementQuery = parametersWithLiteralArgument
                 .Select(parameterAndExpressionPair => (parameter: (ISymbol)parameterAndExpressionPair.Key,
                     syntaxNode: (SyntaxNode)parameterAndExpressionPair.Value));
@@ -587,7 +570,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .Select(kvp => (parameter: kvp.Key,
                     syntaxNode: syntaxGenerator.IdentifierName(kvp.Value)))
                 .Concat(typeParametersReplacementQuery)
-                .Concat(defaultValueReplacementQuery)
                 .Concat(literalArgumentReplacementQuery)
                 .ToImmutableDictionary(tuple => tuple.parameter, tuple => tuple.syntaxNode);
         }
