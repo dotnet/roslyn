@@ -1890,11 +1890,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeNotFound = 8890,
         ERR_TypeMustBePublic = 8891,
 
+        WRN_SyncAndAsyncEntryPoints = 8892,
+
+        ERR_InvalidUnmanagedCallersOnlyCallConv = 8893,
+        ERR_CannotUseManagedTypeInUnmanagedCallersOnly = 8894,
+        ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric = 8895,
+        ERR_UnmanagedCallersOnlyRequiresStatic = 8896,
+
         // The following warnings correspond to errors of the same name, but are reported
         // as warnings on interface methods and properties due in warning level 5. They
         // were not reported at all prior to level 5.
-        WRN_ParameterIsStaticClass = 8892,
-        WRN_ReturnTypeIsStaticClass = 8893,
+        WRN_ParameterIsStaticClass = 8897,
+        WRN_ReturnTypeIsStaticClass = 8898,
 
         #endregion diagnostics introduced for C# 9.0
 

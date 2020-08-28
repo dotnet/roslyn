@@ -14,13 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RemoteHostTestData
     {
-        public readonly AssetStorage AssetStorage;
         public readonly RemoteWorkspaceManager WorkspaceManager;
         public readonly bool IsInProc;
 
-        public RemoteHostTestData(AssetStorage assetStorage, RemoteWorkspaceManager workspaceManager, bool isInProc)
+        public RemoteHostTestData(RemoteWorkspaceManager workspaceManager, bool isInProc)
         {
-            AssetStorage = assetStorage;
             WorkspaceManager = workspaceManager;
             IsInProc = isInProc;
         }

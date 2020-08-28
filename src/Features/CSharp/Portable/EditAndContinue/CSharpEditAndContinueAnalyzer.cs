@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,8 +23,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
@@ -38,14 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             {
-                var activeStatementSpanTracker = languageServices.WorkspaceServices.GetRequiredService<IActiveStatementSpanTrackerFactory>().GetOrCreateActiveStatementSpanTracker();
-                return new CSharpEditAndContinueAnalyzer(activeStatementSpanTracker, testFaultInjector: null);
+                return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
             }
         }
 
         // Public for testing purposes
-        public CSharpEditAndContinueAnalyzer(IActiveStatementSpanTracker activeStatementSpanTracker, Action<SyntaxNode>? testFaultInjector = null)
-            : base(activeStatementSpanTracker, testFaultInjector)
+        public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
+            : base(testFaultInjector)
         {
         }
 
@@ -286,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // No need to special case property initializers here, the active statement always spans the initializer expression.
 
-                if (declarationBody.Parent!.Kind() == SyntaxKind.ConstructorDeclaration)
+                if (declarationBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
                 {
                     var constructor = (ConstructorDeclarationSyntax)declarationBody.Parent;
                     var partnerConstructor = (ConstructorDeclarationSyntax?)partnerDeclarationBody?.Parent;

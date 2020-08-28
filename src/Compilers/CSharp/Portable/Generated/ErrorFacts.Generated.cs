@@ -257,6 +257,7 @@
                 case ErrorCode.WRN_UseDefViolationThis:
                 case ErrorCode.WRN_UseDefViolationOut:
                 case ErrorCode.WRN_UseDefViolation:
+                case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                 case ErrorCode.WRN_ParameterIsStaticClass:
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
                     return true;

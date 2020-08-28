@@ -13349,16 +13349,16 @@ interface I
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
 
             comp.VerifyDiagnostics(
-                // (5,10): warning CS8892: 'C': static types cannot be used as parameters
+                // (5,10): warning CS8897: 'C': static types cannot be used as parameters
                 //     void M1(C c); // 1
                 Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "M1").WithArguments("C").WithLocation(5, 10),
-                // (6,7): warning CS8893: 'C': static types cannot be used as return types
+                // (6,7): warning CS8898: 'C': static types cannot be used as return types
                 //     C M2(); // 2
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M2").WithArguments("C").WithLocation(6, 7),
-                // (7,14): warning CS8893: 'C': static types cannot be used as return types
+                // (7,14): warning CS8898: 'C': static types cannot be used as return types
                 //     C Prop { get; set; } // 3, 4
                 Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "get").WithArguments("C").WithLocation(7, 14),
-                // (7,19): warning CS8892: 'C': static types cannot be used as parameters
+                // (7,19): warning CS8897: 'C': static types cannot be used as parameters
                 //     C Prop { get; set; } // 3, 4
                 Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(7, 19)
             );
