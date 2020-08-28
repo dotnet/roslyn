@@ -27,5 +27,25 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
 
         public static explicit operator SolutionKey(Solution solution)
             => new SolutionKey(solution.Id, solution.FilePath, solution.BranchId == solution.Workspace.PrimaryBranchId);
+
+        public SerializableSolutionKey Dehydrate()
+        {
+            return new SerializableSolutionKey
+            {
+                Id = Id,
+                FilePath = FilePath,
+                IsPrimaryBranch = IsPrimaryBranch,
+            };
+        }
+    }
+
+    internal class SerializableSolutionKey
+    {
+        public SolutionId Id;
+        public string FilePath;
+        public bool IsPrimaryBranch;
+
+        public SolutionKey Rehydrate()
+            => new SolutionKey(Id, FilePath, IsPrimaryBranch);
     }
 }
