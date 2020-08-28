@@ -57,14 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return null;
         }
 
-        private static QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
+        private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
             IdentifierNameSyntax errorCode)
         {
-            var analyzerReferences = document.Project.AnalyzerReferences.Union(document.Project.Solution.AnalyzerReferences);
-            var supportedDiagnostics = from r in analyzerReferences
-                                       from a in r.GetAnalyzersForAllLanguages()
-                                       from d in a.SupportedDiagnostics
-                                       select d;
+            var infoCache = _diagnosticAnalyzerService.AnalyzerInfoCache;
+            var hostAnalyzers = document.Project.Solution.State.Analyzers;
+            var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, document.Project).Values;
+            var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
             var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode.Identifier.ValueText);
             if (diagnosticDescriptor != null)
             {
