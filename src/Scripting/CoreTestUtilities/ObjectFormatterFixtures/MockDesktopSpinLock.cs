@@ -15,7 +15,9 @@ namespace ObjectFormatterFixtures
     [DebuggerDisplay("IsHeld = {IsHeld}")]
     internal struct MockDesktopSpinLock
     {
-        private readonly int m_owner;
+#pragma warning disable IDE0044 ' Add readonly modifier - See https://github.com/dotnet/roslyn/issues/47225
+        private volatile int m_owner;
+#pragma warning restore IDE0044 ' Add readonly modifier
 
         public MockDesktopSpinLock(bool enableThreadOwnerTracking)
         {
