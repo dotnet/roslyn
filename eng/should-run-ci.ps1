@@ -2,5 +2,5 @@
 
 Write-Host "Yes this script really exists and is being run"
 ShouldRunCI -AsOutput
-$str = $_ShouldRunCI ? "true" : "false"
+$str = if ($_ShouldRunCI) { "true" } else { "false" }
 Write-Host "##vso[task.setvariable variable=ShouldRunCI]$str"
