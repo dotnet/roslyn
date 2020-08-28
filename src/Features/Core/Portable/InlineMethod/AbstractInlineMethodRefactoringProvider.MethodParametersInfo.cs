@@ -18,38 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
-    internal abstract partial class AbstractInlineMethodRefactoringProvider<TInvocationSyntax, TExpressionSyntax, TMethodDeclarationSyntax, TStatementSyntax>
+    internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodDeclarationSyntax, TStatementSyntax, TExpressionSyntax, TInvocationSyntax>
     {
         /// <summary>
         /// Information about the callee method parameters to compute <see cref="InlineMethodContext"/>.
         /// </summary>
         private readonly struct MethodParametersInfo
         {
-            /// <summary>
-            /// Parameters map to identifier argument's name. The identifier from Caller will be used to replace
-            /// the mapping callee's parameter.
-            /// Example:
-            /// Before:
-            /// void Caller(int i, int j, bool[] k)
-            /// {
-            ///     Callee(i, j, k);
-            /// }
-            /// void Callee(int a, int b, params bool[] c)
-            /// {
-            ///     DoSomething(a, b, c);
-            /// }
-            /// After:
-            /// void Caller(int i, int j, bool[] k)
-            /// {
-            ///     DoSomething(i, j, k);
-            /// }
-            /// void Callee(int a, int b, params bool[] c)
-            /// {
-            ///     DoSomething(a, b, c);
-            /// }
-            /// </summary>
-            public ImmutableDictionary<IParameterSymbol, string> ParametersWithIdentifierArgument { get; }
-
             /// <summary>
             /// Parameters map to variable declaration argument's name.
             /// This is only used for C# to support the 'out' variable declaration. For VB it should always be empty.
@@ -67,7 +42,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// }
             /// void Callee(out int i) => i = 100;
             /// </summary>
-            public ImmutableArray<(IParameterSymbol parameterSymbol, string)> ParametersWithVariableDeclarationArgument { get; }
+            public ImmutableArray<(IParameterSymbol parameterSymbol, string name)> ParametersWithVariableDeclarationArgument { get; }
 
             /// <summary>
             /// Operations that represent Parameter has argument but the argument is not identifier or literal.
@@ -102,7 +77,26 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             /// It includes
             /// 1. Parameter mapping to literal expression
             /// 2. Parameter that has default value, and it has no argument. It should be replaced by the default value.
-            /// 3. A special case, the parameter is only read once in the callee method body
+            /// 3. Parameter mapping to identifier expression
+            /// Before:
+            /// void Caller(int i, int j, bool[] k)
+            /// {
+            ///     Callee(i, j, k);
+            /// }
+            /// void Callee(int a, int b, params bool[] c)
+            /// {
+            ///     DoSomething(a, b, c);
+            /// }
+            /// After:
+            /// void Caller(int i, int j, bool[] k)
+            /// {
+            ///     DoSomething(i, j, k);
+            /// }
+            /// void Callee(int a, int b, params bool[] c)
+            /// {
+            ///     DoSomething(a, b, c);
+            /// }
+            /// 4. A special case, the parameter is only read once in the callee method body
             /// Before:
             /// void Caller(bool x)
             /// {
@@ -127,12 +121,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public ImmutableDictionary<IParameterSymbol, TExpressionSyntax> ParametersToReplace { get; }
 
             public MethodParametersInfo(
-                ImmutableDictionary<IParameterSymbol, string> parametersWithIdentifierArgument,
-                ImmutableArray<(IParameterSymbol parameterSymbol, string)> parametersWithVariableDeclarationArgument,
+                ImmutableArray<(IParameterSymbol parameterSymbol, string name)> parametersWithVariableDeclarationArgument,
                 ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax expression)> parametersToGenerateFreshVariablesFor,
                 ImmutableDictionary<IParameterSymbol, TExpressionSyntax> parametersToReplace)
             {
-                ParametersWithIdentifierArgument = parametersWithIdentifierArgument;
                 ParametersWithVariableDeclarationArgument = parametersWithVariableDeclarationArgument;
                 ParametersToGenerateFreshVariablesFor = parametersToGenerateFreshVariablesFor;
                 ParametersToReplace = parametersToReplace;
@@ -147,7 +139,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var allArgumentOperations = invocationOperation.Arguments
-                .WhereAsArray(operation => operation.Children.IsSingle());
+                .WhereAsArray(argument => argument.Children.IsSingle());
 
             // 1. Find all the parameter maps to an identifier from caller. After inlining, this identifier would be used to replace the parameter in callee body.
             // For params array, it should be included here if it is accept an array identifier as argument.
@@ -269,23 +261,38 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .RemoveRange(operationsWithIdentifierArgument)
                 .RemoveRange(operationsWithVariableDeclarationArgument)
                 .RemoveRange(operationsWithLiteralArgument)
-                .RemoveRange(operationsWithDefaultValue);
+                .RemoveRange(operationsWithDefaultValue)
+                .WhereAsArray(argument => argument.Children.Single().Syntax is TExpressionSyntax);
 
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+            // There is a special case that should be treated differently. If the parameter is only read once in the method body.
+            // Then use the argument expression to directly replace it.
+            // void Caller(bool x)
+            // {
+            //     Callee(Foo(), Bar())
+            // }
+            // void Callee(int a, int b)
+            // {
+            //     DoSomething(a, b);
+            // }
+            // After:
+            // void Caller(bool x)
+            // {
+            //     DoSomething(Foo(), Bar());
+            // }
+            // void Callee(int a, int b)
+            // {
+            //     DoSomething(a, b);
+            // }
             var operationsAreReadOnlyOnce = await GetArgumentsReadOnlyOnceAsync(
                 document, operationsToGenerateFreshVariablesFor, calleeMethodNode, cancellationToken).ConfigureAwait(false);
             operationsToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor.RemoveRange(operationsAreReadOnlyOnce);
             var parametersToGenerateFreshVariablesFor = operationsToGenerateFreshVariablesFor
                 .SelectAsArray(argument => (argument.Parameter, GenerateArgumentExpression(syntaxGenerator, argument)));
 
-            var parameterToIdentifierArgumentMap = operationsWithIdentifierArgument
-                .Select(argument => (argument.Parameter, semanticModel.GetSymbolInfo(argument.Children.Single().Syntax).GetAnySymbol()?.Name))
-                .Where(parameterAndArgumentName => parameterAndArgumentName.Name != null)
-                .ToImmutableDictionary(
-                    keySelector: parameterAndArgumentName => parameterAndArgumentName.Parameter,
-                    elementSelector: parameterAndArgumentName => parameterAndArgumentName.Name!);
-
-            var parameterToReplaceMap = operationsWithLiteralArgument
+            var parameterToReplaceMap =
+                operationsWithLiteralArgument
+                .Concat(operationsWithIdentifierArgument)
                 .Concat(operationsAreReadOnlyOnce)
                 .Concat(operationsWithDefaultValue)
                 .ToImmutableDictionary(
@@ -318,8 +325,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 .ToImmutableArray();
 
             return new MethodParametersInfo(
-                parameterToIdentifierArgumentMap,
-                parametersWithVariableDeclarationArgument!,
+                parametersWithVariableDeclarationArgument,
                 parametersToGenerateFreshVariablesFor,
                 parameterToReplaceMap);
         }
@@ -414,13 +420,13 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         arrayCreationOperation.Initializer.ElementValues.SelectAsArray(op => op.Syntax)));
             }
 
+            // In all the other cases, one parameter should only maps to one argument.
             if (argumentOperation.ArgumentKind == ArgumentKind.DefaultValue
                 && argumentOperation.Parameter.HasExplicitDefaultValue)
             {
                 return (TExpressionSyntax)syntaxGenerator.LiteralExpression(argumentOperation.Parameter.ExplicitDefaultValue);
             }
 
-            // In all the other cases, one parameter should only maps to one arguments.
             return (TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpressionOperation.Syntax);
         }
     }

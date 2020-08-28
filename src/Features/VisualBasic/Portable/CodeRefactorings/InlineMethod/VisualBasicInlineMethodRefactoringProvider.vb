@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(PredefinedCodeRefactoringProviderNames.InlineMethod)), [Shared]>
     <Export(GetType(VisualBasicInlineMethodRefactoringProvider))>
     Friend Class VisualBasicInlineMethodRefactoringProvider
-        Inherits AbstractInlineMethodRefactoringProvider(Of InvocationExpressionSyntax, ExpressionSyntax, MethodBlockSyntax, StatementSyntax)
+        Inherits AbstractInlineMethodRefactoringProvider(Of MethodBlockSyntax, StatementSyntax, ExpressionSyntax, InvocationExpressionSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
         Protected Overrides Function GetEnclosingMethodLikeNode(syntaxNode As SyntaxNode) As SyntaxNode
             While syntaxNode IsNot Nothing
-                If TypeOf syntaxNode Is MethodBlockSyntax OrElse TypeOf syntaxNode Is LambdaExpressionSyntax Then
+                If TypeOf syntaxNode Is MethodBlockBaseSyntax OrElse TypeOf syntaxNode Is LambdaExpressionSyntax Then
                     Return syntaxNode
                 End If
                 syntaxNode = syntaxNode.Parent

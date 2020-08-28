@@ -576,10 +576,10 @@ public class TestClass
 {
     private void Caller()
     {
-        int x1;
-        int y1;
-        int z1;
-        x1 = y1 = z1 = 10;
+        int x;
+        int y;
+        int z;
+        x = y = z = 10;
     }
 ##
     private void Callee(out int z, out int x, out int y)
@@ -1032,6 +1032,38 @@ public class TestClass
     private async Task<int> SomeCalculation() => await Task.FromResult(10);
 }", diagnosticResultsWhenKeepInlinedMethod: diagnostic, diagnosticResultsWhenRemoveInlinedMethod: diagnostic);
         }
+
+        [Fact]
+        public Task TestAwaitExpresssion6() =>
+            TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Cal[||]lee().Result;
+    }
+
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(100);
+    }
+}",
+                @"
+using System.Threading.Tasks;
+public class TestClass
+{
+    public void Caller()
+    {
+        var x = Task.FromResult(100).Result;
+    }
+##
+    private async Task<int> Callee()
+    {
+        return await Task.FromResult(100);
+    }
+##}");
 
         [Fact]
         public Task TestAwaitExpressionInLambda()
@@ -2526,6 +2558,68 @@ public class TestClass
     private string Callee()
     {
         throw new Exception();
+    }
+##}
+");
+
+        [Fact]
+        public Task TestWriteSingleParameter()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        var x = C[||]allee(a ? 10 : 100);
+    }
+
+    private int Callee(int c)
+    {
+        return c = 1000;
+    }
+}
+", @"
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        int c = a ? 10 : 100;
+        var x = c = 1000;
+    }
+##
+    private int Callee(int c)
+    {
+        return c = 1000;
+    }
+##}
+");
+
+        [Fact]
+        public Task TestReadMultipleTimesForParameter()
+            => TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync(@"
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        var x = C[||]allee(a ? 10 : 100, a);
+    }
+
+    private int Callee(int c, bool a)
+    {
+        return a ? c + 1000 : c + 10000;
+    }
+}
+", @"
+public class TestClass
+{
+    public void Caller(bool a)
+    {
+        int c = a ? 10 : 100;
+        var x = a ? c + 1000 : c + 10000;
+    }
+##
+    private int Callee(int c, bool a)
+    {
+        return a ? c + 1000 : c + 10000;
     }
 ##}
 ");

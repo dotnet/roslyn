@@ -1520,6 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return s_localFunctionModifiers;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
                     return s_lambdaModifiers;
 
                 case SyntaxKind.EnumMemberDeclaration:

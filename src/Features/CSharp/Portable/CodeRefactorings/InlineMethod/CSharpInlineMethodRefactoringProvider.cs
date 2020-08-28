@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.InlineMethod)), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
     internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, MethodDeclarationSyntax, StatementSyntax>
+        AbstractInlineMethodRefactoringProvider<MethodDeclarationSyntax, StatementSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
         {
             for (var node = syntaxNode; node != null; node = node.Parent)
             {
-                if (node.IsKind(SyntaxKind.MethodDeclaration)
+                if (node is BaseMethodDeclarationSyntax
                     || node.IsKind(SyntaxKind.LocalFunctionStatement)
                     || node is LambdaExpressionSyntax)
                 {

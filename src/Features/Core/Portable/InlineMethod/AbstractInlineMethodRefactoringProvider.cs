@@ -18,15 +18,15 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal abstract partial class AbstractInlineMethodRefactoringProvider<
-            TInvocationSyntax,
-            TExpressionSyntax,
             TMethodDeclarationSyntax,
-            TStatementSyntax>
+            TStatementSyntax,
+            TExpressionSyntax,
+            TInvocationSyntax>
         : CodeRefactoringProvider
-        where TExpressionSyntax : SyntaxNode
-        where TInvocationSyntax : TExpressionSyntax
         where TMethodDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
+        where TInvocationSyntax : TExpressionSyntax
     {
         /// <summary>
         /// A preferred name used to generated a declaration when the
@@ -65,6 +65,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         /// </summary>
         protected abstract bool IsValidExpressionUnderStatementExpression(TExpressionSyntax expressionNode);
 
+        /// <summary>
+        /// Check if <paramref name="syntaxNode"/> could be replaced by ThrowExpression.
+        /// For VB it always return false because ThrowExpression doesn't exist.
+        /// </summary>
         protected abstract bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode);
 
         protected AbstractInlineMethodRefactoringProvider(
@@ -83,6 +87,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             {
                 return;
             }
+            var statementContainsCallee = calleeMethodInvocationNode.GetAncestor<TStatementSyntax>();
+            if (statementContainsCallee == null)
+            {
+                return;
+            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeMethodInvocationNode, cancellationToken).GetAnySymbol() as IMethodSymbol;
@@ -91,8 +100,12 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            var isOrdinaryOrExtensionMethod = calleeMethodSymbol.IsOrdinaryMethod() || calleeMethodSymbol.IsExtensionMethod;
-            if (calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private || !isOrdinaryOrExtensionMethod)
+            if (!calleeMethodSymbol.IsOrdinaryMethod() && !calleeMethodSymbol.IsExtensionMethod)
+            {
+                return;
+            }
+
+            if (calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private)
             {
                 return;
             }
@@ -106,7 +119,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 
             var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
             var calleeMethodNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) as TMethodDeclarationSyntax;
-
             if (calleeMethodNode == null)
             {
                 return;
@@ -190,12 +202,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
             }
 
-            var statementContainsCallee = calleeMethodInvocationNode.GetAncestor<TStatementSyntax>();
-            if (statementContainsCallee == null)
-            {
-                return;
-            }
-
             var invocationOperation = semanticModel.GetOperation(calleeMethodInvocationNode, cancellationToken) as IInvocationOperation;
             if (invocationOperation == null)
             {
@@ -211,10 +217,10 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 statementContainsCallee,
                 invocationOperation);
 
-            var nestedCodeAction = new MyNestedCodeAction(
+            var nestedCodeAction = new CodeAction.CodeActionWithNestedActions(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 codeActions,
-                isInlinable: false);
+                isInlinable: true);
 
             context.RegisterRefactoring(nestedCodeAction, calleeMethodInvocationNode.Span);
         }
@@ -230,7 +236,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             var calleeMethodName = calleeMethodSymbol.ToNameDisplayString();
             var codeActionKeepsCallee = new MySolutionChangeAction(
-                string.Format(FeaturesResources.Keep_0, calleeMethodName),
+                string.Format(FeaturesResources.Inline_0_and_keep_1, calleeMethodName, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(document,
                         calleeMethodInvocationNode,
@@ -243,7 +249,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         cancellationToken));
 
             var codeActionRemovesCallee = new MySolutionChangeAction(
-                string.Format(FeaturesResources.Remove_0, calleeMethodName),
+                string.Format(FeaturesResources.Inline_0, calleeMethodName),
                 cancellationToken =>
                     InlineMethodAsync(
                         document,
@@ -306,8 +312,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             {
                 documentEditor.InsertBefore(
                     statementContainsCalleeInvocationExpression,
-                    // Make sure the statement is aligned with the existing statement
-                    statement.WithTriviaFrom(statementContainsCalleeInvocationExpression));
+                    statement);
             }
 
             var syntaxNodeToReplace = inlineMethodContext.SyntaxNodeToReplace;
@@ -368,19 +373,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         {
             public MySolutionChangeAction(
                 string title,
-                 Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string? equivalenceKey = null) : base(title, createChangedSolution, equivalenceKey)
-            {
-            }
-        }
-
-        private class MyNestedCodeAction : CodeAction.CodeActionWithNestedActions
-        {
-            public MyNestedCodeAction(
-                string title,
-                ImmutableArray<CodeAction> nestedActions,
-                bool isInlinable,
-                CodeActionPriority priority = CodeActionPriority.Medium) : base(title, nestedActions, isInlinable, priority)
+                Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution, null)
             {
             }
         }

@@ -463,5 +463,54 @@ Public Class TestClass
     End Function
 ##End Class")
         End Function
+
+        <Fact>
+        Public Function TestInlineInConstructor() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Class TestClass
+    Public Sub New(i As Integer)
+        Me.Ca[||]llee(i)
+    End Sub
+
+    Private Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Sub New(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+##
+    Private Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+##End Class")
+        End Function
+
+        <Fact>
+        Public Function TestInlineInOperator() As Task
+            Return TestVerifier.TestBothKeepAndRemoveInlinedMethodAsync("
+Public Class TestClass
+    Public Shared Operator +(i As TestClass, j As TestClass)
+        Ca[||]llee(10)
+        Return Nothing
+    End Operator
+
+    Private Shared Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+End Class", "
+Public Class TestClass
+    Public Shared Operator +(i As TestClass, j As TestClass)
+        System.Console.WriteLine(10)
+        Return Nothing
+    End Operator
+##
+    Private Shared Sub Callee(i As Integer)
+        System.Console.WriteLine(i)
+    End Sub
+##End Class")
+        End Function
+
     End Class
 End Namespace

@@ -500,6 +500,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Inline '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_0_and_keep_1">
+        <source>Inline '{0}' and keep '{1}'</source>
+        <target state="new">Inline '{0}' and keep '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">16 進数の数字が正しくありません</target>
@@ -529,11 +534,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">無効なグループ名: グループ名は単語文字で始める必要があります</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
-      </trans-unit>
-      <trans-unit id="Keep_0">
-        <source>Keep '{0}'</source>
-        <target state="new">Keep '{0}'</target>
-        <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
@@ -1798,11 +1798,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="translated">メタデータ内に検出される関連するメソッド シグネチャは更新されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_0">
-        <source>Remove '{0}'</source>
-        <target state="new">Remove '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
