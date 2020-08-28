@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
                 if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
                 {
-                    string removedtext = text.Substring(RemovedApiPrefix.Length);
+                    string removedtext = text[RemovedApiPrefix.Length..];
                     removedBuilder.Add(new RemovedApiLine(removedtext, apiLine));
                 }
                 else

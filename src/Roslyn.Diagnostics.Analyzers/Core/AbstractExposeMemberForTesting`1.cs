@@ -90,7 +90,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static string GetTestAccessorName(ISymbol symbol)
         {
             var name = symbol.Name.TrimStart('_');
-            return char.ToUpperInvariant(name[0]) + name.Substring(1);
+            return char.ToUpperInvariant(name[0]) + name[1..];
         }
 
         private async Task<Solution> AddMemberToTestAccessorAsync(Document document, TextSpan sourceSpan, string memberName, string memberDocumentationCommentId, CancellationToken cancellationToken)
