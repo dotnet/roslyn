@@ -184,8 +184,8 @@ stages:
 
   - job: Linux_Test
     pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Ubuntu.1604.amd64.Open
+      name: NetCorePublic-Pool
+      queue: BuildPool.Ubuntu.1604.amd64.Open
     strategy:
       maxParallel: 2
       matrix:
@@ -222,8 +222,8 @@ stages:
 
   - job: SourceBuild_Test
     pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Ubuntu.1604.amd64.Open
+      name: NetCorePublic-Pool
+      queue: BuildPool.Ubuntu.1604.amd64.Open
     timeoutInMinutes: 90
     steps:
       - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
