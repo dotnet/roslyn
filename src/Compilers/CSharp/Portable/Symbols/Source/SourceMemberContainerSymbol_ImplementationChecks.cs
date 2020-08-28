@@ -1181,7 +1181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics,
             ReportMismatchInReturnType<TArg> reportMismatchInReturnType,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
-            TArg extraArgument)
+            TArg extraArgument,
+            bool invokedAsExtensionMethod = false)
         {
             if (!PerformValidNullableOverrideCheck(compilation, overriddenMethod, overridingMethod))
             {
@@ -1229,11 +1230,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ParameterSymbol> overridingParameters = overridingMethod.GetParameters();
             var overriddenParameters = overriddenMethod.GetParameters();
 
+            int overridingMethodOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(overriddenMethod.ParameterCount == overridingMethod.ParameterCount - overridingMethodOffset);
             for (int i = 0; i < overriddenMethod.ParameterCount; i++)
             {
                 var overriddenParameter = overriddenParameters[i];
                 var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
-                var overridingParameter = overridingParameters[i];
+                var overridingParameter = overridingParameters[i + overridingMethodOffset];
                 var overridingParameterType = overridingParameter.TypeWithAnnotations;
                 // check nested nullability
                 if (!isValidNullableConversion(

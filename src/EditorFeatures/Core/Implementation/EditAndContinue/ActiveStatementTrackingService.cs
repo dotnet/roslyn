@@ -83,20 +83,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             TrackingChanged?.Invoke();
         }
 
-        public bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span)
-        {
-            var session = _session;
-            if (session == null)
-            {
-                span = default;
-                return false;
-            }
+        public Task<ImmutableArray<TextSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
+            => _session?.GetSpansAsync(document, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<TextSpan>();
 
-            return session.TryGetSpan(id, source, out span);
-        }
-
-        public Task<ImmutableArray<ActiveStatementTrackingSpan>> GetLatestSpansAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
-            => _session?.GetLatestSpansAsync(document, snapshot, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<ActiveStatementTrackingSpan>();
+        public Task<ImmutableArray<ActiveStatementTrackingSpan>> GetAdjustedTrackingSpansAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
+            => _session?.GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<ActiveStatementTrackingSpan>();
 
         // internal for testing
         internal sealed class TrackingSession
@@ -160,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         return;
                     }
 
-                    _ = await GetLatestSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
+                    _ = await GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -293,37 +284,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 return snapshot != null;
             }
 
-            public bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span)
+            public async Task<ImmutableArray<TextSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
             {
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
                 lock (_trackingSpans)
                 {
-                    if (_trackingSpans.TryGetValue(id.DocumentId, out var documentSpans) && documentSpans != null)
+                    if (_trackingSpans.TryGetValue(document.Id, out var documentSpans) && documentSpans != null)
                     {
-                        var trackingSpan = documentSpans[id.Ordinal].Span;
-                        var snapshot = source.FindCorrespondingEditorTextSnapshot();
+                        Debug.Assert(!documentSpans.IsEmpty);
 
-                        if (snapshot != null && snapshot.TextBuffer == trackingSpan.TextBuffer)
+                        var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+                        if (snapshot != null && snapshot.TextBuffer == documentSpans.First().Span.TextBuffer)
                         {
-                            span = trackingSpan.GetSpan(snapshot).Span.ToTextSpan();
-                            return true;
+                            return documentSpans.SelectAsArray(s => s.Span.GetSpan(snapshot).Span.ToTextSpan());
                         }
                     }
                 }
 
-                span = default;
-                return false;
+                return ImmutableArray<TextSpan>.Empty;
             }
 
             /// <summary>
             /// Updates tracking spans with the latest positions of all active statements in the specified document snapshot.
             /// </summary>
-            internal async Task<ImmutableArray<ActiveStatementTrackingSpan>> GetLatestSpansAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
+            internal async Task<ImmutableArray<ActiveStatementTrackingSpan>> GetAdjustedTrackingSpansAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
             {
                 try
                 {
                     Debug.Assert(TryGetSnapshot(document, out var s) && s == snapshot);
 
-                    var activeStatementSpans = await _encService.GetDocumentActiveStatementSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                    var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(cancellationToken => GetSpansAsync(document, cancellationToken));
+                    var activeStatementSpans = await _encService.GetAdjustedActiveStatementSpansAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
                     lock (_trackingSpans)
                     {
