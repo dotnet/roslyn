@@ -6,7 +6,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Global.Analyzer.Utilities.Extensions
+
     Friend Module SyntaxNodeExtensions
+
         <Extension>
         Public Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
             Select Case node.Kind
