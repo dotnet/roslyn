@@ -171,7 +171,7 @@
       Disable analyzers via an MSBuild property settable on the command line.
     -->
     <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" />
+      <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' != 'CSharpSyntaxGenerator'" />
     </ItemGroup>
   </Target>
 

@@ -271,15 +271,6 @@ namespace CSharpSyntaxGenerator
             return name;
         }
 
-        protected string StripNode()
-            => (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root[0..^4] : _tree.Root;
-
-        protected string StripRoot(string name)
-        {
-            var root = StripNode();
-            return name.EndsWith(root, StringComparison.Ordinal) ? name[0..^root.Length] : name;
-        }
-
         protected static string StripPost(string name, string post)
         {
             return name.EndsWith(post, StringComparison.Ordinal)
