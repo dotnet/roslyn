@@ -38,53 +38,20 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var (pragmaWarning, errorCode) = token.Parent switch
+            var errorCode = token.Parent switch
             {
-                PragmaWarningDirectiveTriviaSyntax directive when directive.IsDisablePragma()
-                    => (directive, token.IsKind(SyntaxKind.EndOfDirectiveToken)
+                PragmaWarningDirectiveTriviaSyntax directive
+                    => token.IsKind(SyntaxKind.EndOfDirectiveToken)
                         ? directive.ErrorCodes.LastOrDefault() as IdentifierNameSyntax
-                        : directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax),
-                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax directive } identifier when directive.IsDisablePragma()
-                    => (directive, identifier),
-                _ => default,
+                        : directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax,
+                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax _ } identifier
+                    => identifier,
+                _ => null,
             };
 
             if (errorCode != null)
             {
-                // First look in the analyzer diagnostics of the document. By doing so we get detailed information about the actual
-                // diagnostic message and the code that is affected by the diagnostic id.
-                // If this fails, try to find the error code in the SupportedDiagnostics of all referenced analyzers.
-                return
-                    (await GetQuickInfoFromDiagnosticAnalyzerAsync(document, pragmaWarning, errorCode, cancellationToken).ConfigureAwait(false))
-                    ?? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode);
-            }
-
-            return null;
-        }
-
-        private async Task<QuickInfoItem?> GetQuickInfoFromDiagnosticAnalyzerAsync(
-            Document document,
-            PragmaWarningDirectiveTriviaSyntax pragmaWarning,
-            IdentifierNameSyntax errorCode,
-            CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root != null)
-            {
-                var range = TextSpan.FromBounds(pragmaWarning.FullSpan.End, root.FullSpan.End);
-                var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, range,
-                    diagnosticIdOpt: errorCode.Identifier.ValueText,
-                    includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var supressedDiagnostic = diagnostics.OrderBy(d => d.DataLocation?.SourceSpan?.Start ?? int.MaxValue).FirstOrDefault();
-                if (supressedDiagnostic != null)
-                {
-                    var relatedSpans = supressedDiagnostic.HasTextSpan
-                        ? new[] { supressedDiagnostic.GetTextSpan() }
-                        : Array.Empty<TextSpan>();
-                    return CreateQuickInfo(errorCode,
-                        supressedDiagnostic.Message ?? supressedDiagnostic.Title ?? supressedDiagnostic.Id,
-                        relatedSpans);
-                }
+                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode);
             }
 
             return null;
@@ -138,8 +105,5 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             return result;
         }
-
-        public static bool IsDisablePragma(this PragmaWarningDirectiveTriviaSyntax directive)
-            => directive.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword);
     }
 }
