@@ -60,9 +60,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             if (xamlCompletion.Span.HasValue)
             {
-                textEdit = new TextEdit();
-                textEdit.NewText = xamlCompletion.InsertText;
-                textEdit.Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value));
+                textEdit = new TextEdit
+                {
+                    NewText = xamlCompletion.InsertText,
+                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
+                };
             }
 
             return new VSCompletionItem
