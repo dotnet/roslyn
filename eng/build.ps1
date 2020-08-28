@@ -642,7 +642,8 @@ try {
   Push-Location $RepoRoot
 
   if ($ci) {
-    if (-not (ShouldRunCI)) {
+    ShouldRunCI
+    if (-not $_ShouldRunCI) {
       exit 0
     }
 

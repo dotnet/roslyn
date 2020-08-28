@@ -302,6 +302,14 @@ if [[ "$restore" == true ]]; then
   dotnet tool restore
 fi
 
+if [[ "$ci" == true ]]; then
+  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+  dotnet pwsh ${DIR}/should-run-ci.ps1
+  if [[ "$?" != 0 ]]; then
+    ExitWithExitCode 0
+  fi
+fi
+
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
   MakeBootstrapBuild

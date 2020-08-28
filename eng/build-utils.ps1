@@ -341,11 +341,12 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   return $dir
 }
 
-function ShouldRunCI() {
+function ShouldRunCI([switch]$AsOutput) {
   $id = ${env:Build.BuildId}
   if (-not $id) {
-    Write-LogIssue -Type "warning" -Message "No build ID found in Build.BuildId environment variable."
-    return $true
+    Write-LogIssue -Type "warning" -Message "No build ID found in Build.BuildId environment variable." -AsOutput:$AsOutput
+    $global:_ShouldRunCI = $true
+    return
   }
 
   $response = Invoke-RestMethod -Uri "https://dev.azure.com/dnceng/public/_apis/build/builds/$id/changes?api-version=6.1-preview.2"
@@ -353,11 +354,13 @@ function ShouldRunCI() {
     $filelist = git diff-tree --no-commit-id --name-only -r $change.id
     foreach ($file in $filelist) {
       if (!$file.StartsWith("docs/")) {
-        return $true
+        $global:_ShouldRunCI = $true
+        return
       }
     }
   }
 
-  Write-LogIssue -Type "warning" -Message "Build $id has documentation-only changes. Skipping build and tests."
-  return $false
+  Write-LogIssue -Type "warning" -Message "Build $id has documentation-only changes. Skipping build and tests." -AsOutput:$AsOutput
+  $global:_ShouldRunCI = $false
+  return
 }
