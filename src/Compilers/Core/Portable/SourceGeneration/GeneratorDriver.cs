@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         // https://github.com/dotnet/roslyn/issues/46623
-        [Obsolete("Use RunGeneratorsAndUpdateCompilation")]
+        [Obsolete("Use RunGeneratorsAndUpdateCompilation", error: true)]
         public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
-            => RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out diagnostics, cancellationToken);
+            => throw new NotImplementedException("Use RunGeneratorsAndUpdateCompilation");
 
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {

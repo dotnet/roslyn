@@ -13,11 +13,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
     // https://github.com/dotnet/roslyn/issues/46623
-    [Obsolete("Use GeneratorExecutionContext")]
+    [Obsolete("Use GeneratorExecutionContext", error: true)]
     public readonly struct SourceGeneratorContext { }
 
     // https://github.com/dotnet/roslyn/issues/46623
-    [Obsolete("Use GeneratorInitializationContext")]
+    [Obsolete("Use GeneratorInitializationContext", error: true)]
     public readonly struct InitializationContext { }
 
     /// <summary>
