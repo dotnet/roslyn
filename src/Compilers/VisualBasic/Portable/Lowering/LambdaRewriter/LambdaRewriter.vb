@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _reported_ERR_CannotUseOnErrorGotoWithClosure As Boolean
 
         ''' <summary> WARNING: used ONLY in DEBUG </summary>
-        Private _rewrittenNodes As HashSet(Of BoundNode) = Nothing
+        Private ReadOnly _rewrittenNodes As HashSet(Of BoundNode) = Nothing
 
         Private Sub New(analysis As Analysis,
                         method As MethodSymbol,
