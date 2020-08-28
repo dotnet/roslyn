@@ -139,24 +139,24 @@ namespace CSharpSyntaxGenerator
                     var outputInternalFile = Path.Combine(outputPath, $"{prefix}.Internal.Generated.cs");
                     var outputSyntaxFile = Path.Combine(outputPath, $"{prefix}.Syntax.Generated.cs");
 
-                    WriteToFile(tree, SourceWriter.WriteMain, outputMainFile);
-                    WriteToFile(tree, SourceWriter.WriteInternal, outputInternalFile);
-                    WriteToFile(tree, SourceWriter.WriteSyntax, outputSyntaxFile);
+                    WriteToFile(writer => SourceWriter.WriteMain(writer, tree), outputMainFile);
+                    WriteToFile(writer => SourceWriter.WriteInternal(writer, tree), outputInternalFile);
+                    WriteToFile(writer => SourceWriter.WriteSyntax(writer, tree), outputSyntaxFile);
                 }
                 if (writeTests)
                 {
-                    WriteToFile(tree, TestWriter.Write, outputFile);
+                    WriteToFile(writer => TestWriter.Write(writer, tree), outputFile);
                 }
             }
 
             return 0;
         }
 
-        private static void WriteToFile(Tree tree, Action<TextWriter, Tree> writeAction, string outputFile)
+        private static void WriteToFile(Action<TextWriter> writeAction, string outputFile)
         {
             var stringBuilder = new StringBuilder();
             var writer = new StringWriter(stringBuilder);
-            writeAction(writer, tree);
+            writeAction(writer);
 
             var text = stringBuilder.ToString();
             int length;

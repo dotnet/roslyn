@@ -48,20 +48,21 @@ namespace CSharpSyntaxGenerator
 
             TreeFlattening.FlattenChildren(tree);
 
-            AddResult(SourceWriter.WriteMain, "Syntax.xml.Main.Generated.cs");
-            AddResult(SourceWriter.WriteInternal, "Syntax.xml.Internal.Generated.cs");
-            AddResult(SourceWriter.WriteSyntax, "Syntax.xml.Syntax.Generated.cs");
+            AddResult(writer => SourceWriter.WriteMain(writer, tree, context.CancellationToken), "Syntax.xml.Main.Generated.cs");
+            AddResult(writer => SourceWriter.WriteInternal(writer, tree, context.CancellationToken), "Syntax.xml.Internal.Generated.cs");
+            AddResult(writer => SourceWriter.WriteSyntax(writer, tree, context.CancellationToken), "Syntax.xml.Syntax.Generated.cs");
 
-            void AddResult(Action<TextWriter, Tree> writeFunction, string hintName)
+            void AddResult(Action<TextWriter> writeFunction, string hintName)
             {
                 // Write out the contents to a StringBuilder to avoid creating a single large string
                 // in memory
                 var stringBuilder = new StringBuilder();
                 using (var textWriter = new StringWriter(stringBuilder))
                 {
-                    writeFunction(textWriter, tree);
+                    writeFunction(textWriter);
                 }
 
+                // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
                 context.AddSource(hintName, SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8));
             }
         }
