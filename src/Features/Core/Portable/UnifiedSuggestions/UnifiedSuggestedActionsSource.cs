@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 document, selection, includeSuppressionFixes, isBlocking,
                 addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            var filteredFixes = fixes.Where(c => c.Fixes.Length > 0).ToImmutableArray();
+            var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
             var organizedFixes = OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes);
 
             return organizedFixes;
