@@ -6,9 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Global.Analyzer.Utilities.Extensions
 
-#Disable Warning IDE1006 ' Naming Styles - False positive (missing prefix 'I')
     Public Module StatementSyntaxExtensions
-#Enable Warning IDE1006 ' Naming Styles
 
         <Extension()>
         Public Function GetAsClause(member As StatementSyntax) As AsClauseSyntax
