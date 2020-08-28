@@ -7,6 +7,7 @@ Particularly for developers who aren't experienced with .NET Core development on
 1. Clone git@github.com:dotnet/roslyn.git
 1. Run `./build.sh --restore`
 1. Run `./build.sh --build`
+2. Don't forget to update libssh!
 
 ## Working in Visual Studio Code
 1. Install [VS Code](https://code.visualstudio.com/Download)
