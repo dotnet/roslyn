@@ -1,4 +1,7 @@
-﻿#nullable enable 
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#nullable enable 
 
 using System;
 using System.Collections.Generic;
@@ -32,12 +35,15 @@ internal static class MinimizeUtil
         //  2. Hard link all other files into destination directory
         void InitialWalk()
         {
-            foreach (var unitDirPath in Directory.EnumerateDirectories(sourceDirectory, "*.UnitTests"))
+            var directories = Directory.EnumerateDirectories(sourceDirectory, "*.UnitTests");
+            directories = directories.Concat(Directory.EnumerateDirectories(sourceDirectory, "RunTests"));
+
+            foreach (var unitDirPath in directories)
             {
                 foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
                 {
-                    var currentDirName = Path.GetDirectoryName(sourceFilePath);
-                    var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName!);
+                    var currentDirName = Path.GetDirectoryName(sourceFilePath)!;
+                    var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
                     var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
                     Directory.CreateDirectory(currentOutputDirectory);
                     var fileName = Path.GetFileName(sourceFilePath);
@@ -120,7 +126,7 @@ if %errorlevel% neq 0 (
                 }
             }
 
-            File.WriteAllText(Path.Combine(destinationDirectory, ".hydrate.cmd"), builder.ToString());
+            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.cmd"), builder.ToString());
         }
     }
 
