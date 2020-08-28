@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnType
@@ -286,6 +287,20 @@ class C
 @"class C
 {
     int M() => 1[||];
+}");
+        }
+
+        [Fact]
+        [WorkItem(47089, "https://github.com/dotnet/roslyn/issues/47089")]
+        public async Task ExpressionAndReturnTypeAreVoid()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        return Console.WriteLine()[||];
+    }
 }");
         }
     }
