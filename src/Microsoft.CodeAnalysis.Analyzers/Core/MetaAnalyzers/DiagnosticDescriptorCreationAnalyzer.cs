@@ -554,9 +554,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             [NotNullWhen(returnValue: true)] out string? filePath,
             [NotNullWhen(returnValue: true)] out TextSpan? fileSpan)
         {
-            Debug.Assert(diagnostic.Id == DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId ||
-                diagnostic.Id == DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId ||
-                diagnostic.Id == DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
+            Debug.Assert(diagnostic.Id is DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId or
+                DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId or
+                DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
 
             filePath = null;
             fileSpan = null;
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            if (!ruleId.Substring(2).All(c => char.IsDigit(c)))
+            if (!ruleId[2..].All(c => char.IsDigit(c)))
             {
                 return false;
             }

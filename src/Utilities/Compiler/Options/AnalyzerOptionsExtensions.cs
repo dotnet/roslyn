@@ -413,7 +413,7 @@ namespace Analyzer.Utilities
                 var matchingSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(genericInterfaceFullName, compilation);
 
                 if (matchingSymbols.Length != 1 ||
-                    !(matchingSymbols[0] is INamedTypeSymbol namedType) ||
+                    matchingSymbols[0] is not INamedTypeSymbol namedType ||
                     namedType.TypeKind != TypeKind.Interface ||
                     !namedType.IsGenericType)
                 {
@@ -514,7 +514,7 @@ namespace Analyzer.Utilities
 
             // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
             // So, we default to first syntax tree.
-            if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
+            if (compilation.SyntaxTrees.FirstOrDefault() is not { } tree)
             {
                 return null;
             }
@@ -535,7 +535,7 @@ namespace Analyzer.Utilities
 
             // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
             // So, we default to first syntax tree.
-            if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
+            if (compilation.SyntaxTrees.FirstOrDefault() is not { } tree)
             {
                 return ImmutableArray<string>.Empty;
             }

@@ -841,7 +841,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsSymbolWithSpecialDiscardName([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _));
 
         public static bool IsConst([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {

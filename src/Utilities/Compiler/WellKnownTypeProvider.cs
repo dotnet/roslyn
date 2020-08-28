@@ -233,12 +233,12 @@ namespace Analyzer.Utilities
             {
                 if (ch < 'A') // '\u0041'
                 {
-                    return ch >= '0'  // '\u0030'
-                        && ch <= '9'; // '\u0039'
+                    return ch is >= '0'  // '\u0030'
+                        and <= '9'; // '\u0039'
                 }
 
-                return ch <= 'Z'  // '\u005A'
-                    || ch == '_'; // '\u005F'
+                return ch is <= 'Z'  // '\u005A'
+                    or '_'; // '\u005F'
             }
 
             if (ch <= 'z') // '\u007A'

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected sealed override TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
-            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+            Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
             if (AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual TAbstractAnalysisValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, TAbstractAnalysisValue defaultValue)
         {
-            Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+            Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
             return defaultValue;
         }

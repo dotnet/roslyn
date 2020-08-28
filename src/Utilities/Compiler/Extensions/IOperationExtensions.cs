@@ -110,7 +110,7 @@ namespace Analyzer.Utilities.Extensions
 
         private static bool HasConstantValue(Optional<object> constantValue, ITypeSymbol constantValueType, ulong comparand)
         {
-            if (constantValueType.SpecialType == SpecialType.System_Double || constantValueType.SpecialType == SpecialType.System_Single)
+            if (constantValueType.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
             {
                 return (double)constantValue.Value == comparand;
             }
@@ -744,8 +744,7 @@ namespace Analyzer.Utilities.Extensions
             }
 
             IOperation potentialLeftSide = operation;
-            while (potentialLeftSide.Parent is IParenthesizedOperation
-                || potentialLeftSide.Parent is ITupleOperation)
+            while (potentialLeftSide.Parent is IParenthesizedOperation or ITupleOperation)
             {
                 potentialLeftSide = potentialLeftSide.Parent;
             }

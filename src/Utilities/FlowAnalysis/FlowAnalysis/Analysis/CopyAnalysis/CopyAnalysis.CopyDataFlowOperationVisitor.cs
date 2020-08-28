@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, CopyAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
                 SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
                 return GetAbstractValue(analysisEntity);

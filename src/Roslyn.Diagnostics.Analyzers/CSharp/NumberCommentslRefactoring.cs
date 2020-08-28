@@ -162,11 +162,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
         internal static bool IsDigitOrComma(char c)
         {
-            if (c >= '0' && c <= '9')
+            if (c is >= '0' and <= '9')
             {
                 return true;
             }
-            if (c == ' ' || c == ',')
+            if (c is ' ' or ',')
             {
                 return true;
             }

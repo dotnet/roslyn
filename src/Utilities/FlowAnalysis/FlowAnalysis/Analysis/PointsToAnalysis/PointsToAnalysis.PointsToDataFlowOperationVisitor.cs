@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
             {
                 // Mark PointsTo values for ref/out parameters in non-interprocedural context as escaped.
-                if (parameter.RefKind == RefKind.Ref || parameter.RefKind == RefKind.Out)
+                if (parameter.RefKind is RefKind.Ref or RefKind.Out)
                 {
                     Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisData == null);
                     var pointsToValue = GetAbstractValue(analysisEntity);
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override PointsToAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(AnalysisEntity analysisEntity, IArgumentOperation operation, PointsToAbstractValue defaultValue)
             {
-                Debug.Assert(operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out);
+                Debug.Assert(operation.Parameter.RefKind is RefKind.Ref or RefKind.Out);
 
                 if (!ShouldBeTracked(analysisEntity))
                 {
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         }
                     }
                 }
-                else if (operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out)
+                else if (operation.Parameter.RefKind is RefKind.Ref or RefKind.Out)
                 {
                     if (operation.Parameter.RefKind == RefKind.Ref)
                     {

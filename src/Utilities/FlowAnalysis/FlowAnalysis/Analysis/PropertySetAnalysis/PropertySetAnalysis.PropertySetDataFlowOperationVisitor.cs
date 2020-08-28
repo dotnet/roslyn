@@ -266,8 +266,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                 trackedAssignmentData.TrackAssignmentWithAbstractLocation(operation, abstractLocation);
                             }
                         }
-                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
-                            || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        else if (pointsToAbstractValue.Kind is PointsToAbstractValueKind.Unknown
+                            or PointsToAbstractValueKind.UnknownNotNull)
                         {
                             trackedAssignmentData.TrackAssignmentWithUnknownLocation(operation);
                         }
@@ -417,8 +417,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                 Debug.Fail("Expected to have tracked assignment operations with locations");
                             }
                         }
-                        else if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.Unknown
-                                 || pointsToAbstractValue.Kind == PointsToAbstractValueKind.UnknownNotNull)
+                        else if (pointsToAbstractValue.Kind is PointsToAbstractValueKind.Unknown
+                                 or PointsToAbstractValueKind.UnknownNotNull)
                         {
                             if (kvp.Value.AssignmentsWithUnknownLocation != null)
                             {

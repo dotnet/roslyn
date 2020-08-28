@@ -88,11 +88,5 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BracePlacement
                 secondBrace.LeadingTrivia.SkipWhile(t => t != lastEndOfLineTrivia).Skip(1));
             tokenToToken[secondBrace] = updatedSecondBrace;
         }
-
-        private static SyntaxNode AddLeadingTrivia(SyntaxNode node, SyntaxTrivia trivia)
-            => node.WithLeadingTrivia(node.GetLeadingTrivia().Insert(0, trivia));
-
-        private static SyntaxToken AddLeadingTrivia(SyntaxToken token, SyntaxTrivia trivia)
-            => token.WithLeadingTrivia(token.LeadingTrivia.Insert(0, trivia));
     }
 }
