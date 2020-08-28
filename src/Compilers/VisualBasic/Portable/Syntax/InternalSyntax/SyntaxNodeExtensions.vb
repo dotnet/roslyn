@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' as many consecutive tokens as possible into a SkippedTokens trivia node.
         Private Class SkippedTriviaBuilder
             ' Maintain the list of trivia that we're accumulating.
- #Disable Warning IDE0044 ' Add readonly modifier - Adding readonly generates compile error - see https://github.com/dotnet/roslyn/issues/47198
+#Disable Warning IDE0044 ' Add readonly modifier - Adding readonly generates compile error - see https://github.com/dotnet/roslyn/issues/47198
             Private _triviaListBuilder As SyntaxListBuilder(Of GreenNode) = SyntaxListBuilder(Of GreenNode).Create()
 #Enable Warning IDE0044 ' Add readonly modifier
 
