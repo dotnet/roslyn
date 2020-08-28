@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     // implements the ASP.NET IsHidden rule
                     var lineVisibility = tree.GetLineVisibility(position, cancellationToken2);
-                    return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
+                    return lineVisibility is LineVisibility.Hidden or LineVisibility.BeforeFirstLineDirective;
                 },
                 cancellationToken);
         }

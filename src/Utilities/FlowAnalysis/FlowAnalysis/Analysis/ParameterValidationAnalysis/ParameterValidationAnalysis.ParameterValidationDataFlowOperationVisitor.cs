@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             private void ProcessLambdaOrLocalFunctionInvocation(IMethodSymbol targetMethod, IOperation invocation)
             {
-                Debug.Assert(targetMethod.MethodKind == MethodKind.LambdaMethod || targetMethod.MethodKind == MethodKind.LocalFunction);
+                Debug.Assert(targetMethod.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction);
 
                 // Lambda and local function invocations can access captured variables.
                 if (_hazardousParameterUsageBuilder != null &&

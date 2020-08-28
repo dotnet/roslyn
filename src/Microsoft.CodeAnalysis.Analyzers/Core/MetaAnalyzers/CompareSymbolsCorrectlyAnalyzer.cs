@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static void HandleBinaryOperator(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
         {
             var binary = (IBinaryOperation)context.Operation;
-            if (binary.OperatorKind != BinaryOperatorKind.Equals && binary.OperatorKind != BinaryOperatorKind.NotEquals)
+            if (binary.OperatorKind is not BinaryOperatorKind.Equals and not BinaryOperatorKind.NotEquals)
             {
                 return;
             }

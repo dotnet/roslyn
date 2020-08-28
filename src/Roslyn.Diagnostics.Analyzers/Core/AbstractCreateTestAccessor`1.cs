@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
         }
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+            => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
 
         private async Task<Document> CreateTestAccessorAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {

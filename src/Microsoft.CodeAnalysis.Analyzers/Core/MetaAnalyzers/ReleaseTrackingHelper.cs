@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                 //
                 // NOTE: Last field 'Helplink' is optional for both cases.
 
-                if (parts.Length < 3 || parts.Length > 6)
+                if (parts.Length is < 3 or > 6)
                 {
                     return true;
                 }
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
             string path, bool isShipped, ReleaseTrackingRuleEntryKind kind)
             : base(ruleId, category, enabledByDefault, defaultSeverity, span, sourceText, path, isShipped, kind)
         {
-            Debug.Assert(kind == ReleaseTrackingRuleEntryKind.New || kind == ReleaseTrackingRuleEntryKind.Removed);
+            Debug.Assert(kind is ReleaseTrackingRuleEntryKind.New or ReleaseTrackingRuleEntryKind.Removed);
         }
     }
 

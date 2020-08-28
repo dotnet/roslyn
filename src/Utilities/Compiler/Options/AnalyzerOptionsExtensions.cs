@@ -514,7 +514,7 @@ namespace Analyzer.Utilities
 
             // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
             // So, we default to first syntax tree.
-            if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
+            if (compilation.SyntaxTrees.FirstOrDefault() is not { } tree)
             {
                 return null;
             }
@@ -535,7 +535,7 @@ namespace Analyzer.Utilities
 
             // MSBuild property values should be set at compilation level, and cannot have different values per-tree.
             // So, we default to first syntax tree.
-            if (!(compilation.SyntaxTrees.FirstOrDefault() is { } tree))
+            if (compilation.SyntaxTrees.FirstOrDefault() is not { } tree)
             {
                 return ImmutableArray<string>.Empty;
             }
