@@ -5,6 +5,7 @@ trigger:
 - release/*
 - features/*
 - demos/*
+- dev/rigibson/dont-build-docs-changes
 
 # Branches that trigger builds on PR
 pr:
