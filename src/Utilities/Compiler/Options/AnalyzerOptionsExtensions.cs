@@ -413,7 +413,7 @@ namespace Analyzer.Utilities
                 var matchingSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(genericInterfaceFullName, compilation);
 
                 if (matchingSymbols.Length != 1 ||
-                    !(matchingSymbols[0] is INamedTypeSymbol namedType) ||
+                    matchingSymbols[0] is not INamedTypeSymbol namedType ||
                     namedType.TypeKind != TypeKind.Interface ||
                     !namedType.IsGenericType)
                 {

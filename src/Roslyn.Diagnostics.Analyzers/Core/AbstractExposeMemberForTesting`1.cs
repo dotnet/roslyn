@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
             if (location is null)
                 return;
 
-            if (!(testAccessorType.ContainingSymbol is ITypeSymbol containingType))
+            if (testAccessorType.ContainingSymbol is not ITypeSymbol containingType)
                 return;
 
             foreach (var member in containingType.GetMembers())

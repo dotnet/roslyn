@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static bool IsExplicitCastToObject(IOperation operation)
         {
-            if (!(operation is IConversionOperation conversion))
+            if (operation is not IConversionOperation conversion)
             {
                 return false;
             }

@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // they should not be considered as part of current state when possible exception occurs.
                 if (operation != null &&
                     operation.Kind != OperationKind.ObjectCreation &&
-                    (!(operation is IInvocationOperation invocation) ||
+                    (operation is not IInvocationOperation invocation ||
                        invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate()))
                 {
                     base.HandlePossibleThrowingOperation(operation);
