@@ -24,7 +24,7 @@ stages:
     - powershell: Write-Host $env:SHOULDRUNCI
 
 - stage: Build
-  condition: eq(variables.ShouldRunCI, "true")
+  condition: eq(variables.ShouldRunCI, true)
   jobs:
   - job: Windows_Desktop_Unit_Tests
     pool:
