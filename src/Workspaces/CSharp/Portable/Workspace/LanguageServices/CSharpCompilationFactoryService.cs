@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            return new CSharpGeneratorDriver(parseOptions, generators, optionsProvider, additionalTexts);
+            return new CSharpGeneratorDriver((CSharpParseOptions)parseOptions, generators, optionsProvider, additionalTexts);
         }
     }
 }

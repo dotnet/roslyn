@@ -291,8 +291,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Generator]
         public class TestGenerator : ISourceGenerator
         {
-            public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-            public void Initialize(InitializationContext context) => throw new NotImplementedException();
+            public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+            public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
         }
 
         public class SomeType
@@ -307,8 +307,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             [Generator]
             public class NestedGenerator : ISourceGenerator
             {
-                public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-                public void Initialize(InitializationContext context) => throw new NotImplementedException();
+                public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+                public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
             }
         }
     }
@@ -357,27 +357,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [Generator]
     public class TestGenerator : ISourceGenerator
     {
-        public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 
     public class TestGeneratorNoAttrib : ISourceGenerator
     {
-        public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 
     [Generator]
     public class BaseGenerator : ISourceGenerator
     {
-        public virtual void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
-        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+        public virtual void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 
     [Generator]
     public class SubClassedGenerator : BaseGenerator
     {
-        public override void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public override void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
     }
 
     [Generator]

@@ -386,8 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return input;
             }
 
-            var driver = new CSharpGeneratorDriver(parseOptions, generators, analyzerConfigProvider, additionalTexts);
-            driver.RunFullGeneration(input, out var compilationOut, out var generatorDiagnostics);
+            var driver = new CSharpGeneratorDriver((CSharpParseOptions)parseOptions, generators, analyzerConfigProvider, additionalTexts);
+            driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var generatorDiagnostics);
             diagnostics.AddRange(generatorDiagnostics);
             return compilationOut;
         }
