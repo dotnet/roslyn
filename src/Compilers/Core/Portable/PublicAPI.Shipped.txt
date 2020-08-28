@@ -1027,6 +1027,7 @@ Microsoft.CodeAnalysis.GeneratorDriver.AddAdditionalTexts(System.Collections.Imm
 Microsoft.CodeAnalysis.GeneratorDriver.AddGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator> generators) -> Microsoft.CodeAnalysis.GeneratorDriver
 Microsoft.CodeAnalysis.GeneratorDriver.RemoveGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator> generators) -> Microsoft.CodeAnalysis.GeneratorDriver
 Microsoft.CodeAnalysis.GeneratorDriver.RunFullGeneration(Microsoft.CodeAnalysis.Compilation compilation, out Microsoft.CodeAnalysis.Compilation outputCompilation, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver
+Microsoft.CodeAnalysis.GeneratorDriver.TryApplyEdits(Microsoft.CodeAnalysis.Compilation compilation, out Microsoft.CodeAnalysis.Compilation outputCompilation, out bool success, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver
 Microsoft.CodeAnalysis.IAliasSymbol
 Microsoft.CodeAnalysis.IAliasSymbol.Target.get -> Microsoft.CodeAnalysis.INamespaceOrTypeSymbol
 Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
@@ -1191,6 +1192,9 @@ Microsoft.CodeAnalysis.INamespaceSymbol.GetMembers(string name) -> System.Collec
 Microsoft.CodeAnalysis.INamespaceSymbol.GetNamespaceMembers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamespaceSymbol>
 Microsoft.CodeAnalysis.INamespaceSymbol.IsGlobalNamespace.get -> bool
 Microsoft.CodeAnalysis.INamespaceSymbol.NamespaceKind.get -> Microsoft.CodeAnalysis.NamespaceKind
+Microsoft.CodeAnalysis.InitializationContext
+Microsoft.CodeAnalysis.InitializationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.InitializationContext.RegisterForSyntaxNotifications(Microsoft.CodeAnalysis.SyntaxReceiverCreator receiverCreator) -> void
 Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Operations.OperationVisitor visitor) -> void
 Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult> visitor, TArgument argument) -> TResult
@@ -1245,6 +1249,8 @@ Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax.Tokens.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.ISourceAssemblySymbol
 Microsoft.CodeAnalysis.ISourceAssemblySymbol.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.ISourceGenerator
+Microsoft.CodeAnalysis.ISourceGenerator.Execute(Microsoft.CodeAnalysis.SourceGeneratorContext context) -> void
+Microsoft.CodeAnalysis.ISourceGenerator.Initialize(Microsoft.CodeAnalysis.InitializationContext context) -> void
 Microsoft.CodeAnalysis.IStructuredTriviaSyntax
 Microsoft.CodeAnalysis.IStructuredTriviaSyntax.ParentTrivia.get -> Microsoft.CodeAnalysis.SyntaxTrivia
 Microsoft.CodeAnalysis.ISymbol
@@ -2132,6 +2138,14 @@ Microsoft.CodeAnalysis.SourceFileResolver.SearchPaths.get -> System.Collections.
 Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.Generic.IEnumerable<string> searchPaths, string baseDirectory) -> void
 Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.Immutable.ImmutableArray<string> searchPaths, string baseDirectory, System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>> pathMap) -> void
 Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.Immutable.ImmutableArray<string> searchPaths, string baseDirectory) -> void
+Microsoft.CodeAnalysis.SourceGeneratorContext
+Microsoft.CodeAnalysis.SourceGeneratorContext.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText>
+Microsoft.CodeAnalysis.SourceGeneratorContext.AddSource(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.SourceGeneratorContext.AnalyzerConfigOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider
+Microsoft.CodeAnalysis.SourceGeneratorContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.SourceGeneratorContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.SourceGeneratorContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.SourceGeneratorContext.SyntaxReceiver.get -> Microsoft.CodeAnalysis.ISyntaxReceiver
 Microsoft.CodeAnalysis.SourceReferenceResolver
 Microsoft.CodeAnalysis.SourceReferenceResolver.SourceReferenceResolver() -> void
 Microsoft.CodeAnalysis.SpecialType
