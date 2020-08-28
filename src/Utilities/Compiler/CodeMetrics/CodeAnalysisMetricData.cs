@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     var index = symbolName.LastIndexOf(".", StringComparison.OrdinalIgnoreCase);
                     if (index >= 0 && index < symbolName.Length)
                     {
-                        symbolName = symbolName.Substring(index + 1);
+                        symbolName = symbolName[(index + 1)..];
                     }
 
                     break;

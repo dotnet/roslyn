@@ -98,7 +98,7 @@ namespace Analyzer.Utilities
         {
             if (options is < WordParserOptions.None or > (WordParserOptions.IgnoreMnemonicsIndicators | WordParserOptions.SplitCompoundWords))
             {
-                throw new ArgumentException($"'{(int)options}' is invalid for enum type '{typeof(WordParserOptions).Name}'", nameof(options));
+                throw new ArgumentException($"'{(int)options}' is invalid for enum type '{nameof(WordParserOptions)}'", nameof(options));
             }
 
             _text = text ?? throw new ArgumentNullException(nameof(text));
