@@ -305,8 +305,8 @@ using Microsoft.CodeAnalysis;
 [Generator]
 public class Generator : ISourceGenerator
 {{
-            public void Execute(SourceGeneratorContext context) {{ }}
-            public void Initialize(InitializationContext context) {{ }}
+            public void Execute(GeneratorExecutionContext context) {{ }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
  }}";
 
                 var directory = Temp.CreateDirectory();
