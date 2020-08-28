@@ -5,7 +5,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using static Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis.GlobalFlowStateAnalysis;
 
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         {
             Debug.Assert(_hasPredicatedGlobalState || !negate);
 
-            if (!value.AnalysisValues.IsEmpty)
+            if (value.Kind == GlobalFlowStateAnalysisValueSetKind.Known)
             {
                 var currentGlobalValue = GetAbstractValue(_globalEntity);
                 if (currentGlobalValue.Kind != GlobalFlowStateAnalysisValueSetKind.Unknown)
@@ -174,6 +176,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             => ApplyInterproceduralAnalysisResultHelper(resultData);
         protected sealed override GlobalFlowStateAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
             => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData, SetAbstractValue);
+        protected override GlobalFlowStateAnalysisData GetInitialInterproceduralAnalysisData(
+            IMethodSymbol invokedMethod,
+            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? invocationInstance,
+            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCaller,
+            ImmutableDictionary<IParameterSymbol, ArgumentInfo<GlobalFlowStateAnalysisValueSet>> argumentValuesMap,
+            IDictionary<AnalysisEntity, PointsToAbstractValue>? pointsToValues,
+            IDictionary<AnalysisEntity, CopyAbstractValue>? copyValues,
+            IDictionary<AnalysisEntity, ValueContentAbstractValue>? valueContentValues,
+            bool isLambdaOrLocalFunction,
+            bool hasParameterWithDelegateType)
+            => GetClonedCurrentAnalysisData();
 
         protected GlobalFlowStateAnalysisValueSet GetValueOrDefault(GlobalFlowStateAnalysisValueSet value)
             => value.Kind == GlobalFlowStateAnalysisValueSetKind.Known ? value : GlobalState;

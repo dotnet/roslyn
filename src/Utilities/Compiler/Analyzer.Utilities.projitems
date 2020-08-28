@@ -106,6 +106,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RulesetToEditorconfigConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SmallDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayStringCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolByDisplayStringComparer.cs" />
