@@ -50,27 +50,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 document, selection, includeSuppressionFixes, isBlocking,
                 addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            var filteredFixes = FilterOnAnyThread(fixes);
+            var filteredFixes = fixes.Where(c => c.Fixes.Length > 0).ToImmutableArray();
             var organizedFixes = OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes);
 
             return organizedFixes;
-        }
-
-        private static ImmutableArray<CodeFixCollection> FilterOnAnyThread(ImmutableArray<CodeFixCollection> collections)
-        {
-            return collections.Select(c => FilterIndividuallyOnAnyThread(c)).WhereNotNull().ToImmutableArray();
-        }
-
-        private static CodeFixCollection? FilterIndividuallyOnAnyThread(CodeFixCollection collection)
-        {
-            var applicableFixes = collection.Fixes;
-            return applicableFixes.Length == 0
-                ? null
-                : applicableFixes.Length == collection.Fixes.Length
-                    ? collection
-                    : new CodeFixCollection(
-                        collection.Provider, collection.TextSpan, applicableFixes,
-                        collection.FixAllState, collection.SupportedScopes, collection.FirstDiagnostic);
         }
 
         /// <summary>
