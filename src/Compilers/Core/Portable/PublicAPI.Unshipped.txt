@@ -31,9 +31,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.CallingConvention.get -> System.Reflection.
 Microsoft.CodeAnalysis.IMethodSymbol.CallingConventionTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>
 Microsoft.CodeAnalysis.ISourceGenerator.Execute(Microsoft.CodeAnalysis.GeneratorExecutionContext context) -> void
 Microsoft.CodeAnalysis.ISourceGenerator.Initialize(Microsoft.CodeAnalysis.GeneratorInitializationContext context) -> void
-Microsoft.CodeAnalysis.InitializationContext
 Microsoft.CodeAnalysis.InitializationContext.InitializationContext() -> void
-Microsoft.CodeAnalysis.SourceGeneratorContext
 Microsoft.CodeAnalysis.SourceGeneratorContext.SourceGeneratorContext() -> void
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.UseExplicitManagedCallingConventionSpecifier = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 Microsoft.CodeAnalysis.GeneratorDriverRunResult.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
