@@ -649,11 +649,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             base.ApplyProjectChanges(projectChanges);
 
             var changedMappedDocuments = projectChanges.GetChangedDocuments()
-                .Where(id => this.CurrentSolution.GetDocument(id)?.Services?.GetService<ISpanMappingService>() != null)
+                .Where(id => ShouldApplyChangesToMappedDocuments(id))
                 .ToImmutableArray();
             if (changedMappedDocuments.Any())
             {
                 ApplyChangesForMappedDocuments(projectChanges, changedMappedDocuments);
+            }
+
+            bool ShouldApplyChangesToMappedDocuments(DocumentId id)
+            {
+                var document = this.CurrentSolution.GetDocument(id);
+                // Only consider files that are mapped and that we are unable to apply changes to.
+                return document?.Services?.GetService<ISpanMappingService>() != null && document?.CanApplyChange() == false;
             }
         }
 
@@ -709,25 +716,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 for (var i = 0; i < mappedSpanResults.Length; i++)
                 {
-                    if (ShouldIncludeMappedChange(mappedSpanResults[i], newDocument))
+                    // Only include changes that could be mapped.
+                    if (!mappedSpanResults[i].IsDefault)
                     {
                         builder.Add((mappedSpanResults[i].FilePath, new TextChange(mappedSpanResults[i].Span, originalTextChanges[i].NewText)));
                     }
                 }
-            }
-
-            static bool ShouldIncludeMappedChange(MappedSpanResult result, CodeAnalysis.Document newDocument)
-            {
-                if (result.IsDefault)
-                {
-                    // There is no appropriate mapping for the span, do not make a change.
-                    return false;
-                }
-
-                var documentIdsForFilePath = newDocument.Project.Solution.GetDocumentIdsWithFilePath(result.FilePath);
-                // Only attempt to apply text changes from mapped files that are not present in the workspace.
-                // Changes to documents in the workspace should have already been applied in the normal project changes workflow.
-                return documentIdsForFilePath.IsEmpty;
             }
         }
 
