@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
@@ -32,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.True(NamedPipeTestUtil.IsPipeFullyClosed(_host.PipeName));
         }
 
-        private Task<NamedPipeClientStream> ConnectAsync(CancellationToken cancellationToken = default) => BuildServerConnection.TryConnectToServerAsync(
+        private Task<NamedPipeClientStream?> ConnectAsync(CancellationToken cancellationToken = default) => BuildServerConnection.TryConnectToServerAsync(
             _host.PipeName,
-            timeoutMs: (int)(TimeSpan.FromMinutes(1).TotalMilliseconds),
+            timeoutMs: Timeout.Infinite,
             cancellationToken);
 
         [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             const int count = 20;
             _host.BeginListening();
-            var list = new List<Task<NamedPipeClientStream>>();
+            var list = new List<Task<NamedPipeClientStream?>>();
             for (int i = 0; i < count; i++)
             {
                 list.Add(ConnectAsync());
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             foreach (var item in list)
             {
-                item.Result.Dispose();
+                item.Result?.Dispose();
             }
 
             _host.EndListening();
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             const int count = 20;
             _host.BeginListening();
-            var list = new List<Task<NamedPipeClientStream>>();
+            var list = new List<Task<NamedPipeClientStream?>>();
             for (int i = 0; i < count; i++)
             {
                 list.Add(ConnectAsync());
@@ -132,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             foreach (var streamTask in list)
             {
                 using var stream = await streamTask.ConfigureAwait(false);
+                Assert.NotNull(stream);
                 var readCount = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
                 Assert.Equal(0, readCount);
                 Assert.False(stream.IsConnected);
