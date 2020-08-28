@@ -2539,6 +2539,16 @@
         <target state="new">Type does not implement the collection pattern; member is is not a public instance or extension method.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordNamedDisallowed_Title">
+        <source>Types and aliases should not be named 'record'.</source>
+        <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
         <target state="translated">Eine mit [DoesNotReturn] gekennzeichnete Methode darf nicht zurückgegeben werden.</target>
