@@ -342,9 +342,9 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
 }
 
 function ShouldRunCI([switch]$AsOutput) {
-  $id = ${env:Build.BuildId}
+  $id = ${env:BUILD_BUILDID}
   if (-not $id) {
-    Write-LogIssue -Type "warning" -Message "No build ID found in Build.BuildId environment variable." -AsOutput:$AsOutput
+    Write-LogIssue -Type "warning" -Message "No build ID found in BUILD_BUILDID environment variable." -AsOutput:$AsOutput
     $global:_ShouldRunCI = $true
     return
   }
