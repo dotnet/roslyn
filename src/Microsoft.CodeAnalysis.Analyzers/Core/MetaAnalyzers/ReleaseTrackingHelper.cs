@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                             expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderTitle;
 
                             // Parse the release version.
-                            string versionString = lineText.Substring(ReleasePrefix.Length).Trim();
+                            string versionString = lineText[ReleasePrefix.Length..].Trim();
                             if (!Version.TryParse(versionString, out var version))
                             {
                                 OnInvalidEntry(line, InvalidEntryKind.Header);
