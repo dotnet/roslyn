@@ -363,6 +363,12 @@
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
+  <data name="IDS_Parameter" xml:space="preserve">
+    <value>parameter</value>
+  </data>
+  <data name="IDS_Return" xml:space="preserve">
+    <value>return</value>
+  </data>
   <data name="XML_InvalidToken" xml:space="preserve">
     <value>The character(s) '{0}' cannot be used at this location.</value>
   </data>
@@ -6469,5 +6475,21 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
     <value>extension GetEnumerator</value>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyRequiresStatic" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_InvalidUnmanagedCallersOnlyCallConv" xml:space="preserve">
+    <value>'{0}' is not a valid calling convention type for 'UnmanagedCallersOnly'.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_CannotUseManagedTypeInUnmanagedCallersOnly" xml:space="preserve">
+    <value>Cannot use '{0}' as a {1} type on a method attributed with 'UnmanagedCallersOnly'.</value>
+    <comment>1 is the localized word for 'parameter' or 'return'. UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric" xml:space="preserve">
+    <value>Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
 </root>
