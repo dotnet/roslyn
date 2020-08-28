@@ -20,10 +20,11 @@ stages:
   jobs:
   - job: CheckShouldRunCI
     steps:
-    - powershell: . "eng/should-run-ci.ps1"; Write-Host "##vso[task.setvariable variable=ShouldRunCI]$_ShouldRunCI"
+    - powershell: . "eng/should-run-ci.ps1"
+    - powershell: Write-Host $env:SHOULDRUNCI
 
 - stage: Build
-  condition: eq(variables.ShouldRunCI, true)
+  condition: eq(variables.ShouldRunCI, "true")
   jobs:
   - job: Windows_Desktop_Unit_Tests
     pool:
