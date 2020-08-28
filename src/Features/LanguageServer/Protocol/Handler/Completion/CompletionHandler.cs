@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : AbstractRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
     {
-        private readonly string[] _csTriggerCharacters;
-        private readonly string[] _vbTriggerCharacters;
+        private readonly ImmutableHashSet<string> _csTriggerCharacters;
+        private readonly ImmutableHashSet<string> _vbTriggerCharacters;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,9 +43,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var vbCompletionProviders = completionProviders?.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).ToImmutableArray();
 
             _csTriggerCharacters = csCompletionProviders.HasValue ? csCompletionProviders.Value.SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray() : Array.Empty<string>();
+                lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToImmutableHashSet() : ImmutableHashSet.Create<string>();
             _vbTriggerCharacters = vbCompletionProviders.HasValue ? vbCompletionProviders.Value.SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray() : Array.Empty<string>();
+                lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToImmutableHashSet() : ImmutableHashSet.Create<string>();
         }
 
         public override async Task<LSP.CompletionItem[]> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'
             // character, while a trigger character in VB, is not a trigger character in C#.
-            if (request.Context.TriggerKind != LSP.CompletionTriggerKind.Invoked && !char.IsLetterOrDigit(char.Parse(request.Context.TriggerCharacter)) &&
+            var triggerCharacter = char.Parse(request.Context.TriggerCharacter);
+            if (request.Context.TriggerKind != LSP.CompletionTriggerKind.Invoked && !char.IsLetterOrDigit(triggerCharacter) &&
                 ((document.Project.Language == LanguageNames.CSharp && !_csTriggerCharacters.Contains(request.Context.TriggerCharacter)) ||
                 (document.Project.Language == LanguageNames.VisualBasic && !_vbTriggerCharacters.Contains(request.Context.TriggerCharacter))))
             {
@@ -86,7 +88,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
             // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
-            var triggerCharacter = char.Parse(request.Context.TriggerCharacter);
             var triggerKind = ProtocolConversions.LSPToRoslynCompletionTriggerKind(request.Context.TriggerKind);
             var completionTrigger = new CompletionTrigger(triggerKind, triggerCharacter);
 
@@ -157,36 +158,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return null;
                 }
 
-                using var _ = ArrayBuilder<char>.GetInstance(out var commitCharacters);
-                commitCharacters.AddRange(CompletionRules.Default.DefaultCommitCharacters);
+                using var _ = PooledHashSet<char>.GetInstance(out var commitCharacters);
+                commitCharacters.AddAll(CompletionRules.Default.DefaultCommitCharacters);
                 foreach (var rule in commitCharacterRules)
                 {
                     switch (rule.Kind)
                     {
                         case CharacterSetModificationKind.Add:
-                            foreach (var c in rule.Characters)
-                            {
-                                if (!commitCharacters.Contains(c))
-                                {
-                                    commitCharacters.Add(c);
-                                }
-                            }
+                            commitCharacters.UnionWith(rule.Characters);
                             continue;
-
                         case CharacterSetModificationKind.Remove:
-                            foreach (var c in rule.Characters)
-                            {
-                                if (commitCharacters.Contains(c))
-                                {
-                                    commitCharacters.Remove(c);
-                                }
-                            }
+                            commitCharacters.ExceptWith(rule.Characters);
                             continue;
-
                         case CharacterSetModificationKind.Replace:
                             commitCharacters.Clear();
                             commitCharacters.AddRange(rule.Characters);
-                            continue;
+                            break;
                     }
                 }
 

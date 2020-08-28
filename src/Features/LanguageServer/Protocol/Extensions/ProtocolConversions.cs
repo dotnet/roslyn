@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     // LSP added a TriggerKind that we need to support.
                     Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
                     return Completion.CompletionTriggerKind.Invoke;
-            };
+            }
         }
 
         public static Uri GetUriFromFilePath(string? filePath)
