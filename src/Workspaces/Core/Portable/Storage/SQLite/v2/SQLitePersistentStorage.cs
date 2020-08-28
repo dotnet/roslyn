@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Project and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Project, string, Checksum, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(ProjectKey, Project?, string, Checksum?, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
         /// The data is keyed off of an integral value produced by combining the ID of the Document and
-        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(Document, string, Checksum, CancellationToken)"/>.
+        /// the ID of the name of the data (see <see cref="SQLitePersistentStorage.ReadStreamAsync(DocumentKey, Document?, string, Checksum?, CancellationToken)"/>.
         /// 
         /// This gives a very efficient integral key, and means that the we only have to store a 
         /// single mapping from stream name to ID in the string table.
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
         private readonly IDisposable _dbOwnershipLock;
-        private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
         // core Accessor type has logic that we to share across all reading/writing, while
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             string solutionFilePath,
             string databaseFile,
             IDisposable dbOwnershipLock,
-            IPersistentStorageFaultInjector faultInjectorOpt)
+            IPersistentStorageFaultInjector? faultInjectorOpt)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
             _dbOwnershipLock = dbOwnershipLock;
@@ -271,7 +274,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         }
 
-        public void Initialize(Solution solution)
+        public void Initialize(Solution? bulkLoadSnapshot)
         {
             if (_shutdownTokenSource.IsCancellationRequested)
             {
@@ -333,7 +336,7 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, solution, fetchStringTable);
+            BulkPopulateIds(connection, bulkLoadSnapshot, fetchStringTable);
 
             return;
 

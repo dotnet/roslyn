@@ -5,6 +5,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PersistentStorage;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -28,6 +29,9 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken = default);
 
+        Task<Checksum> ReadChecksumAsync(ProjectKey project, string name, CancellationToken cancellationToken = default);
+        Task<Checksum> ReadChecksumAsync(DocumentKey document, string name, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Reads the stream for the solution with the given <paramref name="name"/>.  If <paramref name="checksum"/>
         /// is provided, the persisted checksum must match it.  If there is no such stream with that name, or the
@@ -48,6 +52,9 @@ namespace Microsoft.CodeAnalysis.Host
         /// checksums do not match, then <see langword="null"/> will be returned.
         /// </summary>
         Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum = null, CancellationToken cancellationToken = default);
+
+        Task<Stream> ReadStreamAsync(ProjectKey project, string name, Checksum checksum = null, CancellationToken cancellationToken = default);
+        Task<Stream> ReadStreamAsync(DocumentKey document, string name, Checksum checksum = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Reads the stream for the solution with the given <paramref name="name"/>.  An optional <paramref name="checksum"/>
