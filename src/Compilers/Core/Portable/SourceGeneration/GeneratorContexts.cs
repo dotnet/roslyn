@@ -12,16 +12,24 @@ using Microsoft.CodeAnalysis.Text;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
+    // https://github.com/dotnet/roslyn/issues/46623
+    [Obsolete("Use GeneratorExecutionContext", error: true)]
+    public readonly struct SourceGeneratorContext { }
+
+    // https://github.com/dotnet/roslyn/issues/46623
+    [Obsolete("Use GeneratorInitializationContext", error: true)]
+    public readonly struct InitializationContext { }
+
     /// <summary>
-    /// Context passed to a source generator when <see cref="ISourceGenerator.Execute(SourceGeneratorContext)"/> is called
+    /// Context passed to a source generator when <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> is called
     /// </summary>
-    public readonly struct SourceGeneratorContext
+    public readonly struct GeneratorExecutionContext
     {
         private readonly DiagnosticBag _diagnostics;
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal SourceGeneratorContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
@@ -96,11 +104,11 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(InitializationContext)"/> is called
+    /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(GeneratorInitializationContext)"/> is called
     /// </summary>
-    public struct InitializationContext
+    public struct GeneratorInitializationContext
     {
-        internal InitializationContext(CancellationToken cancellationToken = default)
+        internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
         {
             CancellationToken = cancellationToken;
             InfoBuilder = new GeneratorInfo.Builder();
@@ -127,8 +135,8 @@ namespace Microsoft.CodeAnalysis
         /// an instance of <see cref="ISyntaxReceiver"/>. This receiver will have its <see cref="ISyntaxReceiver.OnVisitSyntaxNode(SyntaxNode)"/> 
         /// invoked for each syntax node in the compilation, allowing the receiver to build up information about the compilation before generation occurs.
         /// 
-        /// During <see cref="ISourceGenerator.Execute(SourceGeneratorContext)"/> the generator can obtain the <see cref="ISyntaxReceiver"/> instance that was
-        /// created by accessing the <see cref="SourceGeneratorContext.SyntaxReceiver"/> property. Any information that was collected by the receiver can be
+        /// During <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> the generator can obtain the <see cref="ISyntaxReceiver"/> instance that was
+        /// created by accessing the <see cref="GeneratorExecutionContext.SyntaxReceiver"/> property. Any information that was collected by the receiver can be
         /// used to generate the final output.
         /// 
         /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning there is no need to manage the lifetime of the 
@@ -150,9 +158,9 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal readonly struct EditContext
+    internal readonly struct GeneratorEditContext
     {
-        internal EditContext(ImmutableArray<GeneratedSourceText> sources, CancellationToken cancellationToken = default)
+        internal GeneratorEditContext(ImmutableArray<GeneratedSourceText> sources, CancellationToken cancellationToken = default)
         {
             AdditionalSources = new AdditionalSourcesCollection(sources);
             CancellationToken = cancellationToken;
