@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Represents <c>$"</c> token.</summary>
         InterpolatedStringStartToken = 8482,            // $"
-        /// <summary>Represents <c>"</c> token that is closing <code>$"</code>.</summary>
+        /// <summary>Represents <c>"</c> token that is closing <c>$"</c>.</summary>
         InterpolatedStringEndToken = 8483,              // "
         /// <summary>Represents <c>$@</c> or <c>@$</c> token.</summary>
         InterpolatedVerbatimStringStartToken = 8484,    // $@" or @$"
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OmittedTypeArgumentToken = 8492,
         /// <summary>Represents <c>TODO: What's this?</c> token.</summary>
         OmittedArraySizeExpressionToken = 8493,
-        /// <summary>Represents a token that comes after the end of a directive such as <code>#endif</code>.</summary>
+        /// <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
         EndOfDirectiveToken = 8494,
         /// <summary>Represents the end of a triple slash documentation comment.</summary>
         EndOfDocumentationCommentToken = 8495,
