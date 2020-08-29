@@ -25,9 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         CaretToken = 8197,
         /// <summary>Represents the bitwise AND operator.</summary>
         AmpersandToken = 8198,
+        /// <summary>Represents either a multiplication operator or the asterisk of a pointer type.</summary>
         AsteriskToken = 8199,
+        /// <summary>Represents an open parenthesis.</summary>
         OpenParenToken = 8200,
+        /// <summary>Represents a close parenthesis.</summary>
         CloseParenToken = 8201,
+        /// <summary>Represents the subtraction operator.</summary>
         MinusToken = 8202,
         PlusToken = 8203,
         EqualsToken = 8204,
