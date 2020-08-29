@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         TildeToken = 8193,
         /// <summary>Represents <c>!</c> token.</summary>
         ExclamationToken = 8194,
-        /// <summary>Represents <c>$</c> token. It's a debugger special punctuation and not related to string interpolation.</summary>
+        /// <summary>Represents <c>$</c> token.</summary>
+        /// <remarks>This is a debugger special punctuation and not related to string interpolation.</remarks>
         DollarToken = 8195,
         /// <summary>Represents <c>%</c> token.</summary>
         PercentToken = 8196,
