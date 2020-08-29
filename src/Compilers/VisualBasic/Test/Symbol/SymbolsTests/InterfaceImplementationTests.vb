@@ -40,10 +40,11 @@ End Class"
 "Class Program
     Shared Sub Main()
         Dim i As I = New B(Of String)()
-        i.F()
+        Dim o = i.F()
+        System.Console.WriteLine(o)
     End Sub
 End Class"
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "Function A(Of T).I_F() As S(Of (X As System.Int32, Y As System.Int32))")
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S`1[System.ValueTuple`2[System.Int32,System.Int32]]", "Function A(Of T).I_F() As S(Of (X As System.Int32, Y As System.Int32))")
         End Sub
 
         <Theory>
@@ -74,9 +75,10 @@ End Class"
     Shared Sub Main()
         Dim i As I = New B(Of String)()
         i.F(Nothing)
+        System.Console.WriteLine(1)
     End Sub
 End Class"
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "Sub A(Of T).I_F(s As S(Of (X As System.Int32, Y As System.Int32)))")
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "1", "Sub A(Of T).I_F(s As S(Of (X As System.Int32, Y As System.Int32)))")
         End Sub
 
         Private Sub ExplicitImplementationInBaseType(
@@ -87,6 +89,7 @@ End Class"
             source3 As String,
             derivedTypeName As String,
             interfaceMemberName As String,
+            expectedOutput As String,
             expectedImplementingMember As String)
 
             Dim comp = CreateCompilation(source0)
@@ -96,7 +99,7 @@ End Class"
             Dim ref1 = AsReference(comp, useCompilationReference)
 
             comp = CreateCompilation({source2, source3}, references:={ref0, ref1}, options:=TestOptions.ReleaseExe)
-            CompileAndVerify(comp, expectedOutput:="")
+            CompileAndVerify(comp, expectedOutput:=expectedOutput)
 
             Dim derivedType = comp.GetMember(Of SourceNamedTypeSymbol)(derivedTypeName)
             Dim interfaceMember = comp.GetMember(Of MethodSymbol)(interfaceMemberName)

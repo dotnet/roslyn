@@ -2532,29 +2532,34 @@ class B<T> : A<T>, I where T : class
             var source3 =
 @"class Program
 {
-    static void Main() => ((I)new B<string>()).F();
+    static void Main()
+    {
+        object o = ((I)new B<string>()).F();
+        System.Console.WriteLine(o);
+    }
 }";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "S<System.Object?> A<T>.I.F()");
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "S<System.Object?> A<T>.I.F()");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "S`1[System.Object]", "S<System.Object?> A<T>.I.F()");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "S`1[System.Object]", "S<System.Object?> A<T>.I.F()");
         }
 
         [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
         [Theory]
-        [InlineData("dynamic", "dynamic", "dynamic", true)]
-        [InlineData("dynamic", "dynamic", "dynamic", false)]
-        [InlineData("dynamic", "object", "System.Object", true)]
-        [InlineData("dynamic", "object", "System.Object", false)]
-        [InlineData("object", "dynamic", "dynamic", true)]
-        [InlineData("object", "dynamic", "dynamic", false)]
-        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", true)]
-        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", false)]
-        [InlineData("nint", "nint", "nint", true)]
-        [InlineData("nint", "nint", "nint", false)]
-        //[InlineData("nint", "System.IntPtr", "System.IntPtr", true)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
-        //[InlineData("nint", "System.IntPtr", "System.IntPtr", false)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
-        //[InlineData("System.IntPtr", "nint", "nint", true)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
-        //[InlineData("System.IntPtr", "nint", "nint", false)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
-        public void ExplicitImplementationInBaseType_02(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, bool useCompilationReference)
+        [InlineData("dynamic", "dynamic", "dynamic", "System.Object", true)]
+        [InlineData("dynamic", "dynamic", "dynamic", "System.Object", false)]
+        [InlineData("dynamic", "object", "System.Object", "System.Object", true)]
+        [InlineData("dynamic", "object", "System.Object", "System.Object", false)]
+        [InlineData("object", "dynamic", "dynamic", "System.Object", true)]
+        [InlineData("object", "dynamic", "dynamic", "System.Object", false)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", true)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", false)]
+        [InlineData("nint", "nint", "nint", "System.IntPtr", true)]
+        [InlineData("nint", "nint", "nint", "System.IntPtr", false)]
+        // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        //[InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", true)]
+        //[InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", false)]
+        //[InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", true)]
+        //[InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", false)]
+        public void ExplicitImplementationInBaseType_02(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, string expectedOutput, bool useCompilationReference)
         {
             var source0 =
 $@"public struct S<T>
@@ -2567,7 +2572,7 @@ public interface I
             var source1 =
 $@"public class A<T> : I
 {{
-    public S<T> F() => default;
+    public S<T> F() => throw null;
     S<{baseTypeArg}> I.F() => default;
 }}";
             var source2 =
@@ -2577,9 +2582,13 @@ $@"public class A<T> : I
             var source3 =
 @"class Program
 {
-    static void Main() => ((I)new B<string>()).F();
+    static void Main()
+    {
+        object o = ((I)new B<string>()).F();
+        System.Console.WriteLine(o);
+    }
 }";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", $"S<{expectedTypeArg}> A<T>.I.F()");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", $"S`1[{expectedOutput}]", $"S<{expectedTypeArg}> A<T>.I.F()");
         }
 
         [Theory]
@@ -2600,7 +2609,7 @@ public interface I
 @"#nullable enable
 public class A<T> : I
 {
-    public void F(S<T> s) { }
+    public void F(S<T> s) => throw null;
     void I.F(S<object?> s) { }
 }";
             var source2A =
@@ -2616,10 +2625,14 @@ class B<T> : A<T>, I
             var source3 =
 @"class Program
 {
-    static void Main() => ((I)new B<string>()).F(default);
+    static void Main()
+    {
+        ((I)new B<string>()).F(default);
+        System.Console.WriteLine(1);
+    }
 }";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "void A<T>.I.F(S<System.Object?> s)");
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "void A<T>.I.F(S<System.Object?> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "1", "void A<T>.I.F(S<System.Object?> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "1", "void A<T>.I.F(S<System.Object?> s)");
         }
 
         [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
@@ -2634,8 +2647,8 @@ class B<T> : A<T>, I
         [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", false)]
         [InlineData("nint", "nint", "nint", true)]
         [InlineData("nint", "nint", "nint", false)]
-        [InlineData("nint", "System.IntPtr", "System.IntPtr", true)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
-        [InlineData("nint", "System.IntPtr", "System.IntPtr", false)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", false)]
         [InlineData("System.IntPtr", "nint", "nint", true)]
         [InlineData("System.IntPtr", "nint", "nint", false)]
         public void ExplicitImplementationInBaseType_04(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, bool useCompilationReference)
@@ -2651,7 +2664,7 @@ public interface I
             var source1 =
 $@"public class A<T> : I
 {{
-    public void F(S<T> s) {{ }}
+    public void F(S<T> s) => throw null;
     void I.F(S<{baseTypeArg}> s) {{ }}
 }}";
             var source2 =
@@ -2661,9 +2674,13 @@ $@"public class A<T> : I
             var source3 =
 @"class Program
 {
-    static void Main() => ((I)new B<string>()).F(default);
+    static void Main()
+    {
+        ((I)new B<string>()).F(default);
+        System.Console.WriteLine(1);
+    }
 }";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", $"void A<T>.I.F(S<{expectedTypeArg}> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "1", $"void A<T>.I.F(S<{expectedTypeArg}> s)");
         }
 
         private void ExplicitImplementationInBaseType(
@@ -2674,6 +2691,7 @@ $@"public class A<T> : I
             string source3,
             string derivedTypeName,
             string interfaceMemberName,
+            string expectedOutput,
             string expectedImplementingMember)
         {
             var comp = CreateCompilation(source0);
@@ -2683,7 +2701,7 @@ $@"public class A<T> : I
             var ref1 = AsReference(comp, useCompilationReference);
 
             comp = CreateCompilation(new[] { source2, source3 }, references: new[] { ref0, ref1 }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var derivedType = comp.GetMember<SourceNamedTypeSymbol>(derivedTypeName);
             Assert.True(derivedType.GetSynthesizedExplicitImplementations(cancellationToken: default).IsEmpty);
