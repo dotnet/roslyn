@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim field = TryCast(member, FieldSymbol)
                 If field IsNot Nothing AndAlso
-                   TypeSymbol.Equals(field.Type, type, TypeCompareKind.ConsiderEverything) AndAlso
+                   TypeSymbol.Equals(field.Type, type, TypeCompareKind.AllIgnoreOptionsForVB) AndAlso
                    CustomModifiersMatch(field.CustomModifiers, customModifiers) Then
 
                     ' Behavior in the face of multiple matching signatures is

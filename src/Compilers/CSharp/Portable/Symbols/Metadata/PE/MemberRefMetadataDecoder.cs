@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeWithAnnotations fieldType;
 
                 if ((object)field != null &&
-                    TypeSymbol.Equals((fieldType = field.TypeWithAnnotations).Type, type, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals((fieldType = field.TypeWithAnnotations).Type, type, TypeCompareKind.CLRSignatureCompareOptions) &&
                     CustomModifiersMatch(fieldType.CustomModifiers, customModifiers))
                 {
                     // Behavior in the face of multiple matching signatures is
