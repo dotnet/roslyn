@@ -579,8 +579,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 "));
 
             var instance = CreateProjectInstance(xmlReader);
-            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
-            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+            var emit = instance.GetPropertyValue("EmitCompilerGeneratedFiles");
+            var dir = instance.GetPropertyValue("CompilerGeneratedFilesOutputPath");
 
             Assert.Equal("true", emit);
             Assert.Equal(string.Empty, dir);
@@ -600,11 +600,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "CreateGeneratedFilesOutputPath", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "CreateCompilerGeneratedFilesOutputPath", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
-            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+            var emit = instance.GetPropertyValue("EmitCompilerGeneratedFiles");
+            var dir = instance.GetPropertyValue("CompilerGeneratedFilesOutputPath");
 
             Assert.Equal("true", emit);
             Assert.Equal("fallbackDirectory/generated", dir);
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <PropertyGroup>
-        <EmitGeneratedFiles>false</EmitGeneratedFiles>
+        <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
         <IntermediateOutputPath>fallbackDirectory</IntermediateOutputPath>
     </PropertyGroup>
     <Import Project=""Microsoft.Managed.Core.targets"" />
@@ -624,8 +624,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 "));
 
             var instance = CreateProjectInstance(xmlReader);
-            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
-            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+            var emit = instance.GetPropertyValue("EmitCompilerGeneratedFiles");
+            var dir = instance.GetPropertyValue("CompilerGeneratedFilesOutputPath");
 
             Assert.Equal("false", emit);
             Assert.Equal("", dir);
@@ -641,8 +641,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <PropertyGroup>
-        <EmitGeneratedFiles>{(emitGeneratedFiles.ToString().ToLower())}</EmitGeneratedFiles>
-        <GeneratedFilesOutputPath>{generatedFilesDir}</GeneratedFilesOutputPath>
+        <EmitCompilerGeneratedFiles>{(emitGeneratedFiles.ToString().ToLower())}</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>{generatedFilesDir}</CompilerGeneratedFilesOutputPath>
         <IntermediateOutputPath>fallbackDirectory</IntermediateOutputPath>
     </PropertyGroup>
     <Import Project=""Microsoft.Managed.Core.targets"" />
@@ -651,11 +651,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "CreateGeneratedFilesOutputPath", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "CreateCompilerGeneratedFilesOutputPath", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var emit = instance.GetPropertyValue("EmitGeneratedFiles");
-            var dir = instance.GetPropertyValue("GeneratedFilesOutputPath");
+            var emit = instance.GetPropertyValue("EmitCompilerGeneratedFiles");
+            var dir = instance.GetPropertyValue("CompilerGeneratedFilesOutputPath");
 
             Assert.Equal(emitGeneratedFiles.ToString().ToLower(), emit);
             if (emitGeneratedFiles)

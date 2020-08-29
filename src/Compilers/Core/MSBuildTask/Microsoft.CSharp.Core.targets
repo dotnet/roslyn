@@ -97,7 +97,7 @@
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
          FileAlignment="$(FileAlignment)"
-         GeneratedFilesOutputPath="$(GeneratedFilesOutputPath)"
+         GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          GenerateFullPaths="$(GenerateFullPaths)"
          HighEntropyVA="$(HighEntropyVA)"
          Instrument="$(Instrument)"

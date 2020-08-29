@@ -269,31 +269,31 @@
 
   <!--
     ========================
-    GeneratedFilesOutputPath
+    CompilerGeneratedFilesOutputPath
     ========================
     
     Controls output of generated files.
     
-    GeneratedFilesOutputPath controls the location the files will be output to.
+    CompilerGeneratedFilesOutputPath controls the location the files will be output to.
     The compiler will not emit any generated files when the path is empty, and defaults to a /generated directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
-    EmitGeneratedFiles allows the user to control if anything is emitted by clearing the property when not true.
-    When GeneratedFilesOutputPath is set we ensure the directory exists, and issue a warning if EmitGeneratedFiles is true, but no GeneratedFilesOutputPath is set
+    EmitCompilerGeneratedFiles allows the user to control if anything is emitted by clearing the property when not true.
+    When CompilerGeneratedFilesOutputPath is set we ensure the directory exists, and issue a warning if EmitCompilerGeneratedFiles is true, but no CompilerGeneratedFilesOutputPath is set
     -->
   <PropertyGroup>
-    <EmitGeneratedFiles Condition="'$(EmitGeneratedFiles)' == ''">true</EmitGeneratedFiles>
-    <GeneratedFilesOutputPath Condition="'$(EmitGeneratedFiles)' != 'true'"></GeneratedFilesOutputPath>
-    <GeneratedFilesOutputPath Condition="'$(EmitGeneratedFiles)' == 'true' and '$(GeneratedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/generated</GeneratedFilesOutputPath>
+    <EmitCompilerGeneratedFiles Condition="'$(EmitCompilerGeneratedFiles)' == ''">true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath Condition="'$(EmitCompilerGeneratedFiles)' != 'true'"></CompilerGeneratedFilesOutputPath>
+    <CompilerGeneratedFilesOutputPath Condition="'$(EmitCompilerGeneratedFiles)' == 'true' and '$(CompilerGeneratedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
-  <Target Name="CreateGeneratedFilesOutputPath"
+  <Target Name="CreateCompilerGeneratedFilesOutputPath"
         BeforeTargets="CoreCompile"
-        Condition="'$(EmitGeneratedFiles)' == 'true'">
+        Condition="'$(EmitCompilerGeneratedFiles)' == 'true'">
 
-    <Warning Condition="'$(GeneratedFilesOutputPath)' == ''"
-             Text="EmitGeneratedFiles was true, but no GeneratedFilesOutputPath was provided. GeneratedFilesOutputPath must be set in order to emit generated files." />
+    <Warning Condition="'$(CompilerGeneratedFilesOutputPath)' == ''"
+             Text="EmitCompilerGeneratedFiles was true, but no CompilerGeneratedFilesOutputPath was provided. CompilerGeneratedFilesOutputPath must be set in order to emit generated files." />
     
-    <MakeDir Condition="'$(GeneratedFilesOutputPath)' != ''" 
-             Directories="$(GeneratedFilesOutputPath)"  />
+    <MakeDir Condition="'$(CompilerGeneratedFilesOutputPath)' != ''" 
+             Directories="$(CompilerGeneratedFilesOutputPath)"  />
   </Target>
   
 </Project>
