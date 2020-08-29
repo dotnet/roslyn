@@ -13,10 +13,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         public const string GeneratedClassName = nameof(IntegrationTestSourceGenerator) + "Output";
 
-        public void Initialize(InitializationContext context)
-        {
-        }
-
         public void Execute(SourceGeneratorContext context)
         {
             context.AddSource(GeneratedClassName, SourceText.From(@"
