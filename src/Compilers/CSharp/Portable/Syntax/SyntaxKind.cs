@@ -13,11 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         List = GreenNode.ListKind,
 
         // punctuation
+        /// <summary>Represents bitwise complement operator.</summary>
         TildeToken = 8193,
+        /// <summary>Represents either a not logical operator or a null-forgiving operator.</summary>
         ExclamationToken = 8194,
+        /// <summary>TODO</summary>
         DollarToken = 8195,
+        /// <summary>Represents the remainder operator.</summary>
         PercentToken = 8196,
+        /// <summary>Represents the bitwise XOR operator.</summary>
         CaretToken = 8197,
+        /// <summary>Represents the bitwise AND operator.</summary>
         AmpersandToken = 8198,
         AsteriskToken = 8199,
         OpenParenToken = 8200,
