@@ -361,6 +361,13 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
+            public async Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return compilationInfo.GeneratorDriverRunResult;
+            }
+
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
@@ -433,7 +440,7 @@ namespace Microsoft.CodeAnalysis
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value);
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult());
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -475,7 +482,7 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value));
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult()));
                 }
 
                 compilation = state.Compilation?.GetValueOrNull(cancellationToken);
@@ -617,11 +624,13 @@ namespace Microsoft.CodeAnalysis
             {
                 public Compilation Compilation { get; }
                 public bool HasSuccessfullyLoaded { get; }
+                public GeneratorDriverRunResult? GeneratorDriverRunResult { get; }
 
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded)
+                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, GeneratorDriverRunResult? generatorDriverRunResult)
                 {
-                    this.Compilation = compilation;
-                    this.HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+                    Compilation = compilation;
+                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+                    GeneratorDriverRunResult = generatorDriverRunResult;
                 }
             }
 
@@ -727,7 +736,7 @@ namespace Microsoft.CodeAnalysis
                             State.GetUnrootedSymbols(compilation)),
                         solution.Services);
 
-                    return new CompilationInfo(compilation, hasSuccessfullyLoaded);
+                    return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatorDriver.GeneratorDriver?.GetRunResult());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
