@@ -157,12 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
             {
                 if (member is MethodSymbol
+#pragma warning disable format
                 {
                     DeclaredAccessibility: Accessibility.Public,
                     IsStatic: false,
                     ParameterCount: 0,
                     Arity: 0
                 } method)
+#pragma warning restore format
                 {
                     if (candidate is object)
                     {

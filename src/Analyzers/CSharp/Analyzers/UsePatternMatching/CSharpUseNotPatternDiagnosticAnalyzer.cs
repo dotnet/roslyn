@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Look for the form: !(x is Y y)
             if (!(node is PrefixUnaryExpressionSyntax
+#pragma warning disable format
             {
                 Operand: ParenthesizedExpressionSyntax
                 {
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     } isPattern,
                 },
             } notExpression))
+#pragma warning restore format
             {
                 return;
             }

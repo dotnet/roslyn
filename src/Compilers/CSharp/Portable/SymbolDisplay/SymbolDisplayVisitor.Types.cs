@@ -721,12 +721,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
             {
                 if (member is IMethodSymbol
+#pragma warning disable format
                 {
                     DeclaredAccessibility: Accessibility.Public,
                     IsStatic: false,
                     Parameters: { Length: 0 },
                     Arity: 0
                 } method)
+#pragma warning restore format
                 {
                     if (candidate is object)
                     {
