@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PercentToken = 8196,
         /// <summary>Represents <c>^<c> token.</summary>
         CaretToken = 8197,
-        /// <summary>Represents <c>&<c> token.</summary>
+        /// <summary>Represents <c>&amp;<c> token.</summary>
         AmpersandToken = 8198,
         /// <summary>Represents <c>*<c> token.</summary>
         AsteriskToken = 8199,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // compound punctuation
         /// <summary>Represents <c>||<c> token.</summary>
         BarBarToken = 8260,
-        /// <summary>Represents <c>&&<c> token.</summary>
+        /// <summary>Represents <c>&amp;&amp;<c> token.</summary>
         AmpersandAmpersandToken = 8261,
         /// <summary>Represents <c>--<c> token.</summary>
         MinusMinusToken = 8262,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsteriskEqualsToken = 8277,
         /// <summary>Represents <c>|=<c> token.</summary>
         BarEqualsToken = 8278,
-        /// <summary>Represents <c>&=<c> token.</summary>
+        /// <summary>Represents <c>&amp;=<c> token.</summary>
         AmpersandEqualsToken = 8279,
         /// <summary>Represents <c>+=<c> token.</summary>
         PlusEqualsToken = 8280,
