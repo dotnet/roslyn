@@ -2538,25 +2538,38 @@ class B<T> : A<T>, I where T : class
             ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "S<System.Object?> A<T>.I.F()");
         }
 
-        [Theory]
-        [CombinatorialData]
         [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_02(bool useCompilationReference)
+        [Theory]
+        [InlineData("dynamic", "dynamic", "dynamic", true)]
+        [InlineData("dynamic", "dynamic", "dynamic", false)]
+        [InlineData("dynamic", "object", "System.Object", true)]
+        [InlineData("dynamic", "object", "System.Object", false)]
+        [InlineData("object", "dynamic", "dynamic", true)]
+        [InlineData("object", "dynamic", "dynamic", false)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", true)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", false)]
+        [InlineData("nint", "nint", "nint", true)]
+        [InlineData("nint", "nint", "nint", false)]
+        //[InlineData("nint", "System.IntPtr", "System.IntPtr", true)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        //[InlineData("nint", "System.IntPtr", "System.IntPtr", false)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        //[InlineData("System.IntPtr", "nint", "nint", true)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        //[InlineData("System.IntPtr", "nint", "nint", false)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        public void ExplicitImplementationInBaseType_02(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, bool useCompilationReference)
         {
             var source0 =
-@"public struct S<T>
-{
-}
+$@"public struct S<T>
+{{
+}}
 public interface I
-{
-    S<dynamic> F();
-}";
+{{
+    S<{interfaceTypeArg}> F();
+}}";
             var source1 =
-@"public class A<T> : I
-{
+$@"public class A<T> : I
+{{
     public S<T> F() => default;
-    S<dynamic> I.F() => default;
-}";
+    S<{baseTypeArg}> I.F() => default;
+}}";
             var source2 =
 @"class B<T> : A<T>, I
 {
@@ -2566,7 +2579,7 @@ public interface I
 {
     static void Main() => ((I)new B<string>()).F();
 }";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<dynamic> A<T>.I.F()");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", $"S<{expectedTypeArg}> A<T>.I.F()");
         }
 
         [Theory]
@@ -2575,131 +2588,8 @@ public interface I
         public void ExplicitImplementationInBaseType_03(bool useCompilationReference)
         {
             var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    S<dynamic> F();
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public S<T> F() => default;
-    S<object> I.F() => default;
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F();
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<System.Object> A<T>.I.F()");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_04(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    S<object> F();
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public S<T> F() => default;
-    S<dynamic> I.F() => default;
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F();
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<dynamic> A<T>.I.F()");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_05(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    S<(int X, int Y)> F();
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public S<T> F() => default;
-    S<(int X, int Y)> I.F() => default;
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F();
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<(System.Int32 X, System.Int32 Y)> A<T>.I.F()");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_06(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    S<nint> F();
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public S<T> F() => default;
-    S<nint> I.F() => default;
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F();
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "S<nint> A<T>.I.F()");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_07(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
+@"#nullable enable
+public struct S<T>
 {
 }
 public interface I
@@ -2707,13 +2597,20 @@ public interface I
     void F(S<object?> s);
 }";
             var source1 =
-@"public class A<T> : I
+@"#nullable enable
+public class A<T> : I
 {
     public void F(S<T> s) { }
     void I.F(S<object?> s) { }
 }";
-            var source2 =
-@"class B<T> : A<T>, I
+            var source2A =
+@"#nullable enable
+class B<T> : A<T>, I
+{
+}";
+            var source2B =
+@"#nullable disable
+class B<T> : A<T>, I
 {
 }";
             var source3 =
@@ -2721,28 +2618,42 @@ public interface I
 {
     static void Main() => ((I)new B<string>()).F(default);
 }";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<System.Object?> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "void A<T>.I.F(S<System.Object?> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "void A<T>.I.F(S<System.Object?> s)");
         }
 
-        [Theory]
-        [CombinatorialData]
         [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_08(bool useCompilationReference)
+        [Theory]
+        [InlineData("dynamic", "dynamic", "dynamic", true)]
+        [InlineData("dynamic", "dynamic", "dynamic", false)]
+        [InlineData("dynamic", "object", "System.Object", true)]
+        [InlineData("dynamic", "object", "System.Object", false)]
+        [InlineData("object", "dynamic", "dynamic", true)]
+        [InlineData("object", "dynamic", "dynamic", false)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", true)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", false)]
+        [InlineData("nint", "nint", "nint", true)]
+        [InlineData("nint", "nint", "nint", false)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", true)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", false)] // https://github.com/dotnet/roslyn/issues/42500: CopyTypeCustomModifiers() should copy NativeIntegerAttribute
+        [InlineData("System.IntPtr", "nint", "nint", true)]
+        [InlineData("System.IntPtr", "nint", "nint", false)]
+        public void ExplicitImplementationInBaseType_04(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, bool useCompilationReference)
         {
             var source0 =
-@"public struct S<T>
-{
-}
+$@"public struct S<T>
+{{
+}}
 public interface I
-{
-    void F(S<(int X, int Y)> s);
-}";
+{{
+    void F(S<{interfaceTypeArg}> s);
+}}";
             var source1 =
-@"public class A<T> : I
-{
-    public void F(S<T> s) { }
-    void I.F(S<(int X, int Y)> s) { }
-}";
+$@"public class A<T> : I
+{{
+    public void F(S<T> s) {{ }}
+    void I.F(S<{baseTypeArg}> s) {{ }}
+}}";
             var source2 =
 @"class B<T> : A<T>, I
 {
@@ -2752,131 +2663,7 @@ public interface I
 {
     static void Main() => ((I)new B<string>()).F(default);
 }";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<(System.Int32 X, System.Int32 Y)> s)");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_09(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    void F(S<dynamic> s);
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public void F(S<T> s) { }
-    void I.F(S<dynamic> s) { }
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F(default);
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<dynamic> s)");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_10(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    void F(S<dynamic> s);
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public void F(S<T> s) { }
-    void I.F(S<object> s) { }
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F(default);
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<System.Object> s)");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_11(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    void F(S<object> s);
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public void F(S<T> s) { }
-    void I.F(S<dynamic> s) { }
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F(default);
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<dynamic> s)");
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
-        public void ExplicitImplementationInBaseType_12(bool useCompilationReference)
-        {
-            var source0 =
-@"public struct S<T>
-{
-}
-public interface I
-{
-    void F(S<nint> s);
-}";
-            var source1 =
-@"public class A<T> : I
-{
-    public void F(S<T> s) { }
-    void I.F(S<nint> s) { }
-}";
-            var source2 =
-@"class B<T> : A<T>, I
-{
-}";
-            var source3 =
-@"class Program
-{
-    static void Main() => ((I)new B<string>()).F(default);
-}";
-            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "void A<T>.I.F(S<nint> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", $"void A<T>.I.F(S<{expectedTypeArg}> s)");
         }
 
         private void ExplicitImplementationInBaseType(
