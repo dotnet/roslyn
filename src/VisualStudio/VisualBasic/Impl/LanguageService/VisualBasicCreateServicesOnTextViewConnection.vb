@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.Shell
@@ -20,8 +21,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(<Import(GetType(SVsServiceProvider))> serviceProvider As IServiceProvider)
-            MyBase.New(serviceProvider, LanguageNames.VisualBasic)
+        Public Sub New(<ImportMany> languageServices As IEnumerable(Of Lazy(Of ILanguageService, LanguageServiceMetadata)))
+            MyBase.New(languageServices, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

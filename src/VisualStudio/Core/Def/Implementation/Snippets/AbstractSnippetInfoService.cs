@@ -56,12 +56,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             _languageGuidForSnippets = languageGuidForSnippets;
             _threadingContext = threadingContext;
 
-            _threadingContext.RunWithShutdownBlockAsync((_) => InitializeAndPopulateSnippetsCacheAsync(_threadingContext, serviceProvider));
+            _threadingContext.RunWithShutdownBlockAsync((_) => InitializeAndPopulateSnippetsCacheAsync(serviceProvider));
         }
 
-        private async Task InitializeAndPopulateSnippetsCacheAsync(IThreadingContext threadingContext, Shell.IAsyncServiceProvider asyncServiceProvider)
+        private async Task InitializeAndPopulateSnippetsCacheAsync(Shell.IAsyncServiceProvider asyncServiceProvider)
         {
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             var textManager = (IVsTextManager2)await asyncServiceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
             if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
             {

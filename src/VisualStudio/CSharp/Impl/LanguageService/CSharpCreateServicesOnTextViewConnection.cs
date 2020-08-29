@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
@@ -21,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCreateServicesOnTextViewConnection([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(serviceProvider, LanguageNames.CSharp)
+        public CSharpCreateServicesOnTextViewConnection([ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices)
+            : base(languageServices, LanguageNames.CSharp)
         {
         }
     }

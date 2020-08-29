@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -19,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     /// </summary>
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
-        private readonly IComponentModel _componentModel;
+        private readonly IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> _languageServices;
         private readonly string _languageName;
         private bool _initialized = false;
 
-        public AbstractCreateServicesOnTextViewConnection(IServiceProvider serviceProvider, string languageName)
+        public AbstractCreateServicesOnTextViewConnection(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices, string languageName)
         {
-            _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+            _languageServices = languageServices;
             _languageName = languageName;
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (!_initialized)
             {
-                CreateServices(_componentModel, _languageName);
+                CreateServices(_languageName);
                 _initialized = true;
             }
         }
@@ -45,11 +45,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// <summary>
         /// Must be invoked from the UI thread.
         /// </summary>
-        private static void CreateServices(IComponentModel componentModel, string languageName)
+        private void CreateServices(string languageName)
         {
             var serviceTypeAssemblyQualifiedName = typeof(ISnippetInfoService).AssemblyQualifiedName;
-            var languageServices = componentModel.DefaultExportProvider.GetExports<ILanguageService, LanguageServiceMetadata>();
-            foreach (var languageService in languageServices)
+            foreach (var languageService in _languageServices)
             {
                 if (languageService.Metadata.ServiceType == serviceTypeAssemblyQualifiedName &&
                     languageService.Metadata.Language == languageName)
