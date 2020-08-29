@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
         }
 
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
             context.AddSource(GeneratedClassName, SourceText.From(@"
 internal class " + GeneratedClassName + @"
