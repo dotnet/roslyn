@@ -717,9 +717,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 for (var i = 0; i < mappedSpanResults.Length; i++)
                 {
                     // Only include changes that could be mapped.
-                    if (!mappedSpanResults[i].IsDefault)
+                    var newText = originalTextChanges[i].NewText;
+                    if (!mappedSpanResults[i].IsDefault && newText != null)
                     {
-                        builder.Add((mappedSpanResults[i].FilePath, new TextChange(mappedSpanResults[i].Span, originalTextChanges[i].NewText)));
+                        builder.Add((mappedSpanResults[i].FilePath, new TextChange(mappedSpanResults[i].Span, newText)));
                     }
                 }
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -28,12 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             UpdateText(textChanges, buffer, oldSnapshot, oldText, options);
         }
 
-        private static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, ITextSnapshot oldSnapshot, SourceText? oldText, EditOptions options)
+        private static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, ITextSnapshot oldSnapshot, SourceText oldText, EditOptions options)
         {
             using var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null);
             if (CodeAnalysis.Workspace.TryGetWorkspace(oldText.Container, out var workspace))
             {
-                var undoService = workspace.Services.GetService<ISourceTextUndoService>();
+                var undoService = workspace.Services.GetRequiredService<ISourceTextUndoService>();
                 undoService.BeginUndoTransaction(oldSnapshot);
             }
 
