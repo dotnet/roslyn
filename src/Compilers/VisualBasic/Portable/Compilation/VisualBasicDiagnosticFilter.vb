@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             hasDisableDirectiveSuppression = False
 
             Dim report As ReportDiagnostic
-            Dim tree = If(location IsNot Nothing, location.SourceTree, Nothing)
+            Dim tree = location?.SourceTree
             Dim isSpecified As Boolean = False
 
             ' Global options depend on other options, so calculate those first
@@ -141,6 +141,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isSpecified = True
             ElseIf caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
                 ' 3. Compilation level
+                isSpecified = True
+            ElseIf syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, report) Then
+                ' 4. Global analyzer config level
                 isSpecified = True
             Else
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)

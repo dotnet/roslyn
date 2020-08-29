@@ -2940,6 +2940,37 @@ public class C : A {
         }
 
         [Fact]
+        public void TestAddingAndRemovingGlobalEditorConfigFileWithDiagnosticSeverity()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp);
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", "", filePath: @"Z:\Test.cs");
+
+            var originalProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.False(originalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".globalconfig",
+                    filePath: @"Z:\.globalconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("is_global = true\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
+
+            var newProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(newProvider.TryGetGlobalDiagnosticValue("CA1234", default, out var severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
+
+            solution = solution.RemoveAnalyzerConfigDocument(editorConfigDocumentId);
+            var finalProvider = solution.GetProject(projectId).CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
+        }
+
+        [Fact]
         [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
         public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
         {
