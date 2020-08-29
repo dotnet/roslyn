@@ -353,6 +353,7 @@ function ShouldRunCI([switch]$AsOutput) {
   foreach ($change in $response.value) {
     $filelist = git diff-tree --no-commit-id --name-only -r $change.id
     foreach ($file in $filelist) {
+      Write-Host "found file $file"
       if (!$file.StartsWith("docs/")) {
         $global:_ShouldRunCI = $true
         return
