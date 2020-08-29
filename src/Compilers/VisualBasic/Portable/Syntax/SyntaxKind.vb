@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         NamespaceBlock = 48                      ' NamespaceBlockSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the beginning statement of a namespace declaration. This node always
-        ''' appears as the Begin of a BlockStatement with Kind=NamespaceBlock.
+        ''' appears as the begin of a BlockStatement with Kind=NamespaceBlock.
         ''' </summary>
         NamespaceStatement = 49                  ' NamespaceStatementSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
@@ -175,27 +175,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ImplementsStatement = 58                 ' ImplementsStatementSyntax : InheritsOrImplementsStatementSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the beginning statement of a Module declaration. This node always
-        ''' appears as the Begin of a TypeBlock with Kind=ModuleDeclarationBlock.
+        ''' appears as the begin of a TypeBlock with Kind=ModuleDeclarationBlock.
         ''' </summary>
         ModuleStatement = 59                     ' ModuleStatementSyntax : TypeStatementSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the beginning statement of a Structure declaration. This node always
-        ''' appears as the Begin of a TypeBlock with Kind=StructureDeclarationBlock.
+        ''' appears as the begin of a TypeBlock with Kind=StructureDeclarationBlock.
         ''' </summary>
         StructureStatement = 60                  ' StructureStatementSyntax : TypeStatementSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the beginning statement of a Interface declaration. This node always
-        ''' appears as the Begin of a TypeBlock with Kind=InterfaceDeclarationBlock.
+        ''' appears as the begin of a TypeBlock with Kind=InterfaceDeclarationBlock.
         ''' </summary>
         InterfaceStatement = 61                  ' InterfaceStatementSyntax : TypeStatementSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the beginning statement of a Class declaration. This node always
-        ''' appears as the Begin of a TypeBlock with Kind=ClassDeclarationBlock.
+        ''' appears as the begin of a TypeBlock with Kind=ClassDeclarationBlock.
         ''' </summary>
         ClassStatement = 62                      ' ClassStatementSyntax : TypeStatementSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the beginning statement of an Enum declaration. This node always
-        ''' appears as the Begin of an EnumBlock with Kind=EnumDeclarationBlock.
+        ''' appears as the begin of an EnumBlock with Kind=EnumDeclarationBlock.
         ''' </summary>
         EnumStatement = 63                       ' EnumStatementSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
@@ -308,20 +308,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ParameterList = 92                       ' ParameterListSyntax
         ''' <summary>
         ''' The statement that declares a Sub or Function. If this method has a body, this
-        ''' statement will be the Begin of a BlockStatement with
+        ''' statement will be the begin of a BlockStatement with
         ''' Kind=MethodDeclarationBlock, and the body of the method will be the Body of
         ''' that BlockStatement.
         ''' </summary>
         SubStatement = 93                        ' MethodStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' The statement that declares a Sub or Function. If this method has a body, this
-        ''' statement will be the Begin of a BlockStatement with
+        ''' statement will be the begin of a BlockStatement with
         ''' Kind=MethodDeclarationBlock, and the body of the method will be the Body of
         ''' that BlockStatement.
         ''' </summary>
         FunctionStatement = 94                   ' MethodStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' A statement that declares a constructor. This statement will be the Begin of a
+        ''' A statement that declares a constructor. This statement will be the begin of a
         ''' BlockStatement with Kind=MethodDeclarationBlock, and the body of the method
         ''' will be the Body of that BlockStatement.
         ''' </summary>
@@ -344,20 +344,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         DelegateFunctionStatement = 99           ' DelegateStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' A statement that declares an event. If the event being declared is a custom
-        ''' event, this statement will be the Begin of a PropertyOrEventBlock, and the
+        ''' event, this statement will be the begin of a PropertyOrEventBlock, and the
         ''' accessors will be part of the Accessors of that node.
         ''' </summary>
         EventStatement = 102                      ' EventStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' A statement that declares an operator. If this operator has a body, this
-        ''' statement will be the Begin of a BlockStatement with
+        ''' statement will be the begin of a BlockStatement with
         ''' Kind=MethodDeclarationBlock, and the body of the method will be the Body of
         ''' that BlockStatement.
         ''' </summary>
         OperatorStatement = 103                   ' OperatorStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Statement that declares a property. If this property has accessors declared,
-        ''' this statement will be the Begin of a BlockNode, and the accessors will be the
+        ''' this statement will be the begin of a BlockNode, and the accessors will be the
         ''' Body of that node. Auto properties are property declarations without a
         ''' PropertyBlock.
         ''' </summary>
@@ -366,35 +366,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents a Get or Set accessor on a property declaration or an AddHandler,
         ''' RemoveHandler or RaiseEvent accessor on a custom event declaration. The Kind of
         ''' the node determines what kind of accessor this is. This statement is always the
-        ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
+        ''' begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         GetAccessorStatement = 105                ' AccessorStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents a Get or Set accessor on a property declaration or an AddHandler,
         ''' RemoveHandler or RaiseEvent accessor on a custom event declaration. The Kind of
         ''' the node determines what kind of accessor this is. This statement is always the
-        ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
+        ''' begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         SetAccessorStatement = 106                ' AccessorStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents a Get or Set accessor on a property declaration or an AddHandler,
         ''' RemoveHandler or RaiseEvent accessor on a custom event declaration. The Kind of
         ''' the node determines what kind of accessor this is. This statement is always the
-        ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
+        ''' begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         AddHandlerAccessorStatement = 107         ' AccessorStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents a Get or Set accessor on a property declaration or an AddHandler,
         ''' RemoveHandler or RaiseEvent accessor on a custom event declaration. The Kind of
         ''' the node determines what kind of accessor this is. This statement is always the
-        ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
+        ''' begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         RemoveHandlerAccessorStatement = 108      ' AccessorStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents a Get or Set accessor on a property declaration or an AddHandler,
         ''' RemoveHandler or RaiseEvent accessor on a custom event declaration. The Kind of
         ''' the node determines what kind of accessor this is. This statement is always the
-        ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
+        ''' begin of a BlockNode, and the body of the accessor is the Body of that node.
         ''' </summary>
         RaiseEventAccessorStatement = 111         ' AccessorStatementSyntax : MethodBaseSyntax : DeclarationStatementSyntax : StatementSyntax
         ''' <summary>
@@ -677,19 +677,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ElseBlock = 181                           ' ElseBlockSyntax
         ''' <summary>
         ''' Represents the If part or ElseIf part of a If...End If block (or line If). This
-        ''' statement is always the Begin of a IfPart. The Kind can be examined to
+        ''' statement is always the begin of a IfPart. The Kind can be examined to
         ''' determine if this is an If or an ElseIf statement.
         ''' </summary>
         IfStatement = 182                        ' IfStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the If part or ElseIf part of a If...End If block (or line If). This
-        ''' statement is always the Begin of a IfPart. The Kind can be examined to
+        ''' statement is always the begin of a IfPart. The Kind can be examined to
         ''' determine if this is an If or an ElseIf statement.
         ''' </summary>
         ElseIfStatement = 183                    ' IfStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the Else part of a If...End If block (or line If). This statement is
-        ''' always the Begin of a ElsePart.
+        ''' always the begin of a ElsePart.
         ''' </summary>
         ElseStatement = 184                      ' ElseStatementSyntax : StatementSyntax
         ''' <summary>
@@ -713,12 +713,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FinallyBlock = 188                        ' FinallyBlockSyntax
         ''' <summary>
         ''' Represents the Try part of a Try...Catch...Finally...End Try. This
-        ''' statement is always the Begin of a TryPart.
+        ''' statement is always the begin of a TryBlock.
         ''' </summary>
         TryStatement = 189                       ' TryStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents the Catch part of a Try...Catch...Finally...End Try. This
-        ''' statement is always the Begin of a CatchPart.
+        ''' statement is always the begin of a CatchPart.
         ''' </summary>
         CatchStatement = 190                     ' CatchStatementSyntax : StatementSyntax
         ''' <summary>
@@ -727,7 +727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         CatchFilterClause = 191                  ' CatchFilterClauseSyntax
         ''' <summary>
         ''' Represents the Finally part of a Try...Catch...Finally...End Try. This
-        ''' statement is always the Begin of a FinallyPart.
+        ''' statement is always the begin of a FinallyPart.
         ''' </summary>
         FinallyStatement = 194                   ' FinallyStatementSyntax : StatementSyntax
         ''' <summary>
@@ -771,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         SelectBlock = 203                        ' SelectBlockSyntax : ExecutableStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' Represents a Select Case statement. This statement always occurs as the Begin
+        ''' Represents a Select Case statement. This statement always occurs as the begin
         ''' of a SelectBlock.
         ''' </summary>
         SelectStatement = 204                    ' SelectStatementSyntax : StatementSyntax
@@ -784,13 +784,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         CaseElseBlock = 210                      ' CaseBlockSyntax
         ''' <summary>
-        ''' Represents a Case or Case Else statement. This statement is always the Begin of
+        ''' Represents a Case or Case Else statement. This statement is always the begin of
         ''' a CaseBlock. If this is a Case Else statement, the Kind=CaseElse, otherwise the
         ''' Kind=Case.
         ''' </summary>
         CaseStatement = 211                      ' CaseStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' Represents a Case or Case Else statement. This statement is always the Begin of
+        ''' Represents a Case or Case Else statement. This statement is always the begin of
         ''' a CaseBlock. If this is a Case Else statement, the Kind=CaseElse, otherwise the
         ''' Kind=Case.
         ''' </summary>
@@ -832,7 +832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         CaseGreaterThanClause = 223              ' RelationalCaseClauseSyntax : CaseClauseSyntax
         ''' <summary>
-        ''' Represents the "SyncLock" statement. This statement always occurs as the Begin
+        ''' Represents the "SyncLock" statement. This statement always occurs as the begin
         ''' of a SyncLockBlock.
         ''' </summary>
         SyncLockStatement = 226                  ' SyncLockStatementSyntax : StatementSyntax
@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ForEachBlock = 238                       ' ForBlockSyntax : ExecutableStatementSyntax : StatementSyntax
         ''' <summary>
         ''' The For statement that begins a For-Next block. This statement always occurs as
-        ''' the Begin of a ForBlock. Most of the time, the End of that ForBlock is the
+        ''' the begin of a ForBlock. Most of the time, the End of that ForBlock is the
         ''' corresponding Next statement. However, multiple nested For statements are ended
         ''' by a single Next statement with multiple variables, then the inner For
         ''' statements will have End set to Nothing, and the Next statement is the End of
@@ -879,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ForStepClause = 240                      ' ForStepClauseSyntax
         ''' <summary>
         ''' The For Each statement that begins a For Each-Next block. This statement always
-        ''' occurs as the Begin of a ForBlock, and the body of the For Each-Next is the
+        ''' occurs as the begin of a ForBlock, and the body of the For Each-Next is the
         ''' Body of that ForBlock. Most of the time, the End of that ForBlock is the
         ''' corresponding Next statement. However, multiple nested For statements are ended
         ''' by a single Next statement with multiple variables, then the inner For
@@ -890,13 +890,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The Next statement that ends a For-Next or For Each-Next block. This statement
         ''' always occurs as the End of a ForBlock (with Kind=ForBlock or ForEachBlock),
-        ''' and the body of the For-Next is the Body of that ForBlock. The Begin of that
+        ''' and the body of the For-Next is the Body of that ForBlock. The begin of that
         ''' ForBlock has the corresponding For or For Each statement.
         ''' </summary>
         NextStatement = 242                      ' NextStatementSyntax : StatementSyntax
         ''' <summary>
         ''' The Using statement that begins a Using block. This statement always occurs as
-        ''' the Begin of a UsingBlock, and the body of the Using is the Body of that
+        ''' the begin of a UsingBlock, and the body of the Using is the Body of that
         ''' UsingBlock.
         ''' </summary>
         UsingStatement = 243                     ' UsingStatementSyntax : StatementSyntax
@@ -983,7 +983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         RaiseEventStatement = 264                ' RaiseEventStatementSyntax : ExecutableStatementSyntax : StatementSyntax
         ''' <summary>
         ''' Represents a "With" statement. This statement always occurs as the
-        ''' BeginStatement of a WithBlock, and the body of the With is the Body of that
+        ''' begin statement of a WithBlock, and the body of the With is the Body of that
         ''' WithBlock.
         ''' </summary>
         WithStatement = 265                      ' WithStatementSyntax : StatementSyntax
