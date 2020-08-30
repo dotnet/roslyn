@@ -99,11 +99,54 @@ namespace T
 ", GetIDEAnalyzerTitle(nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
         }
 
+        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(""CodeQuality"", ""IDE0051$$"")]", true)]
+        [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""CodeQuality"", ""IDE0051$$"")]", true)]
+        [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""CodeQuality$$"", ""IDE0051"")]", false)]
+        [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""CodeQuality"", ""IDE0051"", Justification = ""WIP$$"")]", false)]
+        [InlineData(@"[System.Diagnostics.CodeAnalysis.SuppressMessage$$(""CodeQuality"", ""IDE0051"")]", false)]
+        [InlineData(@"[SuppressMessage(""CodeQuality"", ""$$IDE0051"")]", true)]
+        [InlineData(@"[SuppressMessage(""CodeQuality"", ""$$IDE0051: Remove unused private member"")]", true)]
+        [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: ""IDE0051: Remove unused private member"")]", true)]
+        [InlineData(@"[SuppressMessage(checkId$$: ""IDE0051: Remove unused private member"", category: ""CodeQuality"")]", true)]
+        [InlineData(@"[SuppressMessage(""CodeQuality"", DiagnosticIds.IDE0051 +$$ "": Remove unused private member"")]", true)]
+        [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: DiagnosticIds.IDE0051 + "": Remove unused private member"")]", true)]
+
+        // False negative: The argument expression is to complicated
+        [InlineData(@"[SuppressMessage(""CodeQuality"", """" + (DiagnosticIds.IDE0051 +$$ "": Remove unused private member""))]", false)]
+        // False negative: Aliased attribute is not supported
+        [InlineData(@"[SM(""CodeQuality"", ""IDE0051$$""", false)]
+        public async Task QuickInfoSupressMessageAttributeUseCases(string supressMessageAttribute, bool shouldShowQuickInfo)
+        {
+            var description = shouldShowQuickInfo
+                ? GetIDEAnalyzerTitle(nameof(AnalyzersResources.Remove_unused_private_members))
+                : null;
+            await TestAsync(
+@$"
+using System.Diagnostics.CodeAnalysis;
+using SM = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;
+namespace T
+{{
+    public static class DiagnosticIds
+    {{
+        public const string IDE0051 = ""IDE0051"";
+    }}
+
+    {supressMessageAttribute}
+    public class C
+    {{
+        private int _i;
+    }}
+}}
+", description, ImmutableArray<TextSpan>.Empty);
+        }
         protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
             var info = await GetQuickinfo(workspace, document, position);
             var description = info?.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
+            Assert.NotNull(description);
             Assert.Equal(expectedDescription, description.Text);
             Assert.Collection(relatedSpans,
                 info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());

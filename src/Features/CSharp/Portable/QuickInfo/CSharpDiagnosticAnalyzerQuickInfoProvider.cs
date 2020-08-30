@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -34,10 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
-        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
+        {
+            return GetQuickinfoForPragmaWarning(document, token) ??
+                (await GetQuickInfoForSupressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false));
+        }
+
+        private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
         {
             var errorCode = token.Parent switch
             {
@@ -52,32 +60,54 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             if (errorCode != null)
             {
-                return Task.FromResult(GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode.Identifier.ValueText, errorCode.Span));
+                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode.Identifier.ValueText, errorCode.Span);
             }
 
-            var supressMessageArgumentLiteral = token.Parent switch
+            return null;
+        }
+
+        private async Task<QuickInfoItem?> GetQuickInfoForSupressMessageAttributeAsync(
+            Document document,
+            SyntaxToken token,
+            CancellationToken cancellationToken)
+        {
+            var supressMessageCheckIdArgument = token.Parent switch
             {
-                LiteralExpressionSyntax
                 {
                     Parent: AttributeArgumentSyntax
                     {
                         Parent: AttributeArgumentListSyntax
                         {
+                            Arguments: var arguments,
                             Parent: AttributeSyntax
                             {
                                 Name: var name
                             } _
                         } _
-                    } _
-                } literal when name.IsSuppressMessageAttribute() => literal,
+                    } argument
+                } _ when
+                    name.IsSuppressMessageAttribute() &&
+                    (argument.NameColon?.Name.Identifier.ValueText == "checkId" ||
+                    arguments.IndexOf(argument) == 1) => argument,
                 _ => null,
             };
-            if (supressMessageArgumentLiteral != null)
+
+            if (supressMessageCheckIdArgument != null)
             {
-                return Task.FromResult(GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, supressMessageArgumentLiteral.Token.ValueText, supressMessageArgumentLiteral.Span));
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var checkIdObject = semanticModel.GetConstantValue(supressMessageCheckIdArgument.Expression, cancellationToken).GetValueOrNull();
+                if (checkIdObject is string checkId)
+                {
+                    var position = checkId.IndexOf(':');
+                    var errorCode = position == -1
+                        ? checkId
+                        : checkId.Substring(0, position);
+                    errorCode = errorCode.Trim();
+                    return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, supressMessageCheckIdArgument.Span);
+                }
             }
 
-            return Task.FromResult<QuickInfoItem?>(null);
+            return null;
         }
 
         private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
