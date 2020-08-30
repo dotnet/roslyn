@@ -720,9 +720,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool HasNullableEnables() => GetNullableContextStateMap().HasNullableEnables();
 
-        internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider)
+        internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider, CancellationToken cancellationToken)
         {
-            return provider?.IsGenerated(this) ?? isGeneratedHeuristic();
+            return provider?.IsGenerated(this, cancellationToken) ?? isGeneratedHeuristic();
 
             bool isGeneratedHeuristic()
             {

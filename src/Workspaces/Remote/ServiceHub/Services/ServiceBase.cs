@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly RemoteEndPoint EndPoint;
         protected readonly int InstanceId;
         protected readonly TraceSource Logger;
-        protected readonly AssetStorage AssetStorage;
+
+        protected readonly RemoteWorkspaceManager WorkspaceManager;
+
+        // test data are only available when running tests:
+        internal readonly RemoteHostTestData? TestData;
 
         private readonly RemoteWorkspaceManager _workspaceManager;
 
@@ -59,11 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
             TestData = (RemoteHostTestData?)serviceProvider.GetService(typeof(RemoteHostTestData));
-
-            // in unit test, service provider will return asset storage, otherwise, use the default one
-            AssetStorage = TestData?.AssetStorage ?? AssetStorage.Default;
-
-            _workspaceManager = TestData?.WorkspaceManager ?? s_defaultWorkspaceManager;
+            WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
 
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Log(TraceEventType.Information, "Service instance created");
@@ -98,12 +98,12 @@ namespace Microsoft.CodeAnalysis.Remote
             => Logger.TraceEvent(errorType, 0, $"{DebugInstanceString}: {message}");
 
         public RemoteWorkspace GetWorkspace()
-            => _workspaceManager.GetWorkspace();
+            => WorkspaceManager.GetWorkspace();
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var assetProvider = workspace.CreateAssetProvider(solutionInfo, AssetStorage);
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, WorkspaceManager.GetAssetSource());
             return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void RunService(Action call, CancellationToken cancellationToken)
         {
-            AssetStorage.UpdateLastActivityTime();
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
             try
             {
