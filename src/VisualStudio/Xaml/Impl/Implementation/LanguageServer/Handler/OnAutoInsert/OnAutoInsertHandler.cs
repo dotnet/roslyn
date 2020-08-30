@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
             using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
-            var document =context.Document;
+            var document = context.Document;
             if (document == null)
             {
                 return response.ToArray();
