@@ -12,6 +12,11 @@
         <target state="translated">Non è possibile creare un tipo generico costruito a partire da un tipo non generico.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ConditionalAccessNodeNotFound">
+        <source>Corresponding conditional access node for conditional binding was not found.</source>
+        <target state="new">Corresponding conditional access node for conditional binding was not found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">'{0}': l'evento astratto non può usare la sintassi della funzione di accesso agli eventi</target>

@@ -2226,7 +2226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a conditional binding expression, find corresponding conditional access node.
         /// </summary>
-        internal static ConditionalAccessExpressionSyntax? FindConditionalAccessNodeForBinding(CSharpSyntaxNode node)
+        internal static ConditionalAccessExpressionSyntax FindConditionalAccessNodeForBinding(CSharpSyntaxNode node)
         {
             var currentNode = node;
 
@@ -2241,7 +2241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (currentNode == null)
                 {
-                    return null;
+                    throw new InvalidOperationException(CSharpResources.ConditionalAccessNodeNotFound);
                 }
 
                 if (currentNode.Kind() == SyntaxKind.ConditionalAccessExpression)

@@ -8455,12 +8455,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetReceiverForConditionalBinding(ExpressionSyntax binding, DiagnosticBag diagnostics)
         {
             var conditionalAccessNode = SyntaxFactory.FindConditionalAccessNodeForBinding(binding);
-            if (conditionalAccessNode == null)
-            {
-                // this can happen when speculating on just the conditional binding (disconnected from the larger tree),
-                // without speculating on the whole conditional access
-                return BadExpression(binding);
-            }
 
             BoundExpression receiver = this.ConditionalReceiverExpression;
             if (receiver?.Syntax != GetConditionalReceiverSyntax(conditionalAccessNode))

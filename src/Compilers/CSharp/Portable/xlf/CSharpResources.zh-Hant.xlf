@@ -12,6 +12,11 @@
         <target state="translated">無法從另一個非泛型型別建立建構的泛型型別。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ConditionalAccessNodeNotFound">
+        <source>Corresponding conditional access node for conditional binding was not found.</source>
+        <target state="new">Corresponding conditional access node for conditional binding was not found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">'{0}' 抽象事件無法使用事件存取子語法</target>

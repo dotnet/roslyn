@@ -12,6 +12,11 @@
         <target state="translated">Nie można utworzyć konstruowanego typu ogólnego z typu nieogólnego.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ConditionalAccessNodeNotFound">
+        <source>Corresponding conditional access node for conditional binding was not found.</source>
+        <target state="new">Corresponding conditional access node for conditional binding was not found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">„{0}”: zdarzenie abstrakcyjne nie może używać składni metody dostępu zdarzenia</target>

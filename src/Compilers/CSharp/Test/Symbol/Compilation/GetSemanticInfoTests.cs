@@ -6025,8 +6025,7 @@ class Foo
             // disconnect invocation from its Parent
             var newInvocation = invocation.WithoutTrivia();
 
-            var symbolInfo = model.GetSpeculativeSymbolInfo(invocation.SpanStart, newInvocation, SpeculativeBindingOption.BindAsExpression);
-            Assert.True(symbolInfo.IsEmpty);
+            Assert.Throws<InvalidOperationException>(() => model.GetSpeculativeSymbolInfo(invocation.SpanStart, newInvocation, SpeculativeBindingOption.BindAsExpression));
         }
     }
 }
