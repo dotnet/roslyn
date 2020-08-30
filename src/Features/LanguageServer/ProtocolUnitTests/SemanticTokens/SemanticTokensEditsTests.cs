@@ -124,7 +124,7 @@ static class C { }
                     1, 0, 10, SemanticTokensCache.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment], 0
                 });
 
-            Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits[0]);
+            Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)results).Edits?[0]);
             Assert.Equal("2", ((LSP.SemanticTokensEdits)results).ResultId);
         }
 
@@ -225,13 +225,16 @@ class C
             Assert.True(Enumerable.SequenceEqual(rawTokens.Data, editsToTokens));
         }
 
-        private static int[] ApplySemanticTokensEdits(int[] originalTokens, LSP.SemanticTokensEdits edits)
+        private static int[] ApplySemanticTokensEdits(int[]? originalTokens, LSP.SemanticTokensEdits edits)
         {
             var data = originalTokens.ToList();
-            foreach (var edit in edits.Edits)
+            if (edits.Edits != null)
             {
-                data.RemoveRange(edit.Start, edit.DeleteCount);
-                data.InsertRange(edit.Start, edit.Data);
+                foreach (var edit in edits.Edits)
+                {
+                    data.RemoveRange(edit.Start, edit.DeleteCount);
+                    data.InsertRange(edit.Start, edit.Data);
+                }
             }
 
             return data.ToArray();
