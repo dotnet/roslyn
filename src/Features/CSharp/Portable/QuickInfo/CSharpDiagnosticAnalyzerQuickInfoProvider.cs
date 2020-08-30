@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -51,20 +52,42 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             if (errorCode != null)
             {
-                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode);
+                return Task.FromResult(GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode.Identifier.ValueText, errorCode.Span));
             }
 
-            return null;
+            var supressMessageArgumentLiteral = token.Parent switch
+            {
+                LiteralExpressionSyntax
+                {
+                    Parent: AttributeArgumentSyntax
+                    {
+                        Parent: AttributeArgumentListSyntax
+                        {
+                            Parent: AttributeSyntax
+                            {
+                                Name: var name
+                            } _
+                        } _
+                    } _
+                } literal when name.IsSuppressMessageAttribute() => literal,
+                _ => null,
+            };
+            if (supressMessageArgumentLiteral != null)
+            {
+                return Task.FromResult(GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, supressMessageArgumentLiteral.Token.ValueText, supressMessageArgumentLiteral.Span));
+            }
+
+            return Task.FromResult<QuickInfoItem?>(null);
         }
 
         private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
-            IdentifierNameSyntax errorCode)
+            string errorCode, TextSpan location)
         {
             var infoCache = _diagnosticAnalyzerService.AnalyzerInfoCache;
             var hostAnalyzers = document.Project.Solution.State.Analyzers;
             var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, document.Project).Values;
             var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
-            var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode.Identifier.ValueText);
+            var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);
             if (diagnosticDescriptor != null)
             {
                 var description =
@@ -73,16 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                     diagnosticDescriptor.MessageFormat.ToStringOrNull() ??
                     diagnosticDescriptor.Id;
 
-                return CreateQuickInfo(errorCode, description);
+                return CreateQuickInfo(location, description);
             }
 
             return null;
         }
 
-        private static QuickInfoItem CreateQuickInfo(IdentifierNameSyntax pragmaWarningDiagnosticId, string description,
+        private static QuickInfoItem CreateQuickInfo(TextSpan location, string description,
             params TextSpan[] relatedSpans)
         {
-            return QuickInfoItem.Create(pragmaWarningDiagnosticId.Span, sections: new[]
+            return QuickInfoItem.Create(location, sections: new[]
                 {
                     QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
                     {
@@ -103,6 +126,20 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             return result;
+        }
+
+        public static bool IsSuppressMessageAttribute(this NameSyntax? name)
+        {
+            if (name == null)
+            {
+                return false;
+            }
+
+            var nameValue = name.GetNameToken().ValueText;
+            var stringComparer = StringComparer.Ordinal;
+            return
+                stringComparer.Equals(nameValue, nameof(SuppressMessageAttribute)) ||
+                stringComparer.Equals(nameValue, "SuppressMessage");
         }
     }
 }

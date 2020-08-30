@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
@@ -80,6 +81,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetErrorTitle((ErrorCode)errorCode));
         }
 
+        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ErrorTitleIsShwonInSupressMessageAttribute()
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+namespace T
+{
+    [SuppressMessage(""CodeQuality"", ""IDE0051$$"")]
+    public class C
+    {
+        private int _i;
+    }
+}
+", GetIDEAnalyzerTitle(nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
+        }
+
         protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
@@ -111,7 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             CSharpParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
+                new CSharpCompilerDiagnosticAnalyzer(),
+                new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
@@ -131,16 +152,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
-        private static string GetFormattedErrorMessage(ErrorCode errorCode, params object[] args)
-        {
-            var localizable = MessageProvider.Instance.GetMessageFormat((int)errorCode);
-            var format = (string)localizable;
-            return string.Format(format, args);
-        }
-
         private static string GetErrorTitle(ErrorCode errorCode)
         {
             var localizable = MessageProvider.Instance.GetTitle((int)errorCode);
+            return (string)localizable;
+        }
+
+        private static string GetIDEAnalyzerTitle(string nameOfLocalizableStringResource)
+        {
+            var localizable = new LocalizableResourceString(nameOfLocalizableStringResource, AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             return (string)localizable;
         }
 
