@@ -109,12 +109,11 @@ namespace T
         [InlineData(@"[SuppressMessage(""CodeQuality"", ""$$IDE0051"")]", true)]
         [InlineData(@"[SuppressMessage(""CodeQuality"", ""$$IDE0051: Remove unused private member"")]", true)]
         [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: ""IDE0051: Remove unused private member"")]", true)]
+        [InlineData(@"[SuppressMessage(category: ""CodeQuality"", $$checkId: ""IDE0051: Remove unused private member"")]", true)]
         [InlineData(@"[SuppressMessage(checkId$$: ""IDE0051: Remove unused private member"", category: ""CodeQuality"")]", true)]
         [InlineData(@"[SuppressMessage(""CodeQuality"", DiagnosticIds.IDE0051 +$$ "": Remove unused private member"")]", true)]
+        [InlineData(@"[SuppressMessage(""CodeQuality"", """" + (DiagnosticIds.IDE0051 +$$ "": Remove unused private member""))]", true)]
         [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: DiagnosticIds.IDE0051 + "": Remove unused private member"")]", true)]
-
-        // False negative: The argument expression is to complicated
-        [InlineData(@"[SuppressMessage(""CodeQuality"", """" + (DiagnosticIds.IDE0051 +$$ "": Remove unused private member""))]", false)]
         // False negative: Aliased attribute is not supported
         [InlineData(@"[SM(""CodeQuality"", ""IDE0051$$""", false)]
         public async Task QuickInfoSupressMessageAttributeUseCases(string supressMessageAttribute, bool shouldShowQuickInfo)

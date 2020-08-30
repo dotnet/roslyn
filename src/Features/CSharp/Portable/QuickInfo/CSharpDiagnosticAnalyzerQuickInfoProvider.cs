@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
     [ExportQuickInfoProvider(QuickInfoProviderNames.DiagnosticAnalyzer, LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = QuickInfoProviderNames.Syntactic)]
+    [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
     internal class CSharpDiagnosticAnalyzerQuickInfoProvider : CommonQuickInfoProvider
     {
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
@@ -71,21 +71,19 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var supressMessageCheckIdArgument = token.Parent switch
+            var supressMessageCheckIdArgument = token.GetAncestor<AttributeArgumentSyntax>() switch
             {
+                AttributeArgumentSyntax
                 {
-                    Parent: AttributeArgumentSyntax
+                    Parent: AttributeArgumentListSyntax
                     {
-                        Parent: AttributeArgumentListSyntax
+                        Arguments: var arguments,
+                        Parent: AttributeSyntax
                         {
-                            Arguments: var arguments,
-                            Parent: AttributeSyntax
-                            {
-                                Name: var name
-                            } _
+                            Name: var name
                         } _
-                    } argument
-                } _ when
+                    } _
+                } argument when
                     name.IsSuppressMessageAttribute() &&
                     (argument.NameColon?.Name.Identifier.ValueText == "checkId" ||
                     arguments.IndexOf(argument) == 1) => argument,
