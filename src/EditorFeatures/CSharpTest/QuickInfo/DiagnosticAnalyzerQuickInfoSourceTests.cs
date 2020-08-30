@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData("#pragma warning disable $$CS0162", (int)ErrorCode.WRN_UnreachableCode)]
         [InlineData("#pragma warning disable $$CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
-        [InlineData("#pragma warning disable $$CS0219", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
-        [InlineData("#pragma warning disable CS0162, $$CS0219", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
-        [InlineData("#pragma warning disable CS0162, CS0219$$", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
+        [InlineData("#pragma warning disable $$CS0219", (int)ErrorCode.WRN_UnreferencedVarAssg)]
+        [InlineData("#pragma warning disable CS0162, $$CS0219", (int)ErrorCode.WRN_UnreferencedVarAssg)]
+        [InlineData("#pragma warning disable CS0162, CS0219$$", (int)ErrorCode.WRN_UnreferencedVarAssg)]
         [InlineData("#pragma warning $$disable CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
-        [InlineData("#pragma warning $$disable CS0219, CS0162", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
-        public async Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, int errorCode, params object[] args)
+        [InlineData("#pragma warning $$disable CS0219, CS0162", (int)ErrorCode.WRN_UnreferencedVarAssg)]
+        public async Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, int errorCode)
         {
             await TestInMethodAsync(
 @$"
