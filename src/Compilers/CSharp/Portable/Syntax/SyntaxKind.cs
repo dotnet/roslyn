@@ -460,9 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         VarKeyword = 8490,
         /// <summary>Represents <c>_</c> token.</summary>
         UnderscoreToken = 8491,
-        /// <summary>Represents <c>TODO: What's this?</c> token.</summary>
+        /// <summary>Represents that nothing was specified as a type argument. For example <c>Dictionary&lt;,&gt;</c> which has OmittedTypeArgumentToken as a child of OmittedTypeArgumentSyntax before and after the CommaToken.</summary>
         OmittedTypeArgumentToken = 8492,
-        /// <summary>Represents <c>TODO: What's this?</c> token.</summary>
+        /// <summary>Represents that nothing was specified as an array size. For example <c>int[,]</c> which has OmittedArraySizeExpressionToken as a child of OmittedArraySizeExpressionSyntax before and after the CommaToken.</summary>
         OmittedArraySizeExpressionToken = 8493,
         /// <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
         EndOfDirectiveToken = 8494,
