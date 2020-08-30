@@ -118,25 +118,30 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);
             if (diagnosticDescriptor != null)
             {
-                var description =
-                    diagnosticDescriptor.Title.ToStringOrNull() ??
-                    diagnosticDescriptor.Description.ToStringOrNull() ??
-                    diagnosticDescriptor.MessageFormat.ToStringOrNull() ??
-                    diagnosticDescriptor.Id;
-
-                return CreateQuickInfo(location, description);
+                return CreateQuickInfo(location, diagnosticDescriptor);
             }
 
             return null;
         }
 
-        private static QuickInfoItem CreateQuickInfo(TextSpan location, string description,
+        private static QuickInfoItem CreateQuickInfo(TextSpan location, DiagnosticDescriptor descriptor,
             params TextSpan[] relatedSpans)
         {
+            var description =
+                descriptor.Title.ToStringOrNull() ??
+                descriptor.Description.ToStringOrNull() ??
+                descriptor.MessageFormat.ToStringOrNull() ??
+                descriptor.Id;
+            var idTag = !string.IsNullOrWhiteSpace(descriptor.HelpLinkUri)
+                ? new TaggedText(TextTags.Text, descriptor.Id, TaggedTextStyle.Code, descriptor.HelpLinkUri, descriptor.HelpLinkUri)
+                : new TaggedText(TextTags.Text, descriptor.Id);
             return QuickInfoItem.Create(location, sections: new[]
                 {
                     QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
                     {
+                        idTag,
+                        new TaggedText(TextTags.Punctuation, ":"),
+                        new TaggedText(TextTags.Space, " "),
                         new TaggedText(TextTags.Text, description)
                     }.ToImmutableArray())
                 }.ToImmutableArray(), relatedSpans: relatedSpans.ToImmutableArray());

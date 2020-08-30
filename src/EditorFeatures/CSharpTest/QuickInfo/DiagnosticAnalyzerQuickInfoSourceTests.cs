@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 #pragma warning disable CS0219$$
             var i = 0;
 #pragma warning restore CS0219
-", GetErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 #pragma warning disable CS0219
             var i = 0;
 #pragma warning restore CS0219$$
-", GetErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             await TestInMethodAsync(
 @"
 #pragma warning disable CS0219$$
-", GetErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+", GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {pragma}
         return;
         var i = 0;
-", GetErrorTitle((ErrorCode)errorCode));
+", GetFormattedErrorTitle((ErrorCode)errorCode));
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
@@ -96,7 +96,7 @@ namespace T
         private int _i;
     }
 }
-", GetIDEAnalyzerTitle(nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
+", GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
@@ -119,7 +119,7 @@ namespace T
         public async Task QuickInfoSupressMessageAttributeUseCases(string supressMessageAttribute, bool shouldShowQuickInfo)
         {
             var description = shouldShowQuickInfo
-                ? GetIDEAnalyzerTitle(nameof(AnalyzersResources.Remove_unused_private_members))
+                ? GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members))
                 : null;
             await TestAsync(
 @$"
@@ -194,16 +194,16 @@ namespace T
             }
         }
 
-        private static string GetErrorTitle(ErrorCode errorCode)
+        private static string GetFormattedErrorTitle(ErrorCode errorCode)
         {
             var localizable = MessageProvider.Instance.GetTitle((int)errorCode);
-            return (string)localizable;
+            return $"CS{(int)errorCode:0000}: {localizable}";
         }
 
-        private static string GetIDEAnalyzerTitle(string nameOfLocalizableStringResource)
+        private static string GetFormattedIDEAnalyzerTitle(int ideDiagnosticId, string nameOfLocalizableStringResource)
         {
             var localizable = new LocalizableResourceString(nameOfLocalizableStringResource, AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-            return (string)localizable;
+            return $"IDE{ideDiagnosticId:0000}: {localizable}";
         }
 
         protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
