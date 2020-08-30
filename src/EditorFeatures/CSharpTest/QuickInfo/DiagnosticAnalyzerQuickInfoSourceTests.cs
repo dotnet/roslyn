@@ -29,14 +29,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task DisabledWarningIsShownInQuickInfoWithCodeDetails()
+        public async Task ErrorTileIsShownOnDisablePragma()
         {
             await TestInMethodAsync(
 @"
 #pragma warning disable CS0219$$
             var i = 0;
 #pragma warning restore CS0219
-", GetFormattedErrorMessage(ErrorCode.WRN_UnreferencedVarAssg, "i"), TextSpan.FromBounds(71, 72));
+", GetErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
+        }
+
+        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ErrorTileIsShownOnRestorePragma()
+        {
+            await TestInMethodAsync(
+@"
+#pragma warning disable CS0219
+            var i = 0;
+#pragma warning restore CS0219$$
+", GetErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
@@ -50,47 +62,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         }
 
         [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task WarningBeforeDisablePragmaIsNotConsidered()
-        {
-            await TestInMethodAsync(
-@"
-        var i1 = 0;
-#pragma warning disable CS0219$$
-        var i2 = 0;
-", GetFormattedErrorMessage(ErrorCode.WRN_UnreferencedVarAssg, "i2"), TextSpan.FromBounds(88, 90));
-        }
-
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("#pragma warning disable $$CS0162", 80, 83, (int)ErrorCode.WRN_UnreachableCode)]
-        [InlineData("#pragma warning disable $$CS0162, CS0219", 88, 91, (int)ErrorCode.WRN_UnreachableCode)]
-        [InlineData("#pragma warning disable $$CS0219", 84, 85, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
-        [InlineData("#pragma warning disable CS0162, $$CS0219", 92, 93, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
-        [InlineData("#pragma warning disable CS0162, CS0219$$", 92, 93, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
-        [InlineData("#pragma warning $$disable CS0162, CS0219", 88, 91, (int)ErrorCode.WRN_UnreachableCode)]
-        [InlineData("#pragma warning $$disable CS0219, CS0162", 92, 93, (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
-        public async Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, int relatedSpandStart, int relatedSpanEnd, int errorCode, params object[] args)
+        [InlineData("#pragma warning disable $$CS0162", (int)ErrorCode.WRN_UnreachableCode)]
+        [InlineData("#pragma warning disable $$CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
+        [InlineData("#pragma warning disable $$CS0219", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
+        [InlineData("#pragma warning disable CS0162, $$CS0219", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
+        [InlineData("#pragma warning disable CS0162, CS0219$$", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
+        [InlineData("#pragma warning $$disable CS0162, CS0219", (int)ErrorCode.WRN_UnreachableCode)]
+        [InlineData("#pragma warning $$disable CS0219, CS0162", (int)ErrorCode.WRN_UnreferencedVarAssg, "i")]
+        public async Task MultipleWarningsAreDisplayedDependingOnCursorPosition(string pragma, int errorCode, params object[] args)
         {
             await TestInMethodAsync(
 @$"
 {pragma}
         return;
         var i = 0;
-", GetFormattedErrorMessage((ErrorCode)errorCode, args), TextSpan.FromBounds(relatedSpandStart, relatedSpanEnd));
-        }
-
-        [WorkItem(46604, "https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task ShowInfoAboutFirstOccurrenceInCode()
-        {
-            await TestInMethodAsync(
-@"
-#pragma warning disable CS0219$$
-        var i1 = 0;
-        var i2 = 0;
-        var i3 = 0;
-", GetFormattedErrorMessage(ErrorCode.WRN_UnreferencedVarAssg, "i1"), TextSpan.FromBounds(67, 69));
+", GetErrorTitle((ErrorCode)errorCode));
         }
 
         protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
