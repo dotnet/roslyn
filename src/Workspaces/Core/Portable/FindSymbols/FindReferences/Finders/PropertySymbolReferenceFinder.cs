@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    using SymbolsMatch = Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)>;
+    using SymbolsMatchAsync = Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>>;
 
     internal class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
@@ -158,8 +158,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                (var matched, var candidateReason, var indexerReference) = ComputeIndexerInformation(
-                    symbol, document, semanticModel, node, cancellationToken);
+                (var matched, var candidateReason, var indexerReference) = await ComputeIndexerInformationAsync(
+                    symbol, document, semanticModel, node, cancellationToken).ConfigureAwait(false);
                 if (!matched)
                     continue;
 
@@ -177,44 +177,44 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutable();
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerInformation(
+        private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var symbolsMatch = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
+            var symbolsMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
-                return ComputeElementAccessInformation(
-                    semanticModel, node, syntaxFacts, symbolsMatch);
+                return ComputeElementAccessInformationAsync(
+                    semanticModel, node, syntaxFacts, symbolsMatchAsync);
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
-                return ComputeConditionalAccessInformation(
-                    semanticModel, node, syntaxFacts, symbolsMatch);
+                return ComputeConditionalAccessInformationAsync(
+                    semanticModel, node, syntaxFacts, symbolsMatchAsync);
             }
             else
             {
                 Debug.Assert(syntaxFacts.IsIndexerMemberCRef(node));
 
-                return ComputeIndexerMemberCRefInformation(
-                    semanticModel, node, symbolsMatch);
+                return ComputeIndexerMemberCRefInformationAsync(
+                    semanticModel, node, symbolsMatchAsync);
             }
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerMemberCRefInformation(
-            SemanticModel semanticModel, SyntaxNode node, SymbolsMatch symbolsMatch)
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerMemberCRefInformationAsync(
+            SemanticModel semanticModel, SyntaxNode node, SymbolsMatchAsync symbolsMatchAsync)
         {
-            var (matched, reason) = symbolsMatch(node, semanticModel);
+            var (matched, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
 
             // For an IndexerMemberCRef the node itself is the indexer we are looking for.
             return (matched, reason, node);
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeConditionalAccessInformation(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
-            ISyntaxFactsService syntaxFacts, Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch)
+            ISyntaxFactsService syntaxFacts, Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync)
         {
             // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
             syntaxFacts.GetPartsOfConditionalAccessExpression(node, out _, out var indexerReference);
@@ -227,17 +227,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, reason) = symbolsMatch(indexerReference, semanticModel);
+            var (matched, reason) = await symbolsMatchAsync(indexerReference, semanticModel).ConfigureAwait(false);
             return (matched, reason, indexerReference);
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeElementAccessInformation(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeElementAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
-            ISyntaxFactsService syntaxFacts, SymbolsMatch symbolsMatch)
+            ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
         {
             // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
             syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
-            if (expression != null && symbolsMatch(expression, semanticModel).matched)
+            if (expression != null && (await symbolsMatchAsync(expression, semanticModel).ConfigureAwait(false)).matched)
             {
                 // Element access with explicit member name (allowed in VB). We will have
                 // already added a reference location for the member name identifier, so skip
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, reason) = symbolsMatch(node, semanticModel);
+            var (matched, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
             return (matched, reason, indexerReference);
         }
     }

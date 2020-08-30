@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
-using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -74,7 +72,7 @@ public class Class1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 
 # IDE0059: Unnecessary assignment of a value
-csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -104,6 +102,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:warning
+dotnet_diagnostic.IDE0059.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -127,6 +126,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -156,6 +156,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:warning
+dotnet_diagnostic.IDE0059.severity = suggestion
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -179,6 +180,7 @@ public class Class1
 
 # IDE0059: Unnecessary assignment of a value
 csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -232,7 +234,7 @@ public class Class1
 csharp_style_expression_bodied_methods = false:silent
 
 # IDE0059: Unnecessary assignment of a value
-csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 
 [*.{vb,cs}]
 dotnet_style_qualification_for_field = false:silent
@@ -292,7 +294,7 @@ dotnet_style_qualification_for_field = false:silent
 csharp_style_expression_bodied_methods = false:silent
 
 # IDE0059: Unnecessary assignment of a value
-csharp_style_unused_value_assignment_preference = discard_variable:error
+dotnet_diagnostic.IDE0059.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-#pragma warning disable CA1822 // Mark members as static
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -45,23 +43,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => EndPoint.InvokeAsync(targetName, arguments, cancellationToken);
 
         public UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
-        {
-            var workspace = SolutionService.PrimaryWorkspace;
-            var solutionCrawlerRegistrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            if (solutionCrawlerRegistrationService == null)
-            {
-                return null;
-            }
-
-            var analyzerProvider = new UnitTestingIncrementalAnalyzerProvider(workspace, provider);
-
-            var metadata = new IncrementalAnalyzerProviderMetadata(
-                analyzerName,
-                highPriorityForActiveFile: false,
-                new[] { WorkspaceKind.RemoteWorkspace });
-
-            solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
-            return analyzerProvider;
-        }
+            => UnitTestingIncrementalAnalyzerProvider.TryRegister(GetWorkspace(), analyzerName, provider);
     }
 }

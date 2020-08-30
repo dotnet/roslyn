@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 
@@ -52,9 +54,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string failureReason)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var metadataName = reader.ReadString();
+                var metadataName = reader.ReadString()!;
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
 

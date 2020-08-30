@@ -70,7 +70,7 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_RAW" Source="FF808080" />
+                <Foreground Type="CT_RAW" Source="FF686868" />
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
             </Color>
             <Color Name="xml doc comment - attribute name">
@@ -231,7 +231,7 @@
             <Color Name="label name">
             </Color>
             <Color Name="inline parameter name hints">
-                <Foreground Type="CT_RAW" Source="FF808080" />
+                <Foreground Type="CT_RAW" Source="FF686868" />
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
             </Color>
             <Color Name="xml doc comment - attribute name">

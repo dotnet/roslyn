@@ -8,6 +8,5 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol
     {
         public const string ProjectsName = "roslyn/projects";
         public const string ClassificationsName = "roslyn/classifications";
-        public const string CodeActionPreviewName = "roslyn/codeactionpreview";
     }
 }

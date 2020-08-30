@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => (matched: true, reason: CandidateReason.None),
+                (t, m) => new ValueTask<(bool matched, CandidateReason reason)>((matched: true, reason: CandidateReason.None)),
                 docCommentId: null,
                 findInGlobalSuppressions: false,
                 cancellationToken);

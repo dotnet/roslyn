@@ -79,6 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_is_with_cast_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferNotPattern = CreateOption(
+            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferNotPattern),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_not_pattern"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferNotPattern)}")});
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
             defaultValue: s_trueWithSuggestionEnforcement,

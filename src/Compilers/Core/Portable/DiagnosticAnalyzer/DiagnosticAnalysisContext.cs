@@ -233,12 +233,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -497,19 +497,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
             return TryGetValueCore(key, valueProvider, out value);
         }
 
-        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        internal virtual bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             throw new NotImplementedException();
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -603,12 +603,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="valueProvider">Provider that computes the underlying value.</param>
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(tree, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);
@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ISymbol _owningSymbol;
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _options;
-        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraphOpt;
+        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraph;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilation = compilation;
             _options = options;
             _cancellationToken = cancellationToken;
-            _getControlFlowGraphOpt = null;
+            _getControlFlowGraph = null;
         }
 
         internal OperationBlockStartAnalysisContext(
@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _owningSymbol = owningSymbol;
             _compilation = compilation;
             _options = options;
-            _getControlFlowGraphOpt = getControlFlowGraph;
+            _getControlFlowGraph = getControlFlowGraph;
             _cancellationToken = cancellationToken;
         }
 
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, nameof(operationBlock));
             }
 
-            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt, _cancellationToken);
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraph, _cancellationToken);
         }
     }
 
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
-        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraphOpt;
+        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraph;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
-            _getControlFlowGraphOpt = null;
+            _getControlFlowGraph = null;
         }
 
         internal OperationBlockAnalysisContext(
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
-            _getControlFlowGraphOpt = getControlFlowGraph;
+            _getControlFlowGraph = getControlFlowGraph;
             _cancellationToken = cancellationToken;
         }
 
@@ -1237,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.InvalidOperationBlockForAnalysisContext, nameof(operationBlock));
             }
 
-            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraphOpt, _cancellationToken);
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraph, _cancellationToken);
         }
     }
 
@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
-        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraphOpt;
+        private readonly Func<IOperation, ControlFlowGraph>? _getControlFlowGraph;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -1495,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
-            _getControlFlowGraphOpt = null;
+            _getControlFlowGraph = null;
         }
 
         internal OperationAnalysisContext(
@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
-            _getControlFlowGraphOpt = getControlFlowGraph;
+            _getControlFlowGraph = getControlFlowGraph;
             _cancellationToken = cancellationToken;
         }
 
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets a <see cref="ControlFlowGraph"/> for the operation block containing the <see cref="Operation"/>.
         /// </summary>
-        public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraphOpt, _cancellationToken);
+        public ControlFlowGraph GetControlFlowGraph() => DiagnosticAnalysisContextHelpers.GetControlFlowGraph(Operation, _getControlFlowGraph, _cancellationToken);
     }
 
     /// <summary>

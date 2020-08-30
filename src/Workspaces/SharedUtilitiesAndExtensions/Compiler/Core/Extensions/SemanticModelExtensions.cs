@@ -25,6 +25,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
             => semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
 
+        public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static ISymbol GetRequiredEnclosingSymbol(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetEnclosingSymbol(position, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
         public static TSymbol? GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             where TSymbol : class, ISymbol
         {

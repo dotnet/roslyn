@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
         private CompilationVerifier CompileAndVerify(
             CSharpTestSource src,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             => base.CompileAndVerify(
                 new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 references: references,
                 // init-only is unverifiable
                 verify: Verification.Skipped);
@@ -63,9 +63,9 @@ record Point(int x, int y);
                 // (2,12): error CS1513: } expected
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 12),
-                // (2,12): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,12): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y);").WithArguments("top-level statements").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 12),
                 // (2,12): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 12),
@@ -101,9 +101,9 @@ record Point(int x, int y);
             comp.VerifyDiagnostics(
                 // error CS8805: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
-                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "record Point(int x, int y);").WithArguments("top-level statements").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
@@ -524,7 +524,7 @@ public partial record C
     public int P2 { get; set; } = X;
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: "(2, 2)", verify: Verification.Skipped /* init-only */).VerifyDiagnostics();
         }
 
@@ -540,7 +540,7 @@ public class C<T>
     public record Nested(T T);
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped /* init-only */);
         }
@@ -727,6 +727,8 @@ record C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C? r1, C? r2)",
                 "System.Boolean C.op_Equality(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
@@ -1506,6 +1508,9 @@ record C
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'C.X' is never used
+                //     public event Action X;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(5, 25)
             );
         }
 
@@ -1672,7 +1677,7 @@ class C
 
             var verifier = CompileAndVerify(
                 new[] { src, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 verify: Verification.Passes,
                 expectedOutput:
 @"2
@@ -1717,7 +1722,7 @@ catch (System.Exception) when ((r = r with { X = 2 }).X == 2)
 
 record R(int X);
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "RAN 2", verify: Verification.Skipped /* init-only */);
         }
@@ -1732,7 +1737,7 @@ System.Console.Write(r.X);
 
 record R(int X);
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
 
@@ -1867,7 +1872,7 @@ class C
         _ = t with { X = 2, Property = 3 };
     }
 }";
-            var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8858: The receiver type 'T' is not a valid record type.
                 //         _ = t with { X = 2, Property = 3 };
@@ -1949,7 +1954,7 @@ class C : Base<S>
         _ = t with { X = 2, Property = 3 };
     }
 }";
-            var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (11,13): error CS8858: The receiver type 'U' is not a valid record type.
                 //         _ = t with { X = 2, Property = 3 };
@@ -1963,7 +1968,7 @@ class C : Base<S>
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
         public void TypeNamedRecord()
         {
             var src = @"
@@ -1975,22 +1980,341 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,7): error CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 24),
                 // (6,24): error CS1513: } expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 24),
-                // (6,24): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (6,24): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 24),
-                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28),
-                // (6,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28)
                 );
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Struct()
+        {
+            var src = @"
+struct record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Interface()
+        {
+            var src = @"
+interface record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,11): warning CS8860: Types and aliases should not be named 'record'.
+                // interface record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 11)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Enum()
+        {
+            var src = @"
+enum record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,6): warning CS8860: Types and aliases should not be named 'record'.
+                // enum record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 6)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Delegate()
+        {
+            var src = @"
+delegate void record();
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // delegate void record();
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Delegate_Escaped()
+        {
+            var src = @"
+delegate void @record();
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Alias()
+        {
+            var src = @"
+using record = System.Console;
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using record = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using record = System.Console;").WithLocation(2, 1),
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
+                // using record = System.Console;
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Alias_Escaped()
+        {
+            var src = @"
+using @record = System.Console;
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using @record = System.Console;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @record = System.Console;").WithLocation(2, 1)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter()
+        {
+            var src = @"
+class C<record> { } // 1
+class C2
+{
+    class Nested<record> { } // 2
+}
+class C3
+{
+    void Method<record>() { } // 3
+
+    void Method2()
+    {
+        void local<record>() // 4
+        {
+            local<record>();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,9): warning CS8860: Types and aliases should not be named 'record'.
+                // class C<record> { } // 1
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 9),
+                // (5,18): warning CS8860: Types and aliases should not be named 'record'.
+                //     class Nested<record> { } // 2
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 18),
+                // (9,17): warning CS8860: Types and aliases should not be named 'record'.
+                //     void Method<record>() { } // 3
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                // (13,20): warning CS8860: Types and aliases should not be named 'record'.
+                //         void local<record>() // 4
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(13, 20)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter_Escaped()
+        {
+            var src = @"
+class C<@record> { }
+class C2
+{
+    class Nested<@record> { }
+}
+class C3
+{
+    void Method<@record>() { }
+
+    void Method2()
+    {
+        void local<@record>()
+        {
+            local<record>();
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TypeParameter_Escaped_Partial()
+        {
+            var src = @"
+partial class C<@record> { }
+partial class C<record> { } // 1
+
+partial class D<record> { } // 2
+partial class D<@record> { }
+
+partial class D<record> { } // 3
+partial class D<record> { } // 4
+
+partial class E<@record> { }
+partial class E<@record> { }
+
+partial class C2
+{
+    partial class Nested<record> { } // 5
+    partial class Nested<@record> { }
+}
+partial class C3
+{
+    partial void Method<@record>();
+    partial void Method<record>() { } // 6
+
+    partial void Method2<@record>() { }
+    partial void Method2<record>(); // 7
+
+    partial void Method3<record>(); // 8
+    partial void Method3<@record>() { }
+
+    partial void Method4<record>() { } // 9
+    partial void Method4<@record>();
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class C<record> { } // 1
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 17),
+                // (5,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 2
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 17),
+                // (8,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 3
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(8, 17),
+                // (9,17): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class D<record> { } // 4
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                // (16,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial class Nested<record> { } // 5
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(16, 26),
+                // (22,25): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method<record>() { } // 6
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(22, 25),
+                // (25,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method2<record>(); // 7
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(25, 26),
+                // (27,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method3<record>(); // 8
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(27, 26),
+                // (30,26): warning CS8860: Types and aliases should not be named 'record'.
+                //     partial void Method4<record>() { } // 9
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(30, 26)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Record()
+        {
+            var src = @"
+record record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,8): warning CS8860: Types and aliases should not be named 'record'.
+                // record record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_TwoParts()
+        {
+            var src = @"
+partial class record { }
+partial class record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15),
+                // (3,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_Escaped()
+        {
+            var src = @"
+class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_MixedEscapedPartial()
+        {
+            var src = @"
+partial class @record { }
+partial class record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_MixedEscapedPartial_ReversedOrder()
+        {
+            var src = @"
+partial class record { }
+partial class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): warning CS8860: Types and aliases should not be named 'record'.
+                // partial class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                );
+        }
+
+        [Fact, WorkItem(47090, "https://github.com/dotnet/roslyn/issues/47090")]
+        public void TypeNamedRecord_BothEscapedPartial()
+        {
+            var src = @"
+partial class @record { }
+partial class @record { }
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2014,7 +2338,11 @@ class C
     }
 }";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                );
             CompileAndVerify(comp, expectedOutput: "RAN");
         }
 
@@ -2070,6 +2398,9 @@ record C9 : System.ICloneable
                 // (5,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone; // 2
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(5, 12),
+                // (5,12): warning CS0169: The field 'C2.Clone' is never used
+                //     string Clone; // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Clone").WithArguments("C2.Clone").WithLocation(5, 12),
                 // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
@@ -2079,6 +2410,9 @@ record C9 : System.ICloneable
                 // (13,17): error CS8859: Members named 'Clone' are disallowed in records.
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(13, 17),
+                // (13,17): warning CS0169: The field 'C4.Clone' is never used
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Clone").WithArguments("C4.Clone").WithLocation(13, 17),
                 // (17,10): error CS8859: Members named 'Clone' are disallowed in records.
                 //     void Clone() { } // 5
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(17, 10),
@@ -2093,7 +2427,10 @@ record C9 : System.ICloneable
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(26, 19),
                 // (30,25): error CS8859: Members named 'Clone' are disallowed in records.
                 //     event System.Action Clone;  // 9
-                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25)
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(30, 25),
+                // (30,25): warning CS0067: The event 'C8.Clone' is never used
+                //     event System.Action Clone;  // 9
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Clone").WithArguments("C8.Clone").WithLocation(30, 25)
                 );
         }
 
@@ -2234,6 +2571,12 @@ record C9 : System.ICloneable
         .get instance int32 Base::get_i()
         .set instance void modreq(System.Runtime.CompilerServices.IsExternalInit) Base::set_i(int32)
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 
 .class public auto ansi abstract sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends [mscorlib]System.Object
@@ -2253,7 +2596,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithIL(src, il, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(src, il, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "RAN").VerifyDiagnostics();
             // Note: we do load the Clone method from metadata
@@ -2460,7 +2803,7 @@ sealed abstract record C2 : C1;
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
@@ -2563,7 +2906,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS8858: The receiver type 'A' is not a valid record type.
                 //         A x = new A() with { };
@@ -2670,7 +3013,7 @@ public class Program
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
@@ -2783,7 +3126,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS8858: The receiver type 'A' is not a valid record type.
                 //         A x = new A() with { };
@@ -2889,7 +3232,7 @@ public class Program
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
@@ -3002,7 +3345,7 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS8858: The receiver type 'A' is not a valid record type.
                 //         A x = new A() with { };
@@ -3026,7 +3369,7 @@ public record A;
 public record B(int X) : A;
 ";
 
-            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source3 = @"
 class Program
@@ -3051,13 +3394,13 @@ class Program
 public record A;
 ";
 
-            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, assemblyName: "Clone_12", parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, assemblyName: "Clone_12", parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source2 = @"
 public record B(int X) : A;
 ";
 
-            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source3 = @"
 class Program
@@ -3071,7 +3414,7 @@ class Program
     }
 }
 ";
-            var comp3 = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp2Ref }, parseOptions: TestOptions.RegularPreview);
+            var comp3 = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp2Ref }, parseOptions: TestOptions.Regular9);
             comp3.VerifyEmitDiagnostics(
                 // (7,18): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_12, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c2 = c1 with { X = 11 };
@@ -3086,19 +3429,19 @@ class Program
 public record A;
 ";
 
-            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source2 = @"
 public record B(int X) : A;
 ";
 
-            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, assemblyName: "Clone_13", references: new[] { comp1Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, assemblyName: "Clone_13", references: new[] { comp1Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source3 = @"
 public record C(int X) : B(X);
 ";
 
-            var comp3Ref = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp2Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp3Ref = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp2Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source4 = @"
 class Program
@@ -3110,7 +3453,7 @@ class Program
     }
 }
 ";
-            var comp4 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp3Ref }, parseOptions: TestOptions.RegularPreview);
+            var comp4 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp3Ref }, parseOptions: TestOptions.Regular9);
             comp4.VerifyEmitDiagnostics(
                 // (7,18): error CS8858: The receiver type 'C' is not a valid record type.
                 //         var c2 = c1 with { X = 11 };
@@ -3126,7 +3469,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("C", "X").WithLocation(7, 28)
                 );
 
-            var comp5 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp3Ref }, parseOptions: TestOptions.RegularPreview);
+            var comp5 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp3Ref }, parseOptions: TestOptions.Regular9);
             comp5.VerifyEmitDiagnostics(
                 // (7,18): error CS8858: The receiver type 'C' is not a valid record type.
                 //         var c2 = c1 with { X = 11 };
@@ -3156,7 +3499,7 @@ public record A;
 public record B(int X) : A;
 ";
 
-            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source3 = @"
 record C(int X) : B(X)
@@ -3181,13 +3524,13 @@ record C(int X) : B(X)
 public record A;
 ";
 
-            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, assemblyName: "Clone_15", parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, assemblyName: "Clone_15", parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source2 = @"
 public record B(int X) : A;
 ";
 
-            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, references: new[] { comp1Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source3 = @"
 record C(int X) : B(X)
@@ -3201,7 +3544,7 @@ record C(int X) : B(X)
     }
 }
 ";
-            var comp3 = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp2Ref }, parseOptions: TestOptions.RegularPreview);
+            var comp3 = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp2Ref }, parseOptions: TestOptions.Regular9);
             comp3.VerifyEmitDiagnostics(
                 // (2,8): error CS8869: 'C.Equals(object?)' does not override expected method from 'object'.
                 // record C(int X) : B(X)
@@ -3209,6 +3552,9 @@ record C(int X) : B(X)
                 // (2,8): error CS8869: 'C.GetHashCode()' does not override expected method from 'object'.
                 // record C(int X) : B(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "C").WithArguments("C.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS8869: 'C.ToString()' does not override expected method from 'object'.
+                // record C(int X) : B(X)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "C").WithArguments("C.ToString()").WithLocation(2, 8),
                 // (2,8): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record C(int X) : B(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("A", "Clone_15, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 8),
@@ -3240,19 +3586,19 @@ record C(int X) : B(X)
 public record A;
 ";
 
-            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp1Ref = CreateCompilation(new[] { source1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source2 = @"
 public record B(int X) : A;
 ";
 
-            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, assemblyName: "Clone_16", references: new[] { comp1Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp2Ref = CreateCompilation(new[] { source2, IsExternalInitTypeDefinition }, assemblyName: "Clone_16", references: new[] { comp1Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source3 = @"
 public record C(int X) : B(X);
 ";
 
-            var comp3Ref = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp2Ref }, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+            var comp3Ref = CreateCompilation(new[] { source3, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp2Ref }, parseOptions: TestOptions.Regular9).EmitToImageReference();
 
             string source4 = @"
 record D(int X) : C(X)
@@ -3264,7 +3610,7 @@ record D(int X) : C(X)
     }
 }
 ";
-            var comp4 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp3Ref }, parseOptions: TestOptions.RegularPreview);
+            var comp4 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp1Ref, comp3Ref }, parseOptions: TestOptions.Regular9);
             comp4.VerifyEmitDiagnostics(
                 // (2,8): error CS8869: 'D.Equals(object?)' does not override expected method from 'object'.
                 // record D(int X) : C(X)
@@ -3272,6 +3618,9 @@ record D(int X) : C(X)
                 // (2,8): error CS8869: 'D.GetHashCode()' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS8869: 'D.ToString()' does not override expected method from 'object'.
+                // record D(int X) : C(X)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.ToString()").WithLocation(2, 8),
                 // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
@@ -3286,7 +3635,7 @@ record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 22)
                 );
 
-            var comp5 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp3Ref }, parseOptions: TestOptions.RegularPreview);
+            var comp5 = CreateCompilation(new[] { source4, IsExternalInitTypeDefinition }, references: new[] { comp3Ref }, parseOptions: TestOptions.Regular9);
             comp5.VerifyEmitDiagnostics(
                 // (2,8): error CS8869: 'D.Equals(object?)' does not override expected method from 'object'.
                 // record D(int X) : C(X)
@@ -3294,6 +3643,9 @@ record D(int X) : C(X)
                 // (2,8): error CS8869: 'D.GetHashCode()' does not override expected method from 'object'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS8869: 'D.ToString()' does not override expected method from 'object'.
+                // record D(int X) : C(X)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "D").WithArguments("D.ToString()").WithLocation(2, 8),
                 // (2,19): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // record D(int X) : C(X)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("B", "Clone_16, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 19),
@@ -3395,7 +3747,7 @@ record D(int X) : C(X)
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
@@ -3492,7 +3844,7 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
@@ -3584,6 +3936,12 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 
 .class public auto ansi beforefieldinit B
@@ -3674,18 +4032,2340 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type B::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class B
 
 ";
             var source = @"
 public record C : B {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0239: 'C.<Clone>$()': cannot override inherited member 'B.<Clone>$()' because it is sealed
                 // public record C : B {
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.<Clone>$()", "B.<Clone>$()").WithLocation(2, 15)
                 );
+        }
+
+        [Fact, WorkItem(47093, "https://github.com/dotnet/roslyn/issues/47093")]
+        public void ToString_TopLevelRecord_Empty()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record C1;
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
+            Assert.False(print.IsOverride);
+            Assert.True(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  ret
+}
+");
+            v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
+{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (System.Text.StringBuilder V_0)
+  IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldstr      ""C1""
+  IL_000c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0011:  pop
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      "" { ""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  ldloc.0
+  IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_AbstractRecord()
+        {
+            var src = @"
+var c2 = new C2();
+System.Console.Write(c2);
+
+abstract record C1;
+record C2 : C1
+{
+    public override string ToString() => base.ToString();
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
+            Assert.False(print.IsOverride);
+            Assert.True(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  ret
+}
+");
+            v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
+{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (System.Text.StringBuilder V_0)
+  IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldstr      ""C1""
+  IL_000c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0011:  pop
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      "" { ""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  ldloc.0
+  IL_0020:  callvirt   ""bool C1.PrintMembers(System.Text.StringBuilder)""
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_AbstractRecord()
+        {
+            var src = @"
+var c2 = new C2();
+System.Console.Write(c2);
+
+record Base;
+abstract record C1 : Base;
+record C2 : C1
+{
+    public override string ToString() => base.ToString();
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
+            Assert.True(print.IsOverride);
+            Assert.False(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool Base.PrintMembers(System.Text.StringBuilder)""
+  IL_0007:  ret
+}
+");
+            v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
+{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (System.Text.StringBuilder V_0)
+  IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldstr      ""C1""
+  IL_000c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0011:  pop
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      "" { ""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  ldloc.0
+  IL_0020:  callvirt   ""bool Base.PrintMembers(System.Text.StringBuilder)""
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_MissingStringBuilder()
+        {
+            var src = @"
+record C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeTypeMissing(WellKnownType.System_Text_StringBuilder);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0518: Predefined type 'System.Text.StringBuilder' is not defined or imported
+                // record C1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "record C1;").WithArguments("System.Text.StringBuilder").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder..ctor'
+                // record C1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1;").WithArguments("System.Text.StringBuilder", ".ctor").WithLocation(2, 1),
+                // (2,8): error CS0518: Predefined type 'System.Text.StringBuilder' is not defined or imported
+                // record C1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C1").WithArguments("System.Text.StringBuilder").WithLocation(2, 8)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_MissingStringBuilderCtor()
+        {
+            var src = @"
+record C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder..ctor'
+                // record C1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1;").WithArguments("System.Text.StringBuilder", ".ctor").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_MissingStringBuilderAppendString()
+        {
+            var src = @"
+record C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record C1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1;").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneProperty_MissingStringBuilderAppendString()
+        {
+            var src = @"
+record C1(int P);
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record C1(int P);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1(int P);").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record C1(int P);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C1(int P);").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_Empty_Sealed()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+sealed record C1;
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { }");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Private, print.DeclaredAccessibility);
+            Assert.False(print.IsOverride);
+            Assert.False(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void ToString_AbstractRecord()
+        {
+            var src = @"
+var c2 = new C2(42, 43);
+System.Console.Write(c2.ToString());
+
+abstract record C1(int I1);
+sealed record C2(int I1, int I2) : C1(I1);
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C2 { I1 = 42, I2 = 43 }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ToString_ErrorBase()
+        {
+            var src = @"
+record C2: Error;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0115: 'C2.ToString()': no suitable method found to override
+                // record C2: Error;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.ToString()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'C2.EqualityContract': no suitable method found to override
+                // record C2: Error;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(2, 8),
+                // (2,8): error CS0115: 'C2.Equals(object?)': no suitable method found to override
+                // record C2: Error;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'C2.GetHashCode()': no suitable method found to override
+                // record C2: Error;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(2, 8),
+                // (2,12): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                // record C2: Error;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 12)
+                );
+        }
+
+        [Fact]
+        public void ToString_SelfReferentialBase()
+        {
+            var src = @"
+record R : R;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0146: Circular base type dependency involving 'R' and 'R'
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R", "R").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.ToString()': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.ToString()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.EqualityContract': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.EqualityContract").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.Equals(object?)': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.GetHashCode()': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.GetHashCode()").WithLocation(2, 8)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_Empty_AbstractSealed()
+        {
+            var src = @"
+abstract sealed record C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,24): error CS0418: 'C1': an abstract type cannot be sealed or static
+                // abstract sealed record C1;
+                Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C1").WithArguments("C1").WithLocation(2, 24)
+                );
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Private, print.DeclaredAccessibility);
+            Assert.False(print.IsOverride);
+            Assert.False(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_ValueType()
+        {
+            var src = @"
+var c1 = new C1() { field = 42 };
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public int field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
+            Assert.False(print.IsOverride);
+            Assert.True(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     ""int C1.field""
+  IL_001f:  constrained. ""int""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002f:  pop
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
+        {
+            var src = @"
+var c1 = new C1<int>() { field = 42 };
+System.Console.Write(c1.ToString());
+
+record C1<T> where T : struct
+{
+    public T field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     ""T C1<T>.field""
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002f:  pop
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_ReferenceType()
+        {
+            var src = @"
+var c1 = new C1() { field = ""hello"" };
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public string field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldfld      ""string C1.field""
+  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0024:  pop
+  IL_0025:  ldc.i4.1
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
+        public void ToString_TopLevelRecord_OneField_Unconstrained()
+        {
+            var src = @"
+var c1 = new C1<string>() { field = ""hello"" };
+System.Console.Write(c1.ToString());
+System.Console.Write("" "");
+
+var c2 = new C1<int>() { field = 42 };
+System.Console.Write(c2.ToString());
+
+record C1<T>
+{
+    public T field;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello } C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldfld      ""T C1<T>.field""
+  IL_001f:  box        ""T""
+  IL_0024:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0029:  pop
+  IL_002a:  ldc.i4.1
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneField_ErrorType()
+        {
+            var src = @"
+record C1
+{
+    public Error field;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                //     public Error field;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(4, 12),
+                // (4,18): warning CS0649: Field 'C1.field' is never assigned to, and will always have its default value null
+                //     public Error field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C1.field", "null").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_TwoFields_ReferenceType()
+        {
+            var src = @"
+var c1 = new C1() { field1 = ""hi"", field2 = null };
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public string field1;
+    public string field2;
+
+    private string field3;
+    internal string field4;
+    protected string field5;
+    protected internal string field6;
+    private protected string field7;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): warning CS0169: The field 'C1.field3' is never used
+                //     private string field3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field3").WithArguments("C1.field3").WithLocation(10, 20),
+                // (11,21): warning CS0649: Field 'C1.field4' is never assigned to, and will always have its default value null
+                //     internal string field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field4").WithArguments("C1.field4", "null").WithLocation(11, 21),
+                // (12,22): warning CS0649: Field 'C1.field5' is never assigned to, and will always have its default value null
+                //     protected string field5;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field5").WithArguments("C1.field5", "null").WithLocation(12, 22),
+                // (13,31): warning CS0649: Field 'C1.field6' is never assigned to, and will always have its default value null
+                //     protected internal string field6;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field6").WithArguments("C1.field6", "null").WithLocation(13, 31),
+                // (14,30): warning CS0649: Field 'C1.field7' is never assigned to, and will always have its default value null
+                //     private protected string field7;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field7").WithArguments("C1.field7", "null").WithLocation(14, 30)
+                );
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       88 (0x58)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field1""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldfld      ""string C1.field1""
+  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0024:  pop
+  IL_0025:  ldarg.1
+  IL_0026:  ldstr      "", ""
+  IL_002b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0030:  pop
+  IL_0031:  ldarg.1
+  IL_0032:  ldstr      ""field2""
+  IL_0037:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003c:  pop
+  IL_003d:  ldarg.1
+  IL_003e:  ldstr      "" = ""
+  IL_0043:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0048:  pop
+  IL_0049:  ldarg.1
+  IL_004a:  ldarg.0
+  IL_004b:  ldfld      ""string C1.field2""
+  IL_0050:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0055:  pop
+  IL_0056:  ldc.i4.1
+  IL_0057:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneProperty()
+        {
+            var src = @"
+var c1 = new C1(Property: 42);
+System.Console.Write(c1.ToString());
+
+record C1(int Property)
+{
+    private int Property2;
+    internal int Property3;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,17): warning CS0169: The field 'C1.Property2' is never used
+                //     private int Property2;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Property2").WithArguments("C1.Property2").WithLocation(7, 17),
+                // (8,18): warning CS0649: Field 'C1.Property3' is never assigned to, and will always have its default value 0
+                //     internal int Property3;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Property3").WithArguments("C1.Property3", "0").WithLocation(8, 18)
+                );
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { Property = 42 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       53 (0x35)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""Property""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  call       ""int C1.Property.get""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  constrained. ""int""
+  IL_0028:  callvirt   ""string object.ToString()""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_TwoFieldsAndTwoProperties()
+        {
+            var src = @"
+var c1 = new C1<int, string>(42, null) { field1 = 43, field2 = ""hi"" };
+System.Console.Write(c1.ToString());
+
+record C1<T1, T2>(T1 Property1, T2 Property2)
+{
+    public T1 field1;
+    public T2 field2;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { Property1 = 42, Property2 = , field1 = 43, field2 = hi }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_TwoFieldsAndTwoProperties()
+        {
+            var src = @"
+var c1 = new C1(42, 43) { A2 = 100, B2 = 101 };
+System.Console.Write(c1.ToString());
+
+record Base(int A1)
+{
+    public int A2;
+}
+record C1(int A1, int B1) : Base(A1)
+{
+    public int B2;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { A1 = 42, A2 = 100, B1 = 43, B2 = 101 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1.PrintMembers", @"
+{
+  // Code size      134 (0x86)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool Base.PrintMembers(System.Text.StringBuilder)""
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.1
+  IL_000a:  ldstr      "", ""
+  IL_000f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0014:  pop
+  IL_0015:  ldarg.1
+  IL_0016:  ldstr      ""B1""
+  IL_001b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0020:  pop
+  IL_0021:  ldarg.1
+  IL_0022:  ldstr      "" = ""
+  IL_0027:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002c:  pop
+  IL_002d:  ldarg.1
+  IL_002e:  ldarg.0
+  IL_002f:  call       ""int C1.B1.get""
+  IL_0034:  stloc.0
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  constrained. ""int""
+  IL_003d:  callvirt   ""string object.ToString()""
+  IL_0042:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0047:  pop
+  IL_0048:  ldarg.1
+  IL_0049:  ldstr      "", ""
+  IL_004e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0053:  pop
+  IL_0054:  ldarg.1
+  IL_0055:  ldstr      ""B2""
+  IL_005a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_005f:  pop
+  IL_0060:  ldarg.1
+  IL_0061:  ldstr      "" = ""
+  IL_0066:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_006b:  pop
+  IL_006c:  ldarg.1
+  IL_006d:  ldarg.0
+  IL_006e:  ldflda     ""int C1.B2""
+  IL_0073:  constrained. ""int""
+  IL_0079:  callvirt   ""string object.ToString()""
+  IL_007e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0083:  pop
+  IL_0084:  ldc.i4.1
+  IL_0085:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_AbstractSealed()
+        {
+            var src = @"
+record C1;
+abstract sealed record C2 : C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS0418: 'C2': an abstract type cannot be sealed or static
+                // abstract sealed record C2 : C1;
+                Diagnostic(ErrorCode.ERR_AbstractSealedStatic, "C2").WithArguments("C2").WithLocation(3, 24)
+                );
+
+            var print = comp.GetMember<MethodSymbol>("C2." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
+            Assert.True(print.IsOverride);
+            Assert.False(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseHasSealedToString()
+        {
+            var src = @"
+record C1
+{
+    public sealed override string ToString() => throw null;
+}
+record C2 : C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
+                //     public sealed override string ToString() => throw null;
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35),
+                // (6,8): error CS0239: 'C2.ToString()': cannot override inherited member 'C1.ToString()' because it is sealed
+                // record C2 : C1;
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C2").WithArguments("C2.ToString()", "C1.ToString()").WithLocation(6, 8)
+                );
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_TwoFieldsAndTwoProperties_ReverseOrder()
+        {
+            var src = @"
+var c1 = new C1(42, 43) { A1 = 100, B1 = 101 };
+System.Console.Write(c1.ToString());
+
+record Base(int A2)
+{
+    public int A1;
+}
+record C1(int A2, int B2) : Base(A2)
+{
+    public int B1;
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { A2 = 42, A1 = 100, B2 = 43, B1 = 101 }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_TwoFieldsAndTwoProperties_Partial()
+        {
+            var src1 = @"
+var c1 = new C1() { A1 = 100, B1 = 101 };
+System.Console.Write(c1.ToString());
+
+partial record C1
+{
+    public int A1;
+}
+";
+            var src2 = @"
+partial record C1
+{
+    public int B1;
+}
+";
+
+            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { A1 = 100, B1 = 101 }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_TwoFieldsAndTwoProperties_Partial_ReverseOrder()
+        {
+            var src1 = @"
+var c1 = new C1() { A1 = 100, B1 = 101 };
+System.Console.Write(c1.ToString());
+
+partial record C1
+{
+    public int B1;
+}
+";
+            var src2 = @"
+partial record C1
+{
+    public int A1;
+}
+";
+
+            var comp = CreateCompilation(new[] { src1, src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { B1 = 101, A1 = 100 }", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ToString_BadBase_MissingToString()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldstr ""RAN""
+        IL_0005: ret
+    }
+}
+
+.class public auto ansi beforefieldinit B
+    extends A
+{
+    .method family hidebysig specialname virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Inequality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Equality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object obj ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public final hidebysig virtual instance bool Equals ( class A other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig newslot virtual instance bool Equals ( class B other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class B original ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void A::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    // no override for ToString
+}
+";
+            var source = @"
+var c = new C();
+System.Console.Write(c);
+
+public record C : B
+{
+    public override string ToString() => base.ToString();
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersSealed()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method final family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0108: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. Use the new keyword if hiding was intended.
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_NewRequired, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersInaccessible()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method private hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersReturnsInt()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance int32 '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersIsAmbiguous()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance int32 '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_MissingPrintMembers()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_DuplicatePrintMembers()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder modopt(int64) builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                // public record B : A {
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersNotOverriddenInBase()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi beforefieldinit B
+    extends A
+{
+    .method family hidebysig specialname virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Inequality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname static bool op_Equality ( class B r1, class B r2 ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object obj ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public final hidebysig virtual instance bool Equals ( class A other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig newslot virtual instance bool Equals ( class B other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class B original ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+
+    // no override for PrintMembers
+}
+";
+
+            var source = @"
+public record C : B
+{
+    protected override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,19): error CS8864: Records may only inherit from object or another record
+                // public record C : B
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(2, 19),
+                // (4,29): error CS8871: 'C.PrintMembers(StringBuilder)' does not override expected method from 'B'.
+                //     protected override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(4, 29)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_PrintMembersWithModOpt()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder modopt(int64) builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+
+            var print = comp.GetMember<MethodSymbol>("B." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal("System.Boolean B.PrintMembers(System.Text.StringBuilder modopt(System.Int64) builder)", print.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.PrintMembers(System.Text.StringBuilder modopt(System.Int64) builder)", print.OverriddenMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ToString_BadBase_NewToString()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig newslot virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8869: 'B.ToString()' does not override expected method from 'object'.
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.ToString()").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void ToString_BadBase_SealedToString()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public final hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
+                // public record B : A {
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.ToString()", "A.ToString()").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public override string ToString() => ""RAN"";
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal("System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
+        {
+            var src = @"
+record C1
+{
+    public sealed override string ToString() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
+                //     public sealed override string ToString() => throw null;
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString_Sealed_InSealedRecord()
+        {
+            var src = @"
+sealed record C1
+{
+    public sealed override string ToString() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_WithNullableStringBuilder()
+        {
+            var src = @"
+#nullable enable
+record C1
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder? builder) => throw null!;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_ErrorReturnType()
+        {
+            var src = @"
+record C1
+{
+    protected virtual Error PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,23): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                //     protected virtual Error PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_WrongReturnType()
+        {
+            var src = @"
+record C1
+{
+    protected virtual int PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,27): error CS8874: Record member 'C1.PrintMembers(StringBuilder)' must return 'bool'.
+                //     protected virtual int PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "bool").WithLocation(4, 27)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_Sealed()
+        {
+            var src = @"
+record C1(int I1);
+record C2(int I1, int I2) : C1(I1)
+{
+    protected sealed override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,36): error CS8872: 'C2.PrintMembers(StringBuilder)' must allow overriding because the containing record is not sealed.
+                //     protected sealed override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "PrintMembers").WithArguments("C2.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 36)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_NonVirtual()
+        {
+            var src = @"
+record C1
+{
+    protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): error CS8872: 'C1.PrintMembers(StringBuilder)' must allow overriding because the containing record is not sealed.
+                //     protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 20)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_SealedInSealedRecord()
+        {
+            var src = @"
+record C1(int I1);
+sealed record C2(int I1, int I2) : C1(I1)
+{
+    protected sealed override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_Static()
+        {
+            var src = @"
+sealed record C
+{
+    private static bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8877: Record member 'C.PrintMembers(StringBuilder)' may not be static.
+                //     private static bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "PrintMembers").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        builder.Append(""RAN"");
+        return true;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { RAN }");
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_WrongAccessibility()
+        {
+            var src = @"
+record C1
+{
+    public virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8875: Record member 'C1.PrintMembers(StringBuilder)' must be protected.
+                //     public virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NonProtectedAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_WrongAccessibility_SealedRecord()
+        {
+            var src = @"
+sealed record C1
+{
+    protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): warning CS0628: 'C1.PrintMembers(StringBuilder)': new protected member declared in sealed type
+                //     protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 20),
+                // (4,20): error CS8879: Record member 'C1.PrintMembers(StringBuilder)' must be private.
+                //     protected bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 20)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_DerivedRecord_WrongAccessibility()
+        {
+            var src = @"
+record B;
+record C1 : B
+{
+    public bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,17): error CS8875: Record member 'C1.PrintMembers(StringBuilder)' must be protected.
+                //     public bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NonProtectedAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 17),
+                // (5,17): error CS8860: 'C1.PrintMembers(StringBuilder)' does not override expected method from 'B'.
+                //     public bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(5, 17),
+                // (5,17): error CS8872: 'C1.PrintMembers(StringBuilder)' must allow overriding because the containing record is not sealed.
+                //     public bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 17),
+                // (5,17): warning CS0114: 'C1.PrintMembers(StringBuilder)' hides inherited member 'B.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "B.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_New()
+        {
+            var src = @"
+record B;
+record C1 : B
+{
+    protected new virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,32): error CS8860: 'C1.PrintMembers(StringBuilder)' does not override expected method from 'B'.
+                //     protected new virtual bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_EscapedNamed()
+        {
+            var src = @"
+var c1 = new @base();
+System.Console.Write(c1.ToString());
+
+record @base;
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "base { }");
+        }
+
+        [Fact]
+        public void ToString_DerivedDerivedRecord()
+        {
+            var src = @"
+var r1 = new R1(1);
+System.Console.Write(r1.ToString());
+System.Console.Write("" "");
+
+var r2 = new R2(10, 11);
+System.Console.Write(r2.ToString());
+System.Console.Write("" "");
+
+var r3 = new R3(20, 21, 22);
+System.Console.Write(r3.ToString());
+
+record R1(int I1);
+record R2(int I1, int I2) : R1(I1);
+record R3(int I1, int I2, int I3) : R2(I1, I2);
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "R1 { I1 = 1 } R2 { I1 = 10, I2 = 11 } R3 { I1 = 20, I2 = 21, I3 = 22 }", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]
@@ -4883,7 +7563,7 @@ class Program
         _ = r with { P = 2 };
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (11,13): error CS8858: The receiver type 'R' is not a valid record type.
                 //         _ = r with { P = 2 };
@@ -5798,7 +8478,7 @@ record C1(object P, object Q) : B
 @"record C2(object P, object Q) : B
 {
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             AssertEx.Equal(new[] { "System.Type C2.EqualityContract { get; }", "System.Object C2.P { get; init; }" }, GetProperties(comp, "C2").ToTestDisplayStrings());
         }
@@ -5984,6 +8664,8 @@ record C(int X, int Y, int Z) : B
                 "System.Int32 C.<Y>k__BackingField",
                 "System.Int32 C.Y { get; }",
                 "System.Int32 C.Y.get",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C? r1, C? r2)",
                 "System.Boolean C.op_Equality(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
@@ -6369,7 +9051,7 @@ class Program
         System.Console.WriteLine(""({0}, {1})"", c.P1, c.P2);
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
@@ -6499,6 +9181,8 @@ record C(object P)
                 "System.Object B.Q.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
                 "System.Object B.Q { get; init; }",
+                "System.String B.ToString()",
+                "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean B.op_Inequality(B? r1, B? r2)",
                 "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
@@ -6522,6 +9206,8 @@ record C(object P)
                 "System.Object C.P { get; init; }",
                 "System.Object C.get_P()",
                 "System.Object C.set_Q()",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C? r1, C? r2)",
                 "System.Boolean C.op_Equality(C? r1, C? r2)",
                 "System.Int32 C.GetHashCode()",
@@ -6570,7 +9256,7 @@ record C(object P)
 
             comp = CreateCompilation(sourceA);
             var refA = comp.EmitToImageReference();
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
@@ -6609,7 +9295,7 @@ record C(object P)
 
             comp = CreateCompilation(sourceA);
             var refA = comp.EmitToImageReference();
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }", "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
@@ -6693,7 +9379,7 @@ End Class
 {
     object P { get; }
 }";
-            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
                 // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
                 // record B(object P, object Q) : A
@@ -6758,7 +9444,7 @@ End Class
 @"record B(object P, object Q) : A
 {
 }";
-            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
                 // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
                 // record B(object P, object Q) : A
@@ -6839,7 +9525,7 @@ End Class
 @"record C(object P, object Q, object R) : B
 {
 }";
-            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
                 // (1,8): error CS0115: 'C.EqualityContract': no suitable method found to override
                 // record C(object P, object Q, object R) : B
@@ -7009,7 +9695,7 @@ class Program
         WriteLine((x, y));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -7206,7 +9892,7 @@ class Program
         WriteLine((x, y));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -7427,7 +10113,7 @@ class Program
         WriteLine((x, y));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -7694,7 +10380,7 @@ class Program
         WriteLine((x, y));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (9,21): error CS0533: 'B.X()' hides inherited abstract member 'A.X'
                 //     public new void X() { }
@@ -7767,6 +10453,12 @@ class Program
       IL_0000: ldnull
       IL_0001: throw
   } // end of method A::Equals
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 .class public abstract B extends A
 {
@@ -7795,6 +10487,12 @@ class Program
       IL_0000: ldnull
       IL_0001: throw
   } // end of method B::Equals
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }";
             var refA = CompileIL(sourceA);
 
@@ -7802,7 +10500,7 @@ class Program
 @"record CA(object P) : A;
 record CB(object P) : B;
 ";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,8): error CS0534: 'CB' does not implement inherited abstract member 'A.P.get'
                 // record CB(object P) : B;
@@ -7861,6 +10559,12 @@ record CB(object P) : B;
       IL_0000: ldnull
       IL_0001: throw
   } // end of method A::Equals
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }";
             var refA = CompileIL(sourceA);
 
@@ -7878,7 +10582,7 @@ record B(object P) : A
         WriteLine(b.EqualityContract.Name);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"3
 3
@@ -7934,6 +10638,12 @@ B").VerifyDiagnostics();
       IL_0000: ldnull
       IL_0001: throw
   } // end of method A::Equals
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }";
             var refA = CompileIL(sourceA);
 
@@ -7951,7 +10661,7 @@ record B(object P) : A
         WriteLine(b.EqualityContract.Name);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"3
 3
@@ -8027,6 +10737,18 @@ B").VerifyDiagnostics();
       IL_0000: ldnull
       IL_0001: throw
   } // end of method A::Equals
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }";
             var refA = CompileIL(sourceA);
 
@@ -8044,7 +10766,7 @@ record B(object P) : A
         WriteLine(b.EqualityContract.Name);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"3
 3
@@ -8101,7 +10823,7 @@ record B : A
         _ = b.EqualityContract.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             Assert.Equal("System.Type! B.EqualityContract { get; }", GetProperties(comp, "B").Single().ToTestDisplayString(includeNonNullable: true));
@@ -8144,13 +10866,19 @@ record B : A
       IL_0000: ldnull
       IL_0001: throw
   } // end of method A::Equals
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }";
             var refA = CompileIL(sourceA);
 
             var sourceB =
 @"record B : A;
 ";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,8): error CS0115: 'B.EqualityContract': no suitable method found to override
                 // record B : A;
@@ -8207,7 +10935,7 @@ record B : A
         System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
     }
 }";
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -8250,7 +10978,7 @@ public record C(object P1, object P2) : B(3, 4)
         System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4) (10, 20, 30, 40)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -8284,7 +11012,7 @@ public record C(object P1, object P2) : B(3, 4)
 }
 public record C(object P1, object P2) : B(3, 4) { }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -8341,7 +11069,12 @@ public record C(object P1, object P2) : B(3, 4) { }
 }";
             var comp = CreateCompilation(source);
 
-            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics(
+                // (3,17): warning CS0414: The field 'C.field' is assigned but its value is never used
+                //     private int field = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field").WithLocation(3, 17)
+                );
+
             verifier.VerifyIL("C..ctor(C)", @"
 {
   // Code size       55 (0x37)
@@ -8462,7 +11195,7 @@ public record C(object P1, object P2) : B(0, 1)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "(2, 0)").VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(C)", @"
 {
@@ -8501,7 +11234,7 @@ public record C(object P1, object P2) : B(0, 1)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "(2, 100) RAN (0, 0)").VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(C)", @"
 {
@@ -8555,7 +11288,7 @@ public record C(object I)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "RAN", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(int)", @"
 {
@@ -8610,7 +11343,7 @@ public record C(object I)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "1 RAN 2", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(C)", @"
 {
@@ -8732,7 +11465,7 @@ public record D(int J) : C(1)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) RAN (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("D..ctor(D)", @"
 {
@@ -8772,7 +11505,7 @@ public record D(int J) : C(1)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("D..ctor(D)", @"
  {
@@ -8856,7 +11589,7 @@ public record E(object P1, object P2) : B(0, 1); // 3
             var sourceB = @"
 record C(object P1, object P2) : B(3, 4); // 1
 ";
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compB.VerifyDiagnostics(
                 // (2,8): error CS8867: No accessible copy constructor found in base type 'B'.
                 // record C(object P1, object P2) : B(3, 4); // 1
@@ -8869,7 +11602,7 @@ record C(object P1, object P2) : B(3, 4)
     protected C(C c) : base(c) { } // 1, 2
 }
 ";
-            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             compC.VerifyDiagnostics(
                 // (4,24): error CS0122: 'B.B(B)' is inaccessible due to its protection level
                 //     protected C(C c) : base(c) { } // 1, 2
@@ -8888,13 +11621,13 @@ internal record B(object N1, object N2)
 {
     public B(B b) { }
 }";
-            var compA = CreateCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, assemblyName: "AssemblyA", parseOptions: TestOptions.RegularPreview);
+            var compA = CreateCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, assemblyName: "AssemblyA", parseOptions: TestOptions.Regular9);
             var refA = compA.EmitToImageReference();
 
             var sourceB = @"
 record C(int j) : B(3, 4);
 ";
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, assemblyName: "AssemblyB");
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, assemblyName: "AssemblyB");
             compB.VerifyDiagnostics();
 
             var sourceC = @"
@@ -8903,11 +11636,14 @@ record C(int j) : B(3, 4)
     protected C(C c) : base(c) { }
 }
 ";
-            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, assemblyName: "AssemblyB");
+            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.Regular9, assemblyName: "AssemblyB");
             compC.VerifyDiagnostics();
 
-            var compB2 = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, assemblyName: "AssemblyB2");
+            var compB2 = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, assemblyName: "AssemblyB2");
             compB2.VerifyEmitDiagnostics(
+                // (2,8): error CS0115: 'C.ToString()': no suitable method found to override
+                // record C(int j) : B(3, 4);
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.ToString()").WithLocation(2, 8),
                 // (2,8): error CS0115: 'C.GetHashCode()': no suitable method found to override
                 // record C(int j) : B(3, 4);
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.GetHashCode()").WithLocation(2, 8),
@@ -9057,7 +11793,7 @@ public record C(object P1, object P2) : B(3, 4)
         System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2, c2.GetField1(), c2.GetField2()));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4, 100, 200)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(C)", @"
@@ -9133,12 +11869,18 @@ public record C(object P1, object P2) : B(3, 4)
     {
         .get instance class [mscorlib]System.Type B::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 ";
             var source = @"
 public record C : B {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
                 // public record C : B {
@@ -9150,7 +11892,7 @@ public record C : B
 {
     public C(C c) { }
 }";
-            var comp2 = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp2 = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp2.VerifyDiagnostics(
                 // (4,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public C(C c) { }
@@ -9212,12 +11954,18 @@ public record C : B
     {
         .get instance class [mscorlib]System.Type B::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 ";
             var source = @"
 public record C : B {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
                 // public record C : B {
@@ -9264,6 +12012,12 @@ public record C : B {
     .property instance class [mscorlib]System.Type EqualityContract()
     {
         .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
     }
 }
 ";
@@ -9391,7 +12145,7 @@ THROW
 
                 var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
                     ilSource: ilSource_template.Replace("INJECT", inject).Replace("RAN", ranBody).Replace("THROW", throwBody),
-                    parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+                    parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
 
                 var expectedDiagnostics = isError ? new[] {
                     // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
@@ -9447,6 +12201,12 @@ THROW
     {
         .get instance class [mscorlib]System.Type B`1::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 ";
 
@@ -9465,7 +12225,7 @@ public class Program
 
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition },
                 ilSource: ilSource,
-                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+                parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "RAN").VerifyDiagnostics();
         }
@@ -9514,7 +12274,7 @@ record A(int X)
 
 }}
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "RAN").VerifyDiagnostics();
         }
 
@@ -9540,7 +12300,7 @@ sealed record A(int X)
 
 }}
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "RAN").VerifyDiagnostics();
 
             var clone = comp.GetMember<MethodSymbol>("A." + WellKnownMemberNames.CloneMethodName);
@@ -9573,7 +12333,7 @@ sealed record A(int X)
 
 }}
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "RAN").VerifyDiagnostics(
                 // (4,15): warning CS0628: 'A.A(A)': new protected member declared in sealed type
                 //     protected A(A a)
@@ -9606,7 +12366,7 @@ record A(int X)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "123").VerifyDiagnostics();
         }
 
@@ -9976,7 +12736,10 @@ record C(int X)
             comp.VerifyDiagnostics(
                 // (6,9): error CS0102: The type 'C' already contains a definition for 'X'
                 //     int X;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9),
+                // (6,9): warning CS0169: The field 'C.X' is never used
+                //     int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("C.X").WithLocation(6, 9));
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X)",
@@ -10013,7 +12776,10 @@ record C(Action X)
             comp.VerifyDiagnostics(
                 // (6,18): error CS0102: The type 'C' already contains a definition for 'X'
                 //     event Action X;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 18),
+                // (6,18): warning CS0067: The event 'C.X' is never used
+                //     event Action X;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(6, 18)
                 );
 
             Assert.Equal(
@@ -11022,9 +13788,15 @@ record B(int X, int Y) : A
                 // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public sealed override bool Equals(object other) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
+                // (5,35): error CS8870: 'A.ToString()' cannot be sealed because containing record is not sealed.
+                //     public sealed override string ToString() => null;
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("A.ToString()").WithLocation(5, 35),
+                // (7,8): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
+                // record B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.ToString()", "A.ToString()").WithLocation(7, 8),
                 // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                 //     public sealed override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_SealedGetHashCodeInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
                 // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                 // record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
@@ -11044,6 +13816,8 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
+                "System.String B.ToString()",
+                "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean B.op_Inequality(B? r1, B? r2)",
                 "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
@@ -11075,9 +13849,6 @@ record B(int X, int Y) : A
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 35),
-                // (7,8): error CS0534: 'B' does not implement inherited abstract member 'A.ToString()'
-                // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 8),
                 // (7,8): error CS0534: 'B' does not implement inherited abstract member 'A.Equals(object)'
                 // record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.Equals(object)").WithLocation(7, 8)
@@ -11097,6 +13868,8 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
+                "System.String B.ToString()",
+                "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean B.op_Inequality(B? r1, B? r2)",
                 "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
@@ -11191,12 +13964,18 @@ record B(int X, int Y) : A
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
                 // public record B : A {
@@ -11285,12 +14064,24 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.Equals(object?)' does not override expected method from 'object'.
                 // public record B : A {
@@ -11379,12 +14170,18 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is not marked virtual, abstract, or override
                 // public record B : A {
@@ -11473,12 +14270,18 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'B.Equals(object?)': return type must be 'int' to match overridden member 'A.Equals(object)'
                 // public record B : A {
@@ -11496,6 +14299,7 @@ public record B : A {
     {
         public virtual int Equals(object other) => default;
         public virtual int GetHashCode() => default;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
@@ -11505,6 +14309,14 @@ public record B : A {
     public interface IEquatable<T>
     {
         bool Equals(T other);
+    }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
     }
 }
 ";
@@ -11517,7 +14329,7 @@ public record B : A {
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.Equals(object?)': return type must be 'int' to match overridden member 'object.Equals(object)'
                 // public record A {
@@ -11663,6 +14475,12 @@ record B : A;
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source1 = @"
@@ -11681,42 +14499,42 @@ public record C : B {
     public override int GetHashCode() => 0;
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source1, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source1, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15)
                 );
 
-            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override int GetHashCode() => 0;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
 
-            comp = CreateCompilationWithIL(new[] { source1 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source1 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15)
                 );
 
-            comp = CreateCompilationWithIL(new[] { source1 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source1 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "B").WithArguments("B.GetHashCode()").WithLocation(2, 15)
                 );
 
-            comp = CreateCompilationWithIL(new[] { source2 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source2 + source3, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override int GetHashCode() => 0;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("B.GetHashCode()").WithLocation(3, 25)
                 );
 
-            comp = CreateCompilationWithIL(new[] { source2 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source2 + source4, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override int GetHashCode() => 0;
@@ -11805,12 +14623,18 @@ public record C : B {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source1 = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source1, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source1, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
                 // public record B : A {
@@ -11821,7 +14645,7 @@ public record B : A {
 public record B : A {
     public override int GetHashCode() => throw null;
 }";
-            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS0506: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is not marked virtual, abstract, or override
                 //     public override int GetHashCode() => throw null;
@@ -11910,12 +14734,18 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'B.GetHashCode()': return type must be 'bool' to match overridden member 'A.GetHashCode()'
                 // public record B : A {
@@ -11926,7 +14756,7 @@ public record B : A {
 public record B : A {
     public override int GetHashCode() => throw null;
 }";
-            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS0508: 'B.GetHashCode()': return type must be 'bool' to match overridden member 'A.GetHashCode()'
                 //     public override int GetHashCode() => throw null;
@@ -12053,7 +14883,7 @@ record A
             comp.VerifyEmitDiagnostics(
                 // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                 //     public sealed override int GetHashCode() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedGetHashCodeInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32)
+                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32)
                 );
         }
 
@@ -12152,12 +14982,18 @@ sealed record A
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                 // public record B : A {
@@ -12168,7 +15004,7 @@ public record B : A {
 public record B : A {
     public override int GetHashCode() => throw null;
 }";
-            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                 //     public override int GetHashCode() => throw null;
@@ -12257,13 +15093,19 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source2 = @"
 public record B : A {
     public override A GetHashCode() => default;
 }";
-            var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,23): error CS8869: 'B.GetHashCode()' does not override expected method from 'object'.
                 //     public override A GetHashCode() => default;
@@ -12352,13 +15194,25 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source2 = @"
 public record B : A {
     public override B GetHashCode() => default;
 }";
-            var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,23): error CS8830: 'B.GetHashCode()': Target runtime doesn't support covariant return types in overrides. Return type must be 'A' to match overridden member 'A.GetHashCode()'
                 //     public override B GetHashCode() => default;
@@ -12376,6 +15230,7 @@ public record B : A {
     {
         public virtual bool Equals(object other) => false;
         public virtual Something GetHashCode() => default;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
@@ -12385,6 +15240,14 @@ public record B : A {
     public interface IEquatable<T>
     {
         bool Equals(T other);
+    }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
     }
 }
 
@@ -12402,7 +15265,7 @@ public record A {
     public override Something GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,31): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override Something GetHashCode() => default;
@@ -12456,6 +15319,7 @@ public record A {
     {
         public virtual bool Equals(object other) => false;
         public virtual bool GetHashCode() => default;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
@@ -12465,6 +15329,14 @@ public record A {
     public interface IEquatable<T>
     {
         bool Equals(T other);
+    }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
     }
 }
 ";
@@ -12478,7 +15350,7 @@ public record A {
     public override bool GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (3,26): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override bool GetHashCode() => default;
@@ -12532,6 +15404,7 @@ public record A {
     {
         public virtual bool Equals(object other) => false;
         public virtual bool GetHashCode() => default;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
@@ -12541,6 +15414,14 @@ public record A {
     public interface IEquatable<T>
     {
         bool Equals(T other);
+    }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
     }
 }
 ";
@@ -12553,7 +15434,7 @@ public record A {
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.GetHashCode()': return type must be 'bool' to match overridden member 'object.GetHashCode()'
                 // public record A {
@@ -12680,12 +15561,18 @@ public record A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
                 // public record B : A {
@@ -12774,12 +15661,18 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.Equals(A?)': cannot override inherited member 'A.Equals(A)' because it is not marked virtual, abstract, or override
                 // public record B : A {
@@ -12868,12 +15761,24 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance string ToString () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'B.Equals(A?)': return type must be 'int' to match overridden member 'A.Equals(A)'
                 // public record B : A {
@@ -12973,6 +15878,12 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 
 .class public auto ansi beforefieldinit B
@@ -13052,17 +15963,23 @@ public record B : A {
     {
         .get instance class [mscorlib]System.Type B::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class B
 
 ";
             var source = @"
 public record C : B {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8871: 'C.Equals(B?)' does not override expected method from 'B'.
                 // public record C : B {
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseEquals, "C").WithArguments("C.Equals(B?)", "B").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "C").WithArguments("C.Equals(B?)", "B").WithLocation(2, 15)
                 );
         }
 
@@ -13112,7 +16029,7 @@ class Program
         System.Console.WriteLine(a1.Equals(a2));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 B.Equals(B)
@@ -13144,7 +16061,7 @@ class Program
         System.Console.WriteLine(a1.Equals(b2));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 B.Equals(B)
@@ -13175,7 +16092,7 @@ record B : A
     public sealed override bool Equals(B other) => Report(""B.Equals(B)"");
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (9,33): error CS8872: 'B.Equals(B)' must allow overriding because the containing record is not sealed.
                 //     public sealed override bool Equals(B other) => Report("B.Equals(B)");
@@ -13207,7 +16124,7 @@ class Program
         System.Console.WriteLine(a1.Equals(b2));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 B.Equals(B)
@@ -13245,7 +16162,7 @@ abstract record B : A
 {
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (7,17): error CS0533: 'B.Equals(B?)' hides inherited abstract member 'A.Equals(B)'
                 // abstract record B : A
@@ -13279,7 +16196,7 @@ record B : A
 {
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (8,8): error CS0534: 'B' does not implement inherited abstract member 'A.Equals(B)'
                 // record B : A
@@ -13315,7 +16232,7 @@ class Program
         System.Console.WriteLine(b2.Equals((B)a1));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 A.Equals(B)
@@ -13357,7 +16274,7 @@ class Program
         System.Console.WriteLine(c2.Equals((C)a1));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 B.Equals(C)
@@ -13419,7 +16336,7 @@ class Program
         System.Console.WriteLine(b2.Equals((B)a1));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 A.Equals(B)
@@ -13446,7 +16363,7 @@ record A
     bool System.IEquatable<A>.Equals(A x) => throw null;
 }}
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
                 //     { accessibility } virtual bool Equals(A x)
@@ -13469,7 +16386,7 @@ record A
     bool System.IEquatable<A>.Equals(A x) => throw null;
 }}
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,...): error CS0621: 'A.Equals(A)': virtual or abstract members cannot be private
                 //      virtual bool Equals(A x)
@@ -13504,7 +16421,7 @@ class Program
         System.Console.WriteLine(a1.Equals((object)a2));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 True
@@ -13533,7 +16450,7 @@ record A
     bool System.IEquatable<A>.Equals(A x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,24): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
                 //     public virtual int Equals(A other)
@@ -13554,7 +16471,7 @@ record A
     System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.MakeTypeMissing(SpecialType.System_Boolean);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0518: Predefined type 'System.Boolean' is not defined or imported
@@ -13602,6 +16519,9 @@ record A
                 // (2,8): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 // record A
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 8),
                 // (4,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     public virtual bool Equals(A other)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 20)
@@ -13621,7 +16541,7 @@ record A
     bool System.IEquatable<A>.Equals(A x) => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,20): error CS0246: The type or namespace name 'Boolean' could not be found (are you missing a using directive or an assembly reference?)
                 //     public virtual Boolean Equals(A other)
@@ -13651,7 +16571,7 @@ class Program
         System.Console.WriteLine(b2.Equals(a1));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 True
@@ -13690,7 +16610,7 @@ class Program
         System.Console.WriteLine(b2.Equals(a1));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 True
@@ -13726,7 +16646,7 @@ class Program
         System.Console.WriteLine(a2.Equals(a1));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 True
@@ -13822,7 +16742,7 @@ class Program
         System.Console.WriteLine(a1.Equals(a2));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 B.EqualityContract
@@ -13853,7 +16773,7 @@ record B : A
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (9,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected sealed override System.Type EqualityContract
@@ -13893,7 +16813,7 @@ class Program
         System.Console.WriteLine(a1.Equals(a2));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 B.EqualityContract
@@ -13937,7 +16857,7 @@ class Program
         System.Console.WriteLine(b2.Equals((B)a1));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"
 True
@@ -13981,7 +16901,7 @@ record A
         => throw null;
 }}
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,...): error CS8875: Record member 'A.EqualityContract' must be protected.
                 //     { accessibility } virtual System.Type EqualityContract
@@ -14004,7 +16924,7 @@ record A
     bool System.IEquatable<A>.Equals(A x) => throw null;
 }}
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,...): error CS0621: 'A.EqualityContract': virtual or abstract members cannot be private
                 //      { accessibility } virtual System.Type EqualityContract
@@ -14052,7 +16972,7 @@ class Program
 }";
             }
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
 @"
 True
@@ -14125,7 +17045,7 @@ class Program
 }";
             }
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: modifiers == "abstract " ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: modifiers == "abstract " ? null :
 @"
 True
@@ -14176,7 +17096,7 @@ record A
         => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,27): error CS8874: Record member 'A.EqualityContract' must return 'Type'.
                 //     protected virtual int EqualityContract
@@ -14193,7 +17113,7 @@ record A
 {
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.MakeTypeMissing(WellKnownType.System_Type);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Type.GetTypeFromHandle'
@@ -14223,7 +17143,7 @@ record A
         => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,23): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
                 //     protected virtual Type EqualityContract
@@ -14260,7 +17180,7 @@ record D
         => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,27): error CS8872: 'A.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected System.Type EqualityContract
@@ -14336,7 +17256,7 @@ sealed record H : A
         => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (7,27): error CS8876: 'B.EqualityContract' does not override expected property from 'A'.
                 //     protected System.Type EqualityContract
@@ -14464,6 +17384,12 @@ sealed record H : A
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
@@ -14490,7 +17416,7 @@ public record F : A {
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
                 // public record B : A {
@@ -14531,7 +17457,7 @@ record C : A
            => throw null;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (4,27): error CS8874: Record member 'A.EqualityContract' must return 'Type'.
                 //     protected virtual int EqualityContract
@@ -14626,6 +17552,12 @@ record C : A
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
@@ -14652,7 +17584,7 @@ public record F : A {
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
                 // public record B : A {
@@ -14739,6 +17671,12 @@ public record F : A {
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
@@ -14765,7 +17703,7 @@ public record F : A {
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0115: 'B.EqualityContract': no suitable method found to override
                 // public record B : A {
@@ -14942,6 +17880,12 @@ public record F : A {
         IL_0000: ldnull
         IL_0001: throw
     } // end of method A::.ctor
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class B
 
 ";
@@ -14969,7 +17913,7 @@ public record G : B {
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS8876: 'C.EqualityContract' does not override expected property from 'B'.
                 // public record C : B {
@@ -15048,7 +17992,7 @@ sealed record A
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
 
             var equalityContract = comp.GetMembers("A.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
@@ -15079,7 +18023,7 @@ sealed record B : A
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
 
             var equalityContract = comp.GetMembers("B.EqualityContract").OfType<SynthesizedRecordEqualityContractProperty>().Single();
@@ -17195,7 +20139,7 @@ class Program
         WriteLine(((object)x).Equals(y));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 True").VerifyDiagnostics();
@@ -17252,10 +20196,10 @@ class Program
         WriteLine(((System.IEquatable<C>)x).Equals(y));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var ordinaryMethods = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
-            Assert.Equal(4, ordinaryMethods.Length);
+            Assert.Equal(6, ordinaryMethods.Length);
 
             foreach (var m in ordinaryMethods)
             {
@@ -17411,7 +20355,7 @@ class Program
         WriteLine(NewB2(1).Equals((A)NewB2(1)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"False
 False
@@ -17507,7 +20451,7 @@ class Program
         WriteLine(NewB2(1).Equals((A)NewB2(1)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"False
 True
@@ -17593,7 +20537,7 @@ class Program
         WriteLine(new C().Equals((A)new C()));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -17686,7 +20630,7 @@ class Program
         WriteLine(((IEquatable<C>)new C()).Equals(new C()));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 False
@@ -17997,7 +20941,7 @@ class Program
         WriteLine(NewC(1, 2, 3).Equals((A)NewC(1, 2, 3)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -18130,7 +21074,7 @@ class Program
         Console.WriteLine(new B1((object)null).Equals(new B2((object)null)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             // init-only is unverifiable
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"True
@@ -18164,7 +21108,7 @@ class Program
         Console.WriteLine(((A)b1).Equals(b2));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             // init-only is unverifiable
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"True
@@ -18218,6 +21162,8 @@ record C : B;
             {
                 "System.Type B.EqualityContract { get; }",
                 "System.Type B.EqualityContract.get",
+                "System.String B.ToString()",
+                "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean B.op_Inequality(B? r1, B? r2)",
                 "System.Boolean B.op_Equality(B? r1, B? r2)",
                 "System.Int32 B.GetHashCode()",
@@ -18295,7 +21241,7 @@ class Program
         Console.WriteLine(new B2(1).Equals(new B2(2)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"True
 False
@@ -18328,7 +21274,7 @@ class Program
         WriteLine(((A)new B2(3)).Equals(new B2(4)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             // init-only is unverifiable
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"True
@@ -18350,6 +21296,8 @@ False").VerifyDiagnostics();
                 "System.Int32 B1.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B1.P.init",
                 "System.Int32 B1.P { get; init; }",
+                "System.String B1.ToString()",
+                "System.Boolean B1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean B1.op_Inequality(B1? r1, B1? r2)",
                 "System.Boolean B1.op_Equality(B1? r1, B1? r2)",
                 "System.Int32 B1.GetHashCode()",
@@ -18375,7 +21323,7 @@ False").VerifyDiagnostics();
             VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? other)", false), ("System.Boolean A.Equals(System.Object? obj)", true));
 
             var sourceB = @"record B : A;";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
             VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? other)", false), ("System.Boolean B.Equals(A? other)", true), ("System.Boolean B.Equals(System.Object? obj)", true));
@@ -18401,7 +21349,7 @@ class Program
         WriteLine(new B().Equals((A<int>)new B()));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 False
@@ -18453,7 +21401,7 @@ True").VerifyDiagnostics();
 @"
 record C;
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.GetHashCode'
@@ -18469,7 +21417,7 @@ record C;
 @"
 record C;
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
@@ -18489,7 +21437,7 @@ record C
     int x = 0;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
@@ -18503,7 +21451,10 @@ record C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"record C
 {
     int x = 0;
-}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1)
+}").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1),
+                // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
+                //     int x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x").WithLocation(4, 9)
                 );
         }
 
@@ -18555,7 +21506,7 @@ class Program
         Console.WriteLine(F<C>(new C()));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"A
 A
@@ -18615,7 +21566,7 @@ class Program
         _ = ((IEquatable<B>)b).Equals(b);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"A<T>.Equals(A<T>)
 B.Equals(B)
@@ -18666,7 +21617,7 @@ class Program
         _ = ((IEquatable<B>)b).Equals(b);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"A<T>.Equals(A<T>)
 B.Equals(B)
@@ -18722,7 +21673,7 @@ class Program
         _ = ((IEquatable<B>)b).Equals(b);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"A<T>.Equals(A<T>)
 B.Equals(A<object>)
@@ -18801,12 +21752,21 @@ record B : A<object>, I<A<object>>, I<B>
     {
         public virtual bool Equals(object other) => false;
         public virtual int GetHashCode() => 0;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
+    }
 }";
             var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
@@ -18816,7 +21776,7 @@ record B : A<object>, I<A<object>>, I<B>
 @"record A<T>;
 record B : A<int>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
@@ -18857,12 +21817,21 @@ record B : A<int>;
     {
         public virtual bool Equals(object other) => false;
         public virtual int GetHashCode() => 0;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
+    }
 }";
             var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
@@ -18872,7 +21841,7 @@ record B : A<int>;
 @"record A<T> : System.IEquatable<A<T>>;
 record B : A<int>, System.IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
@@ -18883,6 +21852,9 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(1, 8),
                 // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
@@ -18927,12 +21899,21 @@ record B : A<int>, System.IEquatable<B>;
     {
         public virtual bool Equals(object other) => false;
         public virtual int GetHashCode() => 0;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
+    }
 }";
             var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
@@ -18943,7 +21924,7 @@ record B : A<int>, System.IEquatable<B>;
 record A<T> : IEquatable<A<T>>;
 record B : A<int>, IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System;
@@ -18957,6 +21938,9 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
@@ -19001,6 +21985,7 @@ record B : A<int>, IEquatable<B>;
     {
         public virtual bool Equals(object other) => false;
         public virtual int GetHashCode() => 0;
+        public virtual string ToString() => """";
     }
     public class String { }
     public abstract class ValueType { }
@@ -19011,6 +21996,14 @@ record B : A<int>, IEquatable<B>;
     {
         bool Equals(T other);
         void Other();
+    }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
     }
 }";
             var comp = CreateEmptyCompilation(source0);
@@ -19027,7 +22020,7 @@ class Program
         _ = a.Equals(null);
     }
 }";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A;
@@ -19134,7 +22127,7 @@ record R(int P1) : I
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(42, 43, 44)", verify: Verification.Skipped /* init-only */);
         }
@@ -19385,7 +22378,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.Skipped /* init-only */);
 
@@ -19430,7 +22423,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(42, 43, 44, 45)", verify: Verification.Skipped /* init-only */);
 
@@ -19457,7 +22450,7 @@ record R(int P = 42)
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
         }
@@ -19477,7 +22470,7 @@ record R(int P = 1)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
 
@@ -19510,7 +22503,7 @@ record R(int P = 42)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped /* init-only */);
 
@@ -19540,7 +22533,7 @@ record R(int P = 42)
     }
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
 
@@ -19605,7 +22598,7 @@ public record Test(
             };
 
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only is unverifiable
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -19677,7 +22670,7 @@ public record Test(
             };
 
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only is unverifiable
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -19754,7 +22747,7 @@ public record Test(
             };
 
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only is unverifiable
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -19811,7 +22804,7 @@ public record Test(
             };
 
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only is unverifiable
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -19886,7 +22879,7 @@ public record Test(
             };
 
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only is unverifiable
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -19967,7 +22960,7 @@ public record Test(
             };
 
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only is unverifiable
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -20034,7 +23027,7 @@ public record Test(
             };
 
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 // init-only is unverifiable
                 verify: Verification.Skipped,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -20073,8 +23066,11 @@ record C<T>([property: NotNull] T? P1, T? P2) where T : class
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
+                // (9,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = P1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P1").WithLocation(9, 15),
                 // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T y = P2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P2").WithLocation(10, 15)
@@ -20098,7 +23094,7 @@ class C
 }
 ";
             var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput: "Main",
-                parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, verify: Verification.Skipped /* init-only */);
+                parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe, verify: Verification.Skipped /* init-only */);
 
             comp.VerifyDiagnostics();
         }
@@ -20121,7 +23117,7 @@ public class C
     }
 }";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (10,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         var r = new R<string?>("R");
@@ -20235,6 +23231,9 @@ record B<T> : A<B<T>> {
                 // (3,8): error CS0146: Circular base type dependency involving 'A<B<T>>' and 'B<T>'
                 // record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>").WithLocation(3, 8),
+                // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
                 // record A<T> : B<A<T>> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
@@ -20252,7 +23251,10 @@ record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.Equals(object?)").WithLocation(3, 8),
                 // (3,8): error CS0115: 'B<T>.GetHashCode()': no suitable method found to override
                 // record B<T> : A<B<T>> {
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B<T>.ToString()': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.ToString()").WithLocation(3, 8)
                 );
         }
 
@@ -20305,12 +23307,18 @@ public partial record C3 : Base<(int a, int b)> { }
                 // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
                 // public partial record C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(5, 23),
+                // (5,23): error CS0115: 'C2.ToString()': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.ToString()").WithLocation(5, 23),
                 // (5,23): error CS0115: 'C2.EqualityContract': no suitable method found to override
                 // public partial record C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.EqualityContract").WithLocation(5, 23),
                 // (5,23): error CS0115: 'C2.Equals(object?)': no suitable method found to override
                 // public partial record C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(5, 23),
+                // (3,23): error CS0115: 'C1.ToString()': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.ToString()").WithLocation(3, 23),
                 // (3,23): error CS0115: 'C1.GetHashCode()': no suitable method found to override
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.GetHashCode()").WithLocation(3, 23),
@@ -22197,6 +25205,31 @@ interface I1 {}
                         break;
                 }
             }
+        }
+
+        [Fact]
+        [WorkItem(46657, "https://github.com/dotnet/roslyn/issues/46657")]
+        public void CanDeclareIteratorInRecord()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+public record X(int a)
+{
+    public static void Main()
+    {
+        foreach(var i in new X(42).GetItems())
+        {
+            System.Console.Write(i);
+        }
+    }
+    public IEnumerable<int> GetItems() { yield return a; yield return a + 1; }
+}";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
+                .VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
         }
     }
 }

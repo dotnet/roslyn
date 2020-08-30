@@ -57,6 +57,12 @@ namespace Microsoft.Cci
         ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
+        /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
+        /// in IL, or platform default if none are present
+        /// </summary>
+        Unmanaged = SignatureCallingConvention.Unmanaged,
+
+        /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
         Generic = SignatureAttributes.Generic,
@@ -80,23 +86,26 @@ namespace Microsoft.Cci
             | SignatureCallingConvention.StdCall
             | SignatureCallingConvention.ThisCall
             | SignatureCallingConvention.FastCall
-            | SignatureCallingConvention.VarArgs;
+            | SignatureCallingConvention.VarArgs
+            | SignatureCallingConvention.Unmanaged;
 
         private const SignatureAttributes SignatureAttributesMask =
             SignatureAttributes.Generic
             | SignatureAttributes.Instance
             | SignatureAttributes.ExplicitThis;
 
-        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention)
         {
-            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
-            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            if (!convention.IsValid())
             {
                 throw new UnsupportedSignatureContent();
             }
 
-            return callingConvention;
+            return (CallingConvention)(convention & SignatureCallingConventionMask);
         }
+
+        internal static bool IsValid(this SignatureCallingConvention convention)
+            => convention <= SignatureCallingConvention.VarArgs || convention == SignatureCallingConvention.Unmanaged;
 
         internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
             => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
