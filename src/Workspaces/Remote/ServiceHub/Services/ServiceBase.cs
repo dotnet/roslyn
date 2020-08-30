@@ -41,17 +41,6 @@ namespace Microsoft.CodeAnalysis.Remote
         // test data are only available when running tests:
         internal readonly RemoteHostTestData? TestData;
 
-        private readonly RemoteWorkspaceManager _workspaceManager;
-
-        /// <summary>
-        /// Default workspace manager used by the product. Tests may specify a custom <see cref="RemoteWorkspaceManager"/>
-        /// in order to override workspace services.
-        /// </summary>
-        internal static readonly RemoteWorkspaceManager s_defaultWorkspaceManager = new RemoteWorkspaceManager();
-
-        // test data are only available when running tests:
-        internal readonly RemoteHostTestData? TestData;
-
         static ServiceBase()
         {
             // Use a TraceListener hook to intercept assertion failures and report them through FatalError.

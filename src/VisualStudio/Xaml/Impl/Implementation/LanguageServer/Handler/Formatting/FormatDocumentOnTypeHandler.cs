@@ -22,16 +22,18 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName, StringConstants.XamlLanguageName)]
-    internal class FormatDocumentOnTypeHandler : AbstractRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
+    [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentOnTypeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public FormatDocumentOnTypeHandler()
         {
         }
 
-        public override async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
+
+        public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
             if (string.IsNullOrEmpty(request.Character))
@@ -39,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return edits.ToArrayAndFree();
             }
 
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             var formattingService = document?.Project.LanguageServices.GetService<IXamlFormattingService>();
             if (document != null && formattingService != null)
             {
