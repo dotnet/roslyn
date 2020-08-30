@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// Called before generation occurs. A generator can use the <paramref name="context"/>
         /// to register callbacks required to perform generation.
         /// </summary>
-        /// <param name="context">The <see cref="InitializationContext"/> to register callbacks on</param>
+        /// <param name="context">The <see cref="GeneratorInitializationContext"/> to register callbacks on</param>
         void Initialize(GeneratorInitializationContext context);
 
         /// <summary>
