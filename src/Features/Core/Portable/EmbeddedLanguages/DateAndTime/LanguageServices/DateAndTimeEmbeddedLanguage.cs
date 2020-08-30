@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
@@ -18,12 +17,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        public ISyntaxClassifier Classifier { get; }
+        // We don't currently expose a classifier for Date/Time literals.  However, one could always be added in the future.
+        public ISyntaxClassifier? Classifier => null;
 
         public DateAndTimeEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
             Info = info;
-            Classifier = new FallbackSyntaxClassifier(info);
         }
 
         internal async Task<SyntaxToken?> TryGetDateAndTimeTokenAtPositionAsync(

@@ -240,9 +240,9 @@ my_option2 = my_val2");
             var comp = cmd.Compilation;
             var tree = comp.SyntaxTrees.Single();
             var compilerTreeOptions = comp.Options.SyntaxTreeOptionsProvider;
-            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", out var severity));
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "cs0169", CancellationToken.None, out var severity));
             Assert.Equal(ReportDiagnostic.Suppress, severity);
-            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", out severity));
+            Assert.True(compilerTreeOptions.TryGetDiagnosticValue(tree, "warning01", CancellationToken.None, out severity));
             Assert.Equal(ReportDiagnostic.Suppress, severity);
 
             var analyzerOptions = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider;
@@ -12290,6 +12290,44 @@ generated_code = auto");
             }
         }
 
+        [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
+        [CombinatorialData, Theory]
+        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
+        {
+            // This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped..
+            // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
+            //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
+            //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
+            var analyzerShouldBeSkipped = !isEnabledByDefault ||
+                defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info;
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes: analyzerShouldBeSkipped);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+
+            // Verify '/warnaserror-:DiagnosticId' behavior.
+            var args = new[] { "/warnaserror+", $"/warnaserror-:{diagnosticId}", "/nologo", "/t:library", "/preferreduilang:en", src.Path };
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, args, analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            var expectedExitCode = !analyzerShouldBeSkipped && defaultSeverity == DiagnosticSeverity.Error ? 1 : 0;
+            Assert.Equal(expectedExitCode, exitCode);
+
+            var output = outWriter.ToString();
+            if (analyzerShouldBeSkipped)
+            {
+                Assert.Empty(output);
+            }
+            else
+            {
+                var prefix = defaultSeverity == DiagnosticSeverity.Warning ? "warning" : "error";
+                Assert.Contains($"{prefix} {diagnosticId}: {analyzer.Descriptor.MessageFormat}", output);
+            }
+        }
+
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {
@@ -12703,6 +12741,119 @@ key3 = value3");
             Assert.False(options.TryGetValue("key2", out _));
             Assert.True(options.TryGetValue("key3", out val));
             Assert.Equal("value3", val);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = error;
+");
+
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.CS0164.severity = warning;
+");
+            var none = Array.Empty<TempFile>();
+            var globalOnly = new[] { globalConfig };
+            var globalAndSpecific = new[] { globalConfig, analyzerConfig };
+
+            // by default a warning, which can be suppressed via cmdline
+            verify(configs: none, expectedWarnings: 1);
+            verify(configs: none, noWarn: "CS0164", expectedWarnings: 0);
+
+            // the global analyzer config ups the warning to an error, but the cmdline setting overrides it
+            verify(configs: globalOnly, expectedErrors: 1);
+            verify(configs: globalOnly, noWarn: "CS0164", expectedWarnings: 0);
+            verify(configs: globalOnly, noWarn: "164", expectedWarnings: 0); // cmdline can be shortened, but still works
+
+            // the non global config wins and downgrades the error back to warning, and overrides the cmdline too
+            verify(configs: globalAndSpecific, expectedWarnings: 1);
+            verify(configs: globalAndSpecific, noWarn: "CS0164", expectedWarnings: 1);
+
+
+            void verify(TempFile[] configs, int expectedWarnings = 0, int expectedErrors = 0, string noWarn = "0")
+                => VerifyOutput(dir, src,
+                                expectedErrorCount: expectedErrors,
+                                expectedWarningCount: expectedWarnings,
+                                includeCurrentAssemblyAsAnalyzerReference: false,
+                                analyzers: null,
+                                additionalFlags: configs.SelectAsArray(c => "/analyzerconfig:" + c.Path)
+                                                         .Add("/noWarn:" + noWarn).ToArray());
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigSpecificDiagnosticOptionsOverrideGeneralCommandLineOptions()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.CS0164.severity = none;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/warnaserror+", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigSectionsOverrideCommandLine()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+    void M()
+    {
+label1:;
+    }
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+
+[{PathUtilities.NormalizeWithForwardSlash(src.Path)}]
+dotnet_diagnostic.CS0164.severity = error;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:0164", "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
+        public void GlobalAnalyzerConfigCanSetDiagnosticWithNoLocation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+}");
+            var globalConfig = dir.CreateFile(".globalconfig").WriteAllText(@"
+is_global = true
+dotnet_diagnostic.Warning01.severity = error;
+");
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + globalConfig.Path }, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
+
+            VerifyOutput(dir, src, additionalFlags: new[] { "/nowarn:Warning01", "/analyzerconfig:" + globalConfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: new WarningDiagnosticAnalyzer());
         }
 
         [Theory, CombinatorialData]

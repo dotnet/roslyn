@@ -32,12 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             private const string AttributeSuffix = "Attribute";
 
-            private readonly object _gate = new object();
-
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-
-            private Task<RenameLocations>? _underlyingFindRenameLocationsTask;
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
@@ -190,45 +186,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return replacementText;
             }
 
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet? optionSet, CancellationToken cancellationToken)
+            public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet? optionSet, CancellationToken cancellationToken)
             {
-                Task<RenameLocations> renameTask;
-                lock (_gate)
-                {
-                    if (_underlyingFindRenameLocationsTask == null)
-                    {
-                        // If this is the first call, then just start finding the initial set of rename
-                        // locations.
-                        var solution = _document.Project.Solution;
-                        _underlyingFindRenameLocationsTask = Renamer.FindRenameLocationsAsync(
-                            solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken);
-                        renameTask = _underlyingFindRenameLocationsTask;
+                var solution = _document.Project.Solution;
+                var locations = await Renamer.FindRenameLocationsAsync(
+                    solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken).ConfigureAwait(false);
 
-                        // null out the option set.  We don't need it anymore, and this will ensure
-                        // we don't call FindWithUpdatedOptionsAsync below.
-                        optionSet = null;
-                    }
-                    else
-                    {
-                        // We already have a task to figure out the set of rename locations.  Let it
-                        // finish, then ask it to get the rename locations with the updated options.
-                        renameTask = _underlyingFindRenameLocationsTask;
-                    }
-                }
-
-                return GetLocationSetAsync(renameTask, optionSet, cancellationToken);
-            }
-
-            private async Task<IInlineRenameLocationSet> GetLocationSetAsync(Task<RenameLocations> renameTask, OptionSet? optionSet, CancellationToken cancellationToken)
-            {
-                var locationSet = await renameTask.ConfigureAwait(false);
-                if (optionSet != null)
-                {
-                    locationSet = await locationSet.FindWithUpdatedOptionsAsync(
-                        RenameOptionSet.From(_document.Project.Solution, optionSet), cancellationToken).ConfigureAwait(false);
-                }
-
-                return new InlineRenameLocationSet(this, locationSet);
+                return new InlineRenameLocationSet(this, locations);
             }
 
             public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)

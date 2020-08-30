@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Threading;
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private const int ConnectionPoolCapacity = 15;
 
         private readonly HostWorkspaceServices _services;
-        private readonly IRemotableDataService _remotableDataService;
+        private readonly SolutionAssetStorage _assetStorage;
+        private readonly ISerializerService _serializer;
         private readonly RemoteEndPoint _endPoint;
         private readonly HubClient _hubClient;
         private readonly HostGroup _hostGroup;
@@ -57,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Remote
             _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
             _endPoint.StartListening();
 
-            _remotableDataService = services.GetRequiredService<IRemotableDataService>();
+            _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+            _serializer = services.GetRequiredService<ISerializerService>();
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
@@ -194,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     await RemoteEndPoint.WriteDataToNamedPipeAsync(
                         pipeName,
                         (scopeId, checksums),
-                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, _remotableDataService, data.scopeId, data.checksums, cancellationToken),
+                        (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, _assetStorage, _serializer, data.scopeId, data.checksums, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -211,7 +214,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                return Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+                return _services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName)
+                    ? SpecializedTasks.True
+                    : SpecializedTasks.False;
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {

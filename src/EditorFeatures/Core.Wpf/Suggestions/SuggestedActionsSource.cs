@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return null;
                     }
 
-                    return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s));
+                    return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s)).WhereNotNull();
                 }
             }
 

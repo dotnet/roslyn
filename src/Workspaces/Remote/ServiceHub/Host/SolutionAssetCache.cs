@@ -14,17 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    /// <summary>
-    /// This service provide a way to get roslyn objects from checksum
-    /// 
-    /// TODO: change this service to workspace service
-    /// </summary>
-    internal sealed class AssetStorage
+    internal sealed class SolutionAssetCache
     {
-        // TODO: think of a way to use roslyn option service in OOP
-        public static readonly AssetStorage Default =
-            new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5));
-
         /// <summary>
         /// Time interval we check storage for cleanup
         /// </summary>
@@ -51,10 +42,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private DateTime _lastGCRun;
         private DateTime _lastActivityTime;
 
-        private IAssetSource? _assetSource;
-
         // constructor for testing
-        public AssetStorage()
+        public SolutionAssetCache()
         {
         }
 
@@ -64,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <param name="cleanupInterval">time interval to clean up</param>
         /// <param name="purgeAfter">time unused data can sit in the cache</param>
         /// <param name="gcAfter">time we wait before it call GC since last activity</param>
-        public AssetStorage(TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
+        public SolutionAssetCache(TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
         {
             _cleanupIntervalTimeSpan = cleanupInterval;
             _purgeAfterTimeSpan = purgeAfter;
@@ -76,22 +65,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public void Initialize(IAssetSource assetSource)
-        {
-            Contract.ThrowIfFalse(_assetSource == null);
-            _assetSource = assetSource;
-        }
-
-        public IAssetSource GetAssetSource()
-        {
-            Contract.ThrowIfNull(_assetSource, "Storage not initialized");
-            return _assetSource;
-        }
-
-        [Obsolete("To be removed: https://github.com/dotnet/roslyn/issues/43477")]
-        public IAssetSource? TryGetAssetSource()
-            => _assetSource;
-
         public bool TryAddAsset(Checksum checksum, object value)
         {
             UpdateLastActivityTime();
@@ -99,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assets.TryAdd(checksum, new Entry(value));
         }
 
-        public bool TryGetAsset<T>(Checksum checksum, [MaybeNull, NotNullWhen(true)] out T value)
+        public bool TryGetAsset<T>(Checksum checksum, [MaybeNullWhen(false)] out T value)
         {
             UpdateLastActivityTime();
 
