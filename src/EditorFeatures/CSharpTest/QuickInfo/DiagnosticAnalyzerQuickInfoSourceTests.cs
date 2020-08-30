@@ -116,7 +116,7 @@ namespace T
         [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: DiagnosticIds.IDE0051 + "": Remove unused private member"")]", true)]
         // False negative: Aliased attribute is not supported
         [InlineData(@"[SM(""CodeQuality"", ""IDE0051$$""", false)]
-        public async Task QuickInfoSupressMessageAttributeUseCases(string supressMessageAttribute, bool shouldShowQuickInfo)
+        public async Task QuickInfoSuppressMessageAttributeUseCases(string suppressMessageAttribute, bool shouldShowQuickInfo)
         {
             var description = shouldShowQuickInfo
                 ? GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members))
@@ -132,7 +132,7 @@ namespace T
         public const string IDE0051 = ""IDE0051"";
     }}
 
-    {supressMessageAttribute}
+    {suppressMessageAttribute}
     public class C
     {{
         private int _i;

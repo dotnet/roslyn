@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             CancellationToken cancellationToken)
         {
             return GetQuickinfoForPragmaWarning(document, token) ??
-                (await GetQuickInfoForSupressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false));
+                (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false));
         }
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return null;
         }
 
-        private async Task<QuickInfoItem?> GetQuickInfoForSupressMessageAttributeAsync(
+        private async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var supressMessageCheckIdArgument = token.GetAncestor<AttributeArgumentSyntax>() switch
+            var suppressMessageCheckIdArgument = token.GetAncestor<AttributeArgumentSyntax>() switch
             {
                 AttributeArgumentSyntax
                 {
@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 _ => null,
             };
 
-            if (supressMessageCheckIdArgument != null)
+            if (suppressMessageCheckIdArgument != null)
             {
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var checkIdObject = semanticModel.GetConstantValue(supressMessageCheckIdArgument.Expression, cancellationToken).GetValueOrNull();
+                var checkIdObject = semanticModel.GetConstantValue(suppressMessageCheckIdArgument.Expression, cancellationToken).GetValueOrNull();
                 if (checkIdObject is string checkId)
                 {
                     var position = checkId.IndexOf(':');
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                         ? checkId
                         : checkId.Substring(0, position);
                     errorCode = errorCode.Trim();
-                    return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, supressMessageCheckIdArgument.Span);
+                    return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, suppressMessageCheckIdArgument.Span);
                 }
             }
 
