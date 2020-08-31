@@ -467,7 +467,7 @@ namespace Microsoft.Cci
             var referencesInIL = module.ReferencesInIL();
 
             _pseudoSymbolTokenToTokenMap = new EntityHandle[referencesInIL.Length];
-            _pseudoSymbolTokenToReferenceMap = referencesInIL;
+            _pseudoSymbolTokenToReferenceMap = referencesInIL.ToArray();
         }
 
         private void CreateIndices()

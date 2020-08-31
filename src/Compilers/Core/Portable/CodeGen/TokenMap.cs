@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         //TODO: why is this is called twice during emit?
         //      should probably return ROA instead of IE and cache that in Module. (and no need to return count)
-        public object[] GetAllItems()
+        public ReadOnlySpan<object> GetAllItems()
         {
             // Read the count prior to getting the array
             int count = Volatile.Read(ref _count);
             object[] items = Volatile.Read(ref _items);
 
             // Return a right sized copy of the array
-            return (new ReadOnlySpan<object>(items, 0, count)).ToArray();
+            return new ReadOnlySpan<object>(items, 0, count);
         }
     }
 }

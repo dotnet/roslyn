@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _stringsInILMap.GetItem(token);
         }
 
-        public object[] ReferencesInIL()
+        public ReadOnlySpan<object> ReferencesInIL()
         {
             return _referencesInILMap.GetAllItems();
         }
