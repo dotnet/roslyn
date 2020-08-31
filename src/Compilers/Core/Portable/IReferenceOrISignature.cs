@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Used to devirtualize Dictionary/HashSet for EqualityComparer{T}.Default
     /// </summary>
-    internal struct IReferenceOrISignatureEquivalent : IEquatable<IReferenceOrISignatureEquivalent>
+    internal readonly struct IReferenceOrISignatureEquivalent : IEquatable<IReferenceOrISignatureEquivalent>
     {
         private readonly object? _item;
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Used to devirtualize ConcurrentDictionary for EqualityComparer{T}.Default and ReferenceEquals
     /// </summary>
-    internal struct IReferenceOrISignature : IEquatable<IReferenceOrISignature>
+    internal readonly struct IReferenceOrISignature : IEquatable<IReferenceOrISignature>
     {
         private readonly object? _item;
 
