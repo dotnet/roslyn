@@ -3,14 +3,14 @@
 namespace RoslynEx
 {
     /// <summary>
-    /// Context passed to a source transformer when <see cref="ISourceTransformer.Execute(SourceTransformerContext)"/> is called.
+    /// Context passed to a source transformer when <see cref="ISourceTransformer.Execute(TransformerContext)"/> is called.
     /// </summary>
-    public readonly struct SourceTransformerContext
+    public readonly struct TransformerContext
     {
 #if !ROSLYNEX_INTERFACE
         private readonly DiagnosticBag _diagnostics;
 
-        internal SourceTransformerContext(Compilation compilation, DiagnosticBag diagnostics)
+        internal TransformerContext(Compilation compilation, DiagnosticBag diagnostics)
         {
             Compilation = compilation;
             _diagnostics = diagnostics;

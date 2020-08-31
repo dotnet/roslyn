@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    var context = new SourceTransformerContext(compilation, diagnostics);
+                    var context = new TransformerContext(compilation, diagnostics);
                     compilation = transformer.Execute(context);
                 }
                 catch (Exception ex)

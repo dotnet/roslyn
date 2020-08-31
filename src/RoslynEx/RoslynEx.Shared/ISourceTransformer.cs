@@ -4,6 +4,6 @@ namespace RoslynEx
 {
     public interface ISourceTransformer
     {
-        Compilation Execute(SourceTransformerContext context);
+        Compilation Execute(TransformerContext context);
     }
 }
