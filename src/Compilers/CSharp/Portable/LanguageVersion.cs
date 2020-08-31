@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         CSharp8 = 800,
 
-        // When this value is available in the released NuGet packge, update LanguageVersionExtensions in the IDE layer to point to it.
+        // When this value is available in the released NuGet package, update LanguageVersionExtensions in the IDE layer to point to it.
         // https://github.com/dotnet/roslyn/issues/43348
         //
         /// <summary>
