@@ -13,8 +13,8 @@ namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadySeen = new HashSet<IReferenceOrISignatureEquivalent>();
-        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadyHasToken = new HashSet<IReferenceOrISignatureEquivalent>();
+        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadySeen = new();
+        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadyHasToken = new();
         protected bool typeReferenceNeedsToken;
 
         internal ReferenceIndexerBase(EmitContext context)

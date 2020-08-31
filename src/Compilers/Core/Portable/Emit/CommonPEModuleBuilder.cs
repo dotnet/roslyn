@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Emit
         internal Cci.IMethodReference DebugEntryPoint;
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
-        private readonly TokenMap _referencesInILMap = new TokenMap();
-        private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
-        private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new ItemTokenMap<Cci.DebugSourceDocument>();
+        private readonly TokenMap _referencesInILMap = new();
+        private readonly ItemTokenMap<string> _stringsInILMap = new();
+        private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new();
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
