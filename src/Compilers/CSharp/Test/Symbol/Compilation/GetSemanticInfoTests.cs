@@ -5822,12 +5822,12 @@ partial class C
             model1.GetDeclarationDiagnostics().Verify();
 
             model2.GetDeclarationDiagnostics().Verify(
-                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+                // (4,5): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 5));
 
             model3.GetDeclarationDiagnostics().Verify(
-                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+                // (4,5): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 5));
 
             Assert.Equal(3, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Length);
         }
