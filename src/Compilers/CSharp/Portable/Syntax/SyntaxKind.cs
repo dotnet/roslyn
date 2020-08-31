@@ -460,13 +460,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         VarKeyword = 8490,
         /// <summary>Represents <c>_</c> token.</summary>
         UnderscoreToken = 8491,
-        /// <summary>Represents that nothing was specified as a type argument. For example <c>Dictionary&lt;,&gt;</c> which has OmittedTypeArgumentToken as a child of OmittedTypeArgumentSyntax before and after the CommaToken.</summary>
+        /// <summary>Represents that nothing was specified as a type argument.</summary>
+        /// <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of <see cref="OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
         OmittedTypeArgumentToken = 8492,
-        /// <summary>Represents that nothing was specified as an array size. For example <c>int[,]</c> which has OmittedArraySizeExpressionToken as a child of OmittedArraySizeExpressionSyntax before and after the CommaToken.</summary>
+        /// <summary>Represents that nothing was specified as an array size.</summary>
+        /// <remarks>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of <see cref="OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
         OmittedArraySizeExpressionToken = 8493,
         /// <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
         EndOfDirectiveToken = 8494,
-        /// <summary>Represents the end of a triple slash documentation comment.</summary>
+        /// <summary>Represents the end of a triple-slash documentation comment.</summary>
         EndOfDocumentationCommentToken = 8495,
         /// <summary>Represents the end of a file.</summary>
         EndOfFileToken = 8496, //NB: this is assumed to be the last textless token
