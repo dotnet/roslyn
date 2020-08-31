@@ -87,8 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                     } _
                 } argument when
                     attributeName.IsSuppressMessageAttribute() &&
-                    (argument.NameColon?.Name.Identifier.ValueText == "checkId" || // Named argument "checkId"
-                    (argument.NameColon is null && arguments.IndexOf(argument) == 1)) => argument, // positional argument "checkId"
+                    (argument.NameColon is null
+                        ? arguments.IndexOf(argument) == 1 // Positional argument "checkId"
+                        : argument.NameColon.Name.Identifier.ValueText == "checkId") // Named argument "checkId"
+                    => argument,
                 _ => null,
             };
 
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 descriptor.MessageFormat.ToStringOrNull() ??
                 descriptor.Id;
             var idTag = !string.IsNullOrWhiteSpace(descriptor.HelpLinkUri)
-                ? new TaggedText(TextTags.Text, descriptor.Id, TaggedTextStyle.Code, descriptor.HelpLinkUri, descriptor.HelpLinkUri)
+                ? new TaggedText(TextTags.Text, descriptor.Id, TaggedTextStyle.None, descriptor.HelpLinkUri, descriptor.HelpLinkUri)
                 : new TaggedText(TextTags.Text, descriptor.Id);
             return QuickInfoItem.Create(location, sections: new[]
                 {
