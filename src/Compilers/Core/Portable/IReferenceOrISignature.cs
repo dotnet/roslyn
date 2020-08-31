@@ -5,12 +5,17 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {
+    // These types are to enable fast-path devirtualization in the Jit. Dictionary<K, V>, HashTable<T>
+    // and ConcurrentDictionary<K, V> will devirtualize (and potentially inline) the IEquatable<T>.Equals
+    // method for a struct when the Comparer is unspecified in .NET Core, .NET 5; whereas specifying
+    // a Comparer will make .Equals and GetHashcode slower interface calls.
+
     /// <summary>
     /// Used to devirtualize Dictionary/HashSet for EqualityComparer{T}.Default
     /// </summary>
@@ -28,13 +33,16 @@ namespace Microsoft.CodeAnalysis
             _item = item;
         }
 
+        // Needed to resolve ambiguity for types that implement both IReference and ISignature
         public IReferenceOrISignatureEquivalent(IMethodReference item)
         {
             _item = item;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(IReferenceOrISignatureEquivalent other)
         {
+            // Fast inlinable ReferenceEquals
             object? x = _item;
             object? y = other._item;
             if (x is null)
@@ -46,20 +54,12 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return Equals(x, y);
+            return EqualsSlow(x, y);
         }
 
-        private new static bool Equals(object? x, object? y)
+        private static bool EqualsSlow(object x, object? y)
         {
-            if (x is null)
-            {
-                return y is null;
-            }
-            else if (ReferenceEquals(x, y))
-            {
-                return true;
-            }
-            else if (x is ISymbolInternal sx && y is ISymbolInternal sy)
+            if (x is ISymbolInternal sx && y is ISymbolInternal sy)
             {
                 return sx.Equals(sy, TypeCompareKind.ConsiderEverything);
             }
@@ -73,12 +73,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is IReferenceOrISignatureEquivalent refOrSig ?
-                Equals(refOrSig) :
-                Equals(_item, obj);
-        }
+        public override bool Equals(object? obj) => false;
 
         public override int GetHashCode() => _item?.GetHashCode() ?? 0;
 
@@ -94,13 +89,6 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly object? _item;
 
-        public static implicit operator IReferenceOrISignature(IReferenceOrISignatureEquivalent d) => new IReferenceOrISignature(d.AsObject());
-
-        private IReferenceOrISignature(object? item)
-        {
-            _item = item;
-        }
-
         public IReferenceOrISignature(IReference item)
         {
             _item = item;
@@ -111,20 +99,18 @@ namespace Microsoft.CodeAnalysis
             _item = item;
         }
 
-        public bool Equals(IReferenceOrISignature other)
+        // Used by implicit conversion
+        private IReferenceOrISignature(object? item)
         {
-            object? x = _item;
-            object? y = other._item;
-
-            return ReferenceEquals(x, y);
+            _item = item;
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is IReferenceOrISignature refOrSig ?
-                Equals(refOrSig) :
-                ReferenceEquals(_item, obj);
-        }
+        public static implicit operator IReferenceOrISignature(IReferenceOrISignatureEquivalent item)
+            => new IReferenceOrISignature(item.AsObject());
+
+        public bool Equals(IReferenceOrISignature other) => ReferenceEquals(_item, other._item);
+
+        public override bool Equals(object? obj) => false;
 
         public override int GetHashCode() => _item?.GetHashCode() ?? 0;
 
