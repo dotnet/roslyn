@@ -34,15 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 {
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
                     HoverProvider = true,
-<<<<<<< HEAD
                     FoldingRangeProvider = new FoldingRangeOptions { },
-=======
-                    FoldingRangeProvider = new FoldingRangeProviderOptions { },
                     DocumentFormattingProvider = true,
                     DocumentRangeFormattingProvider = true,
                     DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
                     OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
->>>>>>> upstream/master
                     TextDocumentSync = new TextDocumentSyncOptions
                     {
                         Change = TextDocumentSyncKind.None
