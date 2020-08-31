@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         [JsonRpcMethod(Methods.TextDocumentFoldingRangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<FoldingRange[]> GetTextDocumentFoldingRangeAsync(FoldingRangeParams textDocumentFoldingRangeParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<FoldingRangeParams, FoldingRange[]>(Methods.TextDocumentFoldingRangeName,
+            => _requestHandlerProvider.ExecuteRequestAsync<FoldingRangeParams, FoldingRange[]>(_queue, Methods.TextDocumentFoldingRangeName,
                 textDocumentFoldingRangeParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
@@ -295,34 +295,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // if the queue requested shutdown via its event, it will have already shut itself down, but this
             // won't cause any problems calling it again
             _queue.Shutdown();
-            _queue = null;
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void RequestExecutionQueue_Errored(object sender, RequestShutdownEventArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void RequestExecutionQueue_Errored(object sender, RequestShutdownEventArgs e)
         {
-            // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
-            // the worst outcome here is that guests don't get the log message. We still want to ensure the connection is closed though.
-            try
+            // log message and shut down
+
+            var message = new LogMessageParams()
             {
-                // log message and shut down
+                MessageType = MessageType.Error,
+                Message = e.Message
+            };
 
-                var message = new LogMessageParams()
-                {
-                    MessageType = MessageType.Error,
-                    Message = e.Message
-                };
-
+            var asyncToken = _listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
+            Task.Run(async () =>
+            {
                 await _jsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
-            {
-            }
 
-            // The "default" here is the cancellation token, which these methods don't use, hence the discard name
-            await ShutdownAsync(_: default).ConfigureAwait(false);
-            await ExitAsync(_: default).ConfigureAwait(false);
+                // The "default" here is the cancellation token, which these methods don't use, hence the discard name
+                await ShutdownAsync(_: default).ConfigureAwait(false);
+                await ExitAsync(_: default).ConfigureAwait(false);
+            }).CompletesAsyncOperation(asyncToken);
         }
 
         /// <summary>
