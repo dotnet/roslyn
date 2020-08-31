@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal Cci.IMethodReference DebugEntryPoint;
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
-        private readonly TokenMap _referencesInILMap = new TokenMap(MetadataEntityReferenceComparer.ConsiderEverything);
+        private readonly TokenMap _referencesInILMap = new TokenMap();
         private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
         private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new ItemTokenMap<Cci.DebugSourceDocument>();
 
@@ -335,9 +335,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return _stringsInILMap.GetItem(token);
         }
 
-        public IEnumerable<object> ReferencesInIL(out int count)
+        public object[] ReferencesInIL()
         {
-            return _referencesInILMap.GetAllItemsAndCount(out count);
+            return _referencesInILMap.GetAllItems();
         }
 
         /// <summary>

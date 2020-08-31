@@ -464,18 +464,10 @@ namespace Microsoft.Cci
 
         private void CreateMethodBodyReferenceIndex()
         {
-            int count;
-            var referencesInIL = module.ReferencesInIL(out count);
+            var referencesInIL = module.ReferencesInIL();
 
-            _pseudoSymbolTokenToTokenMap = new EntityHandle[count];
-            _pseudoSymbolTokenToReferenceMap = new object[count];
-
-            int cur = 0;
-            foreach (object o in referencesInIL)
-            {
-                _pseudoSymbolTokenToReferenceMap[cur] = o;
-                cur++;
-            }
+            _pseudoSymbolTokenToTokenMap = new EntityHandle[referencesInIL.Length];
+            _pseudoSymbolTokenToReferenceMap = referencesInIL;
         }
 
         private void CreateIndices()

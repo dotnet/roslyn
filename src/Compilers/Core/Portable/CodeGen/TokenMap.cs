@@ -7,9 +7,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
+using Microsoft.Cci;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -24,74 +23,91 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class TokenMap
     {
-        private readonly ConcurrentDictionary<object, uint> _itemIdentityToToken = new ConcurrentDictionary<object, uint>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<IReferenceOrISignature, uint> _itemIdentityToToken = new ConcurrentDictionary<IReferenceOrISignature, uint>();
+        private readonly Dictionary<IReferenceOrISignatureEquivalent, uint> _itemEquivalentToToken = new Dictionary<IReferenceOrISignatureEquivalent, uint>();
+        private object[] _items = Array.Empty<object>();
+        private int _count = 0;
 
-        private readonly Dictionary<object, uint> _itemToToken;
-        private readonly ArrayBuilder<object> _items = new ArrayBuilder<object>();
-
-        internal TokenMap(IEqualityComparer<object> comparer)
+        internal TokenMap()
         {
-            _itemToToken = new Dictionary<object, uint>(comparer);
         }
 
-        public uint GetOrAddTokenFor(object item, out bool referenceAdded)
+        public uint GetOrAddTokenFor(IReference item, out bool referenceAdded)
         {
-            uint tmp;
-            if (_itemIdentityToToken.TryGetValue(item, out tmp))
+            if (_itemIdentityToToken.TryGetValue(new IReferenceOrISignature(item), out uint token))
             {
                 referenceAdded = false;
-                return (uint)tmp;
+                return token;
             }
 
-            return AddItem(item, out referenceAdded);
+            return AddItem(new IReferenceOrISignatureEquivalent(item), out referenceAdded);
         }
 
-        private uint AddItem(object item, out bool referenceAdded)
+        public uint GetOrAddTokenFor(ISignature item, out bool referenceAdded)
         {
-            Debug.Assert(item is Cci.ISignature || item is Cci.IReference);
-            uint token;
+            if (_itemIdentityToToken.TryGetValue(new IReferenceOrISignature(item), out uint token))
+            {
+                referenceAdded = false;
+                return token;
+            }
 
+            return AddItem(new IReferenceOrISignatureEquivalent(item), out referenceAdded);
+        }
+
+        private uint AddItem(IReferenceOrISignatureEquivalent item, out bool referenceAdded)
+        {
+            uint token;
             // NOTE: cannot use GetOrAdd here since items and itemToToken must be in sync
             // so if we do need to add we have to take a lock and modify both collections.
-            lock (_items)
+            lock (_itemEquivalentToToken)
             {
-                if (!_itemToToken.TryGetValue(item, out token))
+                // Check if there is an equivalent type that has a token
+                if (!_itemEquivalentToToken.TryGetValue(item, out token))
                 {
-                    token = (uint)_items.Count;
-                    _items.Add(item);
-                    _itemToToken.Add(item, token);
+                    token = (uint)_count;
+                    // No equivalent, add the token for this type
+                    _itemEquivalentToToken.Add(item, token);
+
+                    var count = (int)token + 1;
+                    var items = _items;
+                    if (items.Length > count)
+                    {
+                        items[(int)token] = item.AsObject();
+                    }
+                    else
+                    {
+                        // Not enough room, we need to resize the array
+                        Array.Resize(ref items, Math.Max(8, count * 2));
+                        items[(int)token] = item.AsObject();
+
+                        // Update the updated array reference before updating _count
+                        Volatile.Write(ref _items, items);
+                    }
+
+                    Volatile.Write(ref _count, count);
                 }
             }
 
+            // Use the provided token to update the reference dictionary
             referenceAdded = _itemIdentityToToken.TryAdd(item, token);
             return token;
         }
 
         public object GetItem(uint token)
         {
-            lock (_items)
-            {
-                return _items[(int)token];
-            }
-        }
-
-        public IEnumerable<object> GetAllItems()
-        {
-            lock (_items)
-            {
-                return _items.ToArray();
-            }
+            return _items[(int)token];
         }
 
         //TODO: why is this is called twice during emit?
         //      should probably return ROA instead of IE and cache that in Module. (and no need to return count)
-        public IEnumerable<object> GetAllItemsAndCount(out int count)
+        public object[] GetAllItems()
         {
-            lock (_items)
-            {
-                count = _items.Count;
-                return _items.ToArray();
-            }
+            // Read the count prior to getting the array
+            int count = Volatile.Read(ref _count);
+            object[] items = Volatile.Read(ref _items);
+
+            // Return a right sized copy of the array
+            return (new ReadOnlySpan<object>(items, 0, count)).ToArray();
         }
     }
 }

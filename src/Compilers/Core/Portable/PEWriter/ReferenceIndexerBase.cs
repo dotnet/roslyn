@@ -6,14 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
-        private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
+        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadySeen = new HashSet<IReferenceOrISignatureEquivalent>();
+        private readonly HashSet<IReferenceOrISignatureEquivalent> _alreadyHasToken = new HashSet<IReferenceOrISignatureEquivalent>();
         protected bool typeReferenceNeedsToken;
 
         internal ReferenceIndexerBase(EmitContext context)
@@ -46,7 +47,7 @@ namespace Microsoft.Cci
 
         public override void Visit(IFieldReference fieldReference)
         {
-            if (!_alreadySeen.Add(fieldReference))
+            if (!_alreadySeen.Add(new IReferenceOrISignatureEquivalent(fieldReference)))
             {
                 return;
             }
@@ -125,7 +126,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            if (!_alreadySeen.Add(methodReference))
+            if (!_alreadySeen.Add(new IReferenceOrISignatureEquivalent(methodReference)))
             {
                 return;
             }
@@ -393,7 +394,7 @@ namespace Microsoft.Cci
         // Returns true if we need to look at the children, false otherwise.
         private bool VisitTypeReference(ITypeReference typeReference)
         {
-            if (!_alreadySeen.Add(typeReference))
+            if (!_alreadySeen.Add(new IReferenceOrISignatureEquivalent(typeReference)))
             {
                 if (!this.typeReferenceNeedsToken)
                 {
@@ -401,7 +402,7 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
-                if (!_alreadyHasToken.Add(typeReference))
+                if (!_alreadyHasToken.Add(new IReferenceOrISignatureEquivalent(typeReference)))
                 {
                     return false;
                 }
@@ -419,13 +420,13 @@ namespace Microsoft.Cci
                 if (specializedNestedTypeReference != null)
                 {
                     INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.GetUnspecializedVersion(Context);
-                    if (_alreadyHasToken.Add(unspecializedNestedTypeReference))
+                    if (_alreadyHasToken.Add(new IReferenceOrISignatureEquivalent(unspecializedNestedTypeReference)))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);
                     }
                 }
 
-                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(typeReference))
+                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(new IReferenceOrISignatureEquivalent(typeReference)))
                 {
                     RecordTypeReference(typeReference);
                 }
