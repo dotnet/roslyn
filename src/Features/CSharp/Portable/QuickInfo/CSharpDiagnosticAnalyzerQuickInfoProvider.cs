@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
+            // SuppressMessageAttribute docs 
+            // https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.codeanalysis.suppressmessageattribute
             var suppressMessageCheckIdArgument = token.GetAncestor<AttributeArgumentSyntax>() switch
             {
                 AttributeArgumentSyntax
@@ -80,21 +82,21 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                         Arguments: var arguments,
                         Parent: AttributeSyntax
                         {
-                            Name: var name
+                            Name: var attributeName
                         } _
                     } _
                 } argument when
-                    name.IsSuppressMessageAttribute() &&
-                    (argument.NameColon?.Name.Identifier.ValueText == "checkId" ||
-                    arguments.IndexOf(argument) == 1) => argument,
+                    attributeName.IsSuppressMessageAttribute() &&
+                    (argument.NameColon?.Name.Identifier.ValueText == "checkId" || // Named argument "checkId"
+                    (argument.NameColon is null && arguments.IndexOf(argument) == 1)) => argument, // positional argument "checkId"
                 _ => null,
             };
 
             if (suppressMessageCheckIdArgument != null)
             {
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var checkIdObject = semanticModel.GetConstantValue(suppressMessageCheckIdArgument.Expression, cancellationToken).GetValueOrNull();
-                if (checkIdObject is string checkId)
+                var checkIdObject = semanticModel.GetConstantValue(suppressMessageCheckIdArgument.Expression, cancellationToken);
+                if (checkIdObject.HasValue && checkIdObject.Value is string checkId)
                 {
                     var position = checkId.IndexOf(':');
                     var errorCode = position == -1

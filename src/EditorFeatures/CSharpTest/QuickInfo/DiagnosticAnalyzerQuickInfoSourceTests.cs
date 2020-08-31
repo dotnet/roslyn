@@ -111,6 +111,7 @@ namespace T
         [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: ""IDE0051: Remove unused private member"")]", true)]
         [InlineData(@"[SuppressMessage(category: ""CodeQuality"", $$checkId: ""IDE0051: Remove unused private member"")]", true)]
         [InlineData(@"[SuppressMessage(checkId$$: ""IDE0051: Remove unused private member"", category: ""CodeQuality"")]", true)]
+        [InlineData(@"[SuppressMessage(checkId: ""IDE0051: Remove unused private member"", category$$: ""CodeQuality"")]", false)]
         [InlineData(@"[SuppressMessage(""CodeQuality"", DiagnosticIds.IDE0051 +$$ "": Remove unused private member"")]", true)]
         [InlineData(@"[SuppressMessage(""CodeQuality"", """" + (DiagnosticIds.IDE0051 +$$ "": Remove unused private member""))]", true)]
         [InlineData(@"[SuppressMessage(category: ""CodeQuality"", checkId$$: DiagnosticIds.IDE0051 + "": Remove unused private member"")]", true)]
