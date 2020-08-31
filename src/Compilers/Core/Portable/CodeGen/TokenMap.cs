@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.Cci;
 
@@ -28,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private object[] _items = Array.Empty<object>();
         private int _count = 0;
 
-        internal TokenMap()
-        {
-        }
+        internal TokenMap() { }
 
         public uint GetOrAddTokenFor(IReference item, out bool referenceAdded)
         {
@@ -95,6 +94,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public object GetItem(uint token)
         {
+            // If a token has been handed out, then it should be always within _count of the
+            // current array and a lock is not required.
+            Debug.Assert(token < (uint)_count && _count <= _items.Length);
+
             return _items[(int)token];
         }
 
@@ -102,11 +105,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         //      should probably return ROA instead of IE and cache that in Module. (and no need to return count)
         public ReadOnlySpan<object> GetAllItems()
         {
+            // Read _count before _items reference, to match inverse of the writes in AddItem.
+            // So _items is guaranteed to have at least count items; and a lock is not required.
+
             // Read the count prior to getting the array
             int count = Volatile.Read(ref _count);
+            // Read the array reference
             object[] items = Volatile.Read(ref _items);
 
-            // Return a right sized copy of the array
+            // Return a right sized view of the array based on read count and reference.
             return new ReadOnlySpan<object>(items, 0, count);
         }
     }

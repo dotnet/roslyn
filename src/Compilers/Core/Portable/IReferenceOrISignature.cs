@@ -21,35 +21,22 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal readonly struct IReferenceOrISignatureEquivalent : IEquatable<IReferenceOrISignatureEquivalent>
     {
-        private readonly object? _item;
+        private readonly object _item;
 
-        public IReferenceOrISignatureEquivalent(IReference item)
-        {
-            _item = item;
-        }
+        public IReferenceOrISignatureEquivalent(IReference item) => _item = item;
 
-        public IReferenceOrISignatureEquivalent(ISignature item)
-        {
-            _item = item;
-        }
+        public IReferenceOrISignatureEquivalent(ISignature item) => _item = item;
 
         // Needed to resolve ambiguity for types that implement both IReference and ISignature
-        public IReferenceOrISignatureEquivalent(IMethodReference item)
-        {
-            _item = item;
-        }
+        public IReferenceOrISignatureEquivalent(IMethodReference item) => _item = item;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(IReferenceOrISignatureEquivalent other)
         {
             // Fast inlinable ReferenceEquals
-            object? x = _item;
-            object? y = other._item;
-            if (x is null)
-            {
-                return y is null;
-            }
-            else if (ReferenceEquals(x, y))
+            var x = _item;
+            var y = other._item;
+            if (ReferenceEquals(x, y))
             {
                 return true;
             }
@@ -57,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             return EqualsSlow(x, y);
         }
 
-        private static bool EqualsSlow(object x, object? y)
+        private static bool EqualsSlow(object x, object y)
         {
             if (x is ISymbolInternal sx && y is ISymbolInternal sy)
             {
@@ -75,11 +62,11 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object? obj) => false;
 
-        public override int GetHashCode() => _item?.GetHashCode() ?? 0;
+        public override int GetHashCode() => _item.GetHashCode();
 
-        public override string ToString() => _item?.ToString() ?? "null";
+        public override string ToString() => _item.ToString() ?? "null";
 
-        internal object AsObject() => _item!;
+        internal object AsObject() => _item;
     }
 
     /// <summary>
@@ -87,23 +74,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal readonly struct IReferenceOrISignature : IEquatable<IReferenceOrISignature>
     {
-        private readonly object? _item;
+        private readonly object _item;
 
-        public IReferenceOrISignature(IReference item)
-        {
-            _item = item;
-        }
+        public IReferenceOrISignature(IReference item) => _item = item;
 
-        public IReferenceOrISignature(ISignature item)
-        {
-            _item = item;
-        }
+        public IReferenceOrISignature(ISignature item) => _item = item;
 
         // Used by implicit conversion
-        private IReferenceOrISignature(object? item)
-        {
-            _item = item;
-        }
+        private IReferenceOrISignature(object item) => _item = item;
 
         public static implicit operator IReferenceOrISignature(IReferenceOrISignatureEquivalent item)
             => new IReferenceOrISignature(item.AsObject());
@@ -112,8 +90,8 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object? obj) => false;
 
-        public override int GetHashCode() => _item?.GetHashCode() ?? 0;
+        public override int GetHashCode() => _item.GetHashCode();
 
-        public override string ToString() => _item?.ToString() ?? "null";
+        public override string ToString() => _item.ToString() ?? "null";
     }
 }
