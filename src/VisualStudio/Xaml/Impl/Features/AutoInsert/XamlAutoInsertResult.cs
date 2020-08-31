@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert
 {
-    internal interface IXamlStructureTag
+    internal class XamlAutoInsertResult
     {
-        string Type { get; }
-        TextSpan TextSpan { get; }
+        public TextChange TextChange { get; set; }
+        public int? CaretOffset { get; set; }
     }
 }

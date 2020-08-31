@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
             }
 
-            void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)
+            void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
                 => TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
 
             void IRunningDocumentTableEventListener.OnCloseDocument(string moniker)

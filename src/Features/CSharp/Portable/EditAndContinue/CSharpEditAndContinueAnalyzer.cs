@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // The only legitimate update of an indexer/property declaration is an update of its expression body.
                     // The expression body itself may have been updated, replaced with an explicit getter, or added to replace an explicit getter.
                     // In any case, the update is to the property getter symbol.
-                    var propertyOrIndexer = model.GetDeclaredSymbol(node, cancellationToken);
+                    var propertyOrIndexer = model.GetRequiredDeclaredSymbol(node, cancellationToken);
                     return ((IPropertySymbol)propertyOrIndexer).GetMethod;
                 }
             }
@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
             var bodyExpression = LambdaUtilities.GetNestedFunctionBody(lambdaExpression);
-            return (IMethodSymbol)model.GetEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
+            return (IMethodSymbol)model.GetRequiredEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
         }
 
         internal override SyntaxNode? GetContainingQueryExpression(SyntaxNode node)

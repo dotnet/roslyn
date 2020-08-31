@@ -255,6 +255,7 @@ class X
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                        case ErrorCode.WRN_RecordNamedDisallowed:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -400,6 +401,7 @@ class X
                     ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.WRN_UseDefViolation,
                     ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                    ErrorCode.WRN_RecordNamedDisallowed,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

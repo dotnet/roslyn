@@ -6425,6 +6425,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CloneDisallowedInRecord" xml:space="preserve">
     <value>Members named 'Clone' are disallowed in records.</value>
   </data>
+  <data name="WRN_RecordNamedDisallowed" xml:space="preserve">
+    <value>Types and aliases should not be named 'record'.</value>
+  </data>
+  <data name="WRN_RecordNamedDisallowed_Title" xml:space="preserve">
+    <value>Types and aliases should not be named 'record'.</value>
+  </data>
   <data name="ERR_NotOverridableAPIInRecord" xml:space="preserve">
     <value>'{0}' must allow overriding because the containing record is not sealed.</value>
   </data>

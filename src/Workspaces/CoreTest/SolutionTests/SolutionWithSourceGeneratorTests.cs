@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             public bool CanApplyChanges { get; set; } = true;
 
-            public void Execute(SourceGeneratorContext context)
+            public void Execute(GeneratorExecutionContext context)
             {
                 foreach (var file in context.AdditionalFiles)
                 {
@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            public void Initialize(InitializationContext context)
+            public void Initialize(GeneratorInitializationContext context)
             {
                 // TODO: context.RegisterForAdditionalFileChanges(UpdateContext);
             }
 
-            private static void AddSourceForAdditionalFile(SourceGeneratorContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
+            private static void AddSourceForAdditionalFile(GeneratorExecutionContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
             private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
         }
