@@ -6,12 +6,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Humanizer;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis;
+using Humanizer;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -234,7 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (current.Parent is ForEachStatementSyntax foreachStatement &&
                          foreachStatement.Expression == expression)
                 {
-                    return foreachStatement.Identifier.ValueText.ToCamelCase().Pluralize();
+                    var name = foreachStatement.Identifier.ValueText.ToCamelCase();
+#if !CODE_STYLE
+                    name = name.Pluralize();
+#endif
+                    return name;
                 }
                 else
                 {
@@ -257,12 +264,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we can't determine the type, then fallback to some placeholders.
             var type = info.Type;
-            var pluralize = Pluralize(semanticModel, type);
 
             var parameterName = type.CreateParameterName(capitalize);
-            return pluralize ? parameterName.Pluralize() : parameterName;
+#if !CODE_STYLE
+            if (Pluralize(semanticModel, type))
+            {
+                parameterName = parameterName.Pluralize();
+            }
+#endif
+            return parameterName;
         }
 
+#if !CODE_STYLE
         private static bool Pluralize(SemanticModel semanticModel, ITypeSymbol type)
         {
             if (type == null)
@@ -274,6 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
             return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
         }
+#endif
 
         private static string TryGenerateNameForArgumentExpression(
             SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
