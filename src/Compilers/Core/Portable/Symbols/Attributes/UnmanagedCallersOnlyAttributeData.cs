@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class UnmanagedCallersOnlyAttributeData
     {
-        internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: default, isValid: false);
+        internal static readonly UnmanagedCallersOnlyAttributeData Uninitialized = new UnmanagedCallersOnlyAttributeData(callingConventionTypes: null, isValid: false);
 
         public readonly ImmutableHashSet<INamedTypeSymbolInternal>? CallingConventionTypes;
 
