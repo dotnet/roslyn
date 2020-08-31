@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : GoToDefinitionHandlerBase, IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    internal class GoToDefinitionHandler : AbstractGoToDefinitionHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService) : base(metadataAsSourceFileService)
+        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService, ILspSolutionProvider solutionProvider)
+            : base(metadataAsSourceFileService, solutionProvider)
         {
         }
 
-        public Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
-            => GetDefinitionAsync(solution, request, typeOnly: false, clientName, cancellationToken: cancellationToken);
+        public override Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+            => GetDefinitionAsync(request, typeOnly: false, context, cancellationToken);
     }
 }

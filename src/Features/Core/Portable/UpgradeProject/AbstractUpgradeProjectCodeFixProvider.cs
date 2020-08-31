@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.UpgradeProject
@@ -100,6 +101,6 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-            => Task.FromResult(Enumerable.Empty<CodeActionOperation>());
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
     }
 }

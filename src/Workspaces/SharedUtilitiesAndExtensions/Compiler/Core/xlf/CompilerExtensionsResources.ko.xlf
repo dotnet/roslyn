@@ -17,6 +17,11 @@
         <target state="translated">키가 같지만 값이 다른 요소가 이미 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
+        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
+        <target state="translated">개체가 비교할 배열과 요소 수가 같은 배열이 아닙니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">I로 시작</target>
@@ -102,6 +107,11 @@
         <target state="translated">필드가 아닌 멤버</target>
         <note>{locked:field}</note>
       </trans-unit>
+      <trans-unit id="NotSupported_FixedSizeCollection">
+        <source>Collection was of a fixed size.</source>
+        <target state="translated">컬렉션이 고정 크기입니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Using 구성</target>
@@ -157,6 +167,11 @@
         <target state="translated">공용 또는 보호된 필드</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
+        <source>Segment size must be power of 2 greater than 1</source>
+        <target state="translated">세그먼트 크기는 1보다 큰 2의 거듭제곱이어야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>
         <target state="translated">지정된 시퀀스에 중복 항목이 있습니다.</target>
@@ -176,6 +191,11 @@
         <source>Struct</source>
         <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Suppression_preferences">
+        <source>Suppression preferences</source>
+        <target state="new">Suppression preferences</target>
+        <note />
       </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>

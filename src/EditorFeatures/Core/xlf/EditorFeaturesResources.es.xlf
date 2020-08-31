@@ -37,6 +37,16 @@
         <target state="translated">¿Desea continuar? Esto puede producir código roto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="new">Error creating instance of CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">elementos de espacios de nombres no importados</target>
@@ -65,6 +75,11 @@
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">Ir a base</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Parameter_Name_Hints">
+        <source>Inline Parameter Name Hints</source>
+        <target state="new">Inline Parameter Name Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -112,11 +127,6 @@
         <target state="translated">No se admite la eliminación del documento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="translated">Ca_mbiar nombre de archivo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Ca_mbiar nombre de archivo (el tipo no coincide con el nombre de archivo)</target>
@@ -126,6 +136,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">Ca_mbiar nombre de archivo (no se permite en tipos parciales)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="translated">Cambiar nombre del _archivo del símbolo</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
@@ -999,12 +1014,12 @@
       </trans-unit>
       <trans-unit id="Loading_Peek_information">
         <source>Loading Peek information...</source>
-        <target state="translated">Cargando Ver información...</target>
+        <target state="translated">Cargando información para ver el código sin salir...</target>
         <note />
       </trans-unit>
       <trans-unit id="Peek">
         <source>Peek</source>
-        <target state="translated">Ver</target>
+        <target state="translated">Ver el código sin salir</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">
@@ -1192,11 +1207,6 @@ Do you want to proceed?</source>
       <trans-unit id="Brace_Completion">
         <source>Brace Completion</source>
         <target state="translated">Finalización de llave</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">Corregir todas las repeticiones de</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">

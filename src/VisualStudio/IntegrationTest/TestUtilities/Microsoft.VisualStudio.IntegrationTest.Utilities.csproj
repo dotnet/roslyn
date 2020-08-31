@@ -34,7 +34,6 @@
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />
@@ -75,7 +74,7 @@
     <Compile Include="..\..\..\Tools\Source\RunTests\ProcDumpUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" Partner="UnitTesting" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LiveUnitTesting.IntegrationTests" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
   </ItemGroup>
 </Project>

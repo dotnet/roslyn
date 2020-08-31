@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -2423,6 +2424,42 @@ class C
     }
 
     public B {|Definition:$$GetEnumerator|}()
+    {
+        return null;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestForEachGetEnumeratorViaExtension(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class B
+{
+    public int Current { get; set; }
+    public bool MoveNext()
+    {
+        return false;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        [|foreach|] (var x in new C()) { }
+    }
+}
+
+public static class Extensions
+{
+    public static B {|Definition:$$GetEnumerator|}(this C c)
     {
         return null;
     }

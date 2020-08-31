@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
-        private static readonly CSharpParseOptions ImplicitObjectCreationOptions = TestOptions.RegularPreview;
+        private static readonly CSharpParseOptions ImplicitObjectCreationOptions = TestOptions.Regular9;
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -1396,7 +1396,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<InitializerExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular9);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

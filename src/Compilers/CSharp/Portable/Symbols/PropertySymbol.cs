@@ -253,8 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal PropertySymbol GetLeastOverriddenProperty(NamedTypeSymbol accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
-
+            accessingTypeOpt = accessingTypeOpt?.OriginalDefinition;
             PropertySymbol p = this;
             while (p.IsOverride && !p.HidesBasePropertiesByName)
             {
@@ -280,7 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
                 PropertySymbol overridden = p.OverriddenProperty;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                if ((object)overridden == null ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref useSiteDiagnostics)))
                 {
                     break;
                 }
@@ -365,8 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinition);
 
             // Check return type, custom modifiers and parameters:
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;

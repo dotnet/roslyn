@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                var actions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // so as to not clutter the list.
                     return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutableAndFree()));
+                        actions.ToImmutable()));
                 }
 
-                return actions.ToImmutableAndFree();
+                return actions.ToImmutable();
             }
         }
 

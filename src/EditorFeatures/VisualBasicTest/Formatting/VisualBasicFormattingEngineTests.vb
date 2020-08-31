@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
             MyBase.New(output)
         End Sub
 
-        Private Function SeparateImportDirectiveGroups() As Dictionary(Of OptionKey, Object)
+        Private Shared Function SeparateImportDirectiveGroups() As Dictionary(Of OptionKey, Object)
             Return New Dictionary(Of OptionKey, Object) From {
                 {New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), True}
             }

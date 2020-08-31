@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
@@ -27,8 +26,7 @@ namespace Roslyn.Utilities
             return value;
         }
 
-        [return: MaybeNull]
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+        public static TValue? GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
             where TKey : notnull
         {
             if (dictionary.TryGetValue(key, out var value))

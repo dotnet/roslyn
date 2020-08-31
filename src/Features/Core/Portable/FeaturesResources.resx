@@ -1199,7 +1199,16 @@ This version used in: {2}</value>
     <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
-    <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+    <value>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+  </data>
+  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big" xml:space="preserve">
+    <value>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</value>
+  </data>
+  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
+    <value>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+  </data>
+  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements" xml:space="preserve">
+    <value>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</value>
   </data>
   <data name="Change_namespace_to_0" xml:space="preserve">
     <value>Change namespace to '{0}'</value>
@@ -2776,5 +2785,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Generate_constructor_in_0_with_properties" xml:space="preserve">
     <value>Generate constructor in '{0}' (with properties)</value>
+  </data>
+  <data name="Property_reference_cannot_be_updated" xml:space="preserve">
+    <value>Property reference cannot be updated</value>
+  </data>
+  <data name="Make_class_abstract" xml:space="preserve">
+    <value>Make class 'abstract'</value>
+  </data>
+  <data name="Remove_async_modifier" xml:space="preserve">
+    <value>Remove 'async' modifier</value>
+  </data>
+  <data name="Pull_members_up_to_new_base_class" xml:space="preserve">
+    <value>Pull member(s) up to new base class...</value>
   </data>
 </root>

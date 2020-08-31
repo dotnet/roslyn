@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -627,6 +628,14 @@ class C
         [Fact, WorkItem(540019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540019")]
         public void TestBug6156()
         {
+            // Note: this test originally required a mismatch between the compile-time view of what the
+            // program should do and the runtime view.  The runtime considers `ref` and `out` to be the
+            // same, so it had a different view of what one method was overriding than C# did.  However,
+            // in the context of implementing the covariant return types feature, we added code in the compiler to
+            // cause the compiler to emit methodimpl records whenever there is a mismatch.  As a consequence
+            // of that, we updated this test to now require that the runtime behavior and the compile-time behavior
+            // of this program match, so that at runtime it obeys the behavior specified by the C#
+            // language specification.
             var source = @"
 class Ref1 
 { public virtual void M(ref int x) { x = 1; } }
@@ -644,64 +653,64 @@ class M
     Ref1 r1;
     r1 = new Ref1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Out1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Ref2();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r1 = new Out2();
     r1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out1 o1;
     o1 = new Out1();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     o1 = new Ref2();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     o1 = new Out2();
     o1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Ref2 r2;
     r2 = new Ref2();
     r2.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r2 = new Out2();
     r2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out2 o2;
     o2 = new Out2();
     o2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     o1 = new Out1();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Ref2();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Out2();
     o1.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     r2 = new Ref2();
     r2.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     r2 = new Out2();
     r2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     o2 = new Out2();
     o2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
   }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
-1111
-111
-11
-1
-234
-34
+1133
+133
+33
+3
+224
+24
 4
 ");
         }
@@ -10677,7 +10686,7 @@ public class MyClass {
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/coreclr/issues/22046")]
+        [Fact] // https://github.com/dotnet/coreclr/issues/22046
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -10700,8 +10709,25 @@ class C
         Console.WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
-@"0.0000000000000000000000000031
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
+0.0000000000000000000000000031
+
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+0.1000000000000000000000000001");
+            }
+            else if (ExecutionConditionUtil.IsDesktop)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
 0.0000000000000000000000000030
 
 0.0000000000000000000000000001
@@ -10712,6 +10738,7 @@ class C
 
 0.1000000000000000000000000000
 0.1000000000000000000000000000");
+            }
         }
 
         [Fact]
@@ -14760,7 +14787,7 @@ class c1
                 expectedOutput: "",
                 symbolValidator: validator,
                 options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             void validator(ModuleSymbol module)
             {
@@ -15084,7 +15111,7 @@ class Program
     }
 }";
 
-            var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
+            var testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference();
             var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {

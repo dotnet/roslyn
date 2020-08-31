@@ -10,906 +10,703 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System.Diagnostics.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     public partial class CSharpSyntaxVisitor<TResult>
     {
         /// <summary>Called when the visitor visits a IdentifierNameSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedNameSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GenericNameSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeArgumentListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AliasQualifiedNameSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PredefinedTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayRankSpecifierSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PointerTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FunctionPointerTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerParameterListSyntax node.</summary>
+        public virtual TResult? VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerCallingConventionSyntax node.</summary>
+        public virtual TResult? VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionListSyntax node.</summary>
+        public virtual TResult? VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntax node.</summary>
+        public virtual TResult? VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleElementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedTypeArgumentSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PrefixUnaryExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AwaitExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PostfixUnaryExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberAccessExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalAccessExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitElementAccessSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BinaryExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AssignmentExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThisExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefValueExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeOfExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SizeOfExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InvocationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementAccessExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedArgumentListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameColonSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CastExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousMethodExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleLambdaExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedLambdaExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InitializerExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitObjectCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WithExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StackAllocArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryBodySyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FromClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LetClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinIntoClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhereClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderByClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderingSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SelectClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GroupClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryContinuationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedArraySizeExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IsPatternExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhenClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VarPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RecursivePatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyPatternClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RelationalPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypePatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BinaryPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationAlignmentClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationFormatClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GlobalStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BlockSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalFunctionStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalDeclarationStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclaratorSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EqualsValueClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SingleVariableDesignationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardDesignationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedVariableDesignationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExpressionStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EmptyStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LabeledStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GotoStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BreakStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ContinueStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReturnStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a YieldStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhileStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DoStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachVariableStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FixedStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UnsafeStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LockStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchSectionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CasePatternSwitchLabelSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CaseSwitchLabelSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultSwitchLabelSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionArmSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TryStatementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchFilterClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FinallyClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CompilationUnitSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExternAliasDirectiveSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingDirectiveSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeTargetSpecifierSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameEqualsSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StructDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RecordDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DelegateDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleBaseTypeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a PrimaryConstructorBaseTypeSyntax node.</summary>
+        public virtual TResult? VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterConstraintClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorConstraintSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassOrStructConstraintSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeConstraintSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
+        public virtual TResult? VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventFieldDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExplicitInterfaceSpecifierSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MethodDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorInitializerSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DestructorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrowExpressionClauseSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedParameterListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerParameterSyntax node.</summary>
+        public virtual TResult? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SkippedTokensTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DocumentationCommentTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeCrefSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedCrefSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefBracketedParameterListSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementStartTagSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementEndTagSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlEmptyElementSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlPrefixSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextAttributeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCrefAttributeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameAttributeSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCDataSectionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlProcessingInstructionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCommentSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElifDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndIfDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RegionDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndRegionDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ErrorDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WarningDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BadDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefineDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UndefDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaChecksumDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReferenceDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LoadDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult? VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     }
 
     public partial class CSharpSyntaxVisitor
@@ -943,6 +740,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a FunctionPointerTypeSyntax node.</summary>
         public virtual void VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerParameterListSyntax node.</summary>
+        public virtual void VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerCallingConventionSyntax node.</summary>
+        public virtual void VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionListSyntax node.</summary>
+        public virtual void VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerUnmanagedCallingConventionSyntax node.</summary>
+        public virtual void VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
         public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
@@ -1391,6 +1200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a SimpleBaseTypeSyntax node.</summary>
         public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a PrimaryConstructorBaseTypeSyntax node.</summary>
+        public virtual void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a TypeParameterConstraintClauseSyntax node.</summary>
         public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
 
@@ -1402,6 +1214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a TypeConstraintSyntax node.</summary>
         public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
+        public virtual void VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
         public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
@@ -1456,6 +1271,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a ParameterSyntax node.</summary>
         public virtual void VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a FunctionPointerParameterSyntax node.</summary>
+        public virtual void VisitFunctionPointerParameter(FunctionPointerParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
         public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
@@ -1617,7 +1435,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.AsteriskToken));
 
         public override SyntaxNode? VisitFunctionPointerType(FunctionPointerTypeSyntax node)
-            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), VisitToken(node.CallingConvention), VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
+            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), (FunctionPointerCallingConventionSyntax?)Visit(node.CallingConvention), (FunctionPointerParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"));
+
+        public override SyntaxNode? VisitFunctionPointerParameterList(FunctionPointerParameterListSyntax node)
+            => node.Update(VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
+
+        public override SyntaxNode? VisitFunctionPointerCallingConvention(FunctionPointerCallingConventionSyntax node)
+            => node.Update(VisitToken(node.ManagedOrUnmanagedKeyword), (FunctionPointerUnmanagedCallingConventionListSyntax?)Visit(node.UnmanagedCallingConventionList));
+
+        public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConventionList(FunctionPointerUnmanagedCallingConventionListSyntax node)
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.CallingConventions), VisitToken(node.CloseBracketToken));
+
+        public override SyntaxNode? VisitFunctionPointerUnmanagedCallingConvention(FunctionPointerUnmanagedCallingConventionSyntax node)
+            => node.Update(VisitToken(node.Name));
 
         public override SyntaxNode? VisitNullableType(NullableTypeSyntax node)
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.QuestionToken));
@@ -1731,16 +1561,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
         public override SyntaxNode? VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), VisitToken(node.DelegateKeyword), (ParameterListSyntax?)Visit(node.ParameterList), (BlockSyntax?)Visit(node.Block) ?? throw new ArgumentNullException("block"), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), VisitToken(node.DelegateKeyword), (ParameterListSyntax?)Visit(node.ParameterList), (BlockSyntax?)Visit(node.Block) ?? throw new ArgumentNullException("block"), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), (ParameterSyntax?)Visit(node.Parameter) ?? throw new ArgumentNullException("parameter"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), (ParameterSyntax?)Visit(node.Parameter) ?? throw new ArgumentNullException("parameter"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitRefExpression(RefExpressionSyntax node)
             => node.Update(VisitToken(node.RefKeyword), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
         public override SyntaxNode? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.Modifiers), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Expressions), VisitToken(node.CloseBraceToken));
@@ -1752,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.NewKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList), (InitializerExpressionSyntax?)Visit(node.Initializer));
 
         public override SyntaxNode? VisitWithExpression(WithExpressionSyntax node)
-            => node.Update((ExpressionSyntax?)Visit(node.Receiver) ?? throw new ArgumentNullException("receiver"), VisitToken(node.WithKeyword), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
+            => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.WithKeyword), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
 
         public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             => node.Update((NameEqualsSyntax?)Visit(node.NameEquals), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
@@ -2064,7 +1894,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.ColonToken), VisitList(node.Types));
 
         public override SyntaxNode? VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-            => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList));
+            => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+
+        public override SyntaxNode? VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
+            => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
         public override SyntaxNode? VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
             => node.Update(VisitToken(node.WhereKeyword), (IdentifierNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.ColonToken), VisitList(node.Constraints));
@@ -2077,6 +1910,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitTypeConstraint(TypeConstraintSyntax node)
             => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+
+        public override SyntaxNode? VisitDefaultConstraint(DefaultConstraintSyntax node)
+            => node.Update(VisitToken(node.DefaultKeyword));
 
         public override SyntaxNode? VisitFieldDeclaration(FieldDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax?)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.SemicolonToken));
@@ -2131,6 +1967,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitParameter(ParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.Default));
+
+        public override SyntaxNode? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
         public override SyntaxNode? VisitIncompleteMember(IncompleteMemberSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type));
@@ -2396,22 +2235,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.PointerType(elementType, SyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken callingConvention, SyntaxToken lessThanToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
-            if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)callingConvention.Node, (Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+            if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
+            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterListSyntax)parameterList.Green).CreateRed();
         }
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken callingConvention, SeparatedSyntaxList<ParameterSyntax> parameters)
-            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+        public static FunctionPointerTypeSyntax FunctionPointerType(FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, parameterList);
 
         /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
-        public static FunctionPointerTypeSyntax FunctionPointerType(SeparatedSyntaxList<ParameterSyntax> parameters = default)
-            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default, SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+        public static FunctionPointerTypeSyntax FunctionPointerType()
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default, SyntaxFactory.FunctionPointerParameterList());
+
+        /// <summary>Creates a new FunctionPointerParameterListSyntax instance.</summary>
+        public static FunctionPointerParameterListSyntax FunctionPointerParameterList(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+            if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            return (FunctionPointerParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerParameterListSyntax instance.</summary>
+        public static FunctionPointerParameterListSyntax FunctionPointerParameterList(SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters = default)
+            => SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+        /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
+        {
+            switch (managedOrUnmanagedKeyword.Kind())
+            {
+                case SyntaxKind.ManagedKeyword:
+                case SyntaxKind.UnmanagedKeyword: break;
+                default: throw new ArgumentException(nameof(managedOrUnmanagedKeyword));
+            }
+            return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedOrUnmanagedKeyword.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)unmanagedCallingConventionList.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerCallingConventionSyntax instance.</summary>
+        public static FunctionPointerCallingConventionSyntax FunctionPointerCallingConvention(SyntaxToken managedOrUnmanagedKeyword)
+            => SyntaxFactory.FunctionPointerCallingConvention(managedOrUnmanagedKeyword, default);
+
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionListSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionListSyntax FunctionPointerUnmanagedCallingConventionList(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            return (FunctionPointerUnmanagedCallingConventionListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConventionList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, callingConventions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionListSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionListSyntax FunctionPointerUnmanagedCallingConventionList(SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions = default)
+            => SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), callingConventions, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+
+        /// <summary>Creates a new FunctionPointerUnmanagedCallingConventionSyntax instance.</summary>
+        public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)
+        {
+            if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
+            return (FunctionPointerUnmanagedCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConvention((Syntax.InternalSyntax.SyntaxToken)name.Node!).CreateRed();
+        }
 
         /// <summary>Creates a new NullableTypeSyntax instance.</summary>
         public static NullableTypeSyntax NullableType(TypeSyntax elementType, SyntaxToken questionToken)
@@ -3161,40 +3046,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.CastExpression(SyntaxFactory.Token(SyntaxKind.OpenParenToken), type, SyntaxFactory.Token(SyntaxKind.CloseParenToken), expression);
 
         /// <summary>Creates a new AnonymousMethodExpressionSyntax instance.</summary>
-        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
+        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxTokenList modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
-            switch (asyncKeyword.Kind())
-            {
-                case SyntaxKind.AsyncKeyword:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(asyncKeyword));
-            }
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
-            return (AnonymousMethodExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression((Syntax.InternalSyntax.SyntaxToken?)asyncKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (AnonymousMethodExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxTokenList modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            switch (asyncKeyword.Kind())
-            {
-                case SyntaxKind.AsyncKeyword:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(asyncKeyword));
-            }
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression((Syntax.InternalSyntax.SyntaxToken?)asyncKeyword.Node, (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, BlockSyntax? block, ExpressionSyntax? expressionBody)
-            => SyntaxFactory.SimpleLambdaExpression(default, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxTokenList modifiers, ParameterSyntax parameter, BlockSyntax? block, ExpressionSyntax? expressionBody)
+            => SyntaxFactory.SimpleLambdaExpression(modifiers, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
 
         /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
         public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter)
-            => SyntaxFactory.SimpleLambdaExpression(default, parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
+            => SyntaxFactory.SimpleLambdaExpression(default(SyntaxTokenList), parameter, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
 
         /// <summary>Creates a new RefExpressionSyntax instance.</summary>
         public static RefExpressionSyntax RefExpression(SyntaxToken refKeyword, ExpressionSyntax expression)
@@ -3209,26 +3082,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.RefExpression(SyntaxFactory.Token(SyntaxKind.RefKeyword), expression);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            switch (asyncKeyword.Kind())
-            {
-                case SyntaxKind.AsyncKeyword:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(asyncKeyword));
-            }
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression((Syntax.InternalSyntax.SyntaxToken?)asyncKeyword.Node, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
-            => SyntaxFactory.ParenthesizedLambdaExpression(default, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxTokenList modifiers, ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
+            => SyntaxFactory.ParenthesizedLambdaExpression(modifiers, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
         public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression()
-            => SyntaxFactory.ParenthesizedLambdaExpression(default, SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
+            => SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxTokenList), SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
 
         /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -3284,17 +3151,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), type, default, default);
 
         /// <summary>Creates a new WithExpressionSyntax instance.</summary>
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
-            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
-            return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)receiver.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
+            return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
         /// <summary>Creates a new WithExpressionSyntax instance.</summary>
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, InitializerExpressionSyntax initializer)
-            => SyntaxFactory.WithExpression(receiver, SyntaxFactory.Token(SyntaxKind.WithKeyword), initializer);
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax expression, InitializerExpressionSyntax initializer)
+            => SyntaxFactory.WithExpression(expression, SyntaxFactory.Token(SyntaxKind.WithKeyword), initializer);
 
         /// <summary>Creates a new AnonymousObjectMemberDeclaratorSyntax instance.</summary>
         public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)
@@ -3885,11 +3752,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BlockSyntax Block(SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<StatementSyntax> statements)
             => SyntaxFactory.Block(attributeLists, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), statements, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new BlockSyntax instance.</summary>
         public static BlockSyntax Block(SyntaxList<StatementSyntax> statements = default)
             => SyntaxFactory.Block(default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), statements, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new LocalFunctionStatementSyntax instance.</summary>
         public static LocalFunctionStatementSyntax LocalFunctionStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
@@ -4092,11 +3959,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static GotoStatementSyntax GotoStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax? expression)
             => SyntaxFactory.GotoStatement(kind, attributeLists, SyntaxFactory.Token(SyntaxKind.GotoKeyword), caseOrDefaultKeyword, expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new GotoStatementSyntax instance.</summary>
         public static GotoStatementSyntax GotoStatement(SyntaxKind kind, ExpressionSyntax? expression = default)
             => SyntaxFactory.GotoStatement(kind, default, SyntaxFactory.Token(SyntaxKind.GotoKeyword), default, expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new BreakStatementSyntax instance.</summary>
         public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
@@ -4142,11 +4009,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ReturnStatementSyntax ReturnStatement(SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax? expression)
             => SyntaxFactory.ReturnStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.ReturnKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new ReturnStatementSyntax instance.</summary>
         public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expression = default)
             => SyntaxFactory.ReturnStatement(default, SyntaxFactory.Token(SyntaxKind.ReturnKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new ThrowStatementSyntax instance.</summary>
         public static ThrowStatementSyntax ThrowStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken throwKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
@@ -4160,11 +4027,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ThrowStatementSyntax ThrowStatement(SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax? expression)
             => SyntaxFactory.ThrowStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.ThrowKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new ThrowStatementSyntax instance.</summary>
         public static ThrowStatementSyntax ThrowStatement(ExpressionSyntax? expression = default)
             => SyntaxFactory.ThrowStatement(default, SyntaxFactory.Token(SyntaxKind.ThrowKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new YieldStatementSyntax instance.</summary>
         public static YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
@@ -4190,11 +4057,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax? expression)
             => SyntaxFactory.YieldStatement(kind, attributeLists, SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(GetYieldStatementReturnOrBreakKeywordKind(kind)), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new YieldStatementSyntax instance.</summary>
         public static YieldStatementSyntax YieldStatement(SyntaxKind kind, ExpressionSyntax? expression = default)
             => SyntaxFactory.YieldStatement(kind, default, SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(GetYieldStatementReturnOrBreakKeywordKind(kind)), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         private static SyntaxKind GetYieldStatementReturnOrBreakKeywordKind(SyntaxKind kind)
             => kind switch
@@ -4389,11 +4256,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, BlockSyntax block)
             => SyntaxFactory.CheckedStatement(kind, attributeLists, SyntaxFactory.Token(GetCheckedStatementKeywordKind(kind)), block);
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new CheckedStatementSyntax instance.</summary>
         public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, BlockSyntax? block = default)
             => SyntaxFactory.CheckedStatement(kind, default, SyntaxFactory.Token(GetCheckedStatementKeywordKind(kind)), block ?? SyntaxFactory.Block());
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         private static SyntaxKind GetCheckedStatementKeywordKind(SyntaxKind kind)
             => kind switch
@@ -4415,11 +4282,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static UnsafeStatementSyntax UnsafeStatement(SyntaxList<AttributeListSyntax> attributeLists, BlockSyntax block)
             => SyntaxFactory.UnsafeStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), block);
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new UnsafeStatementSyntax instance.</summary>
         public static UnsafeStatementSyntax UnsafeStatement(BlockSyntax? block = default)
             => SyntaxFactory.UnsafeStatement(default, SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), block ?? SyntaxFactory.Block());
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new LockStatementSyntax instance.</summary>
         public static LockStatementSyntax LockStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
@@ -4589,11 +4456,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TryStatementSyntax TryStatement(SyntaxList<AttributeListSyntax> attributeLists, BlockSyntax block, SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax? @finally)
             => SyntaxFactory.TryStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.TryKeyword), block, catches, @finally);
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new TryStatementSyntax instance.</summary>
         public static TryStatementSyntax TryStatement(SyntaxList<CatchClauseSyntax> catches = default)
             => SyntaxFactory.TryStatement(default, SyntaxFactory.Token(SyntaxKind.TryKeyword), SyntaxFactory.Block(), catches, default);
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new CatchClauseSyntax instance.</summary>
         public static CatchClauseSyntax CatchClause(SyntaxToken catchKeyword, CatchDeclarationSyntax? declaration, CatchFilterClauseSyntax? filter, BlockSyntax block)
@@ -5044,15 +4911,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), types);
 
         /// <summary>Creates a new SimpleBaseTypeSyntax instance.</summary>
-        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type, ArgumentListSyntax? argumentList)
+        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            return (SimpleBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green, argumentList == null ? null : (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
+            return (SimpleBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
-        /// <summary>Creates a new SimpleBaseTypeSyntax instance.</summary>
-        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
-            => SyntaxFactory.SimpleBaseType(type, default);
+        /// <summary>Creates a new PrimaryConstructorBaseTypeSyntax instance.</summary>
+        public static PrimaryConstructorBaseTypeSyntax PrimaryConstructorBaseType(TypeSyntax type, ArgumentListSyntax argumentList)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            return (PrimaryConstructorBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PrimaryConstructorBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new PrimaryConstructorBaseTypeSyntax instance.</summary>
+        public static PrimaryConstructorBaseTypeSyntax PrimaryConstructorBaseType(TypeSyntax type)
+            => SyntaxFactory.PrimaryConstructorBaseType(type, SyntaxFactory.ArgumentList());
 
         /// <summary>Creates a new TypeParameterConstraintClauseSyntax instance.</summary>
         public static TypeParameterConstraintClauseSyntax TypeParameterConstraintClause(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
@@ -5130,6 +5005,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type == null) throw new ArgumentNullException(nameof(type));
             return (TypeConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeConstraint((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
+
+        /// <summary>Creates a new DefaultConstraintSyntax instance.</summary>
+        public static DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
+        {
+            if (defaultKeyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+            return (DefaultConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultConstraint((Syntax.InternalSyntax.SyntaxToken)defaultKeyword.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new DefaultConstraintSyntax instance.</summary>
+        public static DefaultConstraintSyntax DefaultConstraint()
+            => SyntaxFactory.DefaultConstraint(SyntaxFactory.Token(SyntaxKind.DefaultKeyword));
 
         /// <summary>Creates a new FieldDeclarationSyntax instance.</summary>
         public static FieldDeclarationSyntax FieldDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
@@ -5559,17 +5445,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ParameterSyntax Parameter(SyntaxToken identifier)
             => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default);
 
+        /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
+        public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            return (FunctionPointerParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
+        public static FunctionPointerParameterSyntax FunctionPointerParameter(TypeSyntax type)
+            => SyntaxFactory.FunctionPointerParameter(default, default(SyntaxTokenList), type);
+
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
         public static IncompleteMemberSyntax IncompleteMember(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)
         {
             return (IncompleteMemberSyntax)Syntax.InternalSyntax.SyntaxFactory.IncompleteMember(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
-        #pragma warning disable RS0027
+#pragma warning disable RS0027
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
         public static IncompleteMemberSyntax IncompleteMember(TypeSyntax? type = default)
             => SyntaxFactory.IncompleteMember(default, default(SyntaxTokenList), type);
-        #pragma warning restore RS0027
+#pragma warning restore RS0027
 
         /// <summary>Creates a new SkippedTokensTriviaSyntax instance.</summary>
         public static SkippedTokensTriviaSyntax SkippedTokensTrivia(SyntaxTokenList tokens)

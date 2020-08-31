@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,9 +27,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a set of projects and their source code documents. 
-    /// 
-    /// this is a green node of Solution like ProjectState/DocumentState are for 
+    /// Represents a set of projects and their source code documents.
+    ///
+    /// this is a green node of Solution like ProjectState/DocumentState are for
     /// Project and Document.
     /// </summary>
     internal partial class SolutionState
@@ -148,13 +149,13 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// branch id of this solution
-        /// 
+        ///
         /// currently, it only supports one level of branching. there is a primary branch of a workspace and all other
         /// branches that are branched from the primary branch.
-        /// 
+        ///
         /// one still can create multiple forked solutions from an already branched solution, but versions among those
-        /// can't be reliably used and compared. 
-        /// 
+        /// can't be reliably used and compared.
+        ///
         /// version only has a meaning between primary solution and branched one or between solutions from same branch.
         /// </summary>
         public BranchId BranchId => _branchId;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
-            options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
+            options ??= Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap));
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis
 
         private BranchId GetBranchId()
         {
-            // currently we only support one level branching. 
+            // currently we only support one level branching.
             // my reasonings are
             // 1. it seems there is no-one who needs sub branches.
             // 2. this lets us to branch without explicit branch API
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis
         private SolutionState AddProject(ProjectId projectId, ProjectState projectState)
         {
             // changed project list so, increment version.
-            var newSolutionAttributes = _solutionAttributes.WithVersion(Version.GetNewerVersion());
+            var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
 
             var newProjectIds = ProjectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
@@ -552,7 +553,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             // changed project list so, increment version.
-            var newSolutionAttributes = _solutionAttributes.WithVersion(this.Version.GetNewerVersion());
+            var newSolutionAttributes = _solutionAttributes.With(version: this.Version.GetNewerVersion());
 
             var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
@@ -667,10 +668,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the compiler output file path.
         /// </summary>
-        public SolutionState WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
+        public SolutionState WithProjectCompilationOutputInfo(ProjectId projectId, in CompilationOutputInfo info)
         {
             var oldProject = GetRequiredProjectState(projectId);
-            var newProject = oldProject.WithCompilationOutputFilePaths(paths);
+            var newProject = oldProject.WithCompilationOutputInfo(info);
 
             if (oldProject == newProject)
             {
@@ -772,16 +773,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Update a new solution instance with a fork of the specified project.
-        /// 
-        /// TODO: https://github.com/dotnet/roslyn/issues/42448
-        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
-        /// until then, this will explicitly fork current solution snapshot
-        /// </summary>
-        internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
-            => ForkProject(GetRequiredProjectState(projectId));
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
@@ -862,9 +853,9 @@ namespace Microsoft.CodeAnalysis
                 !_projectIdToProjectStateMap.ContainsKey(projectReference.ProjectId))
             {
                 // Two cases:
-                // 1) The project contained multiple non-equivalent references to the project, 
+                // 1) The project contained multiple non-equivalent references to the project,
                 // and not all of them were removed. The dependency graph doesn't change.
-                // Note that there might be two references to the same project, one with 
+                // Note that there might be two references to the same project, one with
                 // extern alias and the other without. These are not considered duplicates.
                 // 2) The referenced project is not part of the solution and hence not included
                 // in the dependency graph.
@@ -1031,7 +1022,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the corresponding projects updated to include new 
+        /// Create a new solution instance with the corresponding projects updated to include new
         /// documents defined by the document info.
         /// </summary>
         public SolutionState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
@@ -1102,14 +1093,13 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            // Adding a new analyzer config potentially impacts all syntax trees and the diagnostic reporting information
-            // attached to them, so we'll just replace all syntax trees in that case.
+            // Adding a new analyzer config potentially modifies the compilation options
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
                 });
         }
 
@@ -1120,7 +1110,7 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documentIds, _) =>
                 {
                     var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!));
                 });
         }
 
@@ -1438,7 +1428,8 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(newProject,
+                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions) : null);
         }
 
         /// <summary>
@@ -1549,9 +1540,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        /// 
+        ///
         /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done. 
+        /// syntax trees or compilations that are unlikely to be needed again after the operation is done.
         /// When the isolated solution is reclaimed so will the computed state.
         /// </summary>
         public SolutionState GetIsolatedSolution()
@@ -1618,9 +1609,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
         /// busy building this compilations.
-        /// 
+        ///
         /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
-        /// 
+        ///
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
         public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
@@ -1744,12 +1735,15 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
+        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
+            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
+
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>
         public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
         {
-            // return HasAllInformation when compilation is not supported. 
+            // return HasAllInformation when compilation is not supported.
             // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
@@ -1813,7 +1807,7 @@ namespace Microsoft.CodeAnalysis
             ProjectState fromProject)
         {
             // Try to get the compilation state for this project.  If it doesn't exist, don't do any
-            // more work.  
+            // more work.
             if (!_projectIdToTrackerMap.TryGetValue(projectReference.ProjectId, out var state))
             {
                 return null;
@@ -1934,10 +1928,21 @@ namespace Microsoft.CodeAnalysis
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
 
-        internal ImmutableHashSet<string> GetProjectLanguages()
-            => GetProjectLanguages(ProjectStates);
+        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
+            => GetRemoteSupportedProjectLanguages(ProjectStates);
 
-        private static ImmutableHashSet<string> GetProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
-            => projectStates.Select(p => p.Value.Language).ToImmutableHashSet();
+        private static ImmutableHashSet<string> GetRemoteSupportedProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var projectState in projectStates)
+            {
+                if (RemoteSupportedLanguages.IsSupported(projectState.Value.Language))
+                {
+                    builder.Add(projectState.Value.Language);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
     }
 }

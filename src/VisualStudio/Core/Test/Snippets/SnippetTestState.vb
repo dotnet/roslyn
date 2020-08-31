@@ -14,7 +14,6 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.TextManager.Interop
@@ -29,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             ' Remove the default completion presenters to prevent them from conflicting with the test one
             ' that we are adding.
             MyBase.New(workspaceElement,
-                       extraExportedTypes:={GetType(TestSignatureHelpPresenter), GetType(SnippetCompletionProvider), GetType(IntelliSenseTestState), GetType(MockCompletionPresenterProvider), GetType(StubVsEditorAdaptersFactoryService)}.Concat(If(extraParts, {})).ToList(),
+                       extraExportedTypes:={GetType(TestSignatureHelpPresenter), GetType(IntelliSenseTestState), GetType(MockCompletionPresenterProvider), GetType(StubVsEditorAdaptersFactoryService)}.Concat(If(extraParts, {})).ToList(),
                        workspaceKind:=workspaceKind,
                        excludedTypes:={GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), GetType(FormatCommandHandler)}.Concat(If(excludedTypes, {})).ToList(),
                        includeFormatCommandHandler:=False)
@@ -37,7 +36,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Workspace.TryApplyChanges(Workspace.CurrentSolution.WithOptions(Workspace.Options _
                     .WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)))
 
-            Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
+            Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)(MockBehavior.Strict)
+            mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
+
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(), mockSVsServiceProvider.Object), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(), mockSVsServiceProvider.Object))

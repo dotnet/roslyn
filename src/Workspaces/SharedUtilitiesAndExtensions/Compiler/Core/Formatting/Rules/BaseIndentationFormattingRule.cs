@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private IndentBlockOperation CloneAndAdjustFormattingOperation(IndentBlockOperation operation)
         {
-            switch (operation.Option)
+            switch (operation.Option & IndentBlockOption.PositionMask)
             {
                 case IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine:
                     return FormattingOperations.CreateRelativeIndentBlockOperation(operation.BaseToken, operation.StartToken, operation.EndToken, AdjustTextSpan(operation.TextSpan), operation.IndentationDeltaOrPosition, operation.Option);

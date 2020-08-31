@@ -76,13 +76,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Select Case snippetFunctionName
                 Case "SimpleTypeName"
-                    pFunc = New SnippetFunctionSimpleTypeName(Me, TextView, SubjectBuffer, bstrFieldName, param)
+                    pFunc = New SnippetFunctionSimpleTypeName(Me, SubjectBuffer, bstrFieldName, param)
                     Return VSConstants.S_OK
                 Case "ClassName"
-                    pFunc = New SnippetFunctionClassName(Me, TextView, SubjectBuffer, bstrFieldName)
+                    pFunc = New SnippetFunctionClassName(Me, SubjectBuffer, bstrFieldName)
                     Return VSConstants.S_OK
                 Case "GenerateSwitchCases"
-                    pFunc = New SnippetFunctionGenerateSwitchCases(Me, TextView, SubjectBuffer, bstrFieldName, param)
+                    pFunc = New SnippetFunctionGenerateSwitchCases(Me, SubjectBuffer, bstrFieldName, param)
                     Return VSConstants.S_OK
                 Case Else
                     pFunc = Nothing

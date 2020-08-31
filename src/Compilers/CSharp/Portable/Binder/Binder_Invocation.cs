@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 result = BindDelegateInvocation(node, expression, methodName, boundExpression, analyzedArguments, diagnostics, queryClause, delegateType);
             }
-            else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointer)
+            else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointerType)
             {
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindFunctionPointerInvocation(node, boundExpression, analyzedArguments, diagnostics);
@@ -971,7 +971,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _ = BindToNaturalType(argument, diagnostics);
                                 break;
                             case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
-                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), conversionIfTargetTyped: null, diagnostics);
+                                _ = ConvertSwitchExpression(switchExpr, naturalType, conversionIfTargetTyped: null, diagnostics);
+                                break;
+                            case BoundUnconvertedConditionalOperator { Type: { } naturalType } conditionalExpr:
+                                _ = ConvertConditionalExpression(conditionalExpr, naturalType, conversionIfTargetTyped: null, diagnostics);
                                 break;
                         }
                     }
@@ -1671,6 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!overloadResolutionResult.Succeeded)
             {
+                ImmutableArray<FunctionPointerMethodSymbol> methods = methodsBuilder.ToImmutableAndFree();
                 overloadResolutionResult.ReportDiagnostics(
                     binder: this,
                     node.Location,
@@ -1680,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundExpression,
                     boundExpression.Syntax,
                     analyzedArguments,
-                    methodsBuilder.ToImmutableAndFree(),
+                    methods,
                     typeContainingConstructor: null,
                     delegateTypeBeingInvoked: null,
                     returnRefKind: funcPtr.Signature.RefKind);
@@ -1688,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundFunctionPointerInvocation(
                     node,
                     boundExpression,
-                    analyzedArguments.Arguments.SelectAsArray((expr, args) => args.binder.BindToNaturalType(expr, args.diagnostics), (binder: this, diagnostics)),
+                    BuildArgumentsForErrorRecovery(analyzedArguments, StaticCast<MethodSymbol>.From(methods)),
                     analyzedArguments.RefKinds.ToImmutableOrNull(),
                     LookupResultKind.OverloadResolutionFailure,
                     funcPtr.Signature.ReturnType,

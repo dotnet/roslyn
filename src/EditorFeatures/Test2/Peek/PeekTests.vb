@@ -182,13 +182,13 @@ End Module
 
         End Sub
 
-        Private Function GetPeekResultCollection(element As XElement) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
             Using workspace = TestWorkspace.Create(element)
                 Return GetPeekResultCollection(workspace)
             End Using
         End Function
 
-        Private Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
             Dim document = workspace.Documents.FirstOrDefault(Function(d) d.CursorPosition.HasValue)
 
             If document Is Nothing Then
@@ -219,11 +219,14 @@ End Module
             Dim item = items.SingleOrDefault()
 
             If item IsNot Nothing Then
+                Dim callbackMock = New Mock(Of IFindPeekResultsCallback)(MockBehavior.Strict)
+                callbackMock.Setup(Sub(s) s.ReportProgress(It.IsAny(Of Integer)))
+
                 Dim resultSource = item.GetOrCreateResultSource(PredefinedPeekRelationships.Definitions.Name)
                 resultSource.FindResults(PredefinedPeekRelationships.Definitions.Name,
                                          peekResult,
                                          CancellationToken.None,
-                                         New Mock(Of IFindPeekResultsCallback)(MockBehavior.Loose).Object)
+                                         callbackMock.Object)
             End If
 
             Return peekResult

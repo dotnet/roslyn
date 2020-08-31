@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpOrderModifiersCodeFixProvider : AbstractOrderModifiersCodeFixProvider
     {
-        private const string CS0267 = nameof(CS0267); // The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+        private const string CS0267 = nameof(CS0267); // The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

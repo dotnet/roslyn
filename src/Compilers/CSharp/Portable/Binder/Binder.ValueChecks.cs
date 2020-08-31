@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    // If we got here this should be a pttern indexer taking a Range,
+                    // If we got here this should be a pattern indexer taking a Range,
                     // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
                         (MethodSymbol)patternIndexer.PatternSymbol,
@@ -2569,6 +2569,11 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.ConvertedSwitchExpression:
+                case BoundKind.UnconvertedSwitchExpression:
+                    var switchExpr = (BoundSwitchExpression)expr;
+                    return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
+
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
@@ -2712,19 +2717,29 @@ moreArguments:
                     }
                     return true;
 
-                case BoundKind.ConditionalOperator:
-                    var conditional = (BoundConditionalOperator)expr;
-
-                    var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
-
-                    if (!consValid || conditional.IsRef)
+                case BoundKind.UnconvertedConditionalOperator:
                     {
-                        // ref conditional defers to one operand. 
-                        // the other one is the same or we will be reporting errors anyways.
-                        return consValid;
+                        var conditional = (BoundUnconvertedConditionalOperator)expr;
+                        return
+                            CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                            CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                     }
 
-                    return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                case BoundKind.ConditionalOperator:
+                    {
+                        var conditional = (BoundConditionalOperator)expr;
+
+                        var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                        if (!consValid || conditional.IsRef)
+                        {
+                            // ref conditional defers to one operand. 
+                            // the other one is the same or we will be reporting errors anyways.
+                            return consValid;
+                        }
+
+                        return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    }
 
                 case BoundKind.NullCoalescingOperator:
                     var coalescingOp = (BoundNullCoalescingOperator)expr;
@@ -3345,11 +3360,10 @@ moreArguments:
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
-
 
             if (field.IsStatic)
             {
@@ -3357,7 +3371,7 @@ moreArguments:
             }
             else
             {
-                return method.MethodKind == MethodKind.Constructor &&
+                return (method.MethodKind == MethodKind.Constructor || method.IsInitOnly) &&
                     fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference;
             }
         }

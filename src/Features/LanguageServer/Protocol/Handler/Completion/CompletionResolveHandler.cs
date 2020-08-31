@@ -23,16 +23,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal class CompletionResolveHandler : AbstractRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler()
+        public CompletionResolveHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             CompletionResolveData data;
             if (completionItem.Data is CompletionResolveData)
@@ -44,18 +43,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
             }
 
-            var request = data.CompletionParams;
-
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(data.TextDocument, context.ClientName);
             if (document == null)
             {
                 return completionItem;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
 
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return completionItem;
@@ -69,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
 
-            var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
+            var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
             LSP.CompletionItem resolvedCompletionItem;
             if (lspVSClientCapability)
             {
@@ -104,7 +101,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Kind = completionItem.Kind,
                 Label = completionItem.Label,
                 SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit
+                TextEdit = completionItem.TextEdit,
+                Preselect = completionItem.Preselect
             };
         }
     }

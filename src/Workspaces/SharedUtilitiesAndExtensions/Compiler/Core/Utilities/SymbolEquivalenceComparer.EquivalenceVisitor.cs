@@ -141,12 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     SymbolKind.RangeVariable => RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y),
                     SymbolKind.TypeParameter => TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Preprocessing => PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y),
-                    SymbolKindEx.FunctionPointer =>
-#if !CODE_STYLE
-                        FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
-#else
-                        false,
-#endif
+                    SymbolKind.FunctionPointerType => FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
                     _ => false,
                 };
             }
@@ -344,8 +339,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
-                if (x.IsDefinition != y.IsDefinition ||
-                    IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
+                if (IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
                     x.Name != y.Name ||
                     x.IsAnonymousType != y.IsAnonymousType ||
@@ -572,10 +566,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.PointedAtType, y.PointedAtType, equivalentTypesWithDifferingAssemblies);
             }
 
-#if !CODE_STYLE
             private bool FunctionPointerTypesAreEquivalent(IFunctionPointerTypeSymbol x, IFunctionPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
                 => MethodsAreEquivalent(x.Signature, y.Signature, equivalentTypesWithDifferingAssemblies);
-#endif
 
             private bool PropertiesAreEquivalent(IPropertySymbol x, IPropertySymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {

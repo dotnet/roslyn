@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
 
-        protected override ComposableCatalog GetExportCatalog()
-            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
+        protected override TestComposition GetComposition()
+            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(SourceCodeKind.Regular)]
@@ -1297,7 +1297,7 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
         public async Task PositionalPatternSecondPosition()
         {
@@ -7461,7 +7461,7 @@ class C
         }
 
         [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TildeOutsideClass()
         {
@@ -7473,7 +7473,8 @@ class C
     }
 }
 ~$$";
-            await VerifyNoItemsExistAsync(markup, SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "N");
         }
 
         [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
@@ -8073,7 +8074,7 @@ class A
 
         [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task WithinChainOfConditionalAccesses()
+        public async Task WithinChainOfConditionalAccesses1()
         {
             var markup = @"
 class Program
@@ -8090,6 +8091,48 @@ class B { public C c; }
 class C { public D d; }
 class D { public int e; }";
             await VerifyItemExistsAsync(markup, "b");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses2()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.$$c?.d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "c");
+        }
+
+        [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithinChainOfConditionalAccesses3()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        A a;
+        var x = a?.b?.c?.$$d.e;
+    }
+}
+
+class A { public B b; }
+class B { public C c; }
+class C { public D d; }
+class D { public int e; }";
+            await VerifyItemExistsAsync(markup, "d");
         }
 
         [WorkItem(843466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]

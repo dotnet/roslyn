@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static readonly TraceLog Log = new TraceLog(2048, "EnC");
 
         private readonly Workspace _workspace;
-        private readonly IActiveStatementSpanTracker _activeStatementSpanTracker;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IDebuggeeModuleMetadataProvider _debugeeModuleMetadataProvider;
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
-            IActiveStatementSpanTracker activeStatementSpanTracker,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
@@ -62,7 +60,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _diagnosticService = diagnosticService;
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
             _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
-            _activeStatementSpanTracker = activeStatementSpanTracker;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
@@ -83,7 +80,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
             // To work around we look for the PDB on the path specified in the PDB debug directory.
             // https://github.com/dotnet/roslyn/issues/35065
-            return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputFilePaths.AssemblyPath);
+            return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
         }
 
         public void OnSourceFileUpdated(DocumentId documentId)
@@ -107,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, _activeStatementSpanTracker, _debugeeModuleMetadataProvider);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider, _debugeeModuleMetadataProvider);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
@@ -155,10 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static bool SupportsEditAndContinue(Project project)
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 
-        internal static bool IsDesignTimeOnlyDocument(Document document)
-            => document.Services.GetService<DocumentPropertiesService>()?.DesignTimeOnly == true;
-
-        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             try
             {
@@ -176,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
-                if (IsDesignTimeOnlyDocument(document) || !document.SupportsSyntaxTree)
+                if (document.State.Attributes.DesignTimeOnly || !document.SupportsSyntaxTree)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -218,7 +212,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return GetRunModeDocumentDiagnostics(document, newSyntaxTree, changedSpans);
                 }
 
-                var analysis = await editSession.GetDocumentAnalysis(oldDocument, document).GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var documentActiveStatementSpans = await activeStatementSpanProvider(cancellationToken).ConfigureAwait(false);
+                var analysis = await editSession.GetDocumentAnalysis(oldDocument, document, documentActiveStatementSpans).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (analysis.HasChanges)
                 {
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
@@ -363,7 +358,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
-        public Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
+        public Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
             // GetStatusAsync is called outside of edit session when the debugger is determining 
             // whether a source file checksum matches the one in PDB.
@@ -371,13 +366,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             if (editSession == null)
             {
-                return Task.FromResult(false);
+                return SpecializedTasks.False;
             }
 
-            return editSession.HasChangesAsync(solution, sourceFilePath, cancellationToken);
+            return editSession.HasChangesAsync(solution, solutionActiveStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
-        public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(
+            Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
@@ -385,7 +381,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (SolutionUpdateStatus.None, ImmutableArray<Deltas>.Empty);
             }
 
-            var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, cancellationToken).ConfigureAwait(false);
+            var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
             if (solutionUpdate.Summary == SolutionUpdateStatus.Ready)
             {
                 editSession.StorePendingUpdate(solution, solutionUpdate);
@@ -459,7 +455,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return spans.ToImmutable();
         }
 
-        public async Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetDocumentActiveStatementSpansAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
@@ -479,7 +475,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return default;
             }
 
-            var analysis = await editSession.GetDocumentAnalysis(baseDocument, document).GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var documentActiveStatementSpans = await activeStatementSpanProvider(cancellationToken).ConfigureAwait(false);
+            var analysis = await editSession.GetDocumentAnalysis(baseDocument, document, documentActiveStatementSpans).GetValueAsync(cancellationToken).ConfigureAwait(false);
             if (analysis.ActiveStatements.IsDefault)
             {
                 return default;
@@ -488,7 +485,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return analysis.ActiveStatements.SelectAsArray(s => (s.Span, s.Flags));
         }
 
-        public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public async Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
             {
@@ -523,7 +520,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var documentAnalysis = await editSession.GetDocumentAnalysis(oldPrimaryDocument, primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var activeStatementSpans = await activeStatementSpanProvider(primaryDocument.Id, cancellationToken).ConfigureAwait(false);
+                var documentAnalysis = await editSession.GetDocumentAnalysis(oldPrimaryDocument, primaryDocument, activeStatementSpans).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var currentActiveStatements = documentAnalysis.ActiveStatements;
                 if (currentActiveStatements.IsDefault)
                 {

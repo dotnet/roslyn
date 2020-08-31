@@ -136,13 +136,25 @@ public class Derived2 : Derived<int>
             var comp = CreateCompilation(text3, ref2, assemblyName: "Test3");
             var diagnostics = comp.GetDiagnostics();
 
-            comp.VerifyDiagnostics(
-                // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
-                //     public override void Method(long l, int i) { }  //CS0462 and CS1957
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26),
-                // (4,26): warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.
-                //     public override void Method(long l, TInt i) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Derived<int>.Method(long, int)", "Derived2.Method(long, int)").WithLocation(4, 26));
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
+                    //     public override void Method(long l, int i) { }  //CS0462 and CS1957
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
+                    //     public override void Method(long l, int i) { }  //CS0462 and CS1957
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26),
+                    // (4,26): warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public override void Method(long l, TInt i) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Derived<int>.Method(long, int)", "Derived2.Method(long, int)").WithLocation(4, 26)
+                    );
+            }
         }
 
         [Fact]
@@ -183,57 +195,47 @@ abstract class Derived2 : Base<int, long>
     }
 }
 ";
-
-            CreateCompilation(source).VerifyDiagnostics(
-                // (12,26): error CS0462: The inherited members 'Base<T, U>.Method(T)' and 'Base<T, U>.Method(int)' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(int a)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T)", "Base<T, U>.Method(int)", "Derived"),
-                // (4,25): warning CS1957: Member 'Derived.Method(int)' overrides 'Base<int, int>.Method(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.
-                //     public virtual void Method(T x) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int)", "Derived.Method(int)"),
-                // (15,26): error CS0462: The inherited members 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(int a, int b)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)", "Derived"),
-                // (7,25): warning CS1957: Member 'Derived.Method(int, int)' overrides 'Base<int, int>.Method(int, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.
-                //     public virtual void Method(T x, U y) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int, int)", "Derived.Method(int, int)"),
-                // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
-                // class Derived : Base<int, int>
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)"),
-                // (21,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
-                //         base.Method(1, 1);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)"));
-        }
-
-        [Fact]
-        public void TestAmbiguousOverridesRefOut()
-        {
-            // Tests:
-            // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
-            // override only differ by ref / out - test that only a warning (for runtime ambiguity) is reported 
-            // in the case where ambiguous signatures differ by just ref / out
-
-            var source = @"
-using System.Collections.Generic;
-abstract class Base<T, U>
-{
-    public virtual void Method(ref List<T> x, out List<U> y) { y = null; }
-    public virtual void Method(out List<U> y, ref List<T> x) { y = null; }
-    public virtual void Method(ref List<U> x) { }  
-}
-class Base2<A, B> : Base<A, B>
-{
-    public virtual void Method(out List<A> x) { x = null; }
-}
-class Derived : Base2<int, int>
-{
-    public override void Method(ref List<int> a, out List<int> b) { b = null; } // Reports warning about runtime ambiguity
-    public override void Method(ref List<int> a) { } // No warning when ambiguous signatures are spread across multiple base types
-}";
-
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,25): warning CS1957: Member 'Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)' overrides 'Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)"));
+            var comp = CreateCompilation(source);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (15,26): error CS0462: The inherited members 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a, int b)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)", "Derived").WithLocation(15, 26),
+                    // (12,26): error CS0462: The inherited members 'Base<T, U>.Method(T)' and 'Base<T, U>.Method(int)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T)", "Base<T, U>.Method(int)", "Derived").WithLocation(12, 26),
+                    // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
+                    // class Derived : Base<int, int>
+                    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)").WithLocation(10, 7),
+                    // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
+                    //         base.Method(1, 1);
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)").WithLocation(21, 14)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (15,26): error CS0462: The inherited members 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a, int b)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)", "Derived").WithLocation(15, 26),
+                    // (7,25): warning CS1957: Member 'Derived.Method(int, int)' overrides 'Base<int, int>.Method(int, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(T x, U y) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int, int)", "Derived.Method(int, int)").WithLocation(7, 25),
+                    // (12,26): error CS0462: The inherited members 'Base<T, U>.Method(T)' and 'Base<T, U>.Method(int)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T)", "Base<T, U>.Method(int)", "Derived").WithLocation(12, 26),
+                    // (4,25): warning CS1957: Member 'Derived.Method(int)' overrides 'Base<int, int>.Method(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(T x) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int)", "Derived.Method(int)").WithLocation(4, 25),
+                    // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
+                    // class Derived : Base<int, int>
+                    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)").WithLocation(10, 7),
+                    // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
+                    //         base.Method(1, 1);
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)").WithLocation(21, 14)
+                    );
+            }
         }
 
         [Fact]
@@ -255,9 +257,26 @@ class Derived : Base<int, int>
     public override void Method(List<int> x, List<int>[] y) { }
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, params System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived"),
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])"));
+            CSharpCompilation comp = CreateCompilation(source);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, params List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, params System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, params List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, params System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26),
+                    // (5,25): warning CS1957: Member 'Derived.Method(List<int>, params List<int>[])' overrides 'Base<int, int>.Method(List<int>, params List<int>[])'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(List<T> x, params List<U>[] y) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])").WithLocation(5, 25)
+                    );
+            }
         }
 
 
@@ -280,9 +299,26 @@ class Derived : Base<int, int>
     public override void Method(List<int> x, List<int>[] y=null) { }
 }";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived"),
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])"));
+            CSharpCompilation comp = CreateCompilation(source);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y=null) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y=null) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26),
+                    // (5,25): warning CS1957: Member 'Derived.Method(List<int>, List<int>[])' overrides 'Base<int, int>.Method(List<int>, List<int>[])'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(List<T> x, List<U>[] y=null) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])").WithLocation(5, 25)
+                    );
+            }
         }
 
         [Fact]
@@ -351,9 +387,9 @@ class CBar : IFoo // CS0535 * 2
     // (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
     // class CBar : IFoo // CS0535 * 2
     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
-    // (2,21): error CS0570: 'IFooAmbiguous<T, R>.M(?)' is not supported by the language
-    // public class CFoo : IFooAmbiguous<string, long> // CS0535
-    Diagnostic(ErrorCode.ERR_BindToBogus, "IFooAmbiguous<string, long>").WithArguments("Metadata.IFooAmbiguous<T, R>.M(?)").WithLocation(2, 21)
+    // (4,17): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
+    //     public long M(string t) { return 127; } 
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 17)
             );
         }
 
@@ -373,12 +409,18 @@ public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
     // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
     //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
     Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
+    // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
     // (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
     // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
-    // (2,21): error CS0570: 'IFooAmbiguous<T, R>.M(?)' is not supported by the language
+    // (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
     // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
-    Diagnostic(ErrorCode.ERR_BindToBogus, "IFooAmbiguous<string, long>").WithArguments("Metadata.IFooAmbiguous<T, R>.M(?)").WithLocation(2, 21)
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
+    // (4,38): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 38)
                 );
         }
 
@@ -401,9 +443,9 @@ class Test
 ";
             var asm = MetadataReference.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-    // (11,9): error CS0570: 'Metadata.Modreq.M(?)' is not supported by the language
+    // (11,17): error CS0570: 'Modreq.M(uint)' is not supported by the language
     //         new D().M(11); // Dev10: error CS0570: 'M' is not supported by the language
-    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(?)")
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(11, 17)
                 );
         }
 
@@ -429,7 +471,9 @@ class Test
             var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("Test.D.M(uint)"));
+                // (8,30): error CS0570: 'Modreq.M(uint)' is not supported by the language
+                //         public override void M(uint x) { Console.Write(x + 1); } // CS0115
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(8, 30));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

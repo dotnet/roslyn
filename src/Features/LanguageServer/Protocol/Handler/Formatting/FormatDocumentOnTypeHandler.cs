@@ -21,19 +21,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
-    internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
+    internal class FormatDocumentOnTypeHandler : AbstractRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentOnTypeHandler()
+        public FormatDocumentOnTypeHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities? clientCapabilities,
-            string? clientName, CancellationToken cancellationToken)
+        public override async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document != null)
             {
                 var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();

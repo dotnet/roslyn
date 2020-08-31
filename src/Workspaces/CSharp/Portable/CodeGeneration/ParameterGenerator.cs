@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IParameterSymbol parameter, bool isFirstParam)
         {
-            var list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
+            var list = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter.RefKind);
 
             if (isFirstParam &&
                 parameter.ContainingSymbol is IMethodSymbol methodSymbol &&

@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -34,20 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions);
 
             // See CSharpCompilation.SerializeForPdb to see options that are included
-            Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
-            Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
-            Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
+            pdbOptions.VerifyPdbOption("nullable", originalOptions.NullableContextOptions);
+            pdbOptions.VerifyPdbOption("checked", originalOptions.CheckOverflow);
+            pdbOptions.VerifyPdbOption("unsafe", originalOptions.AllowUnsafe);
+
             Assert.Equal(langVersion, pdbOptions["language-version"]);
 
-            var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;
-            if (firstSyntaxTree is null || firstSyntaxTree.Options.PreprocessorSymbols.IsEmpty)
-            {
-                Assert.False(pdbOptions.ContainsKey("define"));
-            }
-            else
-            {
-                Assert.Equal(string.Join(",", firstSyntaxTree.Options.PreprocessorSymbolNames), pdbOptions["define"]);
-            }
+            var firstSyntaxTree = (CSharpSyntaxTree)compilation.SyntaxTrees.FirstOrDefault();
+            pdbOptions.VerifyPdbOption("define", firstSyntaxTree.Options.PreprocessorSymbolNames, isDefault: v => v.IsEmpty(), toString: v => string.Join(",", v));
         }
 
         private static void TestDeterministicCompilationCSharp(string langVersion, SyntaxTree[] syntaxTrees, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
@@ -56,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 syntaxTrees,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
                 options: compilationOptions,
-                // TFM needs to specified so the references are always the same, and not 
-                // dependent on the testrun environment 
+                // TFM needs to specified so the references are always the same, and not
+                // dependent on the testrun environment
                 targetFramework: TargetFramework.NetCoreApp30);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
@@ -110,7 +106,7 @@ class TypeTwo
             var sourceThree = Parse(@"
 class TypeThree
 {
-}", options: parseOptions, encoding: Encoding.UTF7);
+}", options: parseOptions, encoding: Encoding.Unicode);
 
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
@@ -219,7 +215,7 @@ public struct StructWithValue
             // Provide non default options for to test that they are being serialized
             // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
             // everything should be non-default if possible. Diagnostic settings are ignored
-            // because they won't be serialized. 
+            // because they won't be serialized.
 
             // Use constructor that requires all arguments. If new arguments are added, it's possible they need to be
             // included in the pdb serialization and added to tests here
@@ -247,6 +243,7 @@ public struct StructWithValue
                 debugPlusMode: false,
                 xmlReferenceResolver: null,
                 sourceReferenceResolver: null,
+                syntaxTreeOptionsProvider: null,
                 metadataReferenceResolver: null,
                 assemblyIdentityComparer: null,
                 strongNameProvider: null,
@@ -275,6 +272,7 @@ public struct StructWithValue
                 kind: SourceCodeKind.Regular);
 
             yield return parseOptions;
+            yield return parseOptions.WithLanguageVersion(LanguageVersion.CSharp9);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Latest);
             yield return parseOptions.WithLanguageVersion(LanguageVersion.Preview);
         }

@@ -194,25 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.Parameter(
                 default,
-                GetParameterModifiers(refKind),
+                CSharpSyntaxGeneratorInternal.GetParameterModifiers(refKind),
                 (TypeSyntax)type,
                 name.ToIdentifierToken(),
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
         }
-
-        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
-            => refKind switch
-            {
-                RefKind.None => new SyntaxTokenList(),
-                RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
-                RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
-                // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
-                // ref kind syntax when generating for the return parameter vs other parameters.
-                // The return parameter must use ref readonly, like regular methods.
-                RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
-                RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
-                _ => throw ExceptionUtilities.UnexpectedValue(refKind),
-            };
 
         internal static SyntaxToken GetArgumentModifiers(RefKind refKind)
         {
@@ -2230,6 +2216,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
                     goto default;
 
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExpressionBody != null)
+                    {
+                        return method.ExpressionBody.Expression;
+                    }
+                    goto default;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var local = (LocalFunctionStatementSyntax)declaration;
+                    if (local.ExpressionBody != null)
+                    {
+                        return local.ExpressionBody.Expression;
+                    }
+                    goto default;
+
                 default:
                     return GetEqualsValue(declaration)?.Value;
             }
@@ -2263,6 +2265,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (id.ExpressionBody != null)
                     {
                         return ReplaceWithTrivia(id, id.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(method, method.ExpressionBody.Expression, expr);
+                    }
+                    goto default;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var local = (LocalFunctionStatementSyntax)declaration;
+                    if (local.ExpressionBody != null)
+                    {
+                        return ReplaceWithTrivia(local, local.ExpressionBody.Expression, expr);
                     }
                     goto default;
 
@@ -2462,14 +2480,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return WithAccessorList(declaration, newList);
         }
 
-        private static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
-            => declaration.Kind() switch
-            {
-                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).AccessorList,
-                SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).AccessorList,
-                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).AccessorList,
-                _ => null,
-            };
+        internal static AccessorListSyntax GetAccessorList(SyntaxNode declaration)
+            => (declaration as BasePropertyDeclarationSyntax)?.AccessorList;
 
         private static bool CanHaveAccessors(SyntaxNode declaration)
             => declaration.Kind() switch
@@ -2481,11 +2493,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         private static SyntaxNode WithAccessorList(SyntaxNode declaration, AccessorListSyntax accessorList)
-            => declaration.Kind() switch
+            => declaration switch
             {
-                SyntaxKind.PropertyDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
-                SyntaxKind.IndexerDeclaration => ((PropertyDeclarationSyntax)declaration).WithAccessorList(accessorList),
-                SyntaxKind.EventDeclaration => ((EventDeclarationSyntax)declaration).WithAccessorList(accessorList),
+                BasePropertyDeclarationSyntax baseProperty => baseProperty.WithAccessorList(accessorList),
                 _ => declaration,
             };
 
@@ -2792,6 +2802,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
+            if (declaration.Parent.IsKind(SyntaxKind.GlobalStatement))
+            {
+                // Insert global statements before this global statement
+                declaration = declaration.Parent;
+                newDeclarations = newDeclarations.Select(declaration => declaration is StatementSyntax statement ? SyntaxFactory.GlobalStatement(statement) : declaration);
+            }
+
             if (root.Span.Contains(declaration.Span))
             {
                 return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
@@ -2824,6 +2841,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
+            if (declaration.Parent.IsKind(SyntaxKind.GlobalStatement))
+            {
+                // Insert global statements before this global statement
+                declaration = declaration.Parent;
+                newDeclarations = newDeclarations.Select(declaration => declaration is StatementSyntax statement ? SyntaxFactory.GlobalStatement(statement) : declaration);
+            }
+
             if (root.Span.Contains(declaration.Span))
             {
                 return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
@@ -2884,6 +2908,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
         {
+            if (node.Parent.IsKind(SyntaxKind.GlobalStatement))
+            {
+                // Remove the entire global statement as part of the edit
+                node = node.Parent;
+            }
+
             if (root.Span.Contains(node.Span))
             {
                 // node exists within normal span of the root (not in trivia)
@@ -3545,42 +3575,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode ParseExpression(string stringToParse)
             => SyntaxFactory.ParseExpression(stringToParse);
-
-        #endregion
-
-        #region Patterns
-
-        internal override bool SupportsPatterns(ParseOptions options)
-            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
-
-        internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isKeyword, SyntaxNode pattern)
-            => SyntaxFactory.IsPatternExpression(
-                (ExpressionSyntax)expression,
-                isKeyword == default ? SyntaxFactory.Token(SyntaxKind.IsKeyword) : isKeyword,
-                (PatternSyntax)pattern);
-
-        internal override SyntaxNode ConstantPattern(SyntaxNode expression)
-            => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
-
-        internal override SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name)
-            => SyntaxFactory.DeclarationPattern(
-                type.GenerateTypeSyntax(),
-                SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
-
-        internal override SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.BinaryPattern(SyntaxKind.AndPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
-
-        internal override SyntaxNode NotPattern(SyntaxNode pattern)
-            => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), (PatternSyntax)Parenthesize(pattern));
-
-        internal override SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
-
-        internal override SyntaxNode ParenthesizedPattern(SyntaxNode pattern)
-            => Parenthesize(pattern);
-
-        internal override SyntaxNode TypePattern(SyntaxNode type)
-            => SyntaxFactory.TypePattern((TypeSyntax)type);
 
         #endregion
     }

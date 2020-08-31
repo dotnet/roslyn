@@ -13,31 +13,27 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler()
+        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public Task<ActiveProjectContexts?> HandleRequestAsync(
-            Solution solution,
-            GetTextDocumentWithContextParams request,
-            ClientCapabilities clientCapabilities,
-            string? clientName,
-            CancellationToken cancellationToken)
+        public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = solution.GetDocuments(request.TextDocument.Uri, clientName);
+            var documents = SolutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
             if (!documents.Any())
             {
-                return Task.FromResult<ActiveProjectContexts?>(null);
+                return SpecializedTasks.Null<ActiveProjectContexts>();
             }
 
             var contexts = new List<ProjectContext>();
@@ -45,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var document in documents)
             {
                 var project = document.Project;
-                var context = new ProjectContext
+                var projectContext = new ProjectContext
                 {
                     Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
                     Label = project.Name
@@ -53,14 +49,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (project.Language == LanguageNames.CSharp)
                 {
-                    context.Kind = ProjectContextKind.CSharp;
+                    projectContext.Kind = ProjectContextKind.CSharp;
                 }
                 else if (project.Language == LanguageNames.VisualBasic)
                 {
-                    context.Kind = ProjectContextKind.VisualBasic;
+                    projectContext.Kind = ProjectContextKind.VisualBasic;
                 }
 
-                contexts.Add(context);
+                contexts.Add(projectContext);
             }
 
             // If the document is open, it doesn't matter which DocumentId we pass to GetDocumentIdInCurrentContext since
@@ -68,7 +64,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // GetDocumentIdInCurrentContext will just return the same ID back, which means we're going to pick the first
             // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
             // close documents anyways.
-            var currentContextDocumentId = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+            var openDocument = documents.First();
+            var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
             return Task.FromResult<ActiveProjectContexts?>(new ActiveProjectContexts
             {

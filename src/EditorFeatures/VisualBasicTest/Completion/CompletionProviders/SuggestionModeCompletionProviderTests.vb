@@ -378,9 +378,14 @@ End Class</a>
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
                 Try
-                    Dim options = If(useDebuggerOptions,
-                                 (workspaceFixture.GetWorkspace(ExportProvider)).Options.WithDebuggerCompletionOptions(),
-                                 (workspaceFixture.GetWorkspace(ExportProvider)).Options)
+                    Dim options = workspaceFixture.GetWorkspace(ExportProvider).Options
+
+                    If useDebuggerOptions Then
+                        options = options.
+                            WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, False).
+                            WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, False).
+                            WithChangedOption(CompletionServiceOptions.DisallowAddingImports, True)
+                    End If
 
                     Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
                     Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)

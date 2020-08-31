@@ -21,6 +21,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
             }
 
+            public void IsNotSaved()
+            {
+                _textViewWindow._editorInProc.VerifyNotSaved();
+            }
+
+            public string IsSaved()
+            {
+                return _textViewWindow._editorInProc.VerifySaved();
+            }
+
             public void CurrentLineText(
                 string expectedText,
                 bool assertCaretPosition = false,

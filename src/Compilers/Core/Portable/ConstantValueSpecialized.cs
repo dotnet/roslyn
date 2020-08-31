@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -125,6 +126,13 @@ namespace Microsoft.CodeAnalysis
         private sealed class ConstantValueString : ConstantValue
         {
             private readonly Rope _value;
+            /// <summary>
+            /// Some string constant values can have large costs to realize. To compensate, we realize
+            /// constant values lazily, and hold onto a weak reference. If the next time we're asked for the constant
+            /// value the previous one still exists, we can avoid rerealizing it. But we don't want to root the constant
+            /// value if it's not being used.
+            /// </summary>
+            private WeakReference<string>? _constantValueReference;
 
             public ConstantValueString(string value)
             {
@@ -157,7 +165,19 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return _value.ToString();
+                    string? constantValue = null;
+                    if (_constantValueReference?.TryGetTarget(out constantValue) != true)
+                    {
+                        // Note: we could end up realizing the constant value multiple times if there's
+                        // a race here. Currently, this isn't believed to be an issue, as the assignment
+                        // to _constantValueReference is atomic so the worst that will happen is we return
+                        // different instances of a string constant.
+                        constantValue = _value.ToString();
+                        _constantValueReference = new WeakReference<string>(constantValue);
+                    }
+
+                    Debug.Assert(constantValue != null);
+                    return constantValue;
                 }
             }
 

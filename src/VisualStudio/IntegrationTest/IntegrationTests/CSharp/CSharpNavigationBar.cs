@@ -32,8 +32,8 @@ struct S
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpNavigationBar))
+        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpNavigationBar))
         {
         }
 
@@ -72,11 +72,6 @@ struct S
             VerifyRightSelected("this[int index]");
 
             VisualStudio.Editor.ExpandTypeNavBar();
-            var expectedItems = new[]
-            {
-                "C",
-                "S",
-            };
 
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Allows asking semantic questions about a tree of syntax nodes in a Compilation. Typically,
     /// an instance is obtained by a call to <see cref="Compilation"/>.<see
-    /// cref="Compilation.GetSemanticModel"/>. 
+    /// cref="Compilation.GetSemanticModel(SyntaxTree, bool)"/>. 
     /// </summary>
     /// <remarks>
     /// <para>An instance of <see cref="CSharpSemanticModel"/> caches local symbols and semantic
@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return
                         (node is ExpressionSyntax && (isSpeculative || allowNamedArgumentName || !SyntaxFacts.IsNamedArgumentName(node))) ||
                         (node is ConstructorInitializerSyntax) ||
+                        (node is PrimaryConstructorBaseTypeSyntax) ||
                         (node is AttributeSyntax) ||
                         (node is CrefSyntax);
             }
@@ -636,13 +637,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolInfo.None;
         }
 
-
         /// <summary>
         /// Returns what symbol(s), if any, the given constructor initializer syntax bound to in the program.
         /// </summary>
         /// <param name="constructorInitializer">The syntax node to get semantic information for.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         public SymbolInfo GetSymbolInfo(ConstructorInitializerSyntax constructorInitializer, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(constructorInitializer);
+
+            return CanGetSemanticInfo(constructorInitializer)
+                ? GetSymbolInfoWorker(constructorInitializer, SymbolInfoOptions.DefaultOptions, cancellationToken)
+                : SymbolInfo.None;
+        }
+
+        /// <summary>
+        /// Returns what symbol(s), if any, the given constructor initializer syntax bound to in the program.
+        /// </summary>
+        /// <param name="constructorInitializer">The syntax node to get semantic information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public SymbolInfo GetSymbolInfo(PrimaryConstructorBaseTypeSyntax constructorInitializer, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(constructorInitializer);
 
@@ -798,7 +812,82 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
 
                 BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, diagnostics);
-                var binfo = memberModel.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnode.Expression, bnode.Expression, boundNodeForSyntacticParent: null, binderOpt: binder);
+                var binfo = GetSymbolInfoFromBoundConstructorInitializer(memberModel, binder, bnode);
+                diagnostics.Free();
+                return binfo;
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
+        private static SymbolInfo GetSymbolInfoFromBoundConstructorInitializer(MemberSemanticModel memberModel, Binder binder, BoundExpressionStatement bnode)
+        {
+            BoundExpression expression = bnode.Expression;
+
+            while (expression is BoundSequence sequence)
+            {
+                expression = sequence.Value;
+            }
+
+            return memberModel.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, expression, expression, boundNodeForSyntacticParent: null, binderOpt: binder);
+        }
+
+        /// <summary>
+        /// Bind the constructor initializer in the context of the specified location and get semantic information
+        /// about symbols. This method is used to get semantic information about a constructor
+        /// initializer that did not actually appear in the source code.
+        /// 
+        /// NOTE: This will only work in locations where there is already a constructor initializer.
+        /// </summary>
+        /// <param name="position">A character position used to identify a declaration scope and accessibility. This
+        /// character position must be within the span of an existing constructor initializer.
+        /// </param>
+        /// <param name="constructorInitializer">A syntax node that represents a parsed constructor initializer. This syntax node
+        /// need not and typically does not appear in the source code referred to SemanticModel instance.</param>
+        /// <returns>The semantic information for the topmost node of the constructor initializer.</returns>
+        public SymbolInfo GetSpeculativeSymbolInfo(int position, PrimaryConstructorBaseTypeSyntax constructorInitializer)
+        {
+            Debug.Assert(CanGetSemanticInfo(constructorInitializer, isSpeculative: true));
+
+            position = CheckAndAdjustPosition(position);
+
+            if (constructorInitializer == null)
+            {
+                throw new ArgumentNullException(nameof(constructorInitializer));
+            }
+
+            // NOTE: since we're going to be depending on a MemberModel to do the binding for us,
+            // we need to find a constructor initializer in the tree of this semantic model.
+            // NOTE: This approach will not allow speculative binding of a constructor initializer
+            // on a constructor that didn't formerly have one.
+            // TODO: Should we support positions that are not in existing constructor initializers?
+            // If so, we will need to build up the context that would otherwise be built up by
+            // InitializerMemberModel.
+            var existingConstructorInitializer = this.Root.FindToken(position).Parent.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault();
+
+            if (existingConstructorInitializer == null)
+            {
+                return SymbolInfo.None;
+            }
+
+            MemberSemanticModel memberModel = GetMemberModel(existingConstructorInitializer);
+
+            if (memberModel == null)
+            {
+                return SymbolInfo.None;
+            }
+
+            var argumentList = existingConstructorInitializer.ArgumentList;
+            var binder = memberModel.GetEnclosingBinder(LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken) ? position : argumentList.OpenParenToken.SpanStart);
+            if (binder != null)
+            {
+                var diagnostics = DiagnosticBag.GetInstance();
+                binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
+
+                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, diagnostics);
+                SymbolInfo binfo = GetSymbolInfoFromBoundConstructorInitializer(memberModel, binder, bnode);
                 diagnostics.Free();
                 return binfo;
             }
@@ -1014,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets a list of method or indexed property symbols for a syntax node.
+        /// Gets a list of method symbols for a syntax node.
         /// </summary>
         /// <param name="initializer">The syntax node to get semantic information for.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -1951,8 +2040,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
-                    pattern.InputType, pattern.ConvertedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
+                    pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref useSiteDiagnostics));
             }
 
             var boundExpr = lowestBoundNode as BoundExpression;
@@ -2114,6 +2203,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion = exprConversion;
                     type = null;
                     nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
+                }
+                else if (highestBoundExpr is BoundConvertedSwitchExpression e)
+                {
+                    Debug.Assert(boundExpr == highestBoundExpr);
+                    type = e.NaturalTypeOpt;
+                    convertedType = e.Type;
+                    convertedNullability = e.TopLevelNullability;
+                    conversion = e.Conversion.IsValid ? e.Conversion : Conversion.NoConversion;
+                }
+                else if (highestBoundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
+                {
+                    type = cond.NaturalTypeOpt;
+                    convertedType = cond.Type;
+                    convertedNullability = nullability;
+                    conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
                 }
                 else
                 {
@@ -2505,6 +2609,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel);
+
+        /// <summary>
+        /// Get a SemanticModel object that is associated with a constructor initializer that did not appear in
+        /// this source code. This can be used to get detailed semantic information about sub-parts
+        /// of a constructor initializer that did not appear in source code. 
+        /// 
+        /// NOTE: This will only work in locations where there is already a constructor initializer.
+        /// </summary>
+        /// <param name="position">A character position used to identify a declaration scope and accessibility. This
+        /// character position must be within the span of an existing constructor initializer.
+        /// </param>
+        /// <param name="constructorInitializer">A syntax node that represents a parsed constructor initializer.
+        /// This node should not be present in the syntax tree associated with this object.</param>
+        /// <param name="speculativeModel">A SemanticModel object that can be used to inquire about the semantic
+        /// information associated with syntax nodes within <paramref name="constructorInitializer"/>.</param>
+        /// <returns>Flag indicating whether a speculative semantic model was created.</returns>
+        /// <exception cref="ArgumentException">Throws this exception if the <paramref name="constructorInitializer"/> node is contained any SyntaxTree in the current Compilation.</exception>
+        /// <exception cref="ArgumentNullException">Throws this exception if <paramref name="constructorInitializer"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Throws this exception if this model is a speculative semantic model, i.e. <see cref="SemanticModel.IsSpeculativeSemanticModel"/> is true.
+        /// Chaining of speculative semantic model is not supported.</exception>
+        public bool TryGetSpeculativeSemanticModel(int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
+        {
+            CheckModelAndSyntaxNodeToSpeculate(constructorInitializer);
+            return TryGetSpeculativeSemanticModelCore((SyntaxTreeSemanticModel)this, position, constructorInitializer, out speculativeModel);
+        }
+
+        internal abstract bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel);
 
         /// <summary>
         /// Get a SemanticModel object that is associated with a cref that did not appear in
@@ -4745,6 +4876,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(expression, cancellationToken);
                 case ConstructorInitializerSyntax initializer:
                     return this.GetSymbolInfo(initializer, cancellationToken);
+                case PrimaryConstructorBaseTypeSyntax initializer:
+                    return this.GetSymbolInfo(initializer, cancellationToken);
                 case AttributeSyntax attribute:
                     return this.GetSymbolInfo(attribute, cancellationToken);
                 case CrefSyntax cref:
@@ -4811,6 +4944,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExpressionSyntax expression:
                     return GetSpeculativeSymbolInfo(position, expression, bindingOption);
                 case ConstructorInitializerSyntax initializer:
+                    return GetSpeculativeSymbolInfo(position, initializer);
+                case PrimaryConstructorBaseTypeSyntax initializer:
                     return GetSpeculativeSymbolInfo(position, initializer);
                 case AttributeSyntax attribute:
                     return GetSpeculativeSymbolInfo(position, attribute);
@@ -4971,34 +5106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpDeclarationComputer.ComputeDeclarationsInNode(this, associatedSymbol, node, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
-        internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
-        {
-            if (declaredNode is CompilationUnitSyntax unit && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            {
-                switch (declaredSymbol.Kind)
-                {
-                    case SymbolKind.Namespace:
-                        Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
-                        // Do not include top level global statements into a global namespace
-                        return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
-
-                    case SymbolKind.Method:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
-                        // Include only global statements at the top level
-                        return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
-
-                    case SymbolKind.NamedType:
-                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
-                        return (node) => false;
-
-                    default:
-                        ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                        break;
-                }
-            }
-
-            return base.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-        }
+        internal abstract override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol);
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
@@ -5154,7 +5262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode() ? NullableContextOptions.Disable : Compilation.Options.NullableContextOptions;
+            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
+                ? NullableContextOptions.Disable
+                : Compilation.Options.NullableContextOptions;
 
             NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
             context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);

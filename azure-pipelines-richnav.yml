@@ -1,10 +1,12 @@
-# Run on master CI builds
-trigger:
+trigger: none
+pr: none
+
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight (UTC) RichNav indexer run
   branches:
     include:
     - master
-
-pr: none
 
 jobs:
 - job: RichCodeNav_Indexing
@@ -18,12 +20,6 @@ jobs:
   steps:
     - script: eng/cibuild.cmd -configuration Debug -prepareMachine
       displayName: Build
-      
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk'
-      inputs:
-        packageType: sdk
-        version: 2.1.503
 
     - task: RichCodeNavIndexer@0
       displayName: RichCodeNav Upload
@@ -32,3 +28,5 @@ jobs:
         environment: production
         richNavLogOutputDirectory: $(Build.SourcesDirectory)/artifacts/bin
       continueOnError: true
+      env:
+        DOTNET_ROOT: $(Build.SourcesDirectory)/.dotnet

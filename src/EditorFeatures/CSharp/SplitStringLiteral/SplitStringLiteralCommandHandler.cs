@@ -4,12 +4,12 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SplitStringLiteralCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             return false;
         }
 
-        private bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
+        private static bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
         {
             var snapshot = line.Snapshot;
             for (int i = line.Start; i < caretPosition; i++)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             return false;
         }
 
-        private int? SplitStringLiteral(
+        private static int? SplitStringLiteral(
             Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);

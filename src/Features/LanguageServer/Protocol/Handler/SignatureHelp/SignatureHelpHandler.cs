@@ -21,19 +21,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
+    internal class SignatureHelpHandler : AbstractRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
+        public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders, ILspSolutionProvider solutionProvider)
+            : base(solutionProvider)
             => _allProviders = allProviders;
 
-        public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.SignatureHelp> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = SolutionProvider.GetDocument(request.TextDocument, context.ClientName);
             if (document == null)
             {
                 return new LSP.SignatureHelp();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     foreach (var item in items.Items)
                     {
                         LSP.SignatureInformation sigInfo;
-                        if (clientCapabilities?.HasVisualStudioLspCapability() == true)
+                        if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                         {
                             sigInfo = new LSP.VSSignatureInformation
                             {
