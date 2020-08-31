@@ -6285,45 +6285,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportNullabilityMismatchWithTargetDelegate(Location location, TypeSymbol targetType, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool invokedAsExtensionMethod)
         {
-            Debug.Assert((object)sourceInvokeMethod != null);
-            Debug.Assert(sourceInvokeMethod.MethodKind != MethodKind.LambdaMethod);
+            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
+                compilation,
+                targetInvokeMethod,
+                sourceInvokeMethod,
+                Diagnostics,
+                reportBadDelegateReturn,
+                reportBadDelegateParameter,
+                extraArgument: (targetType, location),
+                invokedAsExtensionMethod: invokedAsExtensionMethod);
 
-            if (targetInvokeMethod is null)
+            void reportBadDelegateReturn(DiagnosticBag bag, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
-                return;
-            }
-
-            if (IsNullabilityMismatch(sourceInvokeMethod.ReturnTypeWithAnnotations, targetInvokeMethod.ReturnTypeWithAnnotations, requireIdentity: false))
-            {
-                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, location,
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, arg.location,
                     new FormattedSymbol(sourceInvokeMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                    targetType);
+                    arg.targetType);
             }
 
-            int methodOffset = invokedAsExtensionMethod ? 1 : 0;
-            int count = Math.Min(targetInvokeMethod.ParameterCount, sourceInvokeMethod.ParameterCount - methodOffset);
-            for (int i = 0; i < count; i++)
+            void reportBadDelegateParameter(DiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
-                var invokeParameter = targetInvokeMethod.Parameters[i];
-                var methodParameter = sourceInvokeMethod.Parameters[i + methodOffset];
-
-                var sourceParameter = invokeParameter;
-                var destinationParameter = methodParameter;
-
-                var invokeRefKind = invokeParameter.RefKind;
-                if (invokeRefKind == RefKind.Out)
-                {
-                    // out parameters have inverted variance
-                    (sourceParameter, destinationParameter) = (destinationParameter, sourceParameter);
-                }
-
-                if (IsNullabilityMismatch(sourceParameter.TypeWithAnnotations, destinationParameter.TypeWithAnnotations, requireIdentity: invokeRefKind == RefKind.Ref))
-                {
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
-                        GetParameterAsDiagnosticArgument(methodParameter),
-                        GetContainingSymbolAsDiagnosticArgument(methodParameter),
-                        targetType);
-                }
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, arg.location,
+                    GetParameterAsDiagnosticArgument(parameter),
+                    GetContainingSymbolAsDiagnosticArgument(parameter),
+                    arg.targetType);
             }
         }
 

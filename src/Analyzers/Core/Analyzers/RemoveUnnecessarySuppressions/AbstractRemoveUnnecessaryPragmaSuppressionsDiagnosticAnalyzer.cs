@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             ReportDiagnostic severity;
             if (
                 compilationWithAnalyzers.Compilation.Options.SyntaxTreeOptionsProvider != null &&
-                compilationWithAnalyzers.Compilation.Options.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(tree, IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, out severity) ||
+                compilationWithAnalyzers.Compilation.Options.SyntaxTreeOptionsProvider.TryGetDiagnosticValue(tree, IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, cancellationToken, out severity) ||
                 compilationWithAnalyzers.Compilation.Options.SpecificDiagnosticOptions.TryGetValue(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, out severity))
             {
                 if (severity == ReportDiagnostic.Suppress)

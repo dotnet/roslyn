@@ -2,7 +2,7 @@
 
 A number of NuGet packages are published from the Roslyn repo:
 * Official released packages are published to [nuget.org](https://www.nuget.org/profiles/RoslynTeam), when Visual Studio releases a new RTM or Preview version.
-* Pre-release packages are published daily to [myget.org](https://dotnet.myget.org/gallery/roslyn).
+* Pre-release packages are published daily to [Azure Devops](https://dev.azure.com/dnceng/public/_packaging?_a=feed&feed=dotnet-tools).
 
 ### Microsoft.Net.Compilers.Toolset
 

@@ -617,4 +617,7 @@
   <data name="Prefer_pattern_matching_over_mixed_type_check" xml:space="preserve">
     <value>Prefer pattern matching over mixed type check</value>
   </data>
+  <data name="Edit_color_scheme" xml:space="preserve">
+    <value>Edit color scheme</value>
+  </data>
 </root>

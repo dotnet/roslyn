@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (!documents.Any())
             {
-                return Task.FromResult<ActiveProjectContexts?>(null);
+                return SpecializedTasks.Null<ActiveProjectContexts>();
             }
 
             var contexts = new List<ProjectContext>();

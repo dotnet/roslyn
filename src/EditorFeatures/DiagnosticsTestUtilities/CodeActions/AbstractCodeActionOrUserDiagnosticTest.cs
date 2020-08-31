@@ -455,31 +455,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private static void TestDiagnosticTags(
-            ImmutableArray<Diagnostic> diagnostics,
-            ImmutableArray<TextSpan> expectedSpans,
-            string diagnosticTag,
-            string markupKey,
-            string initialMarkupWithoutSpans)
-        {
-            var diagnosticsWithTag = diagnostics
-                .Where(d => d.Descriptor.CustomTags.Contains(diagnosticTag))
-                .OrderBy(s => s.Location.SourceSpan.Start)
-                .ToImmutableArray();
-
-            if (expectedSpans.Length != diagnosticsWithTag.Length)
-            {
-                AssertEx.Fail(BuildFailureMessage(expectedSpans, diagnosticTag, markupKey, initialMarkupWithoutSpans, diagnosticsWithTag));
-            }
-
-            for (var i = 0; i < expectedSpans.Length; i++)
-            {
-                var actual = diagnosticsWithTag[i].Location.SourceSpan;
-                var expected = expectedSpans[i];
-                Assert.Equal(expected, actual);
-            }
-        }
-
         private static string BuildFailureMessage(
             ImmutableArray<TextSpan> expectedSpans,
             string diagnosticTag,
