@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.Cci;
 using System.Threading;
+using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class TokenMap
     {
-        private readonly ConcurrentDictionary<IReferenceOrISignature, uint> _itemIdentityToToken = new ConcurrentDictionary<IReferenceOrISignature, uint>();
-        private readonly Dictionary<IReferenceOrISignatureEquivalent, uint> _itemEquivalentToToken = new Dictionary<IReferenceOrISignatureEquivalent, uint>();
+        private readonly ConcurrentDictionary<IReferenceOrISignature, uint> _itemIdentityToToken = new();
+        private readonly Dictionary<IReferenceOrISignatureEquivalent, uint> _itemEquivalentToToken = new();
         private object[] _items = Array.Empty<object>();
         private int _count = 0;
 
