@@ -169,6 +169,17 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().LastOrDefault();
         }
 
+        public static T? SingleOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+            where T : struct
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            return source.Cast<T?>().SingleOrDefault(v => predicate(v!.Value));
+        }
+
         public static bool IsSingle<T>(this IEnumerable<T> list)
         {
             using var enumerator = list.GetEnumerator();

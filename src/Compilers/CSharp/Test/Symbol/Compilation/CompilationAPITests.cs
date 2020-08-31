@@ -198,6 +198,7 @@ long _f = 0l;
             options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
                 new TestSyntaxTreeOptionsProvider(
                     StringComparer.Ordinal,
+                    globalOption: default,
                     (tree, new[] { ("cs0078", ReportDiagnostic.Suppress) }))
             );
 

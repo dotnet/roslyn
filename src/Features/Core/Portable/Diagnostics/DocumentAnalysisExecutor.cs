@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -136,6 +137,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AnalysisKind.Semantic => await GetSemanticDiagnosticsAsync(analyzer, isCompilerAnalyzer, cancellationToken).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
+
+            // Remap diagnostic locations, if required.
+            diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
 
 #if DEBUG
             var diags = await diagnostics.ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
@@ -333,6 +337,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 bool shouldInclude(Diagnostic d) => span.Value.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
             }
 #endif
+        }
+
+        private static async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
+            TextDocument textDocument,
+            ImmutableArray<DiagnosticData> diagnostics,
+            CancellationToken cancellationToken)
+        {
+            if (diagnostics.IsEmpty)
+            {
+                return diagnostics;
+            }
+
+            // Check if IWorkspaceVenusSpanMappingService is present for remapping.
+            var diagnosticSpanMappingService = textDocument.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            if (diagnosticSpanMappingService == null)
+            {
+                return diagnostics;
+            }
+
+            // Round tripping the diagnostics should ensure they get correctly remapped.
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(diagnostics.Length, out var builder);
+            foreach (var diagnosticData in diagnostics)
+            {
+                var diagnostic = await diagnosticData.ToDiagnosticAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+                builder.Add(DiagnosticData.Create(diagnostic, textDocument));
+            }
+
+            return builder.ToImmutable();
         }
     }
 }

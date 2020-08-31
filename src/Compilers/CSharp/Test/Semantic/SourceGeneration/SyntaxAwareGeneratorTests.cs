@@ -41,8 +41,8 @@ class C { }
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _, out _);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.IsType<TestSyntaxReceiver>(receiver);
@@ -67,8 +67,8 @@ class C { }
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out var outputCompilation, out _);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
 
             Assert.Null(receiver);
         }
@@ -90,10 +90,10 @@ class C { }
                 onExecute: (e) => { }
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _, out _);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
-            void initialize(InitializationContext initContext)
+            void initialize(GeneratorInitializationContext initContext)
             {
                 initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
                 Assert.Throws<InvalidOperationException>(() =>
@@ -131,8 +131,8 @@ class C
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver.RunFullGeneration(compilation, out _, out _);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.IsType<TestSyntaxReceiver>(receiver);
@@ -171,8 +171,8 @@ class C
                 onExecute: (e) => receiver = e.SyntaxReceiver
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out _, out _);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.IsType<TestSyntaxReceiver>(receiver);
@@ -183,7 +183,7 @@ class C
             Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
 
             var previousReceiver = receiver;
-            driver = driver.RunFullGeneration(compilation, out _, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             Assert.NotNull(receiver);
             Assert.NotEqual(receiver, previousReceiver);
@@ -221,8 +221,8 @@ class C
                 onExecute: (e) => { Assert.True(false); }
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
             Assert.Empty(results.GeneratedTrees);
@@ -265,8 +265,8 @@ class C
                 onExecute: (e) => { e.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)); }
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
             Assert.Empty(results.GeneratedTrees);
@@ -315,8 +315,8 @@ class D
                 onExecute: (e) => { }
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator1, testGenerator2), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator1, testGenerator2 }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
             Assert.DoesNotContain(receiver1.VisitedNodes, n => n is MethodDeclarationSyntax);
@@ -357,8 +357,8 @@ class C
                 onExecute: (e) => { receiver = e.SyntaxReceiver; e.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)); }
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator, testGenerator2), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
             Assert.Single(results.GeneratedTrees);
@@ -408,8 +408,8 @@ class C
                 onExecute: (e) => { Assert.True(false); }
                 );
 
-            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(testGenerator), CompilerAnalyzerConfigOptionsProvider.Empty, ImmutableArray<AdditionalText>.Empty);
-            driver = driver.RunFullGeneration(compilation, out var outputCompilation, out var outputDiagnostics);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
             var results = driver.GetRunResult();
 
             Assert.Null(receiver);

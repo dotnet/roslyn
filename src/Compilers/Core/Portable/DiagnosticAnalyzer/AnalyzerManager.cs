@@ -321,10 +321,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // Compilation wide user settings from ruleset/nowarn/warnaserror overrides the analyzer author.
+                // Global editorconfig settings overrides the analyzer author
+                // Compilation wide user settings (diagnosticOptions) from ruleset/nowarn/warnaserror overrides the analyzer author and global editorconfig settings.
                 // Note that "/warnaserror-:DiagnosticId" adds a diagnostic option with value 'ReportDiagnostic.Default',
                 // which should not alter 'isSuppressed'.
-                if (diagnosticOptions.TryGetValue(diag.Id, out var severity) &&
+                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) ||
+                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, analyzerExecutor.CancellationToken, out severity)) &&
                     severity != ReportDiagnostic.Default)
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;

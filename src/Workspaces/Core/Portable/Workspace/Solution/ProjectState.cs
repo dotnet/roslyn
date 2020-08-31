@@ -355,6 +355,13 @@ namespace Microsoft.CodeAnalysis
                 return options.TreeOptions.TryGetValue(diagnosticId, out severity);
             }
 
+            public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+            {
+                var options = _lazyAnalyzerConfigSet
+                    .GetValue(cancellationToken).GlobalConfigOptions;
+                return options.TreeOptions.TryGetValue(diagnosticId, out severity);
+            }
+
             public override bool Equals(object? obj)
             {
                 return obj is WorkspaceSyntaxTreeOptionsProvider other
