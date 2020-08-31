@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             foreach (var streamTask in list)
             {
                 using var stream = await streamTask.ConfigureAwait(false);
-                Assert.NotNull(stream);
+                AssertEx.NotNull(stream);
                 var readCount = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
                 Assert.Equal(0, readCount);
                 Assert.False(stream.IsConnected);
