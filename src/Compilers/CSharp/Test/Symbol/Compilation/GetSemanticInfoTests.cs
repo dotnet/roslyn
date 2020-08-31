@@ -5789,7 +5789,7 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        public void PartialTypeDiagnostics_Constructors()
+        public void PartialTypeDiagnostics_StaticConstructors()
         {
             var file1 = @"
 partial class C
